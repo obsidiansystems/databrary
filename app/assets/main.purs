@@ -9,3 +9,4 @@ foreign import app :: Module
 
 main = do
   directive "classificationSelect" (annotate ClassificationSelect.directive) app
+  directive "tooltip" (annotate Tooltip.directive) app

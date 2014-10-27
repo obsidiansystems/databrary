@@ -1,15 +1,7 @@
-module Util (
-    UnsafeEff()
-  , unsafeEff
-  , mapRange
-  , unsafeLookup
-  , invertArray
-  , updateScope
-  ) where
+module Util where
 
 import Control.Monad.Eff (Eff())
 import Data.StrMap (StrMap())
-import qualified Angular.Scope as Scope
 
 foreign import data UnsafeEff :: * -> *
 foreign import unsafeEff """
@@ -41,7 +33,4 @@ foreign import invertArray """
       r[a[i]] = i;
     return r;
   }""" :: [String] -> StrMap Number
-
-updateScope :: forall a e . (Object a -> Object a) -> Scope.Scope a -> Scope.ReadWriteEff e Unit
-updateScope f = Scope.modifyScope (return <<< f)
 

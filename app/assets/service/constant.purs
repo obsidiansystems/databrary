@@ -11,6 +11,7 @@ module Constants (
 
 import Data.Array (elemIndex)
 
+-- TODO: Enum instances
 newtype Permission = Permission Number
 newtype Classification = Classification Number
 newtype Consent = Consent Number

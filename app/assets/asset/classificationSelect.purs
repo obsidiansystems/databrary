@@ -2,8 +2,9 @@ module ClassificationSelect (Locals(), directive) where
 
 import Control.Monad.Eff (returnE)
 import Data.Array (findIndex)
-import Angular.Scope (Scope(), ReadWriteEff(), readScope)
-import Util
+import Angular.Scope (ReadWriteEff())
+import Util (mapRange)
+import Ng
 import Constants
 
 type Locals =
@@ -15,8 +16,7 @@ type Locals =
   , update :: forall e . ReadWriteEff e Unit
   )
 
--- link :: forall e . Scope Locals -> ReadWriteEff e Unit
-link scope = updateScope init scope where 
+link scope element = updateScope init scope where 
   update :: Object Locals -> Object Locals
   update s = s { value = findIndex id s.check }
   init :: Object Locals -> Object Locals
@@ -27,13 +27,12 @@ link scope = updateScope init scope where
     , update = updateScope update scope
     }
 
-directive = do
-  returnE {
-    restrict: "E"
+directive = returnE
+  { restrict: "E"
   , templateUrl: "asset/classificationSelect.html"
   , scope: {
       value: "=ngModel"
     , name: "@"
     }
-  , link: unsafeEff <<< link
+  , link: makeLink link
   }
