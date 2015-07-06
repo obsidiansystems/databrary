@@ -21,9 +21,8 @@ import qualified Data.ByteString.Builder.Extra as B (defaultChunkSize)
 import qualified Data.ByteString.Char8 as BSC
 import qualified Data.ByteString.Lazy as BSL
 import Data.Digest.CRC32 (crc32, crc32Update)
-import qualified Data.Foldable as Fold
 import Data.List (foldl')
-import Data.Maybe (isJust, fromMaybe)
+import Data.Maybe (fromMaybe)
 import Data.Monoid (Monoid(..), (<>))
 import Data.Time.Calendar (toGregorian)
 import Data.Time.Clock (UTCTime(..), getCurrentTime)
@@ -65,13 +64,13 @@ blankZipEntry = ZipEntry
   , zipEntryContent = ZipEntryPure BSL.empty
   }
 
-zip64Size :: Word64
-zip64Size = 0xffffffff
-
 infixr 1 ?=
 (?=) :: Num a => Bool -> a -> a
 True ?= x = x
 False ?= _ = 0
+
+zip64Size :: Word64
+zip64Size = 0xffffffff
 
 zip64Ext :: B.Builder
 zip64Ext = B.word16LE 1
@@ -86,13 +85,11 @@ zipTime UTCTime{..} = B.word16LE time <> B.word16LE date where
   date = fromIntegral (year - 1980) `shiftL` 9 .|. fromIntegral month `shiftL` 5 .|. fromIntegral day
   (year, month, day) = toGregorian utctDay
 
-zipVersion :: Bool -> B.Builder
-zipVersion False = B.word16LE 20
-zipVersion True = B.word16LE 45
+zipVersion :: B.Builder
+zipVersion = B.word16LE 45
 
-zipFlags :: Bool -> B.Builder
-zipFlags False = B.word16LE $ bit 3
-zipFlags True = B.word16LE 0
+zipFlags :: B.Builder
+zipFlags = B.word16LE $ bit 3
 
 twice :: Monoid m => m -> m
 twice m = m <> m
@@ -100,7 +97,6 @@ twice m = m <> m
 data ZipCEntry = ZipCEntry
   { zipCEntryPath :: !ZipPath
   , zipCEntryTime :: !UTCTime
-  , zipCEntryKnown :: !Bool
   , zipCEntryCRC32 :: !Word32
   , zipCEntrySize :: !Word64
   , zipCEntryOffset :: !Word64
@@ -128,15 +124,15 @@ sizeZip entries = len + (z64 ?= 76) + 22 where
   sizeZipEntry path' zs ZipEntry{..} =
     case zipEntryContent of
       ZipDirectory l ->
-        sizeZipEntries path (header True 0) l
+        sizeZipEntries path (entry 0) l
       ZipEntryPure b ->
-        header True $ fromIntegral (BSL.length b)
+        entry $ fromIntegral (BSL.length b)
       ZipEntryFile size _ ->
-        header False size
+        entry size
     where
     path = slash zipEntryContent $ path' + fromIntegral (BS.length zipEntryName)
-    header known size = zs <> ZipSize 1
-      (30 + path + (if known then size64 ?= 20 else if size64 then 24 else 16) + size)
+    entry size = zs <> ZipSize 1
+      (30 + path + size + (if size64 then 24 else 16))
       (46 + path + (size64 || off64 ?= 4 + (size64 ?= 16) + (off64 ?= 8)) + fromIntegral (BS.length zipEntryComment))
       where size64 = size >= zip64Size
     off64 = zipSizeData zs >= zip64Size
@@ -152,7 +148,7 @@ streamZip entries comment write = do
     $ B.word32LE 0x06064b50
     <> B.word64LE 44 -- length of this record
     <> B.word16LE 63
-    <> zipVersion True
+    <> zipVersion
     <> B.word32LE 0 -- disk
     <> B.word32LE 0 -- central disk
     <> twice (B.word64LE $ fromIntegral count)
@@ -184,43 +180,40 @@ streamZip entries comment write = do
     off <- get
     let path = slash zipEntryContent $ path' <> zipEntryName
         time = fromMaybe time' zipEntryTime
-        central k c s = tell [ZipCEntry
-          { zipCEntryPath = path
-          , zipCEntryTime = time
-          , zipCEntryKnown = k
-          , zipCEntryCRC32 = c
-          , zipCEntrySize = s
-          , zipCEntryOffset = off
-          , zipCEntry = z
-          }]
-        header desc = do
-          send (30 + fromIntegral (BS.length path) + fromIntegral el + s)
-            $ B.word32LE 0x04034b50
-            <> zipVersion (z64 || off >= zip64Size)
-            <> zipFlags known
-            <> B.word16LE 0 -- compression
-            <> zipTime time
+        footer c s = do
+          modify' (s +)
+          send (if z64 then 24 else 16) -- this seems weird but it's what openjdk's ZipOutputStream does
+            $ B.word32LE 0x08074b50
             <> B.word32LE c
-            <> twice (zipSize s)
-            <> B.word16LE (fromIntegral $ BS.length path)
-            <> B.word16LE el
-            <> B.byteString path
-            <> (if z64 then zip64Ext <> B.word16LE 16 <> twice (B.word64LE s) else mempty)
-          Fold.mapM_ (uncurry $ central True) desc
-          where
-          known = isJust desc
-          (c, s) = fromMaybe (0, 0) desc
-          z64 = s >= zip64Size
-          el = z64 ?= 20
+            <> twice ((if z64 then B.word64LE else B.word32LE . fromIntegral) s)
+          tell [ZipCEntry
+            { zipCEntryPath = path
+            , zipCEntryTime = time
+            , zipCEntryCRC32 = c
+            , zipCEntrySize = s
+            , zipCEntryOffset = off
+            , zipCEntry = z
+            }]
+          where z64 = s >= zip64Size
+    send (30 + fromIntegral (BS.length path))
+      $ B.word32LE 0x04034b50
+      <> zipVersion
+      <> zipFlags
+      <> B.word16LE 0 -- compression
+      <> zipTime time
+      <> B.word32LE 0 -- crc32
+      <> twice (B.word32LE 0) -- size
+      <> B.word16LE (fromIntegral $ BS.length path)
+      <> B.word16LE 0 -- extra length
+      <> B.byteString path
     case zipEntryContent of
       ZipDirectory l -> do
-        header $ Just (0, 0)
+        footer 0 0
         local (\_ -> (path, time)) $ streamZipEntries l
       ZipEntryPure b -> do
-        header $ Just (crc32 b, fromIntegral $ BSL.length b)
         liftIO $ write $ B.lazyByteString b
+        footer (crc32 b) (fromIntegral $ BSL.length b)
       ZipEntryFile size f -> do
-        header Nothing
         let run c 0 _ = return c
             run c s h = do
               b <- BS.hGetSome h (fromIntegral $ min s $ fromIntegral B.defaultChunkSize)
@@ -228,14 +221,7 @@ streamZip entries comment write = do
               write $ B.byteString b
               run (crc32Update c b) (s - fromIntegral (BS.length b)) h
         c <- liftIO $ withBinaryFile (toFilePath f) ReadMode $ run 0 size
-        modify' (size +)
-        let s64 = size >= zip64Size
-        send (if s64 then 24 else 16)
-          $ B.word32LE 0x08074b50
-          <> B.word32LE c
-          <> twice ((if s64 -- this seems weird but it's what openjdk's ZipOutputStream does
-            then B.word64LE else B.word32LE . fromIntegral) size)
-        central False c size
+        footer c size
   streamZipCEntry ZipCEntry{..} = do
     let z64 = e64 /= 0
         e64 = (zipCEntrySize >= zip64Size ?= 16) + (zipCEntryOffset >= zip64Size ?= 8)
@@ -243,8 +229,8 @@ streamZip entries comment write = do
     send (fromIntegral $ 46 + BS.length zipCEntryPath + fromIntegral el + BS.length (zipEntryComment zipCEntry))
       $ B.word32LE 0x02014b50
       <> B.word16LE 63 -- version
-      <> zipVersion z64
-      <> zipFlags zipCEntryKnown
+      <> zipVersion
+      <> zipFlags
       <> B.word16LE 0 -- compression
       <> zipTime zipCEntryTime
       <> B.word32LE zipCEntryCRC32
