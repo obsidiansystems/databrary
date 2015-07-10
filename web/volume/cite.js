@@ -24,6 +24,23 @@ app.directive('citeVolume', [
         return author;
       });
 
+      var runBibTeX = function(){
+        var bibTeXString = "{\n";
+        bibTeXString += " author  = " + $scope.authors + ",\n";
+        bibTeXString += " title   = " + $scope.volume + ", \n";
+        bibTeXString += "}";
+        return bibTeXString; 
+      };
+
+      var runRIS = function(){};
+      
+      $scope.getCitation = function(citationType){
+        if(citationType == 'bibtex'){
+          return runBibTeX(); 
+        } else if (citationType == 'RIS'){
+          return runRIS(); 
+        }
+      }; 
       authors.push(authors.splice(-2, 2).join(' & '));
       $scope.authors = authors.join(', ');
       $scope.today = new Date();
