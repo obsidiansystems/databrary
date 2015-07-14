@@ -29,7 +29,7 @@ import qualified Data.Text as T
 import qualified Network.Wai as Wai
 
 import Databrary.Ops
-import Databrary.Has (view, peeks, peek)
+import Databrary.Has (view, peeks, peek, focusIO)
 import qualified Databrary.JSON as JSON
 import Databrary.Service.DB
 import Databrary.Model.Enum
@@ -185,7 +185,7 @@ viewVolume = action GET (pathAPI </> pathId) $ \(api, vi) -> withAuth $ do
   v <- getVolume PermissionPUBLIC vi
   case api of
     JSON -> okResponse [] =<< volumeJSONQuery v =<< peeks Wai.queryString
-    HTML -> okResponse [] $ volumeName v -- TODO
+    HTML -> okResponse [] =<< peeks (htmlVolumeView v)
 
 volumeForm :: (Functor m, Monad m) => Volume -> DeformT f m Volume
 volumeForm v = do
@@ -207,7 +207,7 @@ volumeCitationForm v = do
     <*> ("url" .:> deformNonEmpty deform)
     <*> ("year" .:> deformNonEmpty deform)
     <$- Nothing
-  look <- flatMapM (lift . lookupCitation) $
+  look <- flatMapM (lift . focusIO . lookupCitation) $
     guard (T.null (volumeName vol) || T.null (citationHead cite) || isNothing (citationYear cite)) >> citationURL cite
   let fill = maybe cite (cite <>) look
       empty = T.null (citationHead fill) && isNothing (citationURL fill) && isNothing (citationYear fill)
