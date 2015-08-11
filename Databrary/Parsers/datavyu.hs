@@ -9,21 +9,43 @@ import Debug.Trace
 import qualified Data.Text.IO as T
 import qualified Data.ByteString.Char8 as B
 
+type Name = String
+type Type = String
+type Version = String
 
 data Value = Value String deriving (Show, Eq)
 
-data Argument = Argument String String deriving (Show, Eq)
+data Argument = Argument Name Type deriving (Show, Eq)
 
-data Cell = Cell String String [Value] deriving (Show, Eq)
+data Timestamp = Timestamp String String String String deriving (Show, Eq)
 
-data Column = Column String String [Argument] [Cell] deriving (Show, Eq)
+data Cell = Cell Int Int [Value] deriving (Show, Eq)
+
+data Column = Column Name Type [Argument] [Cell] deriving (Show, Eq)
 
 data Spreadsheet = Spreadsheet Version [Column] deriving (Show, Eq)
 
-data Version = Version String deriving (Show, Eq)
+timestampToMs :: Timestamp -> Int
+timestampToMs (Timestamp h m s ms) = (read h :: Int) * 60^2 * 1000
+                                      + (read m :: Int) * 60 * 1000
+                                      + (read s :: Int) * 1000
+                                      + (read ms :: Int)
+
+timestampParser :: Parser Timestamp
+timestampParser = do
+    hours <- count 2 digit
+    char ':'
+    minutes <- count 2 digit
+    char ':'
+    seconds <- count 2 digit
+    char ':'
+    milliseconds <- count 3 digit
+    trace(show milliseconds) char ','
+    return $ Timestamp hours minutes seconds milliseconds
 
 argParser :: Parser Argument
 argParser = do
+    Data.Attoparsec.Text.takeWhile (`elem` ",")
     name <- many $ satisfy (`notElem` "\n|")
     char '|'
     colType <- many $ satisfy (`notElem` ",\n")
@@ -47,18 +69,16 @@ cellValueParser = do
 
 cellParser :: Parser Cell
 cellParser = do
-    onset <- many $ notChar ','
-    char ','
-    offset <- many $ notChar ','
-    char ','
+    onset <- timestampParser
+    offset <- timestampParser
     values <- cellValueParser
-    return $ Cell onset offset values
+    return $ Cell (timestampToMs onset) (timestampToMs offset) values
 
 versionParser :: Parser Version
 versionParser = do
     version <- many $ notChar '\n'
     char '\n'
-    return $ Version version
+    return $ version
 
 columnParser :: Parser Column
 columnParser = do
