@@ -5,7 +5,7 @@ module Databrary.Model.Volume.Types
   , MonadHasVolume
   , blankVolume
   ) where
-
+import Data.Time.Clock.POSIX
 import qualified Data.ByteString as BS
 import qualified Data.Text as T
 import Data.Time.Clock.POSIX (posixSecondsToUTCTime)

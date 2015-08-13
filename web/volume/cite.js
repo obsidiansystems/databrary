@@ -1,8 +1,8 @@
 'use strict';
 
 app.directive('citeVolume', [
-  'constantService', 'routerService', '$location',
-  function (constants, router, $location) {
+  'constantService', 'routerService', '$location','page',
+  function (constants, router, $location, page) {
     var link = function ($scope) {
       var volume = $scope.volume;
 
@@ -24,17 +24,44 @@ app.directive('citeVolume', [
         return author;
       });
 
+      var runRIS = function(){
+        var route = {
+          route: '/citation/ris',
+          method: 'GET'
+        };
+
+        var routePromise = router.http(route, {id: $scope.volume.id});
+
+        routePromise.then(function(data){
+          $scope.citeText = data;
+        }, function(err){
+          console.log("Error:", err);
+        });
+      }; 
+      
       var runBibTeX = function(){
-        var bibTeXString = "{\n";
-        bibTeXString += " author  = " + $scope.authors + ",\n";
-        bibTeXString += " title   = " + $scope.volume + ", \n";
-        bibTeXString += "}";
-        return bibTeXString; 
+        var route = {
+          route: '/citation/bibtex',
+          method: 'GET'
+        };
+
+        var routePromise = router.http(route, $scope.volume);
+
+        routePromise.then(function(data){
+          $scope.citeText = data; 
+        }, function(error){
+          console.log("Error: ", error);
+        }); 
+        
+        // var bibTeXString = "@data{\n";
+        // bibTeXString += " author  = " + $scope.authors + ",\n";
+        // bibTeXString += " title   = " + $scope.volume + ", \n";
+        // bibTeXString += "}";
+        // return bibTeXString; 
       };
 
-      var runRIS = function(){};
-      
       $scope.getCitation = function(citationType){
+        
         if(citationType == 'bibtex'){
           return runBibTeX(); 
         } else if (citationType == 'RIS'){
