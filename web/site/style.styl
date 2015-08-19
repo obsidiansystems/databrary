@@ -1,0 +1,52 @@
+// GRID
+.style-grid
+  background-color neutral
+  border 1px solid green
+  height 50px
+
+// COLOR
+.style-color
+  position relative
+  display inline-block
+  height 130px
+  min-width 200px
+  margin b8
+  padding b8
+  vertical-align top
+  .swatch
+    size 50px
+    margin-left b8
+    position relative
+    display inline-block
+
+swatch(color)
+  color color
+  .swatch
+    background-color color
+    &.c51
+      background-color mix(color, white, 25%)
+    &.c52
+      background-color mix(color, white, 50%)
+    &.c53
+      background-color mix(color, white, 75%)
+    &.c11
+      background-color mix(color, black, 25%)
+    &.c12
+      background-color mix(color, black, 50%)
+    &.c13
+      background-color mix(color, black, 75%)
+
+.style-color
+  &.red
+    swatch(red)
+  &.orange
+    swatch(orange)
+  &.yellow
+    swatch(yellow)
+  &.green
+    swatch(green)   
+  &.blue
+    swatch(blue)
+  &.purple
+    swatch(purple)
+    

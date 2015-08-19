@@ -1,0 +1,39 @@
+<h1 class="view-title">Databrary Style Guide</h1>
+
+<ul>
+  <li>Grid</li>
+  <li>Color</li>
+  <li>Typography</li>
+  <li>Headers</li>
+  <li>Buttons</li>
+  <li>etc</li>
+  <li>I don't know what those are</li>
+</ul>
+
+<section id="style-grid">
+  <h3 class="panel-title smaller">Grid</h3>
+  <p>
+    Pages are divided into grids of 15 for desktop width (1216px), 9 for tablet width (976px), and 6 for mobile width (630px). Change the width of the page to see the split below:
+  </p>
+  <div ng-init="grids=[{name:'mobile',col:6,classes:'hide-desktop hide-tablet'},{name:'tablet',col:9,classes:'hide-desktop hide-mobile'},{name:'desktop',col:15,classes:'hide-tablet hide-mobile'}]">
+    <div class="row" ng-repeat="g in grids">
+      <div class="style-grid {{g.classes}} col-{{g.name}}-1" ng-repeat="col in (new Array(g.col)) track by $index">
+    </div>
+  </div>
+</section>
+
+<section id="style-color" ng-init="colors=[{name:'green',hex:'#60a99b',note:'Primary color of the site'
+    },{name:'orange',hex:'#d37433',note:'Supplementary color: dynamic selections and highlights'},{name:'blue',hex:'#5caabc',reminder:'',note:'Reminder, informational'},{name:'yellow',    hex:'#d1ca00',attention:'',note:'Requires attention'},{name:'red',hex:'#f26363',note:'Urgent warning'
+    },{name:'purple',hex:'#9a8cec'}]">
+  <h3 class="panel-title smaller">Color</h3>
+
+  <div ng-repeat="c in colors">
+    <span ng-bind="c.note"></span><br>
+    <div class="style-color {{c.name}}">
+      <div class="swatch"></div>{{c.name}} {{c.hex}}<br>
+      <div class="swatch {{w}}" ng-repeat="w in ['c51','c52','c53']"></div>
+      <div class="swatch {{b}}" ng-repeat="b in ['c11','c12','c13']"></div>
+    </div>
+  </div>
+
+</section>

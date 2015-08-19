@@ -404,6 +404,10 @@ app.provider('routerService', [
     routes.assetThumb = makeRoute(controllers.thumbAssetSegment, ['cid', 'segment', 'id', 'size']);
     routes.assetDownload = makeRoute(controllers.downloadAssetSegment, ['cid', 'segment', 'id', 'inline']);
 
+    $routeProvider.when('/style', {
+      templateUrl: 'site/style.html'
+    });
+
     $routeProvider.otherwise('/');
 
     //
