@@ -38,7 +38,7 @@ data Party = Party
   }
 
 data Account = Account
-  { accountEmail :: T.Text
+  { accountEmail :: BS.ByteString
   , accountParty :: Party
   }
 
@@ -49,8 +49,7 @@ instance Has Access Party where
   view Party{ partyAccess = Just a } = a
   view _ = mempty
 instance Has Permission Party where
-  view Party{ partyPermission = p, partyAccess = Just a } = p `max` accessPermission' a
-  view Party{ partyPermission = p } = p
+  view = partyPermission
 
 instance Kinded Party where
   kindOf _ = "party"

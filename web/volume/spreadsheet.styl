@@ -1,6 +1,6 @@
-.release-legend
+.spreadsheet-dynamic-info
   margin-bottom 30px
-  ul
+  .release-legend
     hide
     margin-bottom 0
     li
@@ -37,7 +37,7 @@
     td.folder-type:hover
       cursor pointer
     .input-completer-choices
-      background-color rgba(255,255,255,0.8)
+      background-color rgba(255,255,255,0.85)
 
 .spreadsheet-table
   width auto
@@ -116,6 +116,7 @@
     background-position 40px
 
   td.null
+    color neutral11
     background-color gray
     font-size 0.8em
     text-align center
@@ -181,12 +182,16 @@
       left 0
       right 0
       margin-top b8
+      z-index -1
 
     &.col-materials
       min-width 240px
 
     &.col-800
       min-width 78px
+    
+    .icon.list:hover
+      opacity 0.4
 
 
 .spreadsheet-head-metrics

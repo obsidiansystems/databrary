@@ -99,16 +99,16 @@ volumeCSV vol crsl = do
       crl = map (second $ map (nubBy ((==) `on` recordId)) . groupBy ((==) `on` recordCategory) . map (grm . slotRecord)) crsl
       hl = map (\(c, n) -> (c, replicate n $ maybe [] (map getMetric') $ lookup (recordCategoryId c) cols)) $
         foldl' updateHeaders [] $ map snd crl
-      cr c r = tshow (containerId c) : tmaybe tenc (containerName c) : tmaybe BSC.pack (formatContainerDate c) : tmaybe tshow (containerRelease c) : dataRow hl r
+      cr c r = tshow (containerId c) : tmaybe tenc (containerName c) : maybe (if containerTop c then "materials" else BS.empty) BSC.pack (formatContainerDate c) : tmaybe tshow (containerRelease c) : dataRow hl r
       hr = "session-id" : "session-name" : "session-date" : "session-release" : headerRow hl
   return $ buildCSV $ hr : map (uncurry cr) crl
 
-csvVolume :: AppRoute (Id Volume)
+csvVolume :: ActionRoute (Id Volume)
 csvVolume = action GET (pathId </< "csv") $ \vi -> withAuth $ do
   vol <- getVolume PermissionPUBLIC vi
   r <- lookupVolumeContainersRecords vol
   csv <- volumeCSV vol r
-  okResponse 
+  return $ okResponse 
     [ (hContentType, "text/csv;charset=utf-8")
     , ("content-disposition", "attachment; filename=" <> quoteHTTP (makeFilename (volumeDownloadName vol) <> ".csv"))
     ] csv

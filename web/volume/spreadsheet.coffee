@@ -411,7 +411,7 @@ app.directive 'spreadsheet', [
             records[r] = populateRecord(record)
 
           nor = undefined
-          for s, slot of volume.containers when Top != !slot.top
+          for s, slot of volume.containers when Top != !slot.top && slot.id != volume.top.id
             recs = slot.records
             any = false
             for rr in recs when (row = records[rr.id])
@@ -442,6 +442,7 @@ app.directive 'spreadsheet', [
           Rows[-1] = foot if foot
           populateCols(bySlot)
           generate()
+          tooltips.clear()
           return
 
         ################################# Generate HTML
@@ -517,8 +518,8 @@ app.directive 'spreadsheet', [
           return
 
         generateAdd = (info, td) ->
-          width = info.cols.metrics.length
           info.m = info.cols.start
+          width = info.width || info.cols.metrics.length
           if typeof info.metric.id == 'number' && info.metric.type != 'void'
             info.id = ID+'-'+info.i+'_'+info.cols.start+(if info.hasOwnProperty('n') then '_'+info.n else '')
             info.cell = info.tr.appendChild(document.createElement('td'))
@@ -530,6 +531,7 @@ app.directive 'spreadsheet', [
             else
               info.tr.removeChild(td)
           else
+            td.setAttribute("colspan", width)
             td.classList.add('add')
             td.id = ID + '-add_' + info.i + '_' + info.c
             td.appendChild(document.createTextNode("add " + info.category.name))
@@ -604,6 +606,7 @@ app.directive 'spreadsheet', [
           td = info.tr.appendChild(document.createElement('td'))
           td.setAttribute("colspan", info.cols.metrics.length)
           td.className = 'null'
+          info.width = Cols.length
           generateAdd(info, td)
 
         # Update all age displays.
@@ -1061,7 +1064,7 @@ app.directive 'spreadsheet', [
           if !info.t
             for c in info.cell.classList when c.startsWith('ss-')
               styles.set('.' + c + '{background-color:' +
-                (if c.includes('_', 4) then 'rgba(226,217,0,0.6)' else 'rgba(242,238,100,0.4)') +
+                (if c.includes('_', 4) then 'rgba(243,180,140,0.7)' else 'rgba(243,180,140,0.4)') +
                 ';\n text-}')
               info.cell.classList.add('selected')
 
@@ -1192,12 +1195,13 @@ app.directive 'spreadsheet', [
         ################################# main
 
         $scope.setKey = (key) ->
-          Key = $scope.key = key? && getCategory(key) || pseudoCategory.slot
           unedit()
+          Key = $scope.key = key? && getCategory(key) || pseudoCategory.slot
+          $location.replace().search('key', Key.id) unless Top
           populate()
           $scope.tabOptionsClick = undefined
 
-        $scope.setKey($attrs.key)
+        $scope.setKey($attrs.key || !Top && $location.search().key)
         return
 
     ]

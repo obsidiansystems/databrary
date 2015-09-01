@@ -14,18 +14,18 @@
         </div>
         <ul>
           <li ng-repeat="v in ::vl" ng-class="{'profile-highlight': !!v.selected}">
+            <div class="profile-left-icons hide-mobile">
+              <span ng-click="v.select()" class="icon" ng-class="v.class()" tooltip="'Click to highlight ' + ('profile.volumes.selected' | message:'this volume')"></span>
+            </div>
             <div class="profile-right-icons">
               <span class="icon access1" ng-show="::v.volume.accessPreset" tooltip="'access.preset.title'+v.volume.accessPreset | message"></span>
-              <span class="icon" ng-class="::{'network': v.self.children}" tooltip="::v.self.children? 'Your group affiliates have access' : 'Your group affiliates do not have access'"></span>
+              <span class="icon" ng-class="::{'network': v.self.children}" tooltip="v.self.children? 'Your group affiliates have access' : 'Your group affiliates do not have access'"></span>
               <span class="icon user-access" ng-class="::page.constants.permission[v.volume.permission]" tooltip="'access.'+page.constants.permission[v.volume.permission] | message:'You'"></span>
-            </div>
-            <div class="profile-left-icons hide-mobile">
-              <span ng-click="v.select()" class="icon" ng-class="v.class()"></span>
             </div>
 
             <div class="profile-link">
               <a ng-href="{{::v.volume.route()}}" ng-bind="::v.volume.displayName"></a>
-              <a ng-href="{{::v.volume.route()}}" class="button mini profile-hover-link">Rolly polly dylan head</a> 
+              <a ng-if="::v.volume.checkPermission(page.constants.permission.EDIT)" href="" ng-click="v.edit()" class="icon edit button mini profile-hover-link"></a> 
             </div>
 
           </li>
@@ -44,14 +44,14 @@
         <ul>
           <li ng-repeat="p in ::parties.parents" ng-class="{'profile-highlight': !!p.selected}">
             <div class="profile-left-icons hide-mobile">
-              <span ng-click="p.select()" class="icon" ng-class="p.class()"></span>
+              <span ng-click="p.select()" class="icon" ng-class="p.class()" tooltip="'Click to highlight ' + ('profile.parties.selected' | message:'this individual')"></span>
             </div>
 
             <div class="profile-link">
               <a ng-href="{{::p.party.route()}}" ng-bind="::p.party.name"></a><wbr>
               <span ng-if="::!(p.parent.member || p.parent.site)" class="permission-auth-pending" message="auth.pending"></span>
               <span ng-if="::(p.parent.member || p.parent.site)" class="permission-auth-expiration" ng-bind="::p.parent.expires | date:'yyyy/MM/dd'" ng-class="::{expired:isExpired(p.parent)}"></span><wbr>
-              <a ng-href="{{::p.party.route()}}" class="button mini profile-hover-link">dylandylan</a>
+              <a href="" ng-click="p.edit('apply')" class="icon edit button neutral profile-hover-link"></a>
               <br>
             </div>
             <div ng-if="::p.parent.site" class="profile-additional">
@@ -67,25 +67,26 @@
           <strong>Affiliates</strong>
           <a ng-href="{{::party.editRoute('grant')}}" class="button icon edit neutral"></a>
         </div>
-        <div ng-repeat="(member, cl) in ::parties.children track by member" ng-if="::cl.length">
+        <div ng-repeat="(member, cl) in ::parties.children track by member" ng-if="::cl.length" ng-class="{'profile-affiliate-highlight': member && selected.self.children}">
           <div class="profile-subsection-header">
-            <strong ng-bind="::'auth.member.'+page.constants.permission[member]+'.title' | message"></strong> 
-            <span ng-bind="::': '+('auth.member.'+page.constants.permission[member] | possessive:party)"></span> 
+            <span ng-if="member" class="icon network"></span> 
+            <strong ng-bind="::'auth.member.'+page.constants.permission[member]+'.title' | message"></strong>: 
+            <span ng-bind="::'auth.member.'+page.constants.permission[member] | possessive:party"></span> 
           </div>     
           <ul>
             <li ng-repeat="p in cl" ng-class="{'profile-highlight': !!p.selected}">
+              <div class="profile-left-icons hide-mobile">
+                <span ng-click="p.select()" class="icon" ng-class="p.class()" tooltip="'Click to highlight ' + ('profile.parties.selected' | message:'this individual')"></span>
+              </div>
               <div class="profile-right-icons">
                 <span class="icon site" ng-class="::page.constants.permission[p.child.site]" tooltip="('auth.site.'+page.constants.permission[p.child.site]+'.title' | message)+': '+('auth.site.'+page.constants.permission[p.child.site] | possessive:party)"></span>
-              </div>
-              <div class="profile-left-icons hide-mobile">
-                <span ng-click="p.select()" class="icon" ng-class="p.class()"></span>
               </div>
 
               <div class="profile-link">
                 <a ng-href="{{::p.party.route()}}" ng-bind="::p.party.name"></a><wbr>
                 <span ng-if="::!(p.child.member || p.child.site)" class="permission-auth-pending" message="auth.pending"></span>
                 <span ng-if="::(p.child.member || p.child.site)" class="permission-auth-expiration" ng-bind="::p.child.expires | date:'yyyy/MM/dd'" ng-class="::{expired:isExpired(p.child)}"></span><wbr>
-                <a ng-href="{{::v.volume.route()}}" class="button mini profile-hover-link">dylandylan</a>
+                <a href="" ng-click="p.edit('grant')" class="icon edit button mini profile-hover-link"></a>
               </div>
             </li>
           </ul>
@@ -99,12 +100,12 @@
         <ul>
           <li ng-repeat="p in ::parties.collaborators" ng-class="{'profile-highlight': !!p.selected}">
             <div class="profile-left-icons hide-mobile">
-              <span ng-click="p.select()" class="icon" ng-class="p.class()"></span>
+              <span ng-click="p.select()" class="icon" ng-class="p.class()" tooltip="'Click to highlight ' + ('profile.parties.selected' | message:'this individual')"></span>
             </div>
 
             <div class="profile-link">
               <a ng-href="{{::p.party.route()}}" ng-bind="::p.party.name"></a><wbr>
-              <a ng-href="{{::v.volume.route()}}" class="button mini profile-hover-link">dylandylan</a>
+              <a ng-if="editable" href="" ng-click="p.edit()" class="profile-hover-link icon edit button"></a>
             </div>
           </li>
         </ul>

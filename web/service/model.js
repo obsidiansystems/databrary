@@ -337,7 +337,7 @@ app.factory('modelService', [
     };
 
     Model.prototype.checkPermission = function (level) {
-      return this.permission >= level || Login.user.superuser;
+      return this.permission >= level;
     };
 
     /* a little hacky, but to get people SUPER on themselves: */
@@ -357,8 +357,6 @@ app.factory('modelService', [
       get: 'getUser',
       login: 'postLogin',
       logout: 'postLogout',
-      // superuserOn: 'superuserOn',
-      // superuserOff: 'superuserOff'
     }, function(api, f){
       Login[f] = function (data) {
         return router.http(router.controllers[api], data).then(loginRes);
@@ -1105,7 +1103,7 @@ app.factory('modelService', [
         this.volume = context;
         Model.call(this, init);
       }
-      this.volume.assets[init.id] = this;
+      this.volume.assets[this.id] = this;
     }
 
     Asset.prototype = Object.create(AssetSlot.prototype);
@@ -1199,9 +1197,9 @@ app.factory('modelService', [
       var a = this;
       return router.http(router.controllers.postAsset, this.id, data)
         .then(function (res) {
-          if (a.container)
-            a.container.clear('assets');
-          return assetMake(a.container || a.volume, res.data);
+          a.id = res.data.id;
+          a.volume.assets[a.id] = a;
+          return a.update(res.data);
         });
     };
 
