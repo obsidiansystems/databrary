@@ -6,6 +6,7 @@ module Databrary.Model.Party
   , partyName
   , partyEmail
   , lookupParty
+  , lookupPartyAuthorizations
   , lookupAuthParty
   , lookupSiteAuthByEmail
   , changeParty
@@ -54,8 +55,6 @@ import Databrary.Model.Party.Types
 import Databrary.Model.Party.SQL
 import Databrary.Model.Party.Boot
 
-useTPG
-
 nobodyParty, rootParty :: Party
 nobodyParty = $(loadParty (Id (-1)) PermissionREAD)
 rootParty = $(loadParty (Id 0) PermissionSHARED)
@@ -78,7 +77,6 @@ partyJSON :: Party -> JSON.Object
 partyJSON p@Party{..} = JSON.record partyId $ catMaybes
   [ Just $ "sortname" JSON..= partySortName
   , ("prename" JSON..=) <$> partyPreName
-  , Just $ "name" JSON..= partyName p
   , ("orcid" JSON..=) . show <$> partyORCID
   , ("affiliation" JSON..=) <$> partyAffiliation
   , ("url" JSON..=) <$> partyURL
@@ -120,22 +118,27 @@ removeParty p = do
 
 lookupFixedParty :: Id Party -> Identity -> Maybe Party
 lookupFixedParty (Id (-1)) _ = Just nobodyParty
-lookupFixedParty (Id 0) i = Just rootParty{ partyAccess = accessMember i > PermissionNONE ?> view i }
+lookupFixedParty (Id 0) i = Just rootParty{ partyPermission = accessPermission i `max` PermissionSHARED, partyAccess = accessMember i > PermissionNONE ?> view i }
 lookupFixedParty i a = view a <? (i == view a)
 
-lookupParty :: (MonadDB m, MonadHasIdentity c m) => Id Party -> m (Maybe Party)
+lookupParty :: (MonadDB c m, MonadHasIdentity c m) => Id Party -> m (Maybe Party)
 lookupParty i = do
   ident <- peek
   lookupFixedParty i ident `orElseM`
     dbQuery1 $(selectQuery (selectParty 'ident) "$WHERE party.id = ${i}")
 
-lookupAuthParty :: (MonadDB m, MonadHasIdentity c m) => Id Party -> m (Maybe Party)
+lookupPartyAuthorizations :: (MonadDB c m, MonadHasIdentity c m) => m [(Party, Maybe Permission)]
+lookupPartyAuthorizations = do
+  ident <- peek
+  dbQuery $(selectQuery (selectPartyAuthorization 'ident) "WHERE party.id > 0")
+
+lookupAuthParty :: (MonadDB c m, MonadHasIdentity c m) => Id Party -> m (Maybe Party)
 lookupAuthParty i = do
   ident <- peek
   lookupFixedParty i ident `orElseM`
     dbQuery1 $(selectQuery (selectAuthParty 'ident) "$WHERE party.id = ${i}")
 
-lookupSiteAuthByEmail :: MonadDB m => Bool -> BS.ByteString -> m (Maybe SiteAuth)
+lookupSiteAuthByEmail :: MonadDB c m => Bool -> BS.ByteString -> m (Maybe SiteAuth)
 lookupSiteAuthByEmail ic e = do
   r <- dbQuery1 $(selectQuery selectSiteAuth "WHERE account.email = ${e}")
   if ic && isNothing r
@@ -147,13 +150,13 @@ lookupSiteAuthByEmail ic e = do
     else
       return r
 
-auditAccountLogin :: (MonadHasRequest c m, MonadDB m) => Bool -> Party -> BS.ByteString -> m ()
+auditAccountLogin :: (MonadHasRequest c m, MonadDB c m) => Bool -> Party -> BS.ByteString -> m ()
 auditAccountLogin success who email = do
   ip <- getRemoteIp
   dbExecute1' [pgSQL|INSERT INTO audit.account (audit_action, audit_user, audit_ip, id, email) VALUES
     (${if success then AuditActionOpen else AuditActionAttempt}, -1, ${ip}, ${partyId who}, ${email})|]
 
-recentAccountLogins :: MonadDB m => Party -> m Int64
+recentAccountLogins :: MonadDB c m => Party -> m Int64
 recentAccountLogins who = fromMaybe 0 <$>
   dbQuery1 [pgSQL|!SELECT count(*) FROM audit.account WHERE audit_action = 'attempt' AND id = ${partyId who} AND audit_time > CURRENT_TIMESTAMP - interval '1 hour'|]
 
@@ -190,13 +193,13 @@ partyFilter PartyFilter{..} ident = BS.concat
     | showEmail ident = "(COALESCE(prename || ' ', '') || name || COALESCE(' ' || email, ''))"
     | otherwise = "(COALESCE(prename || ' ', '') || name)"
 
-findParties :: (MonadHasIdentity c m, MonadDB m) => PartyFilter -> m [Party]
+findParties :: (MonadHasIdentity c m, MonadDB c m) => PartyFilter -> m [Party]
 findParties pf = do
   ident <- peek
   dbQuery $ unsafeModifyQuery $(selectQuery (selectParty 'ident) "")
     (<> partyFilter pf ident)
 
-lookupAvatar :: MonadDB m => Id Party -> m (Maybe Asset)
+lookupAvatar :: MonadDB c m => Id Party -> m (Maybe Asset)
 lookupAvatar p =
   dbQuery1 $ ($ coreVolume) <$> $(selectQuery selectVolumeAsset $ "$JOIN avatar ON asset.id = avatar.asset WHERE avatar.party = ${p} AND asset.volume = " ++ pgLiteralString (volumeId coreVolume))
 

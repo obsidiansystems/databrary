@@ -1,10 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Databrary.Action
   ( Request
-  , Context
+  , RequestContext
   , ActionM
   , Action
-  , MonadAction
 
   , Response
   , response
@@ -18,13 +17,11 @@ module Databrary.Action
   , maybeAction
 
   , module Databrary.Action.Route
-  , ActionRoute
 
   , withAuth
   , runActionRoute
   ) where
 
-import Control.Monad.IO.Class (MonadIO)
 import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Lazy as BSL
 import Data.Maybe (fromMaybe)
@@ -38,7 +35,7 @@ import Databrary.Action.Response
 import Databrary.Action.Route
 import Databrary.Service.Types
 import Databrary.HTTP.Route
-import {-# SOURCE #-} Databrary.View.Error
+import Databrary.View.Error
 
 redirectRouteResponse :: Status -> ResponseHeaders -> Route r a -> a -> Request -> Response
 redirectRouteResponse s h r a req =
@@ -47,17 +44,15 @@ redirectRouteResponse s h r a req =
 otherRouteResponse :: ResponseHeaders -> Route r a -> a -> Request -> Response
 otherRouteResponse = redirectRouteResponse seeOther303
 
-forbiddenResponse :: Context -> Response
+forbiddenResponse :: RequestContext -> Response
 forbiddenResponse = response forbidden403 [] . htmlForbidden
 
-notFoundResponse :: Context -> Response
+notFoundResponse :: RequestContext -> Response
 notFoundResponse = response notFound404 [] . htmlNotFound
 
-maybeAction :: (MonadAction q m, MonadIO m) => Maybe a -> m a
+maybeAction :: Maybe a -> ActionM a
 maybeAction (Just a) = return a
 maybeAction Nothing = result =<< peeks notFoundResponse
-
-type ActionRoute a = Route Action a
 
 runActionRoute :: RouteMap Action -> Service -> Wai.Application
 runActionRoute rm rc req = runAction rc

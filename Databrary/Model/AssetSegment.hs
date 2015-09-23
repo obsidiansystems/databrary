@@ -4,6 +4,7 @@ module Databrary.Model.AssetSegment
   , lookupAssetSegment
   , lookupSlotAssetSegment
   , lookupAssetSlotSegment
+  , lookupSlotSegmentThumb
   , auditAssetSegmentDownload
   , assetSegmentJSON
   , assetSegmentInterp
@@ -32,23 +33,32 @@ import Databrary.Model.AssetSlot
 import Databrary.Model.AssetSegment.Types
 import Databrary.Model.AssetSegment.SQL
 
-lookupAssetSegment :: (MonadHasIdentity c m, MonadDB m) => Segment -> Id Asset -> m (Maybe AssetSegment)
+lookupAssetSegment :: (MonadHasIdentity c m, MonadDB c m) => Segment -> Id Asset -> m (Maybe AssetSegment)
 lookupAssetSegment seg ai = do
   ident :: Identity <- peek
   dbQuery1 $(selectQuery (selectAssetSegment 'ident 'seg) "$WHERE slot_asset.asset = ${ai} AND slot_asset.segment && ${seg}")
 
-lookupSlotAssetSegment :: (MonadHasIdentity c m, MonadDB m) => Id Slot -> Id Asset -> m (Maybe AssetSegment)
+lookupSlotAssetSegment :: (MonadHasIdentity c m, MonadDB c m) => Id Slot -> Id Asset -> m (Maybe AssetSegment)
 lookupSlotAssetSegment (Id (SlotId ci seg)) ai = do
   ident :: Identity <- peek
   dbQuery1 $(selectQuery (selectAssetSegment 'ident 'seg) "$WHERE slot_asset.container = ${ci} AND slot_asset.asset = ${ai} AND slot_asset.segment && ${seg}")
 
-lookupAssetSlotSegment :: MonadDB m => AssetSlot -> Segment -> m (Maybe AssetSegment)
+lookupAssetSlotSegment :: MonadDB c m => AssetSlot -> Segment -> m (Maybe AssetSegment)
 lookupAssetSlotSegment a s =
   segmentEmpty seg ?!$> as <$>
     dbQuery1 $(selectQuery excerptRow "$WHERE asset = ${view a :: Id Asset} AND segment @> ${seg}")
   where
   as = makeExcerpt a s
   seg = assetSegment $ as Nothing
+
+lookupSlotSegmentThumb :: MonadDB c m => Slot -> m (Maybe AssetSegment)
+lookupSlotSegmentThumb (Slot c s) = do
+  dbQuery1 $ assetSegmentInterp 0.25 . ($ c) <$> $(selectQuery (selectContainerAssetSegment 's) "$\
+    \JOIN format ON asset.format = format.id \
+    \WHERE slot_asset.container = ${containerId c} AND slot_asset.segment && ${s} \
+      \AND COALESCE(asset.release, ${containerRelease c}) >= ${readRelease (view c)}::release \
+      \AND (asset.duration IS NOT NULL AND format.mimetype LIKE 'video/%' OR format.mimetype LIKE 'image/%') \
+    \LIMIT 1")
 
 auditAssetSegmentDownload :: MonadAudit c m => Bool -> AssetSegment -> m ()
 auditAssetSegmentDownload success AssetSegment{ segmentAsset = AssetSlot{ slotAsset = a, assetSlot = as }, assetSegment = seg } = do
@@ -64,8 +74,7 @@ auditAssetSegmentDownload success AssetSegment{ segmentAsset = AssetSlot{ slotAs
 
 assetSegmentJSON :: AssetSegment -> JSON.Object
 assetSegmentJSON as@AssetSegment{..} = JSON.object $ catMaybes $
-  [ Just $ "asset" JSON..= assetSlotJSON segmentAsset
-  , Just $ ("segment" JSON..= assetSegment)
+  [ Just $ ("segment" JSON..= assetSegment)
   , view segmentAsset == fmt ?!> "format" JSON..= formatId fmt
   -- , ("release" JSON..=) <$> (view as :: Maybe Release)
   , Just $ "permission" JSON..= dataPermission as

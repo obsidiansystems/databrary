@@ -22,10 +22,8 @@ import Text.Read (readMaybe)
 import Databrary.Ops
 import Databrary.Has (view, peeks)
 import qualified Databrary.JSON as JSON
-import Databrary.Service.DB
 import Databrary.Model.Id
 import Databrary.Model.Permission
-import Databrary.Model.Identity
 import Databrary.Model.Volume
 import Databrary.Model.Slot
 import Databrary.Model.Format
@@ -51,10 +49,11 @@ getAssetSegment :: Permission -> Maybe (Id Volume) -> Id Slot -> Id Asset -> Act
 getAssetSegment p mv s a =
   checkPermission p =<< maybeAction . maybe id (\v -> mfilter $ (v ==) . view) mv =<< lookupSlotAssetSegment s a
 
-assetSegmentJSONField :: (MonadDB m, MonadHasIdentity c m) => AssetSegment -> BS.ByteString -> Maybe BS.ByteString -> m (Maybe JSON.Value)
+assetSegmentJSONField :: AssetSegment -> BS.ByteString -> Maybe BS.ByteString -> ActionM (Maybe JSON.Value)
+assetSegmentJSONField a "asset" _ = return $ Just $ JSON.Object $ assetSlotJSON (segmentAsset a)
 assetSegmentJSONField a v o = assetJSONField (segmentAsset a) v o
 
-assetSegmentJSONQuery :: (MonadDB m, MonadHasIdentity c m) => AssetSegment -> JSON.Query -> m JSON.Object
+assetSegmentJSONQuery :: AssetSegment -> JSON.Query -> ActionM JSON.Object
 assetSegmentJSONQuery vol = JSON.jsonQuery (assetSegmentJSON vol) (assetSegmentJSONField vol)
 
 assetSegmentDownloadName :: AssetSegment -> [T.Text]
@@ -78,7 +77,7 @@ serveAssetSegment dl as = do
   when dl $ auditAssetSegmentDownload True as
   store <- maybeAction =<< getAssetFile a
   (hd, part) <- fileResponse store (view as) (dl ?> makeFilename (assetSegmentDownloadName as)) (BSL.toStrict $ BSB.toLazyByteString $
-    BSB.byteStringHex (fromJust (assetSHA1 a)) <> BSB.string7 (assetSegmentTag as sz))
+    BSB.byteStringHex (fromJust (assetSHA1 a)) <> BSB.string8 (assetSegmentTag as sz))
   either
     (okResponse hd)
     (okResponse hd . (, part))
@@ -96,6 +95,6 @@ thumbAssetSegment :: ActionRoute (Id Slot, Id Asset)
 thumbAssetSegment = action GET (pathSlotId </> pathId </< "thumb") $ \(si, ai) -> withAuth $ do
   as <- getAssetSegment PermissionPUBLIC Nothing si ai
   let as' = assetSegmentInterp 0.25 as
-  if formatIsImage (view as') && assetBacked (view as)
+  if formatIsImage (view as') && assetBacked (view as) && dataPermission as' > PermissionNONE
     then peeks $ otherRouteResponse [] downloadAssetSegment (slotId $ view as', assetId $ view as')
     else peeks $ otherRouteResponse [] formatIcon (view as)

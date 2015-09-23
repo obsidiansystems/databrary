@@ -24,18 +24,20 @@ app.provider('routerService', [
         if (value == null)
           return;
 
-        if (!Array.isArray(value)) {
-          value = [value];
-        }
-
-        value.forEach(function (v) {
-          if (angular.isObject(v)) {
+        var add = function (v) {
+          if (angular.isObject(v))
             v = angular.toJson(v);
-          }
 
-          url += (q ? '&' : '?') + encodeUri(key) + '=' + encodeUri(v);
+          url += (q ? '&' : '?') + encodeUri(key);
+          if (v !== true)
+            url += '=' + encodeUri(v);
           q = true;
-        });
+        };
+
+        if (Array.isArray(value))
+          value.forEach(add);
+        else
+          add(value);
       });
 
       return url;
@@ -209,7 +211,26 @@ app.provider('routerService', [
       },
     });
 
-    //
+    // Solr search
+    routes.search = makeRoute(controllers.viewSearch, [], {
+      controller: 'site/search',
+      templateUrl: "site/search.html",
+      resolve: {
+        parties: [
+          '$route', 'searchService',
+          function ($route, search) {
+            return search.Party.search($route.current.params);
+          }
+        ],
+        volumes: [
+          '$route', 'searchService',
+          function ($route, search) {
+            return search.Volume.search($route.current.params);
+          }
+        ]
+      },
+      reloadOnSearch: true
+    });
 
     routes.profile = makeRoute(controllers.viewProfile, [], {
       controller: 'party/profile',
@@ -217,7 +238,7 @@ app.provider('routerService', [
       resolve: {
         party: [
           'modelService', function (models) {
-            return models.Login.user.get({parents:'', children:'', volumes:'access'});
+            return models.Login.user.get({parents:true, children:true, volumes:'access'});
           }
         ]
       },
@@ -281,7 +302,7 @@ app.provider('routerService', [
 
             return checkPermission(page.$q,
               page.models.Volume.get(page.$route.current.params.id,
-                {access:'', citation:'', links:'', top:'', funding:'', records:'', containers:'all', tags:'keyword', metrics:''}),
+                {access:true, citation:true, links:true, top:true, funding:true, records:true, containers:'all', tags:'keyword', metrics:true}),
               page.permission.EDIT)
               .then(function (volume) {
                 return volume.top.getSlot(volume.top.segment, ['assets'])
@@ -305,7 +326,7 @@ app.provider('routerService', [
         volume: [
           'pageService', function (page) {
             return page.models.Volume.get(page.$route.current.params.id,
-              {access:'', citation:'', links:'', funding:'', top:'', tags:'', excerpts:'', comments:'', records:'', containers:'all', metrics:''});
+              {access:true, citation:true, links:true, funding:true, top:true, tags:true, excerpts:true, comments:true, records:true, containers:'all', metrics:true});
           }
         ]
       },
@@ -385,7 +406,7 @@ app.provider('routerService', [
           'pageService', function (page) {
             return page.models.Volume.get(page.$route.current.params.vid)
               .then(function (volume) {
-                return volume.getAsset(page.$route.current.params.id, page.$route.current.params.cid, page.$route.current.params.segment, ['container']);
+                return volume.getAsset(page.$route.current.params.id, page.$route.current.params.cid, page.$route.current.params.segment, ['container', 'asset']);
               });
           },
         ]
@@ -402,6 +423,7 @@ app.provider('routerService', [
     routes.partyAvatar = makeRoute(controllers.partyAvatar, ['id', 'size']);
     routes.volumeThumb = makeRoute(controllers.thumbVolume, ['id', 'size']);
     routes.assetThumb = makeRoute(controllers.thumbAssetSegment, ['cid', 'segment', 'id', 'size']);
+    routes.slotThumb = makeRoute(controllers.thumbSlot, ['id','cid','segment', 'size']);
     routes.assetDownload = makeRoute(controllers.downloadAssetSegment, ['cid', 'segment', 'id', 'inline']);
     routes.volumeZip = makeRoute(controllers.zipVolume, ['id']);
 
@@ -445,7 +467,7 @@ app.provider('routerService', [
             if (r.method === 'POST' || r.method === 'PUT')
               r.data = arguments[i];
             else
-              r.url = urlParams(r.url, arguments[i]);
+              r.url = urlParams(r.url, arguments[i]); // Workaround for ; escaping
             if (++i < arguments.length)
               angular.extend(r, arguments[i]);
           }

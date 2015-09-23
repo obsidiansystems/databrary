@@ -18,6 +18,7 @@ import Text.Read (readMaybe)
 
 import qualified Language.Haskell.TH as TH
 
+import Databrary.Service.DB (useTDB)
 import Databrary.Model.Kind
 import Databrary.HTTP.Form (FormDatum(..))
 import Databrary.HTTP.Form.Deform
@@ -48,11 +49,12 @@ enumForm :: forall a m f . (Functor m, Monad m, DBEnum a) => DeformT f m a
 enumForm = deformParse minBound fv where
   fv (FormDatumBS b) = maybe e return $ readDBEnum $ BSC.unpack b
   fv (FormDatumJSON j) = left T.pack $ JSON.parseEither parseJSONEnum j
-  fv FormDatumNone = e
+  fv _ = e
   e = Left $ "Invalid " `T.append` kindOf (undefined :: a)
 
 makeDBEnum :: String -> String -> TH.DecsQ
-makeDBEnum name typs =
+makeDBEnum name typs = do
+  _ <- useTDB
   liftM2 (++)
     (makePGEnum name typs (\(h:r) -> typs ++ toUpper h : r))
     [d| instance Kinded $(return typt) where

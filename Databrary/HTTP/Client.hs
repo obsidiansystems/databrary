@@ -1,43 +1,82 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, TupleSections #-}
 module Databrary.HTTP.Client
   ( HTTPClient
   , initHTTPClient
-  , httpRequest
+  , checkContentOk
+  , CookiesT
+  , runCookiesT
+  , withCookies
+  , withResponseCookies
+  , requestAcceptContent
+  , httpParse
+  , httpMaybe
   , httpRequestJSON
   ) where
 
-import Control.Applicative ((<$>))
-import Control.Exception (handle)
+import Control.Arrow ((&&&))
+import Control.Exception (SomeException, toException)
+import Control.Exception.Lifted (handle)
+import Control.Monad.IO.Class (MonadIO)
+import Control.Monad.Trans.Control (MonadBaseControl)
+import Control.Monad.Trans.State.Strict (StateT(..), evalStateT)
 import qualified Data.Aeson as JSON
 import qualified Data.Attoparsec.ByteString as P
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
+import qualified Data.CaseInsensitive as CI
+import qualified Data.Foldable as Fold
+import Data.Monoid ((<>), mempty)
 import qualified Network.HTTP.Client as HC
-import Network.HTTP.Types (hAccept, hContentType, ok200)
+import Network.HTTP.Client.TLS (tlsManagerSettings)
+import Network.HTTP.Types (ResponseHeaders, hAccept, hContentType, Status, statusIsSuccessful)
+
+import Databrary.Has
+import Databrary.Ops
 
 type HTTPClient = HC.Manager
 
 initHTTPClient :: IO HTTPClient
-initHTTPClient = HC.newManager HC.defaultManagerSettings
-  { HC.managerConnCount = 2
-  , HC.managerIdleConnectionCount = 4
+initHTTPClient = HC.newManager tlsManagerSettings
+  { HC.managerConnCount = 4
+  , HC.managerIdleConnectionCount = 8
   }
 
-contentType :: BS.ByteString -> BS.ByteString
-contentType = BSC.takeWhile (';' /=)
+type CookiesT m a = StateT HC.CookieJar m a
 
-responseContentType :: HC.Response a -> Maybe BS.ByteString
-responseContentType = fmap contentType . lookup hContentType . HC.responseHeaders
+runCookiesT :: Monad m => CookiesT m a -> m a
+runCookiesT f = evalStateT f mempty
 
-httpRequest :: HC.Request -> BS.ByteString -> (HC.BodyReader -> IO (Maybe a)) -> HTTPClient -> IO (Maybe a)
-httpRequest req acc f hcm = do
-  handle (\(_ :: HC.HttpException) -> return Nothing) $
-    HC.withResponse req { HC.requestHeaders = (hAccept, acc) : HC.requestHeaders req } hcm $ \res ->
-      if HC.responseStatus res == ok200 && responseContentType res == Just (contentType acc)
-        then f $ HC.responseBody res
-        else return Nothing
+withCookies :: (MonadIO m, MonadHas HTTPClient c m) => (HC.Request -> HC.Manager -> IO (HC.Response a)) -> HC.Request -> CookiesT m (HC.Response a)
+withCookies f r = StateT $ \c -> focusIO $ \m ->
+  (id &&& HC.responseCookieJar) <$> f r{ HC.cookieJar = HC.cookieJar r <> Just c } m
+
+withResponseCookies :: (MonadIO m, MonadHas HTTPClient c m) => HC.Request -> (HC.Response HC.BodyReader -> IO a) -> CookiesT m a
+withResponseCookies q f = StateT $ \c -> focusIO $ \m ->
+  HC.withResponse q{ HC.cookieJar = HC.cookieJar q <> Just c } m $ \r -> (, HC.responseCookieJar r) <$> f r
+
+contentTypeIs :: BS.ByteString -> BS.ByteString -> Bool
+contentTypeIs t c = t `BS.isPrefixOf` c && (BS.length c == tl || BSC.index c tl == ';') where
+  tl = BS.length t
+
+checkContentOk :: BS.ByteString -> Status -> ResponseHeaders -> HC.CookieJar -> Maybe SomeException
+checkContentOk ct s h cj
+  | not $ statusIsSuccessful s = Just $ toException $ HC.StatusCodeException s h cj
+  | not $ Fold.any (contentTypeIs ct) ht = Just $ toException $ HC.InvalidHeader $ CI.original hContentType <> ": " <> Fold.fold ht
+  | otherwise = Nothing
+  where ht = lookup hContentType h
+
+requestAcceptContent :: BS.ByteString -> HC.Request -> HC.Request
+requestAcceptContent ct req = req
+  { HC.requestHeaders = (hAccept, ct) : HC.requestHeaders req
+  , HC.checkStatus = checkContentOk ct
+  }
+
+httpParse :: P.Parser a -> HC.Response HC.BodyReader -> IO (P.Result a)
+httpParse p r = P.parseWith (HC.responseBody r) p BS.empty
+
+httpMaybe :: MonadBaseControl IO m => m (Maybe a) -> m (Maybe a)
+httpMaybe = handle (return . fail . (show :: HC.HttpException -> String))
 
 httpRequestJSON :: HC.Request -> HTTPClient -> IO (Maybe JSON.Value)
-httpRequestJSON req = httpRequest req "application/json" $ \rb ->
-  P.maybeResult <$> P.parseWith rb JSON.json BS.empty
-
+httpRequestJSON r m = httpMaybe $
+  HC.withResponse (requestAcceptContent "application/json" r) m (fmap P.maybeResult . httpParse JSON.json)

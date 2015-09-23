@@ -9,7 +9,6 @@ import Control.Applicative ((<$>), (<*>))
 import Control.Exception (bracket)
 import Control.Monad ((<=<))
 import Control.Monad.IO.Class (liftIO)
-import Control.Monad.Reader (ReaderT)
 import Control.Monad.Trans.Class (lift)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Unsafe as BSU
@@ -45,7 +44,7 @@ import Databrary.Controller.Paths
 import Databrary.Controller.Form
 import Databrary.Controller.Volume
 
-fileSizeForm :: (Functor m, Monad m) => DeformT f m Int64
+fileSizeForm :: DeformActionM f Int64
 fileSizeForm = deformCheck "Invalid file size." (0 <) =<< deform
 
 uploadStart :: ActionRoute (Id Volume)
@@ -62,7 +61,7 @@ uploadStart = action POST (pathJSON >/> pathId </< "upload") $ \vi -> withAuth $
     (`setFdSize` COff size)
   return $ okResponse [] $ unId (view tok :: Id Token)
 
-chunkForm :: DeformT f (ReaderT Context IO) (Upload, Int64, Word64)
+chunkForm :: DeformActionM f (Upload, Int64, Word64)
 chunkForm = do
   csrfForm
   up <- "flowIdentifier" .:> (lift . (maybeAction <=< lookupUpload) =<< deform)

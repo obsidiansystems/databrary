@@ -13,13 +13,13 @@
   <div class="col-desktop-9 col-tablet-6 col-mobile-6">
     <div>
       <div ng-if="::volume.accessPreset === 0" class="overview-access">
-        <span>
+        <span class="attention">
           <span>ACCESS: </span>
           <span class="icon" ng-class="::'access'+volume.accessPreset"></span>
           <span message="access.preset.title{{::volume.accessPreset}}"></span> 
           <span message="access.preset.extra{{::volume.accessPreset}}"></span>
         </span>
-        <a ng-if="::volume.checkPermission(page.permission.ADMIN)" ng-href="{{::volume.editRoute('access')}}"><button class="yellow icon edit"></button></a>
+        <a class="yellow icon edit button" ng-if="::volume.checkPermission(page.permission.ADMIN)" ng-href="{{::volume.editRoute('access')}}"></a>
       </div>
 
       <div ng-if="::!!volume.citation" frame id="frame-citation" frame-title="volume.citation.title" fold>

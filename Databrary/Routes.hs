@@ -32,6 +32,8 @@ import Databrary.Controller.Audit
 import Databrary.Controller.Transcode
 import Databrary.Controller.Ingest
 import Databrary.Controller.Web
+import Databrary.Controller.Search
+import Databrary.Controller.Periodic
 
 routeMap :: RouteMap Action
 routeMap = fromRouteList
@@ -122,8 +124,9 @@ routeMap = fromRouteList
   , route queryTags
   , route postTag
   , route deleteTag
-  , route viewTopTags
   , route postComment
+
+  , route postSearch
 
   , route uploadStart
   , route uploadChunk
@@ -138,6 +141,8 @@ routeMap = fromRouteList
   , route postTranscode
   , route viewIngest
   , route postIngest
+  , route viewPeriodic
+  , route postPeriodic
 
   , route webFile
   ]

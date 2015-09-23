@@ -7,10 +7,9 @@ module Databrary.Store.Transcode
   , transcodeEnabled
   ) where
 
-import Control.Concurrent (ThreadId, forkFinally)
+import Control.Concurrent (ThreadId)
 import Control.Monad (guard, unless, void)
 import Control.Monad.IO.Class (liftIO)
-import Control.Monad.Trans.Reader (ReaderT(..))
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Builder as BSB
 import qualified Data.ByteString.Char8 as BSC
@@ -27,6 +26,7 @@ import Databrary.HTTP.Route (routeURL)
 import Databrary.Model.Segment
 import Databrary.Model.Asset
 import Databrary.Model.AssetSlot
+import Databrary.Model.Format
 import Databrary.Model.Transcode
 import Databrary.Files
 import Databrary.Store.Types
@@ -34,6 +34,7 @@ import Databrary.Store.Temp
 import Databrary.Store.Asset
 import Databrary.Store.Transcoder
 import Databrary.Store.AV
+import Databrary.Store.Probe
 import Databrary.Action.Types
 
 import {-# SOURCE #-} Databrary.Controller.Transcode
@@ -42,7 +43,10 @@ ctlTranscode :: Transcode -> TranscodeArgs -> ActionM (ExitCode, String, String)
 ctlTranscode tc args = do
   t <- peek
   Just ctl <- peeks storageTranscoder
-  let args' = "-i" : show (transcodeId tc) : args
+  let args'
+        = "-i" : show (transcodeId tc)
+        : "-f" : BSC.unpack (head (formatExtension (assetFormat (transcodeAsset tc))))
+        : args
   r@(c, o, e) <- liftIO $ runTranscoder ctl args'
   focusIO $ logMsg t ("transcode " ++ unwords args' ++ ": " ++ case c of { ExitSuccess -> "" ; ExitFailure i -> ": exit " ++ show i ++ "\n" } ++ o ++ e)
   return r
@@ -53,8 +57,8 @@ transcodeArgs t@Transcode{..} = do
   req <- peek
   auth <- peeks $ transcodeAuth t
   return $
-    [ "-f", toFilePath f
-    , "-r", BSLC.unpack $ BSB.toLazyByteString $ routeURL (Just req) remoteTranscode (transcodeId t) <> BSB.string7 "?auth=" <> BSB.byteString auth
+    [ "-s", toFilePath f
+    , "-r", BSLC.unpack $ BSB.toLazyByteString $ routeURL (Just req) remoteTranscode (transcodeId t) <> BSB.string8 "?auth=" <> BSB.byteString auth
     , "--" ]
     ++ maybe [] (\l -> ["-ss", show l]) lb
     ++ maybe [] (\u -> ["-t", show $ u - fromMaybe 0 lb]) (upperBound rng)
@@ -86,11 +90,11 @@ startTranscode tc = do
   where lock = Just (-1)
 
 forkTranscode :: Transcode -> ActionM ThreadId
-forkTranscode tc = focusIO $ \app ->
-  forkFinally -- violates InternalState, could use forkResourceT, but we don't need it
-    (runReaderT (startTranscode tc) app)
+forkTranscode tc = focusIO $ \ctx ->
+  forkAction
+    (startTranscode tc) ctx
     (either
-      (\e -> logMsg (view app) ("forkTranscode: " ++ show e) (view app))
+      (\e -> logMsg (view ctx) ("forkTranscode: " ++ show e) (view ctx))
       (const $ return ()))
 
 stopTranscode :: Transcode -> ActionM Transcode
@@ -112,7 +116,8 @@ collectTranscode tc 0 sha1 logs = do
     then fail $ "collectTranscode " ++ show (transcodeId tc) ++ ": " ++ show r ++ "\n" ++ out ++ err
     else do
       av <- focusIO $ avProbe (tempFilePath f)
-      guard (avProbeIsVideo av)
+      unless (avProbeCheckFormat (assetFormat (transcodeAsset tc)) av)
+        $ fail $ "collectTranscode " ++ show (transcodeId tc) ++ ": format error"
       let dur = avProbeLength av
       a <- changeAsset (transcodeAsset tc)
         { assetSHA1 = sha1

@@ -19,13 +19,13 @@
               </a>
             </li>
             <li ng-class="{'hide-mobile':!hoverNav}">
-              <a ng-href="{{::page.router.volumeSearch()}}"><span><b>Volumes</b></span></a>
+              <a ng-href="{{::page.router.search()}}?volume"><span><b>Volumes</b></span></a>
             </li>
             <li ng-class="{'hide-mobile':!hoverNav}">
               <a href="//databrary.org/news.html">News</a>
             <li ng-class="{'hide-mobile':!hoverNav}">
               <a href="//databrary.org/about.html"><span>About</span></a>
-              <ul>
+              <ul class="flat">
                 <li><a href="//databrary.org/about/mission.html">Mission</a></li>
                 <li><a href="//databrary.org/about/use-cases.html">Use Cases</a></li>
                 <li><a href="//databrary.org/about/team.html">Our Team</a></li>
@@ -36,7 +36,7 @@
             </li>
             <li ng-class="{'hide-mobile':!hoverNav}">
               <a href="//databrary.org/access.html"><span>Access</span></a>
-              <ul>
+              <ul class="flat">
                 <li><a href="//databrary.org/access/faq.html">FAQ</a></li>
                 <li><a href="//databrary.org/access/responsibilities.html">Rights &amp; Responsibilities</a></li>
                 <li><a href="//databrary.org/access/guide.html">User Guide</a></li>
@@ -45,9 +45,9 @@
             </li>
             <li ng-class="{'hide-mobile':!hoverNav}">
               <a href="//databrary.org/community.html"><span>Community</span></a>
-              <ul>
-                <li><a ng-href="{{::page.router.partySearch()}}?institution=false&authorization=4">Authorized Investigators</a></li>
-                <li><a ng-href="{{::page.router.partySearch()}}?institution=true&authorization=5">Institutions</a></li>
+              <ul class="flat">
+                <li><a ng-href="{{::page.router.search()}}?volume=false&f.party_authorization={{::page.constants.permission.EDIT}}&f.party_is_institution=false">Authorized Investigators</a></li>
+                <li><a ng-href="{{::page.router.search()}}?volume=false&f.party_authorization={{::page.constants.permission.ADMIN}}&f.party_is_institution=true">Institutions</a></li>
                 <li><a href="//databrary.org/community/board.html">Board</a></li>
               </ul>
             </li>
@@ -112,7 +112,7 @@
         <div class="toolbar-search">
           <ng-form class="search-form">
             <div class="search-form-search">
-              <input type="search" ng-model="search.data.query" focus placeholder="{{::'search.prompt' | message}}" key-enter="search()"/>
+              <input type="search" ng-model="search.data.q" focus placeholder="{{::'search.prompt' | message}}" key-enter="search()"/>
             </div>
           </ng-form>
         </div>

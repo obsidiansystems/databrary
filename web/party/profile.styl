@@ -4,6 +4,16 @@
   background-color orange51
 .profile-volumes, .profile-parties
   padding-top b1
+  @media screen and (max-width:grid-mobile-width)
+    border-top 1px solid pale
+    margin-top b1
+    margin-bottom b2
+  legend
+    margin-top -b1*1.5
+    background-color white
+    margin-bottom b2
+    margin-left -b2
+    padding-left b2
   .button.icon, .button.icon:hover
     width 16px
     height 16px
@@ -11,8 +21,6 @@
   ul
     padding-left 0
     padding-right 0
-  li:before
-    content none
   li
     overflow hidden
   li:hover
@@ -22,15 +30,9 @@
   a
     overflow hidden
   .button:not(.icon)
-    font-size 12px
     line-height 12px
-    background-color white
     padding-top b8
     padding-bottom b8
-    &:hover
-      background-color neutral51
-    &:focus
-      background-color neutral52
 
 .profile-volumes
   ul
@@ -43,11 +45,10 @@
   @media screen and (min-width: grid-mobile-width+1)
     border-left b2 solid neutral52
   .permission-auth-expiration
-    font-size b2
     color neutral
     margin-left b3
-  .permission-auth-expiration.expired
-    color red
+    &.expired
+      color red
   ul
     margin 0
     padding b2 0
@@ -69,13 +70,11 @@
   
 .profile-subsection-header
   margin-top b4
-  font-size b2
   line-height b2
   .icon
     size b2
     
 .profile-additional
-  font-size b2
   line-height b2
   margin-bottom b8
 
@@ -101,11 +100,3 @@
   display none
   visibility hidden
   margin-left b3
-  
-.profile-mobile-header
-  background-color green51
-  margin-bottom b2
-  margin-left -12%
-  margin-right -b2
-  padding-left 12% 
-  padding-right b2

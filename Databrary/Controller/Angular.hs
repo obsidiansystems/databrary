@@ -6,7 +6,7 @@ module Databrary.Controller.Angular
   ) where
 
 import Control.Arrow (second)
-import Control.Monad.IO.Class (MonadIO, liftIO)
+import Control.Monad.IO.Class (liftIO)
 import qualified Data.ByteString.Builder as BSB
 import Data.Default.Class (Default(..))
 import qualified Data.Foldable as Fold
@@ -16,7 +16,7 @@ import qualified Network.Wai as Wai
 import qualified Text.Regex.Posix as Regex
 
 import Databrary.Ops
-import Databrary.Has (peeks, view, focusIO)
+import Databrary.Has
 #ifdef DEVEL
 import Databrary.Web.Uglify
 #endif
@@ -69,7 +69,7 @@ angularRequest :: Wai.Request -> Maybe BSB.Builder
 angularRequest req = angularEnable js req ?> nojs
   where (js, nojs) = jsURL JSDisabled req
 
-angularResult :: BSB.Builder -> Context -> IO ()
+angularResult :: BSB.Builder -> RequestContext -> IO ()
 angularResult nojs auth = do
   debug <-
 #ifdef DEVEL
@@ -79,5 +79,5 @@ angularResult nojs auth = do
 #endif
   result $ okResponse [] (htmlAngular debug nojs auth)
 
-angular :: (MonadIO m, MonadAction q m) => m ()
+angular :: ActionM ()
 angular = Fold.mapM_ (focusIO . angularResult) =<< peeks angularRequest

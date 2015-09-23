@@ -20,7 +20,7 @@ import Databrary.Model.Identity
 import Databrary.Action.Types
 import Databrary.Action
 import Databrary.Web (WebFilePath, webFileRelRaw)
-import Databrary.Web.Libs (allWebLibs)
+import Databrary.Web.Libs (webLibs)
 import Databrary.View.Html
 import Databrary.View.Template
 
@@ -32,14 +32,14 @@ ngAttribute = H.customAttribute . H.stringTag . ("ng-" <>)
 webURL :: BS.ByteString -> H.AttributeValue
 webURL p = builderValue $ actionURL Nothing webFile (Just $ StaticPath p) []
 
-htmlAngular :: Maybe [WebFilePath] -> BSB.Builder -> Context -> H.Html
+htmlAngular :: Maybe [WebFilePath] -> BSB.Builder -> RequestContext -> H.Html
 htmlAngular debug nojs auth = H.docTypeHtml H.! ngAttribute "app" "databraryModule" $ do
   H.head $ do
     htmlHeader Nothing def
     H.noscript $
       H.meta
         H.! HA.httpEquiv "Refresh"
-        H.! HA.content (builderValue $ BSB.string7 "0;url=" <> nojs)
+        H.! HA.content (builderValue $ BSB.string8 "0;url=" <> nojs)
     H.meta
       H.! HA.httpEquiv "X-UA-Compatible"
       H.! HA.content "IE=edge"
@@ -61,7 +61,7 @@ htmlAngular debug nojs auth = H.docTypeHtml H.! ngAttribute "app" "databraryModu
       H.preEscapedString "window.$play={user:"
       H.unsafeLazyByteString $ JSON.encode $ identityJSON (view auth)
       H.preEscapedString "};"
-    forM_ (allWebLibs (isJust debug) ++ maybe ["app.min.js"] ("debug.js" :) debug) $ \js ->
+    forM_ (webLibs (isJust debug) ++ maybe ["app.min.js"] ("debug.js" :) debug) $ \js ->
       H.script
         H.! HA.src (webURL $ webFileRelRaw js)
         $ return ()

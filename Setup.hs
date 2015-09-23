@@ -29,7 +29,6 @@ fixPerms :: PackageDescription -> LocalBuildInfo -> CopyDest -> IO ()
 fixPerms desc lbi copy = do
   setFileExecutable (dir </> "transctl.sh")
   setFileExecutable (dir </> "transcode")
-  setFileExecutable (dir </> "ezid" </> "doi.py")
   where dir = datadir $ absoluteInstallDirs desc lbi copy
 
 main :: IO ()
@@ -44,7 +43,7 @@ main = defaultMainWithHooks simpleUserHooks
 
   , postConf = \args flag desc lbi -> do
     postConf simpleUserHooks args flag desc lbi
-    nodeInstall (fromFlag $ configVerbosity flag) lbi
+    nodeUpdate (fromFlag $ configVerbosity flag) lbi
 
   , buildHook = \desc lbi hooks flag -> do
     let verb = fromFlag $ buildVerbosity flag

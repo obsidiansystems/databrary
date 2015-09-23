@@ -4,6 +4,7 @@ module Databrary.Model.Comment
   , blankComment
   , lookupComment
   , lookupSlotComments
+  , lookupVolumeCommentRows
   , addComment
   , commentJSON
   ) where
@@ -20,13 +21,12 @@ import Databrary.Model.SQL
 import Databrary.Model.Id.Types
 import Databrary.Model.Party
 import Databrary.Model.Identity
+import Databrary.Model.Volume.Types
 import Databrary.Model.Container
 import Databrary.Model.Segment
 import Databrary.Model.Slot
 import Databrary.Model.Comment.Types
 import Databrary.Model.Comment.SQL
-
-useTPG
 
 blankComment :: Account -> Slot -> Comment
 blankComment who slot = Comment
@@ -38,17 +38,21 @@ blankComment who slot = Comment
   , commentParents = []
   }
 
-lookupComment :: (MonadDB m, MonadHasIdentity c m) => Id Comment -> m (Maybe Comment)
+lookupComment :: (MonadDB c m, MonadHasIdentity c m) => Id Comment -> m (Maybe Comment)
 lookupComment i = do
   ident <- peek
   dbQuery1 $(selectQuery (selectComment 'ident) "$!WHERE comment.id = ${i}")
 
-lookupSlotComments :: (MonadDB m, MonadHasIdentity c m) => Slot -> Int -> m [Comment]
+lookupSlotComments :: (MonadDB c m, MonadHasIdentity c m) => Slot -> Int -> m [Comment]
 lookupSlotComments (Slot c s) n = do
   ident <- peek
   dbQuery $ ($ c) <$> $(selectQuery (selectContainerComment 'ident) "$!WHERE comment.container = ${containerId c} AND comment.segment && ${s} ORDER BY comment.thread LIMIT ${fromIntegral n :: Int64}")
 
-addComment :: MonadDB m => Comment -> m Comment
+lookupVolumeCommentRows :: MonadDB c m => Volume -> m [CommentRow]
+lookupVolumeCommentRows v =
+  dbQuery $(selectQuery selectCommentRow "JOIN container ON comment.container = container.id WHERE container.volume = ${volumeId v} ORDER BY container")
+
+addComment :: MonadDB c m => Comment -> m Comment
 addComment c@Comment{..} = do
   (i, t) <- dbQuery1' [pgSQL|INSERT INTO comment (who, container, segment, text, parent) VALUES (${partyId $ accountParty commentWho}, ${containerId $ slotContainer commentSlot}, ${slotSegment commentSlot}, ${commentText}, ${listToMaybe commentParents}) RETURNING id, time|]
   return c

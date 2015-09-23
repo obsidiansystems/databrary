@@ -12,6 +12,10 @@ button, .button
   button-color neutral
   box-shadow 0 b8 b8 -b8 black
 
+  &.white
+    button-color neutral
+    background-color white
+
   &.red
     button-color red
 
@@ -47,6 +51,7 @@ button, .button
   &.mini
     border-padding-height 1px 1px
     padding-width f4
+    font-size b2
     span.icon
       height 13px
       width 13px
@@ -58,11 +63,17 @@ button, .button
     right 0
 
   &.icon,
-  &.icon:hover,
-    background-size contain
+  &.icon:hover
     background-position center
     background-repeat no-repeat
     size b1
+    
+  &.icon-text
+    display initial
+    white-space nowrap
+    .icon
+      vertical-align middle
+      margin-right b8
 
 // link button
 
@@ -91,3 +102,6 @@ button.link
 
   &:hover
     color black
+    
+.button,.clickable
+  cursor pointer

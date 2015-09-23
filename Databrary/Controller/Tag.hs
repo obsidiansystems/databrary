@@ -3,7 +3,6 @@ module Databrary.Controller.Tag
   ( queryTags
   , postTag
   , deleteTag
-  , viewTopTags
   ) where
 
 import Control.Applicative ((<$>))
@@ -17,20 +16,22 @@ import Databrary.Model.Permission
 import Databrary.Model.Id
 import Databrary.Model.Slot
 import Databrary.Model.Tag
+import Databrary.Solr.Tag
 import Databrary.HTTP.Form.Deform
 import Databrary.HTTP.Path.Parser
 import Databrary.Action.Types
 import Databrary.Action
 import Databrary.Controller.Paths
+import Databrary.Controller.Form
 import Databrary.Controller.Permission
 import Databrary.Controller.Slot
 
-_tagNameForm :: (Functor m, Monad m) => DeformT f m TagName
+_tagNameForm :: DeformActionM f TagName
 _tagNameForm = deformMaybe' "Invalid tag name." . validateTag =<< deform
 
-queryTags :: ActionRoute TagName
-queryTags = action GET (pathJSON >/> "tags" >/> PathParameter) $ \t -> withoutAuth $
-  okResponse [] . toJSON . map tagName <$> findTags t
+queryTags :: ActionRoute (Maybe TagName)
+queryTags = action GET (pathJSON >/> "tags" >/> pathMaybe PathParameter) $ \t -> withoutAuth $
+  okResponse [] . toJSON <$> termTags t 16
 
 tagResponse :: API -> TagUse -> ActionM Response
 tagResponse JSON t = okResponse [] . tagCoverageJSON <$> lookupTagCoverage (useTag t) (containerSlot $ slotContainer $ tagSlot t)
@@ -57,8 +58,3 @@ deleteTag = action DELETE (pathAPI </>> pathSlotId </> pathTagId) $ \(api, si, T
   let tu = TagUse t kw u s
   _r <- removeTagUse tu
   tagResponse api tu
-
-viewTopTags :: ActionRoute ()
-viewTopTags = action GET (pathJSON >/> "tags") $ \() -> withoutAuth $ do
-  l <- lookupTopTagWeight 16
-  return $ okResponse [] $ toJSON $ map tagWeightJSON l

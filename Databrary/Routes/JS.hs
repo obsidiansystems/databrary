@@ -35,6 +35,7 @@ import Databrary.Controller.Zip
 import Databrary.Controller.Tag
 import Databrary.Controller.Comment
 import Databrary.Controller.CSV
+import Databrary.Controller.Search
 import Databrary.Controller.Audit
 import Databrary.Web.Routes
 
@@ -70,6 +71,8 @@ jsRoutes = mconcat
   , jsRoute "downloadAssetSegment" downloadAssetSegment (slot, asset)
   , jsRoute "thumbAssetSegment" thumbAssetSegment (slot, asset)
 
+  , jsRoute "viewSearch" postSearch (HTML)
+
   , jsRoute "zipSlot" zipContainer (Just volume, container)
   , jsRoute "zipVolume" zipVolume (volume)
   , jsRoute "viewVolumeDescription" viewVolumeDescription (volume)
@@ -104,6 +107,7 @@ jsRoutes = mconcat
   , jsRoute "postVolumeLinks" postVolumeLinks (JSON, volume)
   , jsRoute "deleteVolumeFunder" deleteVolumeFunder (volume, funder)
 
+  , jsRoute "postSearch" postSearch (JSON)
   , jsRoute "getFunders" queryFunder ()
   , jsRoute "getCitation" getCitation ()
 
@@ -134,12 +138,12 @@ jsRoutes = mconcat
   , jsRoute "uploadChunk" uploadChunk ()
 
   , jsRoute "postComment" postComment (JSON, slot)
-  , jsRoute "getTags" queryTags (tag)
+  , jsRoute "getTags" queryTags (Just tag)
   , jsRoute "postTag" postTag (JSON, slot, TagId False tag)
   , jsRoute "postKeyword" postTag (JSON, slot, TagId True tag)
   , jsRoute "deleteTag" deleteTag (JSON, slot, TagId False tag)
   , jsRoute "deleteKeyword" deleteTag (JSON, slot, TagId True tag)
-  , jsRoute "getTopTags" viewTopTags ()
+  , jsRoute "getTopTags" queryTags Nothing
   , jsRoute "getActivity" viewActivity ()
   ] where
   token = Id ""

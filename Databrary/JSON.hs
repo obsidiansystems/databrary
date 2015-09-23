@@ -73,7 +73,10 @@ eitherJSON :: FromJSON a => Value -> Either String a
 eitherJSON = resultToEither . fromJSON
 
 instance ToJSON BS.ByteString where
-  toJSON = String . TE.decodeUtf8
+  toJSON = String . TE.decodeUtf8 -- questionable
+
+instance FromJSON BS.ByteString where
+  parseJSON = fmap TE.encodeUtf8 . parseJSON
 
 instance ToJSON C.Value where
   toJSON (C.Bool b) = Bool b
@@ -95,13 +98,13 @@ wordEscaped q =
   BP.condB (== c2w '\n') (backslash 'n') $
   BP.condB (== c2w '\r') (backslash 'r') $
   BP.condB (== c2w '\t') (backslash 't') $
-    BP.liftFixedToBounded $ (\c -> ('\\', ('u', fromIntegral c))) BP.>$< BP.char7 BP.>*< BP.char7 BP.>*< BP.word16HexFixed
+    BP.liftFixedToBounded $ (\c -> ('\\', ('u', fromIntegral c))) BP.>$< BP.char8 BP.>*< BP.char8 BP.>*< BP.word16HexFixed
   where
-  backslash c = BP.liftFixedToBounded $ const ('\\', c) BP.>$< BP.char7 BP.>*< BP.char7
+  backslash c = BP.liftFixedToBounded $ const ('\\', c) BP.>$< BP.char8 BP.>*< BP.char8
 
 -- | Escape (but do not quote) a ByteString
 escapeByteString :: Char -> BS.ByteString -> B.Builder
 escapeByteString = BP.primMapByteStringBounded . wordEscaped
 
 quoteByteString :: Char -> BS.ByteString -> B.Builder
-quoteByteString q s = B.char7 q <> escapeByteString q s <> B.char7 q
+quoteByteString q s = B.char8 q <> escapeByteString q s <> B.char8 q

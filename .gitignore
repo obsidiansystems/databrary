@@ -16,3 +16,12 @@
 /npm-debug.log
 /databrary.conf
 /unreset.dump
+.idea
+/dbrary/
+/logs/
+/macros/
+/media/
+/project/
+/target/
+.DS_Store
+*.swp

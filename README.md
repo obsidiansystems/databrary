@@ -17,6 +17,39 @@ Requirements:
 - cracklib with shared library
 - activator >= 1.2 (play 2.3)
 - Java 7 JDK
+- GHC >= ??
+- cabal >= ??
+- postgresql-typed-4.0.0 [link](https://github.com/dylex/postgresql-typed)
+
+### New Haskell-Databrary Installation steps
+    git clone https://github.com/databrary/databrary.git
+    git checkout haskell-solr
+
+Now we have to checkout one of the depencenies that is not in hackage
+
+    cd ..
+    git clone https://github.com/dylex/postgresql-typed
+    cd postresql-typed
+    cabal install
+
+And finally we build databrary!
+
+    cd ../databrary
+    mkdir -p dist/build/databrary tmp upload cache/tmp
+    echo 'secret = "secretWordHere!"' >> local.conf
+    cabal install --only-dependencies
+    ./dev
+
+The first time you run it'll but the DB indexes. Once it is finished with those run ./dev again.
+If schemabrary fails to build change db.host in databrary.conf to "localhost".
+Now we have to load the DB image into the database.
+
+    ./runsql restore $DBFILE
+
+Once the database is populated we need to build the solr index and load that.
+
+    bash solr/scripts/setup_solr.sh
+
 
 ### Postgres
 
@@ -36,7 +69,7 @@ line like this in pg\_hba.conf:
 
 Then create local.conf with whatever password you used above:
 
-    db.default.password="<passwd>" 
+    db.default.password="<passwd>"
 
 For other settings, see conf/application.conf.
 
@@ -75,7 +108,7 @@ both need to be created or changed to other existing directories in local.conf.
 * Keep template-specific styles with template.
 * Never use #ids to style.
 * Only use elements for global styles.
-* Put a class on every element you style. 
+* Put a class on every element you style.
 * Don't use on inheritance.
 * Name classes based on context.
 * Don't share styles between templates.

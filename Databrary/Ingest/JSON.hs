@@ -8,7 +8,6 @@ import Control.Monad (join, when, unless, void, mfilter)
 import Control.Monad.Except (ExceptT(..), runExceptT, mapExceptT, catchError)
 import Control.Monad.IO.Class (MonadIO(liftIO))
 import Control.Monad.Trans.Class (lift)
-import Control.Monad.Trans.Reader (ReaderT)
 import qualified Data.Aeson.BetterErrors as JE
 import qualified Data.Attoparsec.ByteString as P
 import qualified Data.ByteString as BS
@@ -54,7 +53,7 @@ import Databrary.Model.Transcode
 import Databrary.Model.Ingest
 import Databrary.Action.Types
 
-type IngestM a = JE.ParseT T.Text (ReaderT Context IO) a
+type IngestM a = JE.ParseT T.Text ActionM a
 
 jsErr :: (Functor m, Monad m) => Either (V.Vector JS.ValErr) a -> ExceptT [T.Text] m a
 jsErr = ExceptT . return . left V.toList
@@ -267,12 +266,12 @@ ingestJSON vol jdata' run overwrite = runExceptT $ do
         noKey "clip"
         noKey "options"
         return (a, probe)
-      ProbeVideo _ av -> do
+      ProbeAV{} -> do
         clip <- JE.keyOrDefault "clip" fullSegment asSegment
         opts <- JE.keyOrDefault "options" defaultTranscodeOptions $ JE.eachInArray JE.asString
         t <- lift $ fromMaybeM
           (do
-            t <- addTranscode a clip opts av
+            t <- addTranscode a clip opts probe
             _ <- startTranscode t
             return t)
           =<< flatMapM (\_ -> findTranscode a clip opts) ae

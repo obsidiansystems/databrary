@@ -1,8 +1,8 @@
-<article class="view slot-view" flow-init="flowOptions"
-    flow-file-added="fileAdded($file, $event)"
-    flow-file-success="fileSuccess($file)"
-    flow-file-progress="fileProgress($file)"
-    flow-file-error="fileError($file, $message)"
+<article class="view slot-view" flow-init="flowOptions" 
+    flow-file-added="fileAdded($file, $event)" 
+    flow-file-success="fileSuccess($file)" 
+    flow-file-progress="fileProgress($file)" 
+    flow-file-error="fileError($file, $message)" 
     mouse-drag-region>
   <div class="wrap">
     <div class="row">
@@ -74,10 +74,13 @@
               </div>
 
               <div ng-init="updatePlayerHeight()" id="player-viewport" class="player-viewport">
-                <div ng-if="editing && current.type === 'asset' && !current.file && !current.asset" flow-drop flow-btn flow-drag-enter="dropClasses['over-zone'] = true" flow-drag-leave="dropClasses['over-zone'] = false" ng-class="dropClasses" class="player-drop">
+                <div ng-if="editing && $flow.support && current.type === 'asset' && !current.file && !current.asset" flow-drop flow-btn flow-drag-enter="dropClasses['over-zone'] = true" flow-drag-leave="dropClasses['over-zone'] = false" ng-class="dropClasses" class="player-drop">
                   <span class="icon line add"></span>
                   <span class="dropzone-message" message="asset.add-drop{{::current.asset ? '.replace' : ''}}"></span>
                   <span class="dropzone-message">See our <a ng-href="{{::page.router.helpFormats()}}" target="_blank">list of accepted file types</a>.</span>
+                </div>
+                <div ng-if="::!$flow.support" class="player-drop">
+                  <s>Unfortunately, your browser does not appear to support file uploads. Please try another browser or contact us for assistance.</s>
                 </div>
                 <upload-progress class="upload-progress-info" ng-if="!!current.file" progress-value="current.progress"></upload-progress>
                 <asset-display ng-repeat="asset in [asset]" ng-if="!!asset" asset="asset"></asset-display>
@@ -91,17 +94,16 @@
 
         <div id="slot-tags" class="slot-tags panel-tags-list" ng-form="form.tag">
           <div class="panel-tags-legend" tooltip="'keywords.display.description' | message">
-            <span class="panel-tags-item legend keyword"></span>
+            <span class="panel-tags-item tags-item legend keyword"></span>
             <span message="keywords.title"></span>
           </div>
           <div ng-if="::!editing" class="panel-tags-legend" tooltip="'tags.display.description' | message">
-            <span class="panel-tags-item legend"></span>
+            <span class="panel-tags-item tags-item legend"></span>
             <span message="tags.title"></span>
           </div> | 
           <ul class="panel-tags-items">
-            <li ng-repeat="tag in tags" class="panel-tags-item" ng-class="{'active': tag.active,'keyword': tag.keyword.length}">
-              <div class="panel-tag-name" ng-click="tag.toggle()">
-                <span ng-bind="::tag.id"></span>
+            <li ng-repeat="tag in tags" class="panel-tags-item tags-item" ng-class="{'active': tag.active,'keyword': tag.keyword.length}">
+              <div class="tag-name" ng-click="tag.toggle()" ng-bind="::tag.id">
               </div>
               <div class="panel-tag-controls" ng-if="::authorized">
                 <button class="panel-tag-vote available null" name="vote" ng-click="tag.save(false)" ng-if="tag.state === true" hint="tags-vote-null">
@@ -112,7 +114,7 @@
                 </button>
               </div>
             </li>
-            <li class="panel-tags-item tag-add" ng-if="::editing || authorized">
+            <li class="panel-tags-item tags-item tag-add" ng-if="::editing || authorized">
               <tag-add ng-if="::!editing"></tag-add>
               <tag-add ng-if="::editing" keyword></tag-add>
             </li>
@@ -134,7 +136,7 @@
               <button ng-if="current.excerpt.on === false" ng-click="current.editExcerpt()" class="mini">Highlight on volume</button>
               <button ng-if="current.excerpt.on === true" ng-click="current.editExcerpt()" class="mini">Edit highlight</button>
             </div>
-            <ng-form ng-switch-when="record" name="form.record">
+            <ng-form ng-switch-when="addrecord" name="form.record">
               <button ng-click="addRecord(null)" class="mini">Cancel</button>&#32;
               <select class="slot-toolbar-select" name="category" ng-model="addRecord.category" ng-options="c as page.constants.category[c].name || 'record' for (c, n) in addRecord.categories" ng-change="setCategory(addRecord.category)">
                 <option value="">Choose category...</option>
@@ -143,11 +145,17 @@
                 <option value="">Choose record...</option>
               </select>
             </ng-form>
-            <ng-form ng-switch-when="position" name="form.position">
-              <input input-position="-Infinity" class="position-input" type="text" size="10" name="position-lower" ng-model="current.l" position-max="current.record ? current.u : Infinity" ng-change="current.updatePosition(false)" key-enter="updatePosition()" placeholder="{{::'position.placeholder' | message}}">
-              &ndash;
-              <input input-position="Infinity" class="position-input" type="text" size="10" name="position-upper" ng-model="current.u" position-min="current.l" ng-change="current.updatePosition(true)" ng-disabled="!current.record" placeholder="{{::'position.placeholder' | message}}">
-              &#32;
+            <ng-form ng-switch-when="record" name="form.position">
+              <input input-position="-Infinity" class="position-input" type="text" size="10" name="position-lower" ng-model="current.l" position-max="current.u" ng-change="current.updatePosition(false)" key-enter="updatePosition()" placeholder="{{::'position.placeholder' | message}}"> 
+              &ndash; 
+              <input input-position="Infinity" class="position-input" type="text" size="10" name="position-upper" ng-model="current.u" position-min="current.l" ng-change="current.updatePosition(true)" placeholder="{{::'position.placeholder' | message}}"> 
+              <button ng-click="current.finishPosition()">Cancel</button>
+              <button class="green" ng-click="current.savePosition()" ng-disabled="form.position.$pristine || form.position.$invalid">Save</button>
+            </ng-form>
+            <ng-form ng-switch-when="asset" name="form.position">
+              <input input-position="-Infinity" class="position-input" type="text" size="10" name="position-lower" ng-model="current.l" ng-change="current.updatePosition(false)" key-enter="updatePosition()" placeholder="{{::'position.placeholder' | message}}"> 
+              &ndash; 
+              <span ng-bind="current.u | timecode:true"></span> 
               <button ng-click="current.finishPosition()">Cancel</button>
               <button class="green" ng-click="current.savePosition()" ng-disabled="form.position.$pristine || form.position.$invalid">Save</button>
             </ng-form>
@@ -174,8 +182,8 @@
                 <button id="setOffset" ng-disabled="!ruler.position.defined()" ng-click="setSelectionEnd(true)">&rarr;</button>
                 <input input-position="Infinity" class="slot-timeline-time stop" type="text" size="10" ng-model="ruler.selection.u" position-min="ruler.selection.l" name="selection-u" ng-change="updateSelection()"></input>
                 <div class="slot-timeline-zoom">
-                  <span class="icon zoomin" ng-click="zoom(ruler.selection)" ng-if="ruler.selection.length && !ruler.selection.contains(ruler.range)"></span>
-                  <span class="icon zoomout" ng-if="ruler.zoomed" ng-click="zoom()"></span>
+                  <span class="icon zoomin clickable" ng-click="zoom(ruler.selection)" ng-if="ruler.selection.length && !ruler.selection.contains(ruler.range)"></span>
+                  <span class="icon zoomout clickable" ng-if="ruler.zoomed" ng-click="zoom()"></span>
                 </div>
               </div>
 
@@ -197,8 +205,8 @@
             <div class="slot-annotations">
               <div class="slot-record-track slot-track" ng-repeat="rs in records">
                 <div class="slot-record" ng-repeat-start="r in rs" ng-class="{'slot-record-select': r === current}" ng-style="r.style()">
-                  <div ng-if="r === current && editing === 'position'" class="slot-handle slot-handle-left" mouse-drag="r.drag($up, false)"></div>
-                  <div ng-if="r === current && editing === 'position'" class="slot-handle slot-handle-right" mouse-drag="r.drag($up, true)"></div>
+                  <div ng-if="r === current && editing === 'record'" class="slot-handle slot-handle-left" mouse-drag="r.drag($up, false)"></div>
+                  <div ng-if="r === current && editing === 'record'" class="slot-handle slot-handle-right" mouse-drag="r.drag($up, true)"></div>
                 </div>
                 <div class="slot-record-background" ng-repeat-end ng-style="positionBackgroundStyle(rs, $index)" ng-click="r.click($event)" ng-dblclick="r.select($event)" mouse-drag="dragSelection($down, $up, r)" ng-bind="r.record.displayName"></div>
               </div>
@@ -206,21 +214,21 @@
 
             <div class="slot-timeline-tracks">
               <div ng-repeat="t in assets" class="slot-timeline-track slot-track" ng-class="{select: t.asset === asset, dirty: t.dirty, 'slot-track-positioned': t.asset && !t.full, 'slot-track-select': t === current, 'slot-track-empty': !(t.asset || t.file)}" ng-click="t.click($event)" ng-dblclick="t.select($event)" mouse-drag="dragSelection($down, $up, t)">
-                <div class="slot-excerpt" ng-repeat="excerpt in t.excerpts" ng-if="editing !== 'position' && !excerpt.contains(t)" ng-style="excerpt.style()" ng-dblclick="excerpt.select($event)">
+                <div class="slot-excerpt" ng-repeat="excerpt in t.excerpts" ng-if="editing !== 'asset' && !excerpt.contains(t)" ng-style="excerpt.style()" ng-dblclick="excerpt.select($event)">
                 </div>
                 <div class="slot-track-asset-info">
                   <span ng-if="!(t.asset || t.file)" message="asset.empty" class="slot-message-empty"></span>
                   <img class="slot-track-asset-thumb" ng-if="!!t.asset && t.asset.checkPermission(page.constants.permission.VIEW)" ng-src="{{t.asset.thumbRoute(24)}}">
-                  <div class="slot-track-asset-info-name" ng-class="{uploading: !!t.file}">
+                  <div class="slot-track-asset-info-name" ng-class="{uploading: !!t.file}" ng-if="!!t.asset || !!t.file">
                     <span ng-bind="t.asset.name || t.data.name || t.file.file.name"></span>
-                    <span ng-if="!!t.fullExcerpt"> (highlight)</span>
+                    <span ng-if="!!t.asset.fullExcerpt"> (highlight)</span>
                     <span class="track-status" ng-if="t.asset && !t.asset.duration && t.asset.format.type==='video'"> (processing)</span>
                   </div>
                   <upload-progress class="upload-progress-info" ng-if="!!t.file" progress-value="t.progress"></upload-progress>
                   <span ng-if="t.asset.release != null" class="classification-info release icon" ng-class="[page.constants.release[t.asset.release], 'hint-release-'+page.constants.release[t.asset.release]]"></span>
                 </div>
                 <div class="slot-track-asset" ng-if="t.asset && !t.full" ng-style="t.style()">
-                  <div ng-if="t === current && editing === 'position'" class="slot-handle slot-handle-move" mouse-drag="t.dragMove($down, $up)"></div>
+                  <div ng-if="t === current && editing === 'asset'" class="slot-handle slot-handle-move" mouse-drag="t.dragMove($down, $up)"></div>
                 </div>
               </div>
             </div>

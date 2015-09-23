@@ -234,7 +234,7 @@ $$;
 COMMENT ON FUNCTION "volume_access_check" (integer, integer) IS 'Permission level the party has on the given volume, either directly, delegated, or inherited.';
 
 CREATE VIEW "volume_owners_view" ("volume", "owners") AS
-	SELECT volume, array_agg(party || ':' || name || COALESCE(', ' || prename, '')) FROM volume_access JOIN party ON party = party.id WHERE individual = 'ADMIN' GROUP BY volume;
+	SELECT volume, array_agg(party || ':' || name || COALESCE(', ' || prename, '') ORDER BY children DESC, name, prename) FROM volume_access JOIN party ON party = party.id WHERE individual = 'ADMIN' GROUP BY volume;
 
 CREATE TABLE "volume_owners" (
 	"volume" integer NOT NULL Primary Key References "volume" ON UPDATE CASCADE ON DELETE CASCADE,
@@ -454,12 +454,15 @@ INSERT INTO "format" ("mimetype", "extension", "name") VALUES ('video/mp2t',				
 INSERT INTO "format" ("mimetype", "extension", "name") VALUES ('video/avi',									ARRAY['avi'], 'Audio Video Interleave');
 INSERT INTO "format" ("mimetype", "extension", "name") VALUES ('application/x-spss-sav',							ARRAY['sav'], 'SPSS System File');
 INSERT INTO "format" ("mimetype", "extension", "name") VALUES ('audio/wav',									ARRAY['wav'], 'Waveform audio');
-INSERT INTO "format" ("mimetype", "extension", "name") VALUES ('video/x-ms-wmv',								ARRAY['wmv'], 'Windows Media Video');
+INSERT INTO "format" ("mimetype", "extension", "name") VALUES ('video/x-ms-wmv',								ARRAY['wmv'], 'Windows Media video');
 INSERT INTO "format" ("mimetype", "extension", "name") VALUES ('text/x-chat',									ARRAY['cha','chat'], 'Codes for the Human Analysis of Transcripts');
+INSERT INTO "format" ("mimetype", "extension", "name") VALUES ('audio/aac',								        ARRAY['aac'], 'Advanced Audio Coding');
+INSERT INTO "format" ("mimetype", "extension", "name") VALUES ('audio/x-ms-wma',								ARRAY['wma'], 'Windows Media audio');
 
 -- The privledged formats with special handling (image and video for now) have hard-coded IDs:
 INSERT INTO "format" ("id", "mimetype", "extension", "name") VALUES (-800, 'video/mp4',								ARRAY['mp4'], 'MPEG-4 video');
 INSERT INTO "format" ("id", "mimetype", "extension", "name") VALUES (-700, 'image/jpeg',							ARRAY['jpg','jpeg'], 'JPEG image');
+INSERT INTO "format" ("id", "mimetype", "extension", "name") VALUES (-600, 'audio/mpeg',							ARRAY['mp3'], 'MPEG-1 or MPEG-2 audio layer III');
 
 CREATE TABLE "asset" (
 	"id" serial NOT NULL Primary Key,
@@ -654,7 +657,7 @@ ALTER TABLE "record_category"
 	ALTER "name" SET STORAGE EXTERNAL;
 COMMENT ON TABLE "record_category" IS 'Types of records that are relevant for data organization.';
 INSERT INTO "record_category" ("id", "name", "description") VALUES (-500, 'participant', 'An individual subject depicted, represented, or otherwise contributing data');
-INSERT INTO "record_category" ("id", "name", "description") VALUES (-200, 'group', 'A grouping determined by an aspect of the data (participant ability, age, experience, measurements used/available)');
+INSERT INTO "record_category" ("id", "name", "description") VALUES (-200, 'group', 'A grouping determined by an aspect of the data (participant ability, age, experience, longitudinal visit, measurements used/available)');
 INSERT INTO "record_category" ("id", "name", "description") VALUES (-800, 'pilot', 'Indicates that the methods used were not finalized or were non-standard');
 INSERT INTO "record_category" ("id", "name", "description") VALUES (-700, 'exclusion', 'Indicates that data were not usable for a study');
 INSERT INTO "record_category" ("id", "name", "description") VALUES (-400, 'condition', 'An experimenter-determined manipulation (within or between sessions)');

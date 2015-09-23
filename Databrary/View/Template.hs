@@ -22,7 +22,7 @@ import Databrary.Ops
 import Databrary.Has (view)
 import Databrary.Model.Identity
 import Databrary.Action.Types
-import Databrary.Action
+import Databrary.Action.Route
 import Databrary.Controller.Paths
 import Databrary.View.Html
 
@@ -30,7 +30,7 @@ import {-# SOURCE #-} Databrary.Controller.Angular
 import {-# SOURCE #-} Databrary.Controller.Root
 import {-# SOURCE #-} Databrary.Controller.Login
 import {-# SOURCE #-} Databrary.Controller.Party
-import Databrary.Controller.Web
+import {-# SOURCE #-} Databrary.Controller.Web
 
 htmlHeader :: Maybe BSB.Builder -> JSOpt -> H.Html
 htmlHeader canon hasjs = do
@@ -90,7 +90,7 @@ htmlFooter = H.footer H.! HA.id "site-footer" H.! HA.class_ "site-footer" $
           H.string $ showVersion version
           "]"
 
-htmlTemplate :: Context -> Maybe T.Text -> (JSOpt -> H.Html) -> H.Html
+htmlTemplate :: RequestContext -> Maybe T.Text -> (JSOpt -> H.Html) -> H.Html
 htmlTemplate req title body = H.docTypeHtml $ do
   H.head $ do
     htmlHeader canon hasjs
@@ -119,7 +119,7 @@ htmlTemplate req title body = H.docTypeHtml $ do
               H.button
                 H.! HA.type_ "submit"
                 $ "logout")
-          $ contextIdentity req
+          $ requestIdentity req
     Fold.mapM_ (H.h1 . H.toHtml) title
     r <- body hasjs
     H.hr

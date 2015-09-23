@@ -6,6 +6,7 @@ module Databrary.Model.Tag.Types
   , MonadHasTag
   , TagUse(..)
   , MonadHasTagUse
+  , TagUseRow(..)
   , TagCoverage(..)
   , MonadHasTagCoverage
   , TagWeight(..)
@@ -31,7 +32,7 @@ import Databrary.Model.Container.Types
 import Databrary.Model.Segment
 import Databrary.Model.Slot.Types
 
-newtype TagName = TagName BS.ByteString deriving (JSON.ToJSON, Typeable)
+newtype TagName = TagName { tagNameBS :: BS.ByteString } deriving (JSON.ToJSON, JSON.FromJSON, Typeable)
 
 validTag :: Regex.Regex
 validTag = Regex.makeRegex
@@ -73,6 +74,13 @@ data TagUse = TagUse
   }
 
 makeHasRec ''TagUse ['useTag, 'tagWho, 'tagSlot]
+
+data TagUseRow = TagUseRow
+  { useTagRow :: Tag
+  , tagRowKeyword :: Bool
+  , tagRowWhoId :: Id Party
+  , tagRowSlotId :: SlotId
+  }
 
 data TagWeight = TagWeight
   { tagWeightTag :: Tag

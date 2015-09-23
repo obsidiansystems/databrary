@@ -8,9 +8,8 @@
   </div>
   <div class="home-bigbuttons">
     <div class="bigbuttons-text">
-      <p>Databrary is an open data library for developmental science.
-        <br>Share video, audio, and related metadata. Discover more, faster.
-        <br><br>Get started with our <a href="//databrary.org/access/guide.html">User Guide</a>, and get the <a href="//databrary.org/news.html">latest news</a> here.
+      <p>Databrary is a video data library for developmental science.
+        <br>Share videos, audio files, and related metadata. Discover more, faster.
       </p>
     </div>
     <div class="bigbuttons-container">
@@ -27,11 +26,11 @@
       </div>
       <div class="bigbutton">
         <img src="/web/icons/home-searchstudy.svg"/>
-        <span class="button-title"><a ng-href="{{::page.router.volumeSearch()}}">Browse Data</a></span>
+        <span class="button-title"><a ng-href="{{::page.router.search()}}?volume">Browse Data</a></span>
       </div>
       <div class="bigbutton">
         <img src="/web/icons/home-userstudy.svg"/>
-        <span class="button-title"><a ng-href="{{::page.router.partySearch()}}?institution=false&authorization=4">Browse People</a></span>
+        <span class="button-title"><a ng-href="{{::page.router.search()}}?volume=false&f.party_authorization={{::page.constants.permission.EDIT}}&f.party_is_institution=false">Browse People</a></span>
       </div>
     </div>
   </div>
@@ -40,11 +39,11 @@
       <div class="col-desktop-10 col-tablet-6 col-mobile-6">
         <article class="home-panel home-feature row" ng-if="::volume">
           <div class="home-feature-inner">
-            <img ng-src="{{::volume.thumbRoute()}}" class="home-feature-thumb" ng-click="page.$location.url(volume.route())">
+            <img ng-src="{{::volume.thumbRoute()}}" class="home-feature-thumb clickable" ng-click="page.$location.url(volume.route())">
 
             <div class="home-section-text">
-              <div class="home-sections-title"><span class="icon volume"></span><span message="welcome.featured"></span></div>
-              <h1><a ng-href="{{::volume.route()}}" ng-bind="::volume.name"></a></h1>
+              <div class="home-sections-title"><span class="icon volume"></span><span message="welcome.featured"></span></div><br>
+              <a class="small" ng-href="{{::volume.route()}}" ng-bind="::volume.name"></a>
 
               <div class="home-feature-investigators">
                 <volume-owners></volume-owners>
@@ -55,23 +54,23 @@
         <article class="home-panel home-activity row">
           <span class="home-section-text home-sections-title"><span class="icon activity"></span>Recent Activity</span>
           <dl class="home-section-text">
-            <dt ng-repeat-start="act in ::activity">
+            <dt class="small" ng-repeat-start="act in ::activity">
               <time datetime="{{::act.time | date:'yyyy-MM-dd HH:mm:ss Z'}}" pubdate>
                 {{::act.time | date}}
               </time>
             </dt>
             <dd class="home-activity-volume" ng-if="::act.volume" ng-init="volume=act.volume">
-              <p>New shared data</p>
+              <p class="small">New shared data</p>
               <img class="volume-thumb" ng-src="{{::volume.thumbRoute(72)}}">
               <div>
-                <a ng-href="{{::volume.route()}}" ng-bind="::volume.name"></a>
+                <a class="volume-name" ng-href="{{::volume.route()}}" ng-bind="::volume.name"></a>
                 <div class="volume-list-investigators">
                   <volume-owners></volume-owners>
                 </div>
               </div>
             </dd>
             <dd ng-repeat-end ng-if="::act.party" ng-init="party=act.party">
-              <p>New authorized <span ng-if="::party.institution">institution</span><span ng-if="::!party.institution">investigator</span></p>
+              <p class="small">New authorized <span ng-if="::party.institution">institution</span><span ng-if="::!party.institution">investigator</span></p>
               <portrait></portrait>
             </dd>
           </dl>
@@ -79,14 +78,15 @@
       </div>
       <div class="col-desktop-5 col-tablet-3 col-mobile-6">
         <div class="home-panel home-supportad">
-          <span><a href="//databrary.org/about/support.html">Join our online support sessions</a> every Monday from 3&ndash;5pm and Thursday from 11am&ndash;12pm Eastern time!</span>
+          Get started with our <a href="//databrary.org/access/guide.html">User Guide</a>, and get the <a href="//databrary.org/news.html">latest news</a>.<br/>
+          Join our <a href="//databrary.org/about/support.html">online support sessions</a> every Monday from 2&ndash;4pm and Thursday from 11am&ndash;12pm Eastern time!
         </div>
         <div class="home-tags">
           <span class="home-sections-title"><span class="icon tag"></span>Top Tags</span>
           <ol>
-            <ul ng-repeat="tag in ::tags" class="home-tags-item">
-              <div class="home-tag-name"><a ng-href="{{::page.router.volumeSearch()}}?query={{::tag.id}}" ng-bind="::tag.id"></a></div>
-            </ul>
+            <a ng-repeat="tag in ::tags" ng-href="{{::page.router.search()}}?volume&f.tag_name=&quot;{{::tag}}&quot;">
+              <li class="home-tags-item tags-item" ng-bind="::tag"></li>
+            </a>
           </ol>
         </div>
       </div>

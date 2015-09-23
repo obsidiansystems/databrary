@@ -10,7 +10,7 @@ Stability:           Experimental
 Category:            Web
 Tested-with:         GHC == 7.8.4
 Build-type:          Custom
-Cabal-version:       >=1.20
+Cabal-version:       >=1.22
 
 data-files:
   databrary.conf,
@@ -19,7 +19,6 @@ data-files:
   transctl.sh,
   transcode,
   volume.json,
-  ezid/*.py,
   web/*.min.css,
   web/*.min.js,
   web/icons/*.ico,
@@ -33,7 +32,11 @@ data-files:
   web/images/logo/*.png,
   web/images/logo/*.svg,
   web/images/social/16px/*.png,
-  web/lib/*.min.js
+  web/lib/*.min.js,
+  solr/solr.xml,
+  solr/log4j.properties,
+  solr/conf/*.xml,
+  solr/conf/*.txt
 
 Source-Repository head
   Type:	git
@@ -70,7 +73,7 @@ Executable schemabrary
     configurator,
     resource-pool,
     network,
-    postgresql-typed == 0.4.0
+    postgresql-typed == 0.4.1
 
 Executable databrary
   main-is: Databrary/Main.hs
@@ -116,7 +119,7 @@ Executable databrary
     configurator,
     resource-pool,
     scientific,
-    postgresql-typed == 0.4.0,
+    postgresql-typed == 0.4.1,
     memory >= 0.8,
     cryptonite,
     resourcet,
@@ -127,11 +130,13 @@ Executable databrary
     regex-posix,
     bcrypt,
     http-client,
+    http-client-tls,
     mime-mail,
     fast-logger,
     digest,
     hjsonschema,
-    aeson-better-errors > 0.9.0
+    aeson-better-errors > 0.9.0,
+    xml
 
   if flag(tls)
     Build-depends: warp-tls

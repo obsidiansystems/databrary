@@ -2,6 +2,7 @@
 module Databrary.Model.Party.SQL
   ( partyRow
   , selectParty
+  , selectPartyAuthorization
   , selectAuthParty
   , selectAccount
   , selectSiteAuth
@@ -13,6 +14,7 @@ module Databrary.Model.Party.SQL
   , deleteAccount
   ) where
 
+import Control.Applicative ((<$>))
 import qualified Data.ByteString as BS
 import qualified Data.Foldable as Fold
 import Data.Monoid ((<>))
@@ -56,6 +58,17 @@ selectParty :: TH.Name -- ^ 'Identity'
   -> Selector -- ^ @'Party'@
 selectParty ident = selectMap ((`TH.AppE` TH.VarE ident) . (`TH.AppE` (TH.ConE 'Nothing)) . (TH.VarE 'permissionParty `TH.AppE`)) $
   selectPermissionParty
+
+makePartyAuthorization :: Party -> Maybe Access -> (Party, Maybe Permission)
+makePartyAuthorization p a = (p, accessSite <$> a)
+
+selectPartyAuthorization :: TH.Name -- ^ 'Identity'
+  -> Selector -- ^ @('Party', Maybe 'Permission')@
+selectPartyAuthorization ident = selectJoin 'makePartyAuthorization
+  [ selectParty ident
+  , maybeJoinOn "party.id = authorize_view.child AND authorize_view.parent = 0"
+    $ accessRow "authorize_view"
+  ]
 
 selectAuthParty :: TH.Name -- ^ 'Identity`
   -> Selector -- ^ @'Party'@

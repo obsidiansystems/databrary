@@ -57,7 +57,7 @@ app.factory('modelService', [
       if (Array.isArray(options)) {
         for (var i = 0; i < options.length; i ++)
           if (!hasField(obj, options[i])) {
-            opts[options[i]] = '';
+            opts[options[i]] = true;
             need = opts;
           }
       }
@@ -134,7 +134,6 @@ app.factory('modelService', [
     Party.prototype.fields = {
       id: true,
       permission: false,
-      name: true,
       sortname: true,
       prename: true,
       orcid: true,
@@ -144,6 +143,12 @@ app.factory('modelService', [
       url: true,
       authorization: false,
     };
+
+    Object.defineProperty(Party.prototype, 'name', {
+      get: function () {
+        return (this.prename ? this.prename + ' ' : '') + this.sortname;
+      }
+    });
 
     Party.prototype.init = function (init) {
       Model.prototype.init.call(this, init);
@@ -159,12 +164,12 @@ app.factory('modelService', [
         this.comments = commentMakeArray(null, init.comments);
     };
 
-    function partyPeek(id) {
+    Party.peek = function (id) {
       return id === Login.user.id && Login.user || Party.cache.get(id);
-    }
+    };
 
     function partyMake(init) {
-      var p = partyPeek(init.id);
+      var p = Party.peek(init.id);
       return p ? p.update(init) : Party.poke(new Party(init));
     }
 
@@ -194,7 +199,7 @@ app.factory('modelService', [
     }
 
     Party.get = function (id, options) {
-      return partyGet(id, partyPeek(id), options);
+      return partyGet(id, Party.peek(id), options);
     };
 
     Party.prototype.get = function (options) {
@@ -439,7 +444,7 @@ app.factory('modelService', [
       if ('top' in init)
         this.top = containerMake(this, init.top);
       if ('excerpts' in init)
-        this.excerpts = assetMakeArray(this, init.excerpts);
+        this.excerpts = excerptMakeArray(this, init.excerpts);
       if ('comments' in init)
         this.comments = commentMakeArray(this, init.comments);
     };
@@ -501,7 +506,7 @@ app.factory('modelService', [
         data.owner = owner;
       return router.http(router.controllers.createVolume, data)
         .then(function (res) {
-          if ((owner = (owner === undefined ? Login.user : partyPeek(owner))))
+          if ((owner = (owner === undefined ? Login.user : Party.peek(owner))))
             owner.clear('access', 'volumes');
           return volumeMake(res.data);
         });
@@ -691,7 +696,7 @@ app.factory('modelService', [
         slot.records = rl;
       }
       if ('excerpts' in init)
-        slot.excerpts = assetMakeArray(slot.container, init.excerpts);
+        slot.excerpts = excerptMakeArray(slot.container, init.excerpts);
     }
 
     Slot.prototype.init = function (init) {
@@ -777,14 +782,18 @@ app.factory('modelService', [
         return new Container(volume, init);
     }
 
+    Volume.prototype.getContainer = function(id) {
+      return containerMake(this, {id:id,_PLACEHOLDER:true});
+    };
+
     function containerPrepare(volume, init) {
       if (typeof init == 'number')
-        init = {id:init,_PLACEHOLDER:true};
+        return volume.getContainer(init);
       return containerMake(volume || volumeMake(init.volume), init);
     }
 
     Volume.prototype.getSlot = function (container, segment, options) {
-      return containerPrepare(this, parseInt(container, 10)).getSlot(segment, options);
+      return this.getContainer(parseInt(container, 10)).getSlot(segment, options);
     };
 
     Container.prototype.getSlot = function (segment, options) {
@@ -899,6 +908,10 @@ app.factory('modelService', [
 
     Slot.prototype.zipRoute = function () {
       return router.slotZip([this.volume.id, this.container.id]);
+    };
+
+    Slot.prototype.thumbRoute = function (size) {
+      return router.slotThumb([this.volume.id, this.container.id, this.segment.format(), size]);
     };
 
     ///////////////////////////////// Record
@@ -1059,6 +1072,12 @@ app.factory('modelService', [
       }
     });
 
+    Object.defineProperty(AssetSlot.prototype, 'displayName', {
+      get: function () {
+        return this.name || this.format.name;
+      }
+    });
+
     AssetSlot.prototype.inSegment = function (segment) {
       segment = this.segment.intersect(segment);
       if (this instanceof AssetSegment && segment.equals(this.segment))
@@ -1078,9 +1097,9 @@ app.factory('modelService', [
         .then(function (res) {
           a.asset.clear('excerpts');
           a.volume.clear('excerpts');
-          return a instanceof AssetSegment ?
+          return a instanceof Excerpt ?
             a.update(res.data) :
-            new AssetSegment(a.asset, res.data);
+            new Excerpt(a.asset, res.data);
         });
     };
 
@@ -1134,17 +1153,26 @@ app.factory('modelService', [
       }
     });
 
-    Object.defineProperty(Asset.prototype, 'release', {
+    Object.defineProperty(Asset.prototype, 'fullExcerpt', {
       get: function () {
-        return this.classification != null ? this.classification : (this.container.release || 0);
+        var e = this.excerpts;
+        if (e && e.length === 1 && e[0].segment.contains(this.segment))
+          return e[0];
       }
     });
 
-    Object.defineProperty(Asset.prototype, 'displayName', {
+    Object.defineProperty(Asset.prototype, 'release', {
       get: function () {
-        return this.name || this.format.name;
+        var r = this.classification != null ? this.classification : (this.container.release || 0);
+        var e = this.fullExcerpt;
+        return e ? Math.max(e.excerpt || 0, r) : r;
       }
     });
+
+    Asset.prototype.checkPermission = function (level) {
+      var e = this.fullExcerpt;
+      return (e ? e.permission : this.permission) >= level;
+    };
 
     Asset.prototype.get = function (options) {
       var a = this;
@@ -1244,9 +1272,45 @@ app.factory('modelService', [
 
     Object.defineProperty(AssetSegment.prototype, 'release', {
       get: function () {
-        return Math.max(this.excerpt != null ? this.excerpt : 0, this.asset.release);
+        return Math.max(this.excerpt || 0, this.asset.release);
       }
     });
+
+    ///////////////////////////////// AssetSegment
+
+    function Excerpt(context, init) {
+      AssetSegment.call(this, context, init);
+      if (this.asset.excerpts) {
+        /* this is unfortunate, but can happen. */
+        var s = this.segment;
+        var i = this.asset.excerpts.findIndex(function (e) { return e.segment.equals(s); });
+        if (i >= 0)
+          this.asset.excerpts[i] = this;
+        else
+          this.asset.excerpts.push(this);
+      } else
+        this.asset.excerpts = [this];
+    }
+
+    Excerpt.prototype = Object.create(AssetSegment.prototype);
+    Excerpt.prototype.constructor = Excerpt;
+    Excerpt.prototype.class = 'excerpt';
+
+    function excerptMake(context, init) {
+      if (init.asset && 'container' in init && !('container' in init.asset))
+        init.asset.container = init.container;
+      var e;
+      if (context instanceof Asset && context.excerpts && (e = context.excerpts.find(function (e) { return e.segment.equals(init.segment); })))
+        return e.update(init);
+      else
+        return new Excerpt(context, init);
+    }
+
+    function excerptMakeArray(context, l) {
+      if (l) for (var i = 0; i < l.length; i ++)
+        l[i] = excerptMake(context, l[i]);
+      return l;
+    }
 
     ///////////////////////////////// Comment
 
