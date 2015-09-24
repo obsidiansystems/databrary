@@ -35,6 +35,7 @@ import Databrary.Controller.Ingest
 import Databrary.Controller.Web
 import Databrary.Controller.Search
 import Databrary.Controller.Periodic
+import Databrary.Controller.Style
 
 routeMap :: RouteMap Action
 routeMap = fromRouteList
@@ -145,6 +146,7 @@ routeMap = fromRouteList
   , route postIngest
   , route viewPeriodic
   , route postPeriodic
+  , route viewStyle
 
   , route webFile
   ]

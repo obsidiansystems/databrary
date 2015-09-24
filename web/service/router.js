@@ -427,7 +427,7 @@ app.provider('routerService', [
     routes.assetDownload = makeRoute(controllers.downloadAssetSegment, ['cid', 'segment', 'id', 'inline']);
     routes.volumeZip = makeRoute(controllers.zipVolume, ['id']);
 
-    $routeProvider.when('/style', {
+    $routeProvider.when('/admin/style', {
       templateUrl: 'site/style.html'
     });
 
