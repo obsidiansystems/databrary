@@ -3,6 +3,7 @@
 
 var app = angular.module('databraryModule', [
   'ngRoute',
+  'ngAnimate',
   'flow',
   'ui.slider',
 ]);

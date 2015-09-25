@@ -24,6 +24,7 @@ jsDeps = -- sourced on js pages
   [ ("jquery",              "jquery/dist")
   , ("angular",             "angular")
   , ("angular-route",       "angular-route")
+  , ("angular-animate",     "angular-animate")
   , ("ng-flow-standalone",  "ng-flow/dist")
   , ("lodash",              "lodash")
   ]
