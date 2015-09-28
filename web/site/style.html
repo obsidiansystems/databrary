@@ -1,39 +1,47 @@
 <h1 class="view-title">Databrary Style Guide</h1>
 
 <ul>
+  <li>Logo</li>
   <li>Grid</li>
   <li>Color</li>
   <li>Typography</li>
-  <li>Headers</li>
   <li>Buttons</li>
-  <li>etc</li>
-  <li>I don't know what those are</li>
 </ul>
 
-<section id="style-grid">
-  <h3 class="panel-title smaller">Grid</h3>
-  <p>
-    Pages are divided into grids of 15 for desktop width (1216px), 9 for tablet width (976px), and 6 for mobile width (630px). Change the width of the page to see the split below:
-  </p>
-  <div ng-init="grids=[{name:'mobile',col:6,classes:'hide-desktop hide-tablet'},{name:'tablet',col:9,classes:'hide-desktop hide-mobile'},{name:'desktop',col:15,classes:'hide-tablet hide-mobile'}]">
-    <div class="row" ng-repeat="g in grids">
-      <div class="style-grid {{g.classes}} col-{{g.name}}-1" ng-repeat="col in (new Array(g.col)) track by $index">
+<div class="wrap">
+  <section id="style-logo">
+    <h3 class="panel-title smaller">Logo</h3>
+    <p>The logo should always be used over a neutral, light (no darker than #fafafa) background. White (#ffffff) is ideal.</p>
+    <p>++add size recommendations?</p>
+    <div class="col">
+      <img src="/web/images/logo/databrary-nav.svg" class="col-mobile-6 col-tablet-6 col-desktop-6" />
     </div>
-  </div>
-</section>
-
-<section id="style-color" ng-init="colors=[{name:'green',hex:'#60a99b',note:'Primary color of the site'
-    },{name:'orange',hex:'#d37433',note:'Supplementary color: dynamic selections and highlights'},{name:'blue',hex:'#5caabc',reminder:'',note:'Reminder, informational'},{name:'yellow',    hex:'#d1ca00',attention:'',note:'Requires attention'},{name:'red',hex:'#f26363',note:'Urgent warning'
-    },{name:'purple',hex:'#9a8cec'}]">
-  <h3 class="panel-title smaller">Color</h3>
-
-  <div ng-repeat="c in colors">
-    <span ng-bind="c.note"></span><br>
-    <div class="style-color {{c.name}}">
-      <div class="swatch"></div>{{c.name}} {{c.hex}}<br>
-      <div class="swatch {{w}}" ng-repeat="w in ['c51','c52','c53']"></div>
-      <div class="swatch {{b}}" ng-repeat="b in ['c11','c12','c13']"></div>
+  </section>
+  <hr>
+  <section id="style-grid">
+    <h3 class="panel-title smaller">Grid</h3>
+    <p>Pages are divided into grids of 15 for desktop width (greater than 976px), 9 for tablet width (under 976px), and 6 for mobile width (under 630px). With the exception of the spreadsheet, all blocks of content should use the grid.
+    </p>
+    <div class="col">
+      <div class="style-grid col-desktop-1 col-tablet-1 col-mobile-1">This is the width of one cell in the grid you're currently in. Resize to see a different width. </div>
     </div>
-  </div>
-
-</section>
+  </section>
+  <hr>
+  <section id="style-color" ng-init="colors=[{name:'green',hex:'#60a99b',note:'Main color, used liberally around site for static and dynamic navigation. Text in green must be links or clickable. Use shade 2 for backgrounds against headers or titles. Save buttons turn green when enabled'},{name:'orange',hex:'#d37433',note:'Supplementary color. Use for dynamic selections and highlights in the contents for differentiation and readability from green'},{name:'purple',hex:'#9a8cec',note:'Not used much except in timeline view. Should only be considered if green and orange has already been taken up and different shades do not suffice.'},{name:'blue',hex:'#5caabc',reminder:'',note:'Use for neutral reminders and informational text such as tooltips'},{name:'yellow',    hex:'#d1ca00',attention:'',note:'Requires attention'},{name:'red',hex:'#f26363',note:'Urgent, or warning.'}]">
+    <h3 class="panel-title smaller">Color</h3>
+    <div ng-repeat="c in colors">
+      <span ng-bind="c.note"></span><br>
+      <div class="style-color {{c.name}}">
+        <div class="swatch"></div><span>{{c.name}} {{c.hex}}</span><br>
+        <div class="swatch {{w}}" ng-repeat="w in ['c51','c52','c53']"></div>
+        <div class="swatch {{b}}" ng-repeat="b in ['c11','c12','c13']"></div>
+      </div>
+      <hr>
+    </div>
+  </section>
+  <section>
+    <h3 class="panel-title-smaller">Typography</h3>
+    <p>Body text uses Lucida sans. Chrome currently misrenders bold styles on Lucida sans, and the difference between normal and bold weight is often negligible. Considering switching to Open Sans or other san serif fonts. Default body font size is 16px, and small text is 12px.</p>
+    <p>Header text uses Verdana (see header above). Size used around the site is 32px. The CSS is in the process of being consolidated to match that (view-title and panel-title can be the same? consolidate .smaller since most headers if not all use .smaller </p>
+  </section>
+</div>
