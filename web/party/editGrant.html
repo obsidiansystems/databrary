@@ -12,14 +12,17 @@
     <legend message="auth.grant.legend"></legend>
     <article ng-repeat="auth in partyEditGrantForm.data track by auth.party.id" id="auth-{{::auth.party.id}}" class="permission-auth cf peg anchor">
       <div class="col">
-        <div class="col-desktop-1 col-tablet-1 hide-mobile">
-          <figure class="figure-avatar" ng-class="::{inst: auth.party.institution}">
-            <img ng-src="{{::auth.party.avatarRoute()}}">
-          </figure>
-        </div>
 
-        <div>
+        <span ng-click="expandParty(auth.party.id)">
+          <span ng-if="expanded !== auth.party.id" class="icon expand"></span>
+          <span ng-if="expanded === auth.party.id" class="icon expanded"></span>
+        </span>
+
+        <div class="inline-block">
           <div class="row">
+            <figure class="figure-avatar hide-mobile" ng-class="::{inst: auth.party.institution}">
+              <img ng-src="{{::auth.party.avatarRoute()}}">
+            </figure>
             <div class="permission-heading">
               <a ng-href="{{::auth.party.route()}}" class="permission-auth-username" ng-bind="::auth.party.name"></a><wbr>
               <span class="permission-auth-email" ng-if="::!!auth.party.email" ng-bind="::auth.party.email"></span> 
@@ -27,7 +30,7 @@
               <span ng-if="!(auth.member || auth.site)" class="permission-auth-pending" message="auth.pending"></span>
             </div>
 
-            <div class="col-desktop-11 col-tablet-7 col-mobile-6">
+            <div ng-if="expanded === auth.party.id" class="col-desktop-11 col-tablet-7 col-mobile-5" >
               <auth-grant-form></auth-grant-form>
             </div>
           </div>

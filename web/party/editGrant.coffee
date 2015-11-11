@@ -41,5 +41,12 @@ app.directive 'partyEditGrantForm', [
           $scope.authSearchSelectFn(p)
         return
 
+      $scope.expandParty = (p) ->
+        if p && $scope.expanded == p
+          $scope.expanded = undefined
+          return
+        $scope.expanded = p
+        return unless p 
+
       $scope.$emit('partyEditGrantForm-init', form)
 ]
