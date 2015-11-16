@@ -22,6 +22,7 @@
 
       <div class="col" ng-if="::!!(volume || owners.length)">
         <wizard name="volume-edit">
+
           <volume-meter volume="volume">
           </volume-meter>
 
@@ -41,6 +42,10 @@
             <spreadsheet edit></spreadsheet>
           </wizard-page>
 
+          <wizard-page name="uploadassist" wizard-disabled="!volume">
+            <volume-upload-assist></volume-upload-assist>
+          </wizard-page> 
+
           <wizard-page name="links" wizard-disabled="!volume">
             <volume-edit-links-form></volume-edit-links-form>
           </wizard-page>
@@ -48,6 +53,7 @@
           <wizard-page name="funding" wizard-disabled="!volume">
             <volume-edit-funding-form></volume-edit-funding-form>
           </wizard-page>
+
         </wizard>
       </div>
     </div>
