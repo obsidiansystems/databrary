@@ -1,6 +1,17 @@
 <ng-form name="volumeUploadAssist">
-  <span>yay</span>
   <fieldset class="clean">
-    <input type="email" ng-model="volumeUploadAssist.contact" required>
+    <div>Who should we contact to follow up?</div>
+    <div class="col-desktop-5 col-tablet-3 col-mobile-6"><input type="text" placeholder="Name" /></div>
+    <div class="col-desktop-10 col-tablet-6 col-mobile-6"><input type="email" ng-model="volumeUploadAssist.contact" required placeholder="Email Address" /></div>
   </fieldset>
+  <div class="col" message="asset.add-drop.new"></div>
+  <div class="col">
+    <ul>
+      <li>Uploaded file 1</li>
+      <li>Uploaded file 2</li>
+      <li>Uploaded file 3</li>
+    </ul>
+  </div>
+  <div></div>
+  <textarea class="col-15 col-tablet-9 col-mobile-6"></textarea> 
 </ng-form>
