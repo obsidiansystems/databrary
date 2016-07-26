@@ -1,0 +1,61 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE OverloadedStrings, TemplateHaskell, TypeFamilies #-}</span><span>
+</span><a name="line-2"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">GeoNames</span><span>
+</span><a name="line-3"></a><span>  </span><span class="hs-special">(</span><span> </span><a href="Databrary.Model.GeoNames.html#GeoName"><span class="hs-identifier hs-type">GeoName</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-4"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.GeoNames.html#geoNameUS"><span class="hs-identifier hs-var">geoNameUS</span></a><span>
+</span><a name="line-5"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.GeoNames.html#parseGeoNameRef"><span class="hs-identifier hs-var">parseGeoNameRef</span></a><span>
+</span><a name="line-6"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.GeoNames.html#lookupGeoName"><span class="hs-identifier hs-var">lookupGeoName</span></a><span>
+</span><a name="line-7"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-8"></a><span>
+</span><a name="line-9"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control</span><span class="hs-operator">.</span><span class="hs-identifier">Monad</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">guard</span><span class="hs-special">)</span><span>
+</span><a name="line-10"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">ByteString</span><span class="hs-operator">.</span><span class="hs-identifier">Char8</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">BSC</span><span>
+</span><a name="line-11"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Int</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Int64</span><span class="hs-special">)</span><span>
+</span><a name="line-12"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">List</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">stripPrefix</span><span class="hs-special">)</span><span>
+</span><a name="line-13"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Maybe</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">fromJust</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">fromMaybe</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">listToMaybe</span><span class="hs-special">)</span><span>
+</span><a name="line-14"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Text</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">T</span><span>
+</span><a name="line-15"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Network</span><span class="hs-operator">.</span><span class="hs-identifier">HTTP</span><span class="hs-operator">.</span><span class="hs-identifier">Client</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">HC</span><span>
+</span><a name="line-16"></a><span>
+</span><a name="line-17"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Has.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Has</span></a><span> </span><span class="hs-special">(</span><a href="Databrary.Has.html#makeHasRec"><span class="hs-identifier hs-var">makeHasRec</span></a><span class="hs-special">)</span><span>
+</span><a name="line-18"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><a href="Databrary.JSON.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">JSON</span></a><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">JSON</span><span>
+</span><a name="line-19"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.HTTP.Client.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">HTTP</span><span class="hs-operator">.</span><span class="hs-identifier">Client</span></a><span>
+</span><a name="line-20"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Id.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Id</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-21"></a><span>
+</span><a name="line-22"></a><span class="hs-keyword">type</span><span> </span><span class="hs-keyword">instance</span><span> </span><a href="Databrary.Model.Id.Types.html#IdType"><span class="hs-identifier hs-type">IdType</span></a><span> </span><a href="Databrary.Model.GeoNames.html#GeoName"><span class="hs-identifier hs-type">GeoName</span></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-type">Int64</span><span>
+</span><a name="line-23"></a><span>
+</span><a name="line-24"></a><span class="hs-keyword">data</span><span> </span><a name="GeoName"><a href="Databrary.Model.GeoNames.html#GeoName"><span class="hs-identifier">GeoName</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="GeoName"><a href="Databrary.Model.GeoNames.html#GeoName"><span class="hs-identifier">GeoName</span></a></a><span>
+</span><a name="line-25"></a><span>  </span><span class="hs-special">{</span><span> </span><a name="geoNameId"><a href="Databrary.Model.GeoNames.html#geoNameId"><span class="hs-identifier">geoNameId</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><span class="hs-special">(</span><a href="Databrary.Model.Id.Types.html#Id"><span class="hs-identifier hs-type">Id</span></a><span> </span><a href="Databrary.Model.GeoNames.html#GeoName"><span class="hs-identifier hs-type">GeoName</span></a><span class="hs-special">)</span><span>
+</span><a name="line-26"></a><span>  </span><span class="hs-special">,</span><span> </span><a name="geoName"><a href="Databrary.Model.GeoNames.html#geoName"><span class="hs-identifier">geoName</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><span class="hs-identifier hs-type">T</span><span class="hs-operator hs-type">.</span><span class="hs-identifier hs-type">Text</span><span>
+</span><a name="line-27"></a><span>  </span><span class="hs-special">}</span><span>
+</span><a name="line-28"></a><span>
+</span><a name="line-29"></a><a href="Databrary.Model.GeoNames.html#geoNameId"><span class="hs-identifier hs-var">makeHasRec</span></a><span> </span><span class="hs-char">''GeoName ['geoNameId]
+
+geoNameUS :: GeoName
+geoNameUS = GeoName
+  { geoNameId = Id 6252001
+  , geoName = &quot;United States&quot;
+  }
+
+parseGeoNameRef :: String -&gt; Maybe (Id GeoName)
+parseGeoNameRef s = listToMaybe $ do
+  (i, r) &lt;- reads $ fromMaybe s (stripPrefix &quot;http://sws.geonames.org/&quot; s)
+  guard (null r || r == &quot;/&quot;)
+  return $ Id i
+
+parseGeoName :: JSON.Value -&gt; JSON.Parser GeoName
+parseGeoName = JSON.withObject &quot;geoname&quot; $ \j -&gt; do
+  i &lt;- j JSON..: &quot;geonameId&quot;
+  n &lt;- j JSON..: &quot;name&quot;
+  return GeoName
+    { geoNameId = Id i
+    , geoName = n
+    }
+
+geoNameReq :: HC.Request
+geoNameReq = (fromJust $ HC.parseUrl &quot;http://api.geonames.org/getJSON&quot;)
+  { HC.cookieJar = Nothing }
+
+lookupGeoName :: Id GeoName -&gt; HTTPClient -&gt; IO (Maybe GeoName)
+lookupGeoName (Id i) hcm = do
+  j &lt;- httpRequestJSON req hcm
+  return $ JSON.parseMaybe parseGeoName =&lt;&lt; j
+  where req = HC.setQueryString [(&quot;geonameId&quot;, Just $ BSC.pack $ show i), (&quot;username&quot;, Just &quot;databrary&quot;)] geoNameReq
+</span></pre></body></html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell, DataKinds #-}</span><span>
+</span><a name="line-2"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">ORCID</span><span>
+</span><a name="line-3"></a><span>  </span><span class="hs-special">(</span><span> </span><a href="Databrary.Model.ORCID.html#ORCID"><span class="hs-identifier hs-type">ORCID</span></a><span>
+</span><a name="line-4"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.ORCID.html#blankORCID"><span class="hs-identifier hs-var">blankORCID</span></a><span>
+</span><a name="line-5"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.ORCID.html#orcidURL"><span class="hs-identifier hs-var">orcidURL</span></a><span>
+</span><a name="line-6"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-7"></a><span>
+</span><a name="line-8"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control</span><span class="hs-operator">.</span><span class="hs-identifier">Monad</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">guard</span><span class="hs-special">)</span><span>
+</span><a name="line-9"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">ByteString</span><span class="hs-operator">.</span><span class="hs-identifier">Char8</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">BSC</span><span>
+</span><a name="line-10"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Char</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">isDigit</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">digitToInt</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">intToDigit</span><span class="hs-special">)</span><span>
+</span><a name="line-11"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">List</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">foldl'</span><span class="hs-special">)</span><span>
+</span><a name="line-12"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Database</span><span class="hs-operator">.</span><span class="hs-identifier">PostgreSQL</span><span class="hs-operator">.</span><span class="hs-identifier">Typed</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">PGParameter</span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">PGColumn</span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-13"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Instances</span><span class="hs-operator">.</span><span class="hs-identifier">TH</span><span class="hs-operator">.</span><span class="hs-identifier">Lift</span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><a name="line-14"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Language</span><span class="hs-operator">.</span><span class="hs-identifier">Haskell</span><span class="hs-operator">.</span><span class="hs-identifier">TH</span><span class="hs-operator">.</span><span class="hs-identifier">Lift</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">deriveLift</span><span class="hs-special">)</span><span>
+</span><a name="line-15"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Network</span><span class="hs-operator">.</span><span class="hs-identifier">URI</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">URI</span><span>
+</span><a name="line-16"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Text</span><span class="hs-operator">.</span><span class="hs-identifier">ParserCombinators</span><span class="hs-operator">.</span><span class="hs-identifier">ReadP</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">RP</span><span>
+</span><a name="line-17"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Text</span><span class="hs-operator">.</span><span class="hs-identifier">ParserCombinators</span><span class="hs-operator">.</span><span class="hs-identifier">ReadPrec</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">RP</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">lift</span><span class="hs-special">)</span><span>
+</span><a name="line-18"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Text</span><span class="hs-operator">.</span><span class="hs-identifier">Read</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Read</span><span class="hs-special">(</span><span class="hs-identifier hs-var">readPrec</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-19"></a><span>
+</span><a name="line-20"></a><span class="hs-keyword">newtype</span><span> </span><a name="ORCID"><a href="Databrary.Model.ORCID.html#ORCID"><span class="hs-identifier">ORCID</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="ORCID"><a href="Databrary.Model.ORCID.html#ORCID"><span class="hs-identifier">ORCID</span></a></a><span> </span><span class="hs-special">{</span><span> </span><a name="orcid"><a href="Databrary.Model.ORCID.html#orcid"><span class="hs-identifier">orcid</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">BSC</span><span class="hs-operator hs-type">.</span><span class="hs-identifier hs-type">ByteString</span><span> </span><span class="hs-special">}</span><span>
+</span><a name="line-21"></a><span>
+</span><a name="line-22"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">PGParameter</span><span> </span><span class="hs-string">&quot;bpchar&quot;</span><span> </span><a href="Databrary.Model.ORCID.html#ORCID"><span class="hs-identifier hs-type">ORCID</span></a><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-23"></a><span>  </span><a name="local-1912631410"><span class="hs-identifier">pgEncode</span></a><span> </span><a name="local-1627574564"><a href="#local-1627574564"><span class="hs-identifier">t</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">pgEncode</span><span> </span><a href="#local-1627574564"><span class="hs-identifier hs-var">t</span></a><span> </span><span class="hs-operator hs-var">.</span><span> </span><a href="Databrary.Model.ORCID.html#orcid"><span class="hs-identifier hs-var">orcid</span></a><span>
+</span><a name="line-24"></a><span>  </span><a name="local-1912631408"><span class="hs-identifier">pgEncodeValue</span></a><span> </span><a name="local-1627574565"><a href="#local-1627574565"><span class="hs-identifier">e</span></a></a><span> </span><a name="local-1627574566"><a href="#local-1627574566"><span class="hs-identifier">t</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">pgEncodeValue</span><span> </span><a href="#local-1627574565"><span class="hs-identifier hs-var">e</span></a><span> </span><a href="#local-1627574566"><span class="hs-identifier hs-var">t</span></a><span> </span><span class="hs-operator hs-var">.</span><span> </span><a href="Databrary.Model.ORCID.html#orcid"><span class="hs-identifier hs-var">orcid</span></a><span>
+</span><a name="line-25"></a><span>  </span><a name="local-1912631409"><span class="hs-identifier">pgLiteral</span></a><span> </span><a name="local-1627574567"><a href="#local-1627574567"><span class="hs-identifier">t</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">pgLiteral</span><span> </span><a href="#local-1627574567"><span class="hs-identifier hs-var">t</span></a><span> </span><span class="hs-operator hs-var">.</span><span> </span><a href="Databrary.Model.ORCID.html#orcid"><span class="hs-identifier hs-var">orcid</span></a><span>
+</span><a name="line-26"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">PGColumn</span><span> </span><span class="hs-string">&quot;bpchar&quot;</span><span> </span><a href="Databrary.Model.ORCID.html#ORCID"><span class="hs-identifier hs-type">ORCID</span></a><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-27"></a><span>  </span><a name="local-1912631414"><span class="hs-identifier">pgDecode</span></a><span> </span><a name="local-1627574561"><a href="#local-1627574561"><span class="hs-identifier">t</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Databrary.Model.ORCID.html#ORCID"><span class="hs-identifier hs-var">ORCID</span></a><span> </span><span class="hs-operator hs-var">.</span><span> </span><span class="hs-identifier hs-var">pgDecode</span><span> </span><a href="#local-1627574561"><span class="hs-identifier hs-var">t</span></a><span>
+</span><a name="line-28"></a><span>  </span><a name="local-1912631412"><span class="hs-identifier">pgDecodeValue</span></a><span> </span><a name="local-1627574562"><a href="#local-1627574562"><span class="hs-identifier">e</span></a></a><span> </span><a name="local-1627574563"><a href="#local-1627574563"><span class="hs-identifier">t</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Databrary.Model.ORCID.html#ORCID"><span class="hs-identifier hs-var">ORCID</span></a><span> </span><span class="hs-operator hs-var">.</span><span> </span><span class="hs-identifier hs-var">pgDecodeValue</span><span> </span><a href="#local-1627574562"><span class="hs-identifier hs-var">e</span></a><span> </span><a href="#local-1627574563"><span class="hs-identifier hs-var">t</span></a><span>
+</span><a name="line-29"></a><span>
+</span><a name="line-30"></a><a href="#local-1627576212"><span class="hs-identifier hs-var">deriveLift</span></a><span> </span><span class="hs-char">''ORCID
+
+checksumDigit :: Int -&gt; Char
+checksumDigit 10 = 'X'
+checksumDigit i = intToDigit i
+
+instance Show ORCID where
+  show (ORCID s) = group $ BSC.unpack s where
+    group (a:b:c:d:r@(_:_)) = a:b:c:d:'-':group r
+    group r = r
+
+instance Read ORCID where
+  readPrec = RP.lift $ do
+    RP.skipSpaces
+    RP.optional $ RP.string &quot;http://&quot;
+    RP.optional $ RP.string &quot;orcid.org/&quot;
+    b &lt;- RP.count 15 $ do
+      RP.optional $ RP.char '-'
+      RP.satisfy isDigit
+    RP.optional $ RP.char '-'
+    c &lt;- RP.satisfy (\c -&gt; 'X' == c || isDigit c)
+    guard $ checksumDigit (10 - (9 + foldl' (\s -&gt; (*) 2 . (+) s . digitToInt) 0 b) `mod` 11) == c
+    return $ ORCID $ BSC.snoc (BSC.pack b) c
+
+blankORCID :: ORCID
+blankORCID = ORCID BSC.empty -- &quot;0000000000000001&quot;
+
+orcidURL :: ORCID -&gt; URI.URI
+orcidURL o = URI.nullURI
+  { URI.uriScheme = &quot;http:&quot;
+  , URI.uriAuthority = Just URI.URIAuth
+    { URI.uriUserInfo = &quot;&quot;
+    , URI.uriRegName = &quot;orcid.org&quot;
+    , URI.uriPort = &quot;&quot;
+    }
+  , URI.uriPath = '/' : show o
+  }
+</span></pre></body></html>

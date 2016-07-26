@@ -1,0 +1,77 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell, TypeFamilies, OverloadedStrings #-}</span><span>
+</span><a name="line-2"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Record</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span>
+</span><a name="line-3"></a><span>  </span><span class="hs-special">(</span><span> </span><a href="Databrary.Model.Record.Types.html#RecordRow"><span class="hs-identifier hs-type">RecordRow</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-4"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Record.Types.html#Record"><span class="hs-identifier hs-type">Record</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-5"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Record.Types.html#Measure"><span class="hs-identifier hs-type">Measure</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-6"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Record.Types.html#Measures"><span class="hs-identifier hs-type">Measures</span></a><span>
+</span><a name="line-7"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-8"></a><span>
+</span><a name="line-9"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control</span><span class="hs-operator">.</span><span class="hs-identifier">Applicative</span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="hs-operator hs-var">&lt;|&gt;</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-10"></a><span>
+</span><a name="line-11"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Has.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Has</span></a><span> </span><span class="hs-special">(</span><a href="Databrary.Has.html#makeHasRec"><span class="hs-identifier hs-var">makeHasRec</span></a><span class="hs-special">,</span><span> </span><a href="Databrary.Has.html#Has"><span class="hs-identifier hs-type">Has</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-12"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Kind.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Kind</span></a><span>
+</span><a name="line-13"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Id.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Id</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-14"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Permission.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Permission</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-15"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Release.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Release</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-16"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Volume.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Volume</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-17"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Metric.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Metric</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-18"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Category.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Category</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-19"></a><span>
+</span><a name="line-20"></a><span class="hs-keyword">type</span><span> </span><span class="hs-keyword">instance</span><span> </span><a href="Databrary.Model.Id.Types.html#IdType"><span class="hs-identifier hs-type">IdType</span></a><span> </span><a href="Databrary.Model.Record.Types.html#Record"><span class="hs-identifier hs-type">Record</span></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-type">Int32</span><span>
+</span><a name="line-21"></a><span>
+</span><a name="line-22"></a><span class="hs-keyword">data</span><span> </span><a name="RecordRow"><a href="Databrary.Model.Record.Types.html#RecordRow"><span class="hs-identifier">RecordRow</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="RecordRow"><a href="Databrary.Model.Record.Types.html#RecordRow"><span class="hs-identifier">RecordRow</span></a></a><span>
+</span><a name="line-23"></a><span>  </span><span class="hs-special">{</span><span> </span><a name="recordId"><a href="Databrary.Model.Record.Types.html#recordId"><span class="hs-identifier">recordId</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.Model.Id.Types.html#Id"><span class="hs-identifier hs-type">Id</span></a><span> </span><a href="Databrary.Model.Record.Types.html#Record"><span class="hs-identifier hs-type">Record</span></a><span>
+</span><a name="line-24"></a><span>  </span><span class="hs-special">,</span><span> </span><a name="recordCategory"><a href="Databrary.Model.Record.Types.html#recordCategory"><span class="hs-identifier">recordCategory</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.Model.Category.Types.html#Category"><span class="hs-identifier hs-type">Category</span></a><span>
+</span><a name="line-25"></a><span>  </span><span class="hs-special">}</span><span>
+</span><a name="line-26"></a><span>
+</span><a name="line-27"></a><span class="hs-keyword">data</span><span> </span><a name="Record"><a href="Databrary.Model.Record.Types.html#Record"><span class="hs-identifier">Record</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="Record"><a href="Databrary.Model.Record.Types.html#Record"><span class="hs-identifier">Record</span></a></a><span>
+</span><a name="line-28"></a><span>  </span><span class="hs-special">{</span><span> </span><a name="recordRow"><a href="Databrary.Model.Record.Types.html#recordRow"><span class="hs-identifier">recordRow</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><a href="Databrary.Model.Record.Types.html#RecordRow"><span class="hs-identifier hs-type">RecordRow</span></a><span>
+</span><a name="line-29"></a><span>  </span><span class="hs-special">,</span><span> </span><a name="recordMeasures"><a href="Databrary.Model.Record.Types.html#recordMeasures"><span class="hs-identifier">recordMeasures</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.Model.Record.Types.html#Measures"><span class="hs-identifier hs-type">Measures</span></a><span>
+</span><a name="line-30"></a><span>  </span><span class="hs-special">,</span><span> </span><a name="recordRelease"><a href="Databrary.Model.Record.Types.html#recordRelease"><span class="hs-identifier">recordRelease</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Maybe</span><span> </span><a href="Databrary.Model.Release.Types.html#Release"><span class="hs-identifier hs-type">Release</span></a><span>
+</span><a name="line-31"></a><span>  </span><span class="hs-special">,</span><span> </span><a name="recordVolume"><a href="Databrary.Model.Record.Types.html#recordVolume"><span class="hs-identifier">recordVolume</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.Model.Volume.Types.html#Volume"><span class="hs-identifier hs-type">Volume</span></a><span>
+</span><a name="line-32"></a><span>  </span><span class="hs-special">}</span><span>
+</span><a name="line-33"></a><span>
+</span><a name="line-34"></a><span class="hs-keyword">instance</span><span> </span><a href="Databrary.Model.Kind.html#Kinded"><span class="hs-identifier hs-type">Kinded</span></a><span> </span><a href="Databrary.Model.Record.Types.html#Record"><span class="hs-identifier hs-type">Record</span></a><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-35"></a><span>  </span><a name="local-1912798656"><a href="Databrary.Model.Kind.html#kindOf"><span class="hs-identifier">kindOf</span></a></a><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-string">&quot;record&quot;</span><span>
+</span><a name="line-36"></a><span>
+</span><a name="line-37"></a><span class="hs-keyword">data</span><span> </span><a name="Measure"><a href="Databrary.Model.Record.Types.html#Measure"><span class="hs-identifier">Measure</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="Measure"><a href="Databrary.Model.Record.Types.html#Measure"><span class="hs-identifier">Measure</span></a></a><span>
+</span><a name="line-38"></a><span>  </span><span class="hs-special">{</span><span> </span><a name="measureRecord"><a href="Databrary.Model.Record.Types.html#measureRecord"><span class="hs-identifier">measureRecord</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.Model.Record.Types.html#Record"><span class="hs-identifier hs-type">Record</span></a><span>
+</span><a name="line-39"></a><span>  </span><span class="hs-special">,</span><span> </span><a name="measureMetric"><a href="Databrary.Model.Record.Types.html#measureMetric"><span class="hs-identifier">measureMetric</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.Model.Metric.Types.html#Metric"><span class="hs-identifier hs-type">Metric</span></a><span>
+</span><a name="line-40"></a><span>  </span><span class="hs-special">,</span><span> </span><a name="measureDatum"><a href="Databrary.Model.Record.Types.html#measureDatum"><span class="hs-identifier">measureDatum</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><a href="Databrary.Model.Metric.Types.html#MeasureDatum"><span class="hs-identifier hs-type">MeasureDatum</span></a><span>
+</span><a name="line-41"></a><span>  </span><span class="hs-special">}</span><span>
+</span><a name="line-42"></a><span>
+</span><a name="line-43"></a><span class="hs-keyword">instance</span><span> </span><a href="Databrary.Model.Kind.html#Kinded"><span class="hs-identifier hs-type">Kinded</span></a><span> </span><a href="Databrary.Model.Record.Types.html#Measure"><span class="hs-identifier hs-type">Measure</span></a><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-44"></a><span>  </span><a name="local-1912798656"><a href="Databrary.Model.Kind.html#kindOf"><span class="hs-identifier">kindOf</span></a></a><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-string">&quot;measure&quot;</span><span>
+</span><a name="line-45"></a><span>
+</span><a name="line-46"></a><span class="hs-keyword">type</span><span> </span><a name="Measures"><a href="Databrary.Model.Record.Types.html#Measures"><span class="hs-identifier">Measures</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><a href="Databrary.Model.Record.Types.html#Measure"><span class="hs-identifier hs-type">Measure</span></a><span class="hs-special">]</span><span>
+</span><a name="line-47"></a><span>
+</span><a name="line-48"></a><a href="Databrary.Has.html#view"><span class="hs-identifier hs-var">makeHasRec</span></a><span> </span><span class="hs-char">''RecordRow ['recordId, 'recordCategory]
+makeHasRec ''Record ['recordRow, 'recordVolume, 'recordRelease]
+
+instance Has Record Measure where
+  view = measureRecord
+instance Has (Id Record) Measure where
+  view = view . measureRecord
+instance Has Volume Measure where
+  view = view . measureRecord
+instance Has (Id Volume) Measure where
+  view = view . measureRecord
+instance Has Category Measure where
+  view = view . measureRecord
+instance Has (Id Category) Measure where
+  view = view . measureRecord
+instance Has Permission Measure where
+  view = view . measureRecord
+
+instance Has Metric Measure where
+  view = measureMetric
+instance Has (Id Metric) Measure where
+  view = view . measureMetric
+instance Has MeasureType Measure where
+  view = view . measureMetric
+
+instance Has (Maybe Release) Measure where
+  view m = metricRelease (measureMetric m) &lt;|&gt; recordRelease (measureRecord m)
+instance Has Release Measure where
+  view = view . (view :: Measure -&gt; Maybe Release)
+</span></pre></body></html>

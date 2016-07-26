@@ -1,0 +1,108 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE OverloadedStrings, TemplateHaskell, QuasiQuotes, RecordWildCards, DataKinds #-}</span><span>
+</span><a name="line-2"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">AssetSlot</span><span>
+</span><a name="line-3"></a><span>  </span><span class="hs-special">(</span><span> </span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">AssetSlot</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span>
+</span><a name="line-4"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.AssetSlot.html#lookupAssetSlot"><span class="hs-identifier hs-var">lookupAssetSlot</span></a><span>
+</span><a name="line-5"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.AssetSlot.html#lookupAssetAssetSlot"><span class="hs-identifier hs-var">lookupAssetAssetSlot</span></a><span>
+</span><a name="line-6"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.AssetSlot.html#lookupSlotAssets"><span class="hs-identifier hs-var">lookupSlotAssets</span></a><span>
+</span><a name="line-7"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.AssetSlot.html#lookupContainerAssets"><span class="hs-identifier hs-var">lookupContainerAssets</span></a><span>
+</span><a name="line-8"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.AssetSlot.html#lookupVolumeAssetSlots"><span class="hs-identifier hs-var">lookupVolumeAssetSlots</span></a><span>
+</span><a name="line-9"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.AssetSlot.html#lookupVolumeAssetSlotIds"><span class="hs-identifier hs-var">lookupVolumeAssetSlotIds</span></a><span>
+</span><a name="line-10"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.AssetSlot.html#changeAssetSlot"><span class="hs-identifier hs-var">changeAssetSlot</span></a><span>
+</span><a name="line-11"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.AssetSlot.html#changeAssetSlotDuration"><span class="hs-identifier hs-var">changeAssetSlotDuration</span></a><span>
+</span><a name="line-12"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.AssetSlot.html#fixAssetSlotDuration"><span class="hs-identifier hs-var">fixAssetSlotDuration</span></a><span>
+</span><a name="line-13"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.AssetSlot.html#findAssetContainerEnd"><span class="hs-identifier hs-var">findAssetContainerEnd</span></a><span>
+</span><a name="line-14"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.AssetSlot.html#assetSlotName"><span class="hs-identifier hs-var">assetSlotName</span></a><span>
+</span><a name="line-15"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.AssetSlot.html#assetSlotJSON"><span class="hs-identifier hs-var">assetSlotJSON</span></a><span>
+</span><a name="line-16"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-17"></a><span>
+</span><a name="line-18"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control</span><span class="hs-operator">.</span><span class="hs-identifier">Monad</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">when</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">guard</span><span class="hs-special">)</span><span>
+</span><a name="line-19"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Maybe</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">fromMaybe</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">isNothing</span><span class="hs-special">)</span><span>
+</span><a name="line-20"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Monoid</span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="hs-operator hs-var">&lt;&gt;</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-21"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Text</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">T</span><span>
+</span><a name="line-22"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Database</span><span class="hs-operator">.</span><span class="hs-identifier">PostgreSQL</span><span class="hs-operator">.</span><span class="hs-identifier">Typed</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">pgSQL</span><span class="hs-special">)</span><span>
+</span><a name="line-23"></a><span>
+</span><a name="line-24"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Ops.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Ops</span></a><span>
+</span><a name="line-25"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Has.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Has</span></a><span> </span><span class="hs-special">(</span><a href="Databrary.Has.html#peek"><span class="hs-identifier hs-var">peek</span></a><span class="hs-special">,</span><span> </span><a href="Databrary.Has.html#view"><span class="hs-identifier hs-var">view</span></a><span class="hs-special">)</span><span>
+</span><a name="line-26"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><a href="Databrary.JSON.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">JSON</span></a><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">JSON</span><span>
+</span><a name="line-27"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Service.DB.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Service</span><span class="hs-operator">.</span><span class="hs-identifier">DB</span></a><span>
+</span><a name="line-28"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Offset.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Offset</span></a><span>
+</span><a name="line-29"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Permission.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Permission</span></a><span>
+</span><a name="line-30"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Segment.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Segment</span></a><span>
+</span><a name="line-31"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Id.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Id</span></a><span>
+</span><a name="line-32"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Party.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Party</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-33"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Identity.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Identity</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-34"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Volume.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Volume</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-35"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Container.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Container</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-36"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Slot.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Slot</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-37"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Asset.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Asset</span></a><span>
+</span><a name="line-38"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Audit.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Audit</span></a><span>
+</span><a name="line-39"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.SQL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span></a><span>
+</span><a name="line-40"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.AssetSlot.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">AssetSlot</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-41"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.AssetSlot.SQL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">AssetSlot</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span></a><span>
+</span><a name="line-42"></a><span>
+</span><a name="line-43"></a><span class="hs-identifier">lookupAssetSlot</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><a href="Databrary.Model.Identity.Types.html#MonadHasIdentity"><span class="hs-identifier hs-type">MonadHasIdentity</span></a><span> </span><a href="#local-1629128504"><span class="hs-identifier hs-type">c</span></a><span> </span><a href="#local-1629128503"><span class="hs-identifier hs-type">m</span></a><span class="hs-special">,</span><span> </span><a href="Databrary.Service.DB.html#MonadDB"><span class="hs-identifier hs-type">MonadDB</span></a><span> </span><a href="#local-1629128504"><span class="hs-identifier hs-type">c</span></a><span> </span><a href="#local-1629128503"><span class="hs-identifier hs-type">m</span></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><a href="Databrary.Model.Id.Types.html#Id"><span class="hs-identifier hs-type">Id</span></a><span> </span><a href="Databrary.Model.Asset.Types.html#Asset"><span class="hs-identifier hs-type">Asset</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-1629128503"><span class="hs-identifier hs-type">m</span></a><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Maybe</span><span> </span><a href="Databrary.Model.AssetSlot.Types.html#AssetSlot"><span class="hs-identifier hs-type">AssetSlot</span></a><span class="hs-special">)</span><span>
+</span><a name="line-44"></a><a name="lookupAssetSlot"><a href="Databrary.Model.AssetSlot.html#lookupAssetSlot"><span class="hs-identifier">lookupAssetSlot</span></a></a><span> </span><a name="local-1629128505"><a href="#local-1629128505"><span class="hs-identifier">ai</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><a name="line-45"></a><span>  </span><a name="local-1629128506"><a href="#local-1629128506"><span class="hs-identifier">ident</span></a></a><span> </span><span class="hs-glyph">&lt;-</span><span> </span><a href="Databrary.Has.html#peek"><span class="hs-identifier hs-var">peek</span></a><span>
+</span><a name="line-46"></a><span>  </span><a href="Databrary.Service.DB.html#dbQuery1"><span class="hs-identifier hs-var">dbQuery1</span></a><span> </span><span class="hs-operator">$</span><span class="hs-special">(</span><span class="hs-identifier hs-var">selectQuery</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">selectAssetSlot</span><span> </span><span class="hs-char">'ident) &quot;$WHERE asset.id = ${ai}&quot;)
+
+lookupAssetAssetSlot :: (MonadDB c m) =&gt; Asset -&gt; m AssetSlot
+lookupAssetAssetSlot a = fromMaybe assetNoSlot
+  &lt;$&gt; dbQuery1 $(selectQuery selectAssetSlotAsset &quot;$WHERE slot_asset.asset = ${assetId $ assetRow a} AND container.volume = ${volumeId $ volumeRow $ assetVolume a}&quot;)
+  &lt;*&gt; return a
+
+lookupSlotAssets :: (MonadDB c m) =&gt; Slot -&gt; m [AssetSlot]
+lookupSlotAssets (Slot c s) =
+  dbQuery $ ($ c) &lt;$&gt; $(selectQuery selectContainerSlotAsset &quot;$WHERE slot_asset.container = ${containerId $ containerRow c} AND slot_asset.segment &amp;&amp; ${s} AND asset.volume = ${volumeId $ volumeRow $ containerVolume c}&quot;)
+
+lookupContainerAssets :: (MonadDB c m) =&gt; Container -&gt; m [AssetSlot]
+lookupContainerAssets = lookupSlotAssets . containerSlot
+
+lookupVolumeAssetSlots :: (MonadDB c m) =&gt; Volume -&gt; Bool -&gt; m [AssetSlot]
+lookupVolumeAssetSlots v top =
+  dbQuery $ ($ v) &lt;$&gt; $(selectQuery selectVolumeSlotAsset &quot;$WHERE asset.volume = ${volumeId $ volumeRow v} AND (container.top OR ${not top}) ORDER BY container.id&quot;)
+
+lookupVolumeAssetSlotIds :: (MonadDB c m) =&gt; Volume -&gt; m [(Asset, SlotId)]
+lookupVolumeAssetSlotIds v =
+  dbQuery $ ($ v) &lt;$&gt; $(selectQuery selectVolumeSlotIdAsset &quot;$WHERE asset.volume = ${volumeId $ volumeRow v} ORDER BY container&quot;)
+
+changeAssetSlot :: (MonadAudit c m) =&gt; AssetSlot -&gt; m Bool
+changeAssetSlot as = do
+  ident &lt;- getAuditIdentity
+  if isNothing (assetSlot as)
+    then dbExecute1 $(deleteSlotAsset 'ident 'as)
+    else do
+      (r, _) &lt;- updateOrInsert
+        $(updateSlotAsset 'ident 'as)
+        $(insertSlotAsset 'ident 'as)
+      when (r /= 1) $ fail $ &quot;changeAssetSlot: &quot; ++ show r ++ &quot; rows&quot;
+      return True
+
+changeAssetSlotDuration :: MonadDB c m =&gt; Asset -&gt; m Bool
+changeAssetSlotDuration a
+  | Just dur &lt;- assetDuration $ assetRow a =
+    dbExecute1 [pgSQL|UPDATE slot_asset SET segment = segment(lower(segment), lower(segment) + ${dur}) WHERE asset = ${assetId $ assetRow a}|]
+  | otherwise = return False
+
+fixAssetSlotDuration :: AssetSlot -&gt; AssetSlot
+fixAssetSlotDuration as
+  | Just dur &lt;- assetDuration $ assetRow $ slotAsset as = as{ assetSlot = (\s -&gt; s{ slotSegment = segmentSetDuration dur (slotSegment s) }) &lt;$&gt; assetSlot as }
+  | otherwise = as
+
+findAssetContainerEnd :: MonadDB c m =&gt; Container -&gt; m Offset
+findAssetContainerEnd c = fromMaybe 0 &lt;$&gt;
+  dbQuery1' [pgSQL|SELECT max(upper(segment))+'1s' FROM slot_asset WHERE container = ${containerId $ containerRow c}|]
+
+assetSlotName :: AssetSlot -&gt; Maybe T.Text
+assetSlotName a = guard (any (containerTop . containerRow . slotContainer) (assetSlot a) || dataPermission a &gt; PermissionNONE) &gt;&gt; assetName (assetRow $ slotAsset a)
+
+assetSlotJSON :: JSON.ToObject o =&gt; AssetSlot -&gt; JSON.Record (Id Asset) o
+assetSlotJSON as@AssetSlot{..} = assetJSON slotAsset JSON..&lt;&gt;
+  foldMap (segmentJSON . slotSegment) assetSlot
+  --  &quot;release&quot; JSON..=? (view as :: Maybe Release)
+  &lt;&gt; &quot;name&quot; JSON..=? assetSlotName as
+  &lt;&gt; &quot;permission&quot; JSON..= p
+  &lt;&gt; &quot;size&quot; JSON..=? (z &lt;? p &gt; PermissionNONE &amp;&amp; any (0 &lt;=) z)
+  where
+  p = dataPermission as
+  z = assetSize $ assetRow slotAsset
+</span></pre></body></html>

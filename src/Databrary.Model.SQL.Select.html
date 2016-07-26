@@ -1,0 +1,194 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE FunctionalDependencies, TemplateHaskell #-}</span><span>
+</span><a name="line-2"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span><span class="hs-operator">.</span><span class="hs-identifier">Select</span><span>
+</span><a name="line-3"></a><span>  </span><span class="hs-special">(</span><span> </span><a href="Databrary.Model.SQL.Select.html#SelectOutput"><span class="hs-identifier hs-type">SelectOutput</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-4"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.SQL.Select.html#Selector"><span class="hs-identifier hs-type">Selector</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-5"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.SQL.Select.html#selector"><span class="hs-identifier hs-var">selector</span></a><span>
+</span><a name="line-6"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.SQL.Select.html#selectColumn"><span class="hs-identifier hs-var">selectColumn</span></a><span>
+</span><a name="line-7"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.SQL.Select.html#selectColumns"><span class="hs-identifier hs-var">selectColumns</span></a><span>
+</span><a name="line-8"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.SQL.Select.html#addSelects"><span class="hs-identifier hs-var">addSelects</span></a><span>
+</span><a name="line-9"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.SQL.Select.html#fromMap"><span class="hs-identifier hs-var">fromMap</span></a><span>
+</span><a name="line-10"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.SQL.Select.html#fromAlias"><span class="hs-identifier hs-var">fromAlias</span></a><span>
+</span><a name="line-11"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.SQL.Select.html#crossJoin"><span class="hs-identifier hs-var">crossJoin</span></a><span>
+</span><a name="line-12"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.SQL.Select.html#joinOn"><span class="hs-identifier hs-var">joinOn</span></a><span>
+</span><a name="line-13"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.SQL.Select.html#joinUsing"><span class="hs-identifier hs-var">joinUsing</span></a><span>
+</span><a name="line-14"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.SQL.Select.html#maybeJoinOn"><span class="hs-identifier hs-var">maybeJoinOn</span></a><span>
+</span><a name="line-15"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.SQL.Select.html#maybeJoinUsing"><span class="hs-identifier hs-var">maybeJoinUsing</span></a><span>
+</span><a name="line-16"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.SQL.Select.html#selectJoin"><span class="hs-identifier hs-var">selectJoin</span></a><span>
+</span><a name="line-17"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.SQL.Select.html#selectMap"><span class="hs-identifier hs-var">selectMap</span></a><span>
+</span><a name="line-18"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.SQL.Select.html#makeQuery"><span class="hs-identifier hs-var">makeQuery</span></a><span>
+</span><a name="line-19"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.SQL.Select.html#selectDistinctQuery"><span class="hs-identifier hs-var">selectDistinctQuery</span></a><span>
+</span><a name="line-20"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.SQL.Select.html#nameRef"><span class="hs-identifier hs-var">nameRef</span></a><span>
+</span><a name="line-21"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-22"></a><span>
+</span><a name="line-23"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control</span><span class="hs-operator">.</span><span class="hs-identifier">Arrow</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">second</span><span class="hs-special">)</span><span>
+</span><a name="line-24"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control</span><span class="hs-operator">.</span><span class="hs-identifier">Monad</span><span class="hs-operator">.</span><span class="hs-identifier">State</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">StateT</span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-25"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control</span><span class="hs-operator">.</span><span class="hs-identifier">Monad</span><span class="hs-operator">.</span><span class="hs-identifier">Trans</span><span class="hs-operator">.</span><span class="hs-identifier">Class</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">lift</span><span class="hs-special">)</span><span>
+</span><a name="line-26"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Char</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">isLetter</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">toLower</span><span class="hs-special">)</span><span>
+</span><a name="line-27"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">List</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">intercalate</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">unfoldr</span><span class="hs-special">)</span><span>
+</span><a name="line-28"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Database</span><span class="hs-operator">.</span><span class="hs-identifier">PostgreSQL</span><span class="hs-operator">.</span><span class="hs-identifier">Typed</span><span class="hs-operator">.</span><span class="hs-identifier">Query</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">QueryFlags</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">parseQueryFlags</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">makePGQuery</span><span class="hs-special">)</span><span>
+</span><a name="line-29"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Language</span><span class="hs-operator">.</span><span class="hs-identifier">Haskell</span><span class="hs-operator">.</span><span class="hs-identifier">TH</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">TH</span><span>
+</span><a name="line-30"></a><span>
+</span><a name="line-31"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Service.DB.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Service</span><span class="hs-operator">.</span><span class="hs-identifier">DB</span></a><span> </span><span class="hs-special">(</span><a href="Databrary.Service.DB.html#useTDB"><span class="hs-identifier hs-var">useTDB</span></a><span class="hs-special">)</span><span>
+</span><a name="line-32"></a><span>
+</span><a name="line-33"></a><span class="hs-keyword">data</span><span> </span><a name="SelectOutput"><a href="Databrary.Model.SQL.Select.html#SelectOutput"><span class="hs-identifier">SelectOutput</span></a></a><span>
+</span><a name="line-34"></a><span>  </span><span class="hs-glyph">=</span><span> </span><a name="SelectColumn"><a href="Databrary.Model.SQL.Select.html#SelectColumn"><span class="hs-identifier">SelectColumn</span></a></a><span> </span><span class="hs-special">{</span><span> </span><a name="_selectTable"><a href="Databrary.Model.SQL.Select.html#_selectTable"><span class="hs-identifier">_selectTable</span></a></a><span class="hs-special">,</span><span> </span><a name="_selectColumn"><a href="Databrary.Model.SQL.Select.html#_selectColumn"><span class="hs-identifier">_selectColumn</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">String</span><span> </span><span class="hs-special">}</span><span>
+</span><a name="line-35"></a><span>  </span><span class="hs-glyph">|</span><span> </span><a name="SelectExpr"><a href="Databrary.Model.SQL.Select.html#SelectExpr"><span class="hs-identifier">SelectExpr</span></a></a><span> </span><span class="hs-identifier hs-type">String</span><span>
+</span><a name="line-36"></a><span>  </span><span class="hs-glyph">|</span><span> </span><a name="OutputJoin"><a href="Databrary.Model.SQL.Select.html#OutputJoin"><span class="hs-identifier">OutputJoin</span></a></a><span> </span><span class="hs-special">{</span><span> </span><a name="outputNullable"><a href="Databrary.Model.SQL.Select.html#outputNullable"><span class="hs-identifier">outputNullable</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><span class="hs-identifier hs-type">Bool</span><span class="hs-special">,</span><span> </span><a name="outputJoiner"><a href="Databrary.Model.SQL.Select.html#outputJoiner"><span class="hs-identifier">outputJoiner</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">TH</span><span class="hs-operator hs-type">.</span><span class="hs-identifier hs-type">Name</span><span class="hs-special">,</span><span> </span><a name="outputJoin"><a href="Databrary.Model.SQL.Select.html#outputJoin"><span class="hs-identifier">outputJoin</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><a href="Databrary.Model.SQL.Select.html#SelectOutput"><span class="hs-identifier hs-type">SelectOutput</span></a><span class="hs-special">]</span><span> </span><span class="hs-special">}</span><span>
+</span><a name="line-37"></a><span>  </span><span class="hs-glyph">|</span><span> </span><a name="OutputMap"><a href="Databrary.Model.SQL.Select.html#OutputMap"><span class="hs-identifier">OutputMap</span></a></a><span> </span><span class="hs-special">{</span><span> </span><a name="outputNullable"><a href="Databrary.Model.SQL.Select.html#outputNullable"><span class="hs-identifier">outputNullable</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><span class="hs-identifier hs-type">Bool</span><span class="hs-special">,</span><span> </span><a name="outputMapper"><a href="Databrary.Model.SQL.Select.html#outputMapper"><span class="hs-identifier">outputMapper</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">TH</span><span class="hs-operator hs-type">.</span><span class="hs-identifier hs-type">Exp</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">TH</span><span class="hs-operator hs-type">.</span><span class="hs-identifier hs-type">Exp</span><span class="hs-special">,</span><span> </span><a name="outputMap"><a href="Databrary.Model.SQL.Select.html#outputMap"><span class="hs-identifier">outputMap</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.Model.SQL.Select.html#SelectOutput"><span class="hs-identifier hs-type">SelectOutput</span></a><span> </span><span class="hs-special">}</span><span>
+</span><a name="line-38"></a><span>
+</span><a name="line-39"></a><span class="hs-identifier">_outputTuple</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><a href="Databrary.Model.SQL.Select.html#SelectOutput"><span class="hs-identifier hs-type">SelectOutput</span></a><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Databrary.Model.SQL.Select.html#SelectOutput"><span class="hs-identifier hs-type">SelectOutput</span></a><span>
+</span><a name="line-40"></a><a name="_outputTuple"><a href="Databrary.Model.SQL.Select.html#_outputTuple"><span class="hs-identifier">_outputTuple</span></a></a><span> </span><a name="local-1628023114"><a href="#local-1628023114"><span class="hs-identifier">l</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Databrary.Model.SQL.Select.html#OutputJoin"><span class="hs-identifier hs-var">OutputJoin</span></a><span> </span><span class="hs-identifier hs-var">False</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">TH</span><span class="hs-operator hs-var">.</span><span class="hs-identifier hs-var">tupleDataName</span><span> </span><span class="hs-operator hs-var">$</span><span> </span><span class="hs-identifier hs-var">length</span><span> </span><a href="#local-1628023114"><span class="hs-identifier hs-var">l</span></a><span class="hs-special">)</span><span> </span><a href="#local-1628023114"><span class="hs-identifier hs-var">l</span></a><span>
+</span><a name="line-41"></a><span>
+</span><a name="line-42"></a><span class="hs-identifier">outputMaybe</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.Model.SQL.Select.html#SelectOutput"><span class="hs-identifier hs-type">SelectOutput</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Databrary.Model.SQL.Select.html#SelectOutput"><span class="hs-identifier hs-type">SelectOutput</span></a><span>
+</span><a name="line-43"></a><a name="outputMaybe"><a href="Databrary.Model.SQL.Select.html#outputMaybe"><span class="hs-identifier">outputMaybe</span></a></a><span> </span><span class="hs-special">(</span><a href="Databrary.Model.SQL.Select.html#OutputJoin"><span class="hs-identifier hs-var">OutputJoin</span></a><span> </span><span class="hs-identifier hs-var">False</span><span> </span><a name="local-1628023115"><a href="#local-1628023115"><span class="hs-identifier">f</span></a></a><span> </span><a name="local-1628023116"><a href="#local-1628023116"><span class="hs-identifier">l</span></a></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><a href="Databrary.Model.SQL.Select.html#OutputJoin"><span class="hs-identifier hs-var">OutputJoin</span></a><span> </span><span class="hs-identifier hs-var">True</span><span> </span><a href="#local-1628023115"><span class="hs-identifier hs-var">f</span></a><span> </span><a href="#local-1628023116"><span class="hs-identifier hs-var">l</span></a><span>
+</span><a name="line-44"></a><span class="hs-identifier">outputMaybe</span><span> </span><span class="hs-special">(</span><a href="Databrary.Model.SQL.Select.html#OutputMap"><span class="hs-identifier hs-var">OutputMap</span></a><span> </span><span class="hs-identifier hs-var">False</span><span> </span><a name="local-1628023117"><a href="#local-1628023117"><span class="hs-identifier">f</span></a></a><span> </span><a name="local-1628023118"><a href="#local-1628023118"><span class="hs-identifier">l</span></a></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><a href="Databrary.Model.SQL.Select.html#OutputMap"><span class="hs-identifier hs-var">OutputMap</span></a><span> </span><span class="hs-identifier hs-var">True</span><span> </span><a href="#local-1628023117"><span class="hs-identifier hs-var">f</span></a><span> </span><a href="#local-1628023118"><span class="hs-identifier hs-var">l</span></a><span>
+</span><a name="line-45"></a><span class="hs-identifier">outputMaybe</span><span> </span><a name="local-1628023119"><a href="#local-1628023119"><span class="hs-identifier">s</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-1628023119"><span class="hs-identifier hs-var">s</span></a><span>
+</span><a name="line-46"></a><span>
+</span><a name="line-47"></a><span class="hs-identifier">outputColumns</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.Model.SQL.Select.html#SelectOutput"><span class="hs-identifier hs-type">SelectOutput</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-identifier hs-type">String</span><span class="hs-special">]</span><span>
+</span><a name="line-48"></a><a name="outputColumns"><a href="Databrary.Model.SQL.Select.html#outputColumns"><span class="hs-identifier">outputColumns</span></a></a><span> </span><span class="hs-special">(</span><a href="Databrary.Model.SQL.Select.html#SelectColumn"><span class="hs-identifier hs-var">SelectColumn</span></a><span> </span><a name="local-1628023120"><a href="#local-1628023120"><span class="hs-identifier">t</span></a></a><span> </span><a name="local-1628023121"><a href="#local-1628023121"><span class="hs-identifier">c</span></a></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><a href="#local-1628023120"><span class="hs-identifier hs-var">t</span></a><span> </span><span class="hs-operator hs-var">++</span><span> </span><span class="hs-char">'.'</span><span> </span><span class="hs-glyph">:</span><span> </span><a href="#local-1628023121"><span class="hs-identifier hs-var">c</span></a><span class="hs-special">]</span><span>
+</span><a name="line-49"></a><span class="hs-identifier">outputColumns</span><span> </span><span class="hs-special">(</span><a href="Databrary.Model.SQL.Select.html#SelectExpr"><span class="hs-identifier hs-var">SelectExpr</span></a><span> </span><a name="local-1628023122"><a href="#local-1628023122"><span class="hs-identifier">s</span></a></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><a href="#local-1628023122"><span class="hs-identifier hs-var">s</span></a><span class="hs-special">]</span><span>
+</span><a name="line-50"></a><span class="hs-identifier">outputColumns</span><span> </span><span class="hs-special">(</span><a href="Databrary.Model.SQL.Select.html#OutputJoin"><span class="hs-identifier hs-var">OutputJoin</span></a><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">_</span><span> </span><a name="local-1628023123"><a href="#local-1628023123"><span class="hs-identifier">o</span></a></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">concatMap</span><span> </span><a href="Databrary.Model.SQL.Select.html#outputColumns"><span class="hs-identifier hs-var">outputColumns</span></a><span> </span><a href="#local-1628023123"><span class="hs-identifier hs-var">o</span></a><span>
+</span><a name="line-51"></a><span class="hs-identifier">outputColumns</span><span> </span><span class="hs-special">(</span><a href="Databrary.Model.SQL.Select.html#OutputMap"><span class="hs-identifier hs-var">OutputMap</span></a><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">_</span><span> </span><a name="local-1628023124"><a href="#local-1628023124"><span class="hs-identifier">o</span></a></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><a href="Databrary.Model.SQL.Select.html#outputColumns"><span class="hs-identifier hs-var">outputColumns</span></a><span> </span><a href="#local-1628023124"><span class="hs-identifier hs-var">o</span></a><span>
+</span><a name="line-52"></a><span>
+</span><a name="line-53"></a><span class="hs-identifier">outputParser</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.Model.SQL.Select.html#SelectOutput"><span class="hs-identifier hs-type">SelectOutput</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">StateT</span><span> </span><span class="hs-special">[</span><span class="hs-identifier hs-type">TH</span><span class="hs-operator hs-type">.</span><span class="hs-identifier hs-type">Name</span><span class="hs-special">]</span><span> </span><span class="hs-identifier hs-type">TH</span><span class="hs-operator hs-type">.</span><span class="hs-identifier hs-type">Q</span><span> </span><span class="hs-identifier hs-type">TH</span><span class="hs-operator hs-type">.</span><span class="hs-identifier hs-type">Exp</span><span>
+</span><a name="line-54"></a><a name="outputParser"><a href="Databrary.Model.SQL.Select.html#outputParser"><span class="hs-identifier">outputParser</span></a></a><span> </span><span class="hs-special">(</span><a href="Databrary.Model.SQL.Select.html#OutputJoin"><span class="hs-identifier hs-var">OutputJoin</span></a><span> </span><a name="local-1628023125"><a href="#local-1628023125"><span class="hs-identifier">mb</span></a></a><span> </span><a name="local-1628023126"><a href="#local-1628023126"><span class="hs-identifier">f</span></a></a><span> </span><a name="local-1628023127"><a href="#local-1628023127"><span class="hs-identifier">ol</span></a></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><a name="line-55"></a><span>  </span><a name="local-1628023148"><a href="#local-1628023148"><span class="hs-identifier">fi</span></a></a><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-identifier hs-var">lift</span><span> </span><span class="hs-operator hs-var">$</span><span> </span><span class="hs-identifier hs-var">TH</span><span class="hs-operator hs-var">.</span><span class="hs-identifier hs-var">reify</span><span> </span><a href="#local-1628023126"><span class="hs-identifier hs-var">f</span></a><span>
+</span><a name="line-56"></a><span>  </span><span class="hs-special">(</span><a name="local-1628023152"><a href="#local-1628023152"><span class="hs-identifier">fe</span></a></a><span class="hs-special">,</span><span> </span><a name="local-1628023153"><a href="#local-1628023153"><span class="hs-identifier">ft</span></a></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">case</span><span> </span><a href="#local-1628023148"><span class="hs-identifier hs-var">fi</span></a><span> </span><span class="hs-keyword">of</span><span>
+</span><a name="line-57"></a><span>    </span><span class="hs-identifier hs-var">TH</span><span class="hs-operator hs-var">.</span><span class="hs-identifier hs-var">ClassOpI</span><span> </span><span class="hs-identifier">_</span><span> </span><a name="local-1628023149"><a href="#local-1628023149"><span class="hs-identifier">t</span></a></a><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-var">return</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">TH</span><span class="hs-operator hs-var">.</span><span class="hs-identifier hs-var">VarE</span><span> </span><a href="#local-1628023126"><span class="hs-identifier hs-var">f</span></a><span class="hs-special">,</span><span> </span><a href="#local-1628023149"><span class="hs-identifier hs-var">t</span></a><span class="hs-special">)</span><span>
+</span><a name="line-58"></a><span>    </span><span class="hs-identifier hs-var">TH</span><span class="hs-operator hs-var">.</span><span class="hs-identifier hs-var">DataConI</span><span> </span><span class="hs-identifier">_</span><span> </span><a name="local-1628023150"><a href="#local-1628023150"><span class="hs-identifier">t</span></a></a><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-var">return</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">TH</span><span class="hs-operator hs-var">.</span><span class="hs-identifier hs-var">ConE</span><span> </span><a href="#local-1628023126"><span class="hs-identifier hs-var">f</span></a><span class="hs-special">,</span><span> </span><a href="#local-1628023150"><span class="hs-identifier hs-var">t</span></a><span class="hs-special">)</span><span>
+</span><a name="line-59"></a><span>    </span><span class="hs-identifier hs-var">TH</span><span class="hs-operator hs-var">.</span><span class="hs-identifier hs-var">VarI</span><span> </span><span class="hs-identifier">_</span><span> </span><a name="local-1628023151"><a href="#local-1628023151"><span class="hs-identifier">t</span></a></a><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-var">return</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">TH</span><span class="hs-operator hs-var">.</span><span class="hs-identifier hs-var">VarE</span><span> </span><a href="#local-1628023126"><span class="hs-identifier hs-var">f</span></a><span class="hs-special">,</span><span> </span><a href="#local-1628023151"><span class="hs-identifier hs-var">t</span></a><span class="hs-special">)</span><span>
+</span><a name="line-60"></a><span>    </span><span class="hs-identifier">_</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-1628023131"><span class="hs-identifier hs-var">die</span></a><span> </span><span class="hs-string">&quot;wrong kind&quot;</span><span>
+</span><a name="line-61"></a><span>  </span><span class="hs-keyword">if</span><span> </span><a href="#local-1628023125"><span class="hs-identifier hs-var">mb</span></a><span>
+</span><a name="line-62"></a><span>    </span><span class="hs-keyword">then</span><span> </span><span class="hs-keyword">do</span><span>
+</span><a name="line-63"></a><span>      </span><span class="hs-keyword">let</span><span> </span><a name="local-1628023154"><a href="#local-1628023154"><span class="hs-identifier">am</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">unfoldr</span><span> </span><a href="#local-1628023129"><span class="hs-identifier hs-var">argMaybe</span></a><span> </span><a href="#local-1628023153"><span class="hs-identifier hs-var">ft</span></a><span>
+</span><a name="line-64"></a><span>      </span><span class="hs-special">(</span><a name="local-1628023155"><a href="#local-1628023155"><span class="hs-identifier">bl</span></a></a><span class="hs-special">,</span><span> </span><a name="local-1628023156"><a href="#local-1628023156"><span class="hs-identifier">ae</span></a></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><a href="#local-1628023128"><span class="hs-identifier hs-var">bindArgs</span></a><span> </span><a href="#local-1628023154"><span class="hs-identifier hs-var">am</span></a><span> </span><a href="#local-1628023127"><span class="hs-identifier hs-var">ol</span></a><span>
+</span><a name="line-65"></a><span>      </span><span class="hs-comment">-- when (null bl) $ die &quot;function with at least one non-Maybe argument required&quot;</span><span>
+</span><a name="line-66"></a><span>      </span><span class="hs-identifier hs-var">return</span><span> </span><span class="hs-operator hs-var">$</span><span> </span><span class="hs-identifier hs-var">TH</span><span class="hs-operator hs-var">.</span><span class="hs-identifier hs-var">DoE</span><span> </span><span class="hs-operator hs-var">$</span><span> </span><a href="#local-1628023155"><span class="hs-identifier hs-var">bl</span></a><span> </span><span class="hs-operator hs-var">++</span><span> </span><span class="hs-special">[</span><span class="hs-identifier hs-var">TH</span><span class="hs-operator hs-var">.</span><span class="hs-identifier hs-var">NoBindS</span><span> </span><span class="hs-operator hs-var">$</span><span> </span><span class="hs-identifier hs-var">TH</span><span class="hs-operator hs-var">.</span><span class="hs-identifier hs-var">AppE</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">TH</span><span class="hs-operator hs-var">.</span><span class="hs-identifier hs-var">ConE</span><span> </span><span class="hs-char">'Just) $ foldl TH.AppE fe ae]
+    else foldl TH.AppE fe &lt;$&gt; mapM outputParser ol
+  where
+  bindArgs (False:m) (o:l) = do
+    n &lt;- lift $ TH.newName &quot;cm&quot;
+    a &lt;- outputParser (outputMaybe o)
+    (bl, al) &lt;- bindArgs m l
+    return $ (TH.BindS (TH.VarP n) a : bl, TH.VarE n : al)
+  bindArgs (True:m) (o:l) = do
+    a &lt;- outputParser o
+    second (a:) &lt;$&gt; bindArgs m l
+  bindArgs _ o = (,) [] &lt;$&gt; mapM outputParser o
+  argMaybe (TH.ArrowT `TH.AppT` a `TH.AppT` r) = Just (isMaybeT a, r)
+  argMaybe _ = Nothing
+  isMaybeT (TH.AppT (TH.ConT m) _) = m == ''Maybe
+  isMaybeT _ = False
+  die s = fail $ &quot;outputParser &quot; ++ show f ++ &quot;: &quot; ++ s
+outputParser (OutputMap False f o) =
+  f &lt;$&gt; outputParser o
+outputParser (OutputMap True f o) = do
+  x &lt;- lift $ TH.newName &quot;x&quot;
+  ((TH.VarE 'fmap `TH.AppE` (TH.LamE [TH.VarP x] $ f $ TH.VarE x)) `TH.AppE`)
+    &lt;$&gt; outputParser (outputMaybe o)
+outputParser _ = StateT st where
+  st (i:l) = return (TH.VarE i, l)
+  st [] = fail &quot;outputParser: insufficient values&quot;
+
+data Selector = Selector
+  { selectOutput :: SelectOutput
+  , selectSource :: String
+  , selectJoined :: String
+  }
+
+selector :: String -&gt; SelectOutput -&gt; Selector
+selector t o = Selector o t (',':t)
+
+selectColumn :: String -&gt; String -&gt; Selector
+selectColumn t c = selector t $ SelectColumn t c
+
+selectColumns :: TH.Name -&gt; String -&gt; [String] -&gt; Selector
+selectColumns f t c =
+  selector t $ OutputJoin False f $ map (SelectColumn t) c
+
+addSelects :: TH.Name -&gt; Selector -&gt; [SelectOutput] -&gt; Selector
+addSelects f s c = s
+  { selectOutput = OutputJoin False f (selectOutput s : c) }
+
+fromMap :: (String -&gt; String) -&gt; Selector -&gt; Selector
+fromMap f sel = sel
+  { selectSource = f $ selectSource sel
+  , selectJoined = f $ selectJoined sel
+  }
+
+outputFromAlias :: String -&gt; SelectOutput -&gt; SelectOutput
+outputFromAlias t (SelectColumn _ c) = SelectColumn t c
+outputFromAlias _ (SelectExpr e) = error $ &quot;fromAlias (SelectExpr &quot; ++ show e ++ &quot;)&quot;
+outputFromAlias t o@OutputJoin{ outputJoin = l } = o{ outputJoin = map (outputFromAlias t) l }
+outputFromAlias t o@OutputMap{ outputMap = l } = o{ outputMap = outputFromAlias t l }
+
+fromAlias :: Selector -&gt; String -&gt; Selector
+fromAlias sel as = fromMap (++ &quot; AS &quot; ++ as) sel
+  { selectOutput = outputFromAlias as $ selectOutput sel }
+
+joinWith :: (String -&gt; String) -&gt; Selector -&gt; Selector
+joinWith j sel = sel{ selectJoined = j (selectSource sel) }
+
+maybeJoinWith :: (String -&gt; String) -&gt; Selector -&gt; Selector
+maybeJoinWith j sel = sel
+  { selectJoined = j (selectSource sel)
+  , selectOutput = outputMaybe (selectOutput sel) }
+
+crossJoin :: Selector -&gt; Selector
+crossJoin = joinWith (&quot; CROSS JOIN &quot; ++)
+
+joinOn :: String -&gt; Selector -&gt; Selector
+joinOn on = joinWith (\s -&gt; &quot; JOIN &quot; ++ s ++ &quot; ON &quot; ++ on)
+
+joinUsing :: [String] -&gt; Selector -&gt; Selector
+joinUsing using = joinWith (\s -&gt; &quot; JOIN &quot; ++ s ++ &quot; USING (&quot; ++ intercalate &quot;,&quot; using ++ &quot;)&quot;)
+
+maybeJoinOn :: String -&gt; Selector -&gt; Selector
+maybeJoinOn on = maybeJoinWith (\s -&gt; &quot; LEFT JOIN &quot; ++ s ++ &quot; ON &quot; ++ on)
+
+maybeJoinUsing :: [String] -&gt; Selector -&gt; Selector
+maybeJoinUsing using = maybeJoinWith (\s -&gt; &quot; LEFT JOIN &quot; ++ s ++ &quot; USING (&quot; ++ intercalate &quot;,&quot; using ++ &quot;)&quot;)
+
+selectJoin :: TH.Name -&gt; [Selector] -&gt; Selector
+selectJoin f l@(h:t) = Selector
+  { selectOutput = OutputJoin False f $ map selectOutput l
+  , selectSource = selectSource h ++ joins
+  , selectJoined = selectJoined h ++ joins
+  } where joins = concatMap selectJoined t
+selectJoin _ [] = error &quot;selectJoin: empty list&quot;
+
+selectMap :: (TH.Exp -&gt; TH.Exp) -&gt; Selector -&gt; Selector
+selectMap f s = s{ selectOutput = OutputMap False f (selectOutput s) }
+
+
+takeWhileEnd :: (a -&gt; Bool) -&gt; [a] -&gt; [a]
+takeWhileEnd p = fst . foldr go ([], False)&#160;where
+  go x (rest, done)
+    | not done &amp;&amp; p x = (x:rest, False)
+    | otherwise = (rest, True)
+
+makeQuery :: QueryFlags -&gt; (String -&gt; String) -&gt; SelectOutput -&gt; TH.ExpQ
+makeQuery flags sql output = do
+  _ &lt;- useTDB
+  nl &lt;- mapM (TH.newName . ('v':) . colVar) cols
+  (parse, []) &lt;- runStateT (outputParser output) nl
+  TH.AppE (TH.VarE 'fmap `TH.AppE` TH.LamE [TH.TupP $ map TH.VarP nl] parse)
+    &lt;$&gt; makePGQuery flags (sql $ intercalate &quot;,&quot; cols)
+  where
+  colVar s = case takeWhileEnd isLetter s of
+    [] -&gt; &quot;c&quot;
+    (h:l) -&gt; toLower h : l
+  cols = outputColumns output
+
+selectDistinctQuery :: Maybe [String] -&gt; Selector -&gt; String -&gt; TH.ExpQ
+selectDistinctQuery dist (Selector{ selectOutput = o, selectSource = s }) sqlf =
+  makeQuery flags (\c -&gt; select dist ++ c ++ &quot; FROM &quot; ++ s ++ ' ':sql) o
+  where
+  (flags, sql) = parseQueryFlags sqlf
+  select Nothing = &quot;SELECT &quot; -- ALL
+  select (Just []) = &quot;SELECT DISTINCT &quot;
+  select (Just l) = &quot;SELECT DISTINCT ON (&quot; ++ intercalate &quot;,&quot; l ++ &quot;) &quot;
+
+nameRef :: TH.Name -&gt; String
+nameRef n = maybe b (++ '.' : b) $ TH.nameModule n where b = TH.nameBase n
+</span></pre></body></html>

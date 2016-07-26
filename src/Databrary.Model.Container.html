@@ -1,0 +1,108 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE OverloadedStrings, TemplateHaskell, QuasiQuotes, RecordWildCards, DataKinds #-}</span><span>
+</span><a name="line-2"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Container</span><span>
+</span><a name="line-3"></a><span>  </span><span class="hs-special">(</span><span> </span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Container</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span>
+</span><a name="line-4"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Container.html#blankContainer"><span class="hs-identifier hs-var">blankContainer</span></a><span>
+</span><a name="line-5"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Container.html#lookupContainer"><span class="hs-identifier hs-var">lookupContainer</span></a><span>
+</span><a name="line-6"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Container.html#lookupVolumeContainer"><span class="hs-identifier hs-var">lookupVolumeContainer</span></a><span>
+</span><a name="line-7"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Container.html#lookupVolumeContainers"><span class="hs-identifier hs-var">lookupVolumeContainers</span></a><span>
+</span><a name="line-8"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Container.html#lookupVolumeTopContainer"><span class="hs-identifier hs-var">lookupVolumeTopContainer</span></a><span>
+</span><a name="line-9"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Container.html#containerIsVolumeTop"><span class="hs-identifier hs-var">containerIsVolumeTop</span></a><span>
+</span><a name="line-10"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Container.html#addContainer"><span class="hs-identifier hs-var">addContainer</span></a><span>
+</span><a name="line-11"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Container.html#changeContainer"><span class="hs-identifier hs-var">changeContainer</span></a><span>
+</span><a name="line-12"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Container.html#removeContainer"><span class="hs-identifier hs-var">removeContainer</span></a><span>
+</span><a name="line-13"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Container.html#getContainerDate"><span class="hs-identifier hs-var">getContainerDate</span></a><span>
+</span><a name="line-14"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Container.html#formatContainerDate"><span class="hs-identifier hs-var">formatContainerDate</span></a><span>
+</span><a name="line-15"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Container.html#containerRowJSON"><span class="hs-identifier hs-var">containerRowJSON</span></a><span>
+</span><a name="line-16"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Container.html#containerJSON"><span class="hs-identifier hs-var">containerJSON</span></a><span>
+</span><a name="line-17"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-18"></a><span>
+</span><a name="line-19"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control</span><span class="hs-operator">.</span><span class="hs-identifier">Monad</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">guard</span><span class="hs-special">)</span><span>
+</span><a name="line-20"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Either</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">isRight</span><span class="hs-special">)</span><span>
+</span><a name="line-21"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Monoid</span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="hs-operator hs-var">&lt;&gt;</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-22"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Time</span><span class="hs-operator">.</span><span class="hs-identifier">Format</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">formatTime</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">defaultTimeLocale</span><span class="hs-special">)</span><span>
+</span><a name="line-23"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Database</span><span class="hs-operator">.</span><span class="hs-identifier">PostgreSQL</span><span class="hs-operator">.</span><span class="hs-identifier">Typed</span><span class="hs-operator">.</span><span class="hs-identifier">Query</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">pgSQL</span><span class="hs-special">)</span><span>
+</span><a name="line-24"></a><span>
+</span><a name="line-25"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Ops.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Ops</span></a><span>
+</span><a name="line-26"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Has.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Has</span></a><span> </span><span class="hs-special">(</span><a href="Databrary.Has.html#view"><span class="hs-identifier hs-var">view</span></a><span class="hs-special">,</span><span> </span><a href="Databrary.Has.html#peek"><span class="hs-identifier hs-var">peek</span></a><span class="hs-special">)</span><span>
+</span><a name="line-27"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Service.DB.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Service</span><span class="hs-operator">.</span><span class="hs-identifier">DB</span></a><span>
+</span><a name="line-28"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><a href="Databrary.JSON.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">JSON</span></a><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">JSON</span><span>
+</span><a name="line-29"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.SQL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span></a><span> </span><span class="hs-special">(</span><a href="Databrary.Model.SQL.html#selectQuery"><span class="hs-identifier hs-var">selectQuery</span></a><span class="hs-special">,</span><span> </span><a href="Databrary.Model.SQL.html#isForeignKeyViolation"><span class="hs-identifier hs-var">isForeignKeyViolation</span></a><span class="hs-special">)</span><span>
+</span><a name="line-30"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Time.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Time</span></a><span>
+</span><a name="line-31"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Permission.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Permission</span></a><span>
+</span><a name="line-32"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Id.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Id</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-33"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Party.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Party</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-34"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Identity.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Identity</span></a><span>
+</span><a name="line-35"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Audit.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Audit</span></a><span>
+</span><a name="line-36"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Volume.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Volume</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-37"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Container.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Container</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-38"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Container.SQL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Container</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span></a><span>
+</span><a name="line-39"></a><span>
+</span><a name="line-40"></a><span class="hs-identifier">blankContainer</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.Model.Volume.Types.html#Volume"><span class="hs-identifier hs-type">Volume</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Databrary.Model.Container.Types.html#Container"><span class="hs-identifier hs-type">Container</span></a><span>
+</span><a name="line-41"></a><a name="blankContainer"><a href="Databrary.Model.Container.html#blankContainer"><span class="hs-identifier">blankContainer</span></a></a><span> </span><a name="local-1629049276"><a href="#local-1629049276"><span class="hs-identifier">vol</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Databrary.Model.Container.Types.html#Container"><span class="hs-identifier hs-var">Container</span></a><span>
+</span><a name="line-42"></a><span>  </span><span class="hs-special">{</span><span> </span><a href="Databrary.Model.Container.Types.html#containerRow"><span class="hs-identifier hs-var">containerRow</span></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Databrary.Model.Container.Types.html#ContainerRow"><span class="hs-identifier hs-var">ContainerRow</span></a><span>
+</span><a name="line-43"></a><span>    </span><span class="hs-special">{</span><span> </span><a href="Databrary.Model.Container.Types.html#containerId"><span class="hs-identifier hs-var">containerId</span></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">error</span><span> </span><span class="hs-string">&quot;blankContainer&quot;</span><span>
+</span><a name="line-44"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Container.Types.html#containerTop"><span class="hs-identifier hs-var">containerTop</span></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">False</span><span>
+</span><a name="line-45"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Container.Types.html#containerName"><span class="hs-identifier hs-var">containerName</span></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">Nothing</span><span>
+</span><a name="line-46"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Container.Types.html#containerDate"><span class="hs-identifier hs-var">containerDate</span></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">Nothing</span><span>
+</span><a name="line-47"></a><span>    </span><span class="hs-special">}</span><span>
+</span><a name="line-48"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Container.Types.html#containerRelease"><span class="hs-identifier hs-var">containerRelease</span></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">Nothing</span><span>
+</span><a name="line-49"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Container.Types.html#containerVolume"><span class="hs-identifier hs-var">containerVolume</span></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-1629049276"><span class="hs-identifier hs-var">vol</span></a><span>
+</span><a name="line-50"></a><span>  </span><span class="hs-special">}</span><span>
+</span><a name="line-51"></a><span>
+</span><a name="line-52"></a><span class="hs-identifier">lookupContainer</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><a href="Databrary.Service.DB.html#MonadDB"><span class="hs-identifier hs-type">MonadDB</span></a><span> </span><a href="#local-1629049275"><span class="hs-identifier hs-type">c</span></a><span> </span><a href="#local-1629049274"><span class="hs-identifier hs-type">m</span></a><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Identity.Types.html#MonadHasIdentity"><span class="hs-identifier hs-type">MonadHasIdentity</span></a><span> </span><a href="#local-1629049275"><span class="hs-identifier hs-type">c</span></a><span> </span><a href="#local-1629049274"><span class="hs-identifier hs-type">m</span></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><a href="Databrary.Model.Id.Types.html#Id"><span class="hs-identifier hs-type">Id</span></a><span> </span><a href="Databrary.Model.Container.Types.html#Container"><span class="hs-identifier hs-type">Container</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-1629049274"><span class="hs-identifier hs-type">m</span></a><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Maybe</span><span> </span><a href="Databrary.Model.Container.Types.html#Container"><span class="hs-identifier hs-type">Container</span></a><span class="hs-special">)</span><span>
+</span><a name="line-53"></a><a name="lookupContainer"><a href="Databrary.Model.Container.html#lookupContainer"><span class="hs-identifier">lookupContainer</span></a></a><span> </span><a name="local-1629049277"><a href="#local-1629049277"><span class="hs-identifier">ci</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><a name="line-54"></a><span>  </span><a name="local-1629049278"><a href="#local-1629049278"><span class="hs-identifier">ident</span></a></a><span> </span><span class="hs-glyph">&lt;-</span><span> </span><a href="Databrary.Has.html#peek"><span class="hs-identifier hs-var">peek</span></a><span>
+</span><a name="line-55"></a><span>  </span><a href="Databrary.Service.DB.html#dbQuery1"><span class="hs-identifier hs-var">dbQuery1</span></a><span> </span><span class="hs-operator">$</span><span class="hs-special">(</span><span class="hs-identifier hs-var">selectQuery</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">selectContainer</span><span> </span><span class="hs-char">'ident) &quot;$WHERE container.id = ${ci}&quot;)
+
+lookupVolumeContainer :: MonadDB c m =&gt; Volume -&gt; Id Container -&gt; m (Maybe Container)
+lookupVolumeContainer vol ci =
+  dbQuery1 $ fmap ($ vol) $(selectQuery selectVolumeContainer &quot;$WHERE container.id = ${ci} AND container.volume = ${volumeId $ volumeRow vol}&quot;)
+
+lookupVolumeContainers :: MonadDB c m =&gt; Volume -&gt; m [Container]
+lookupVolumeContainers vol =
+  dbQuery $ fmap ($ vol) $(selectQuery selectVolumeContainer &quot;$WHERE container.volume = ${volumeId $ volumeRow vol} ORDER BY container.id&quot;)
+
+lookupVolumeTopContainer :: MonadDB c m =&gt; Volume -&gt; m Container
+lookupVolumeTopContainer vol =
+  dbQuery1' $ fmap ($ vol) $(selectQuery selectVolumeContainer &quot;$WHERE container.volume = ${volumeId $ volumeRow vol} ORDER BY container.id LIMIT 1&quot;)
+
+containerIsVolumeTop :: MonadDB c m =&gt; Container -&gt; m Bool
+containerIsVolumeTop Container{ containerRow = ContainerRow{ containerTop = False } } = return False
+containerIsVolumeTop c = not &lt;$&gt;
+  dbExecute1 [pgSQL|SELECT FROM container WHERE volume = ${volumeId $ volumeRow $ containerVolume c} AND id &lt; ${containerId $ containerRow c} LIMIT 1|]
+
+addContainer :: MonadAudit c m =&gt; Container -&gt; m Container
+addContainer bc = do
+  ident &lt;- getAuditIdentity
+  dbQuery1' $(insertContainer 'ident 'bc)
+
+changeContainer :: MonadAudit c m =&gt; Container -&gt; m ()
+changeContainer c = do
+  ident &lt;- getAuditIdentity
+  dbExecute1' $(updateContainer 'ident 'c)
+
+removeContainer :: MonadAudit c m =&gt; Container -&gt; m Bool
+removeContainer c = do
+  ident &lt;- getAuditIdentity
+  top &lt;- dbQuery1' [pgSQL|SELECT id FROM container WHERE volume = ${volumeId $ volumeRow $ containerVolume c} ORDER BY id LIMIT 1|]
+  if top == containerId (containerRow c)
+    then return False
+    else isRight &lt;$&gt; dbTryJust (guard . isForeignKeyViolation) (dbExecute1 $(deleteContainer 'ident 'c))
+
+getContainerDate :: Container -&gt; Maybe MaskedDate
+getContainerDate c = maskDateIf (dataPermission c == PermissionNONE) &lt;$&gt; containerDate (containerRow c)
+
+formatContainerDate :: Container -&gt; Maybe String
+formatContainerDate c = formatTime defaultTimeLocale &quot;%Y-%m-%d&quot; &lt;$&gt; getContainerDate c
+
+containerRowJSON :: JSON.ToObject o =&gt; ContainerRow -&gt; JSON.Record (Id Container) o
+containerRowJSON ContainerRow{..} = JSON.Record containerId $
+     &quot;top&quot; JSON..=? (True &lt;? containerTop)
+  &lt;&gt; &quot;name&quot; JSON..=? containerName
+
+containerJSON :: JSON.ToObject o =&gt; Container -&gt; JSON.Record (Id Container) o
+containerJSON c@Container{..} = containerRowJSON containerRow JSON..&lt;&gt;
+     &quot;date&quot; JSON..=? formatContainerDate c
+  &lt;&gt; &quot;release&quot; JSON..=? containerRelease
+
+</span></pre></body></html>

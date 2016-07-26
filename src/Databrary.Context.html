@@ -1,0 +1,61 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+</span><a name="line-2"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Context</span><span>
+</span><a name="line-3"></a><span>  </span><span class="hs-special">(</span><span> </span><a href="Databrary.Context.html#Context"><span class="hs-identifier hs-type">Context</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-4"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Context.html#ContextM"><span class="hs-identifier hs-type">ContextM</span></a><span>
+</span><a name="line-5"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Context.html#runContextM"><span class="hs-identifier hs-var">runContextM</span></a><span>
+</span><a name="line-6"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Context.html#BackgroundContext"><span class="hs-identifier hs-type">BackgroundContext</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-7"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Context.html#BackgroundContextM"><span class="hs-identifier hs-type">BackgroundContextM</span></a><span>
+</span><a name="line-8"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Context.html#withBackgroundContextM"><span class="hs-identifier hs-var">withBackgroundContextM</span></a><span>
+</span><a name="line-9"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-10"></a><span>
+</span><a name="line-11"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control</span><span class="hs-operator">.</span><span class="hs-identifier">Monad</span><span class="hs-operator">.</span><span class="hs-identifier">Trans</span><span class="hs-operator">.</span><span class="hs-identifier">Reader</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">ReaderT</span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">withReaderT</span><span class="hs-special">)</span><span>
+</span><a name="line-12"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control</span><span class="hs-operator">.</span><span class="hs-identifier">Monad</span><span class="hs-operator">.</span><span class="hs-identifier">Trans</span><span class="hs-operator">.</span><span class="hs-identifier">Resource</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">InternalState</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">runResourceT</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">withInternalState</span><span class="hs-special">)</span><span>
+</span><a name="line-13"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Time</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">getCurrentTime</span><span class="hs-special">)</span><span>
+</span><a name="line-14"></a><span>
+</span><a name="line-15"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Has.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Has</span></a><span>
+</span><a name="line-16"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Time.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Time</span></a><span>
+</span><a name="line-17"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Id.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Id</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-18"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Identity.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Identity</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-19"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Party.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Party</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-20"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Permission.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Permission</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-21"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Service.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Service</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-22"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Service.DB.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Service</span><span class="hs-operator">.</span><span class="hs-identifier">DB</span></a><span>
+</span><a name="line-23"></a><span>
+</span><a name="line-24"></a><span class="hs-keyword">data</span><span> </span><a name="Context"><a href="Databrary.Context.html#Context"><span class="hs-identifier">Context</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="Context"><a href="Databrary.Context.html#Context"><span class="hs-identifier">Context</span></a></a><span>
+</span><a name="line-25"></a><span>  </span><span class="hs-special">{</span><span> </span><a name="contextService"><a href="Databrary.Context.html#contextService"><span class="hs-identifier">contextService</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><a href="Databrary.Service.Types.html#Service"><span class="hs-identifier hs-type">Service</span></a><span>
+</span><a name="line-26"></a><span>  </span><span class="hs-special">,</span><span> </span><a name="contextTimestamp"><a href="Databrary.Context.html#contextTimestamp"><span class="hs-identifier">contextTimestamp</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><a href="Databrary.Model.Time.html#Timestamp"><span class="hs-identifier hs-type">Timestamp</span></a><span>
+</span><a name="line-27"></a><span>  </span><span class="hs-special">,</span><span> </span><a name="contextResourceState"><a href="Databrary.Context.html#contextResourceState"><span class="hs-identifier">contextResourceState</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><span class="hs-identifier hs-type">InternalState</span><span>
+</span><a name="line-28"></a><span>  </span><span class="hs-special">,</span><span> </span><a name="contextDB"><a href="Databrary.Context.html#contextDB"><span class="hs-identifier">contextDB</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><a href="Databrary.Service.DB.html#DBConn"><span class="hs-identifier hs-type">DBConn</span></a><span>
+</span><a name="line-29"></a><span>  </span><span class="hs-special">}</span><span>
+</span><a name="line-30"></a><span>
+</span><a name="line-31"></a><a href="Databrary.Context.html#contextDB"><span class="hs-identifier hs-var">makeHasRec</span></a><span> </span><span class="hs-char">''Context ['contextService, 'contextTimestamp, 'contextResourceState, 'contextDB]
+
+type ContextM a = ReaderT Context IO a
+
+runContextM :: ContextM a -&gt; Service -&gt; IO a
+runContextM f rc = do
+  t &lt;- getCurrentTime
+  runResourceT $ withInternalState $ \is -&gt;
+    withDB (serviceDB rc) $
+      runReaderT f . Context rc t is
+
+newtype BackgroundContext = BackgroundContext { backgroundContext :: Context }
+
+makeHasRec ''BackgroundContext ['backgroundContext]
+
+instance Has Identity BackgroundContext where
+  view _ = NotIdentified
+instance Has SiteAuth BackgroundContext where
+  view _ = view NotIdentified
+instance Has Party BackgroundContext where
+  view _ = view NotIdentified
+instance Has (Id Party) BackgroundContext where
+  view _ = view NotIdentified
+instance Has Access BackgroundContext where
+  view _ = view NotIdentified
+
+type BackgroundContextM a = ReaderT BackgroundContext IO a
+
+withBackgroundContextM :: BackgroundContextM a -&gt; ContextM a
+withBackgroundContextM = withReaderT BackgroundContext
+</span></pre></body></html>

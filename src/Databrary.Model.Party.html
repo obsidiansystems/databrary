@@ -1,0 +1,216 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE OverloadedStrings, TemplateHaskell, QuasiQuotes, RecordWildCards, DataKinds #-}</span><span>
+</span><a name="line-2"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Party</span><span>
+</span><a name="line-3"></a><span>  </span><span class="hs-special">(</span><span> </span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Party</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span>
+</span><a name="line-4"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.html#nobodyParty"><span class="hs-identifier hs-var">nobodyParty</span></a><span>
+</span><a name="line-5"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.html#rootParty"><span class="hs-identifier hs-var">rootParty</span></a><span>
+</span><a name="line-6"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.html#staffParty"><span class="hs-identifier hs-var">staffParty</span></a><span>
+</span><a name="line-7"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.html#partyName"><span class="hs-identifier hs-var">partyName</span></a><span>
+</span><a name="line-8"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.html#partyEmail"><span class="hs-identifier hs-var">partyEmail</span></a><span>
+</span><a name="line-9"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.html#lookupParty"><span class="hs-identifier hs-var">lookupParty</span></a><span>
+</span><a name="line-10"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.html#lookupPartyAuthorizations"><span class="hs-identifier hs-var">lookupPartyAuthorizations</span></a><span>
+</span><a name="line-11"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.html#lookupAuthParty"><span class="hs-identifier hs-var">lookupAuthParty</span></a><span>
+</span><a name="line-12"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.html#lookupSiteAuthByEmail"><span class="hs-identifier hs-var">lookupSiteAuthByEmail</span></a><span>
+</span><a name="line-13"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.html#changeParty"><span class="hs-identifier hs-var">changeParty</span></a><span>
+</span><a name="line-14"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.html#changeAccount"><span class="hs-identifier hs-var">changeAccount</span></a><span>
+</span><a name="line-15"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.html#addParty"><span class="hs-identifier hs-var">addParty</span></a><span>
+</span><a name="line-16"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.html#addAccount"><span class="hs-identifier hs-var">addAccount</span></a><span>
+</span><a name="line-17"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.html#removeParty"><span class="hs-identifier hs-var">removeParty</span></a><span>
+</span><a name="line-18"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.html#auditAccountLogin"><span class="hs-identifier hs-var">auditAccountLogin</span></a><span>
+</span><a name="line-19"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.html#recentAccountLogins"><span class="hs-identifier hs-var">recentAccountLogins</span></a><span>
+</span><a name="line-20"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.html#partyRowJSON"><span class="hs-identifier hs-var">partyRowJSON</span></a><span>
+</span><a name="line-21"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.html#partyJSON"><span class="hs-identifier hs-var">partyJSON</span></a><span>
+</span><a name="line-22"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.html#PartyFilter"><span class="hs-identifier hs-type">PartyFilter</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-23"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.html#findParties"><span class="hs-identifier hs-var">findParties</span></a><span>
+</span><a name="line-24"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.html#lookupAvatar"><span class="hs-identifier hs-var">lookupAvatar</span></a><span>
+</span><a name="line-25"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.html#changeAvatar"><span class="hs-identifier hs-var">changeAvatar</span></a><span>
+</span><a name="line-26"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-27"></a><span>
+</span><a name="line-28"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control</span><span class="hs-operator">.</span><span class="hs-identifier">Applicative</span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="hs-operator hs-var">&lt;|&gt;</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-29"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control</span><span class="hs-operator">.</span><span class="hs-identifier">Exception</span><span class="hs-operator">.</span><span class="hs-identifier">Lifted</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">handleJust</span><span class="hs-special">)</span><span>
+</span><a name="line-30"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control</span><span class="hs-operator">.</span><span class="hs-identifier">Monad</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">guard</span><span class="hs-special">)</span><span>
+</span><a name="line-31"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">ByteString</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">BS</span><span>
+</span><a name="line-32"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Int</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Int64</span><span class="hs-special">)</span><span>
+</span><a name="line-33"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">List</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">intercalate</span><span class="hs-special">)</span><span>
+</span><a name="line-34"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Maybe</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">isNothing</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">fromMaybe</span><span class="hs-special">)</span><span>
+</span><a name="line-35"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Monoid</span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="hs-operator hs-var">&lt;&gt;</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-36"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Text</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">T</span><span>
+</span><a name="line-37"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Database</span><span class="hs-operator">.</span><span class="hs-identifier">PostgreSQL</span><span class="hs-operator">.</span><span class="hs-identifier">Typed</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">pgSQL</span><span class="hs-special">)</span><span>
+</span><a name="line-38"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Database</span><span class="hs-operator">.</span><span class="hs-identifier">PostgreSQL</span><span class="hs-operator">.</span><span class="hs-identifier">Typed</span><span class="hs-operator">.</span><span class="hs-identifier">Query</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">unsafeModifyQuery</span><span class="hs-special">)</span><span>
+</span><a name="line-39"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Database</span><span class="hs-operator">.</span><span class="hs-identifier">PostgreSQL</span><span class="hs-operator">.</span><span class="hs-identifier">Typed</span><span class="hs-operator">.</span><span class="hs-identifier">Dynamic</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">pgLiteralRep</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">pgLiteralString</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">pgSafeLiteral</span><span class="hs-special">)</span><span>
+</span><a name="line-40"></a><span>
+</span><a name="line-41"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Ops.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Ops</span></a><span>
+</span><a name="line-42"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Has.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Has</span></a><span> </span><span class="hs-special">(</span><a href="Databrary.Has.html#Has"><span class="hs-identifier hs-type">Has</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><a href="Databrary.Has.html#peek"><span class="hs-identifier hs-var">peek</span></a><span class="hs-special">)</span><span>
+</span><a name="line-43"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Service.DB.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Service</span><span class="hs-operator">.</span><span class="hs-identifier">DB</span></a><span>
+</span><a name="line-44"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><a href="Databrary.JSON.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">JSON</span></a><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">JSON</span><span>
+</span><a name="line-45"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.HTTP.Request.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">HTTP</span><span class="hs-operator">.</span><span class="hs-identifier">Request</span></a><span>
+</span><a name="line-46"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Id.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Id</span></a><span>
+</span><a name="line-47"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.SQL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span></a><span>
+</span><a name="line-48"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Paginate.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Paginate</span></a><span>
+</span><a name="line-49"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Permission.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Permission</span></a><span>
+</span><a name="line-50"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Audit.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Audit</span></a><span>
+</span><a name="line-51"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Audit.SQL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Audit</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span></a><span>
+</span><a name="line-52"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Identity.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Identity</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-53"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Volume.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Volume</span></a><span>
+</span><a name="line-54"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Asset.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Asset</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-55"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Asset.SQL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Asset</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span></a><span>
+</span><a name="line-56"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Party.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Party</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-57"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Party.SQL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Party</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span></a><span>
+</span><a name="line-58"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Party.Boot.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Party</span><span class="hs-operator">.</span><span class="hs-identifier">Boot</span></a><span>
+</span><a name="line-59"></a><span>
+</span><a name="line-60"></a><span class="hs-identifier">nobodyParty</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">rootParty</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">staffParty</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.Model.Party.Types.html#Party"><span class="hs-identifier hs-type">Party</span></a><span>
+</span><a name="line-61"></a><a name="nobodyParty"><a href="Databrary.Model.Party.html#nobodyParty"><span class="hs-identifier">nobodyParty</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-operator">$</span><span class="hs-special">(</span><a href="Databrary.Model.Party.Types.html#Party"><span class="hs-identifier hs-var">loadParty</span></a><span> </span><span class="hs-special">(</span><a href="Databrary.Model.Party.Types.html#Party"><span class="hs-identifier hs-var">Id</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">-</span><span class="hs-number">1</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><a href="Databrary.Model.Party.Types.html#Party"><span class="hs-identifier hs-var">PermissionREAD</span></a><span class="hs-special">)</span><span>
+</span><a name="line-62"></a><a name="rootParty"><a href="Databrary.Model.Party.html#rootParty"><span class="hs-identifier">rootParty</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-operator">$</span><span class="hs-special">(</span><a href="Databrary.Model.Party.Types.html#Party"><span class="hs-identifier hs-var">loadParty</span></a><span> </span><span class="hs-special">(</span><a href="Databrary.Model.Party.Types.html#Party"><span class="hs-identifier hs-var">Id</span></a><span> </span><span class="hs-number">0</span><span class="hs-special">)</span><span> </span><a href="Databrary.Model.Party.Types.html#Party"><span class="hs-identifier hs-var">PermissionSHARED</span></a><span class="hs-special">)</span><span>
+</span><a name="line-63"></a><a name="staffParty"><a href="Databrary.Model.Party.html#staffParty"><span class="hs-identifier">staffParty</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-operator">$</span><span class="hs-special">(</span><a href="Databrary.Model.Party.Types.html#Party"><span class="hs-identifier hs-var">loadParty</span></a><span> </span><span class="hs-special">(</span><a href="Databrary.Model.Party.Types.html#Party"><span class="hs-identifier hs-var">Id</span></a><span> </span><span class="hs-number">2</span><span class="hs-special">)</span><span> </span><a href="Databrary.Model.Party.Types.html#Party"><span class="hs-identifier hs-var">PermissionPUBLIC</span></a><span class="hs-special">)</span><span>
+</span><a name="line-64"></a><span>
+</span><a name="line-65"></a><span class="hs-identifier">partyName</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.Model.Party.Types.html#PartyRow"><span class="hs-identifier hs-type">PartyRow</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">T</span><span class="hs-operator hs-type">.</span><span class="hs-identifier hs-type">Text</span><span>
+</span><a name="line-66"></a><a name="partyName"><a href="Databrary.Model.Party.html#partyName"><span class="hs-identifier">partyName</span></a></a><span> </span><a href="Databrary.Model.Party.Types.html#PartyRow"><span class="hs-identifier hs-var">PartyRow</span></a><span class="hs-special">{</span><span> </span><a href="Databrary.Model.Party.Types.html#partyPreName"><span class="hs-identifier hs-var">partyPreName</span></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">Just</span><span> </span><a name="local-1628482253"><a href="#local-1628482253"><span class="hs-identifier">p</span></a></a><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.Types.html#partySortName"><span class="hs-identifier hs-var">partySortName</span></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="local-1628482254"><a href="#local-1628482254"><span class="hs-identifier">n</span></a></a><span> </span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-1628482253"><span class="hs-identifier hs-var">p</span></a><span> </span><span class="hs-operator hs-var">&lt;&gt;</span><span> </span><span class="hs-identifier hs-var">T</span><span class="hs-operator hs-var">.</span><span class="hs-identifier hs-var">cons</span><span> </span><span class="hs-char">' '</span><span> </span><a href="#local-1628482254"><span class="hs-identifier hs-var">n</span></a><span>
+</span><a name="line-67"></a><span class="hs-identifier">partyName</span><span> </span><a href="Databrary.Model.Party.Types.html#PartyRow"><span class="hs-identifier hs-var">PartyRow</span></a><span class="hs-special">{</span><span> </span><a href="Databrary.Model.Party.Types.html#partySortName"><span class="hs-identifier hs-var">partySortName</span></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="local-1628482255"><a href="#local-1628482255"><span class="hs-identifier">n</span></a></a><span> </span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-1628482255"><span class="hs-identifier hs-var">n</span></a><span>
+</span><a name="line-68"></a><span>
+</span><a name="line-69"></a><span class="hs-identifier">emailPermission</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.Model.Permission.Types.html#Permission"><span class="hs-identifier hs-type">Permission</span></a><span>
+</span><a name="line-70"></a><a name="emailPermission"><a href="Databrary.Model.Party.html#emailPermission"><span class="hs-identifier">emailPermission</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Databrary.Model.Permission.Types.html#PermissionSHARED"><span class="hs-identifier hs-var">PermissionSHARED</span></a><span>
+</span><a name="line-71"></a><span>
+</span><a name="line-72"></a><span class="hs-identifier">showEmail</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.Model.Identity.Types.html#Identity"><span class="hs-identifier hs-type">Identity</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">Bool</span><span>
+</span><a name="line-73"></a><a name="showEmail"><a href="Databrary.Model.Party.html#showEmail"><span class="hs-identifier">showEmail</span></a></a><span> </span><a name="local-1628482256"><a href="#local-1628482256"><span class="hs-identifier">i</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Databrary.Model.Permission.Types.html#accessSite"><span class="hs-identifier hs-var">accessSite</span></a><span> </span><a href="#local-1628482256"><span class="hs-identifier hs-var">i</span></a><span> </span><span class="hs-operator hs-var">&gt;=</span><span> </span><a href="Databrary.Model.Party.html#emailPermission"><span class="hs-identifier hs-var">emailPermission</span></a><span>
+</span><a name="line-74"></a><span>
+</span><a name="line-75"></a><span class="hs-identifier">partyEmail</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.Model.Party.Types.html#Party"><span class="hs-identifier hs-type">Party</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">Maybe</span><span> </span><span class="hs-identifier hs-type">BS</span><span class="hs-operator hs-type">.</span><span class="hs-identifier hs-type">ByteString</span><span>
+</span><a name="line-76"></a><a name="partyEmail"><a href="Databrary.Model.Party.html#partyEmail"><span class="hs-identifier">partyEmail</span></a></a><span> </span><a name="local-1628482257"><a href="#local-1628482257"><span class="hs-identifier">p</span></a></a><span> </span><span class="hs-glyph">=</span><span>
+</span><a name="line-77"></a><span>  </span><span class="hs-identifier hs-var">guard</span><span> </span><span class="hs-special">(</span><a href="Databrary.Model.Party.Types.html#partyPermission"><span class="hs-identifier hs-var">partyPermission</span></a><span> </span><a href="#local-1628482257"><span class="hs-identifier hs-var">p</span></a><span> </span><span class="hs-operator hs-var">&gt;=</span><span> </span><a href="Databrary.Model.Party.html#emailPermission"><span class="hs-identifier hs-var">emailPermission</span></a><span class="hs-special">)</span><span> </span><span class="hs-operator hs-var">&gt;&gt;</span><span> </span><a href="Databrary.Model.Party.Types.html#accountEmail"><span class="hs-identifier hs-var">accountEmail</span></a><span> </span><span class="hs-operator hs-var">&lt;$&gt;</span><span> </span><a href="Databrary.Model.Party.Types.html#partyAccount"><span class="hs-identifier hs-var">partyAccount</span></a><span> </span><a href="#local-1628482257"><span class="hs-identifier hs-var">p</span></a><span>
+</span><a name="line-78"></a><span>
+</span><a name="line-79"></a><span class="hs-identifier">partyRowJSON</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.JSON.html#ToObject"><span class="hs-identifier hs-type">JSON</span><span class="hs-operator hs-type">.</span><span class="hs-identifier hs-type">ToObject</span></a><span> </span><a href="#local-1628482173"><span class="hs-identifier hs-type">o</span></a><span> </span><span class="hs-glyph">=&gt;</span><span> </span><a href="Databrary.Model.Party.Types.html#PartyRow"><span class="hs-identifier hs-type">PartyRow</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Databrary.JSON.html#Record"><span class="hs-identifier hs-type">JSON</span><span class="hs-operator hs-type">.</span><span class="hs-identifier hs-type">Record</span></a><span> </span><span class="hs-special">(</span><a href="Databrary.Model.Id.Types.html#Id"><span class="hs-identifier hs-type">Id</span></a><span> </span><a href="Databrary.Model.Party.Types.html#Party"><span class="hs-identifier hs-type">Party</span></a><span class="hs-special">)</span><span> </span><a href="#local-1628482173"><span class="hs-identifier hs-type">o</span></a><span>
+</span><a name="line-80"></a><a name="partyRowJSON"><a href="Databrary.Model.Party.html#partyRowJSON"><span class="hs-identifier">partyRowJSON</span></a></a><span> </span><a href="Databrary.Model.Party.Types.html#PartyRow"><span class="hs-identifier hs-var">PartyRow</span></a><span class="hs-special">{</span><span class="hs-glyph">..</span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span> </span><a href="Databrary.JSON.html#Record"><span class="hs-identifier hs-var">JSON</span><span class="hs-operator hs-var">.</span><span class="hs-identifier hs-var">Record</span></a><span> </span><a href="#local-1628482258"><span class="hs-identifier hs-var">partyId</span></a><span> </span><span class="hs-operator hs-var">$</span><span>
+</span><a name="line-81"></a><span>     </span><span class="hs-string">&quot;sortname&quot;</span><span> </span><span class="hs-identifier hs-var">JSON</span><span class="hs-operator hs-var">..=</span><span> </span><a href="#local-1628482259"><span class="hs-identifier hs-var">partySortName</span></a><span>
+</span><a name="line-82"></a><span>  </span><span class="hs-operator hs-var">&lt;&gt;</span><span> </span><span class="hs-string">&quot;prename&quot;</span><span> </span><a href="Databrary.JSON.html#.%3D%3F"><span class="hs-identifier hs-var">JSON</span><span class="hs-operator hs-var">..=?</span></a><span> </span><a href="#local-1628482260"><span class="hs-identifier hs-var">partyPreName</span></a><span>
+</span><a name="line-83"></a><span>  </span><span class="hs-operator hs-var">&lt;&gt;</span><span> </span><span class="hs-string">&quot;orcid&quot;</span><span> </span><a href="Databrary.JSON.html#.%3D%3F"><span class="hs-identifier hs-var">JSON</span><span class="hs-operator hs-var">..=?</span></a><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">show</span><span> </span><span class="hs-operator hs-var">&lt;$&gt;</span><span> </span><a href="#local-1628482261"><span class="hs-identifier hs-var">partyORCID</span></a><span class="hs-special">)</span><span>
+</span><a name="line-84"></a><span>  </span><span class="hs-operator hs-var">&lt;&gt;</span><span> </span><span class="hs-string">&quot;affiliation&quot;</span><span> </span><a href="Databrary.JSON.html#.%3D%3F"><span class="hs-identifier hs-var">JSON</span><span class="hs-operator hs-var">..=?</span></a><span> </span><a href="#local-1628482262"><span class="hs-identifier hs-var">partyAffiliation</span></a><span>
+</span><a name="line-85"></a><span>  </span><span class="hs-operator hs-var">&lt;&gt;</span><span> </span><span class="hs-string">&quot;url&quot;</span><span> </span><a href="Databrary.JSON.html#.%3D%3F"><span class="hs-identifier hs-var">JSON</span><span class="hs-operator hs-var">..=?</span></a><span> </span><a href="#local-1628482263"><span class="hs-identifier hs-var">partyURL</span></a><span>
+</span><a name="line-86"></a><span>
+</span><a name="line-87"></a><span class="hs-identifier">partyJSON</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.JSON.html#ToObject"><span class="hs-identifier hs-type">JSON</span><span class="hs-operator hs-type">.</span><span class="hs-identifier hs-type">ToObject</span></a><span> </span><a href="#local-1628482172"><span class="hs-identifier hs-type">o</span></a><span> </span><span class="hs-glyph">=&gt;</span><span> </span><a href="Databrary.Model.Party.Types.html#Party"><span class="hs-identifier hs-type">Party</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Databrary.JSON.html#Record"><span class="hs-identifier hs-type">JSON</span><span class="hs-operator hs-type">.</span><span class="hs-identifier hs-type">Record</span></a><span> </span><span class="hs-special">(</span><a href="Databrary.Model.Id.Types.html#Id"><span class="hs-identifier hs-type">Id</span></a><span> </span><a href="Databrary.Model.Party.Types.html#Party"><span class="hs-identifier hs-type">Party</span></a><span class="hs-special">)</span><span> </span><a href="#local-1628482172"><span class="hs-identifier hs-type">o</span></a><span>
+</span><a name="line-88"></a><a name="partyJSON"><a href="Databrary.Model.Party.html#partyJSON"><span class="hs-identifier">partyJSON</span></a></a><span> </span><a name="local-1628482264"><a href="#local-1628482264"><span class="hs-identifier">p</span></a></a><span class="hs-glyph">@</span><a href="Databrary.Model.Party.Types.html#Party"><span class="hs-identifier hs-var">Party</span></a><span class="hs-special">{</span><span class="hs-glyph">..</span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span> </span><a href="Databrary.Model.Party.html#partyRowJSON"><span class="hs-identifier hs-var">partyRowJSON</span></a><span> </span><a href="#local-1628482265"><span class="hs-identifier hs-var">partyRow</span></a><span> </span><a href="Databrary.JSON.html#.%3C%3E"><span class="hs-identifier hs-var">JSON</span><span class="hs-operator hs-var">..&lt;&gt;</span></a><span>
+</span><a name="line-89"></a><span>     </span><span class="hs-string">&quot;institution&quot;</span><span> </span><a href="Databrary.JSON.html#.%3D%3F"><span class="hs-identifier hs-var">JSON</span><span class="hs-operator hs-var">..=?</span></a><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">True</span><span> </span><a href="Databrary.Ops.html#%3C%3F"><span class="hs-operator hs-var">&lt;?</span></a><span> </span><span class="hs-identifier hs-var">isNothing</span><span> </span><a href="#local-1628482266"><span class="hs-identifier hs-var">partyAccount</span></a><span class="hs-special">)</span><span>
+</span><a name="line-90"></a><span>  </span><span class="hs-operator hs-var">&lt;&gt;</span><span> </span><span class="hs-string">&quot;email&quot;</span><span> </span><a href="Databrary.JSON.html#.%3D%3F"><span class="hs-identifier hs-var">JSON</span><span class="hs-operator hs-var">..=?</span></a><span> </span><a href="Databrary.Model.Party.html#partyEmail"><span class="hs-identifier hs-var">partyEmail</span></a><span> </span><a href="#local-1628482264"><span class="hs-identifier hs-var">p</span></a><span>
+</span><a name="line-91"></a><span>  </span><span class="hs-operator hs-var">&lt;&gt;</span><span> </span><span class="hs-string">&quot;permission&quot;</span><span> </span><a href="Databrary.JSON.html#.%3D%3F"><span class="hs-identifier hs-var">JSON</span><span class="hs-operator hs-var">..=?</span></a><span> </span><span class="hs-special">(</span><a href="#local-1628482267"><span class="hs-identifier hs-var">partyPermission</span></a><span> </span><a href="Databrary.Ops.html#%3C%3F"><span class="hs-operator hs-var">&lt;?</span></a><span> </span><a href="#local-1628482267"><span class="hs-identifier hs-var">partyPermission</span></a><span> </span><span class="hs-operator hs-var">&gt;</span><span> </span><a href="Databrary.Model.Permission.Types.html#PermissionREAD"><span class="hs-identifier hs-var">PermissionREAD</span></a><span class="hs-special">)</span><span>
+</span><a name="line-92"></a><span>
+</span><a name="line-93"></a><span class="hs-identifier">changeParty</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.Model.Audit.html#MonadAudit"><span class="hs-identifier hs-type">MonadAudit</span></a><span> </span><a href="#local-1628482171"><span class="hs-identifier hs-type">c</span></a><span> </span><a href="#local-1628482170"><span class="hs-identifier hs-type">m</span></a><span> </span><span class="hs-glyph">=&gt;</span><span> </span><a href="Databrary.Model.Party.Types.html#Party"><span class="hs-identifier hs-type">Party</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-1628482170"><span class="hs-identifier hs-type">m</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><a name="line-94"></a><a name="changeParty"><a href="Databrary.Model.Party.html#changeParty"><span class="hs-identifier">changeParty</span></a></a><span> </span><a name="local-1628482269"><a href="#local-1628482269"><span class="hs-identifier">p</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><a name="line-95"></a><span>  </span><a name="local-1628482270"><a href="#local-1628482270"><span class="hs-identifier">ident</span></a></a><span> </span><span class="hs-glyph">&lt;-</span><span> </span><a href="Databrary.Model.Audit.html#getAuditIdentity"><span class="hs-identifier hs-var">getAuditIdentity</span></a><span>
+</span><a name="line-96"></a><span>  </span><a href="Databrary.Service.DB.html#dbExecute1%27"><span class="hs-identifier hs-var">dbExecute1'</span></a><span> </span><span class="hs-operator">$</span><span class="hs-special">(</span><span class="hs-identifier hs-var">updateParty</span><span> </span><span class="hs-char">'ident 'p)
+
+changeAccount :: MonadAudit c m =&gt; SiteAuth -&gt; m ()
+changeAccount a = do
+  ident &lt;- getAuditIdentity
+  dbExecute1' $(updateAccount 'ident 'a)
+
+addParty :: MonadAudit c m =&gt; Party -&gt; m Party
+addParty bp = do
+  ident &lt;- getAuditIdentity
+  dbQuery1' $ fmap (\p -&gt; Party p Nothing PermissionREAD Nothing) $(insertParty 'ident 'bp)
+
+addAccount :: MonadAudit c m =&gt; Account -&gt; m Account
+addAccount ba@Account{ accountParty = bp } = do
+  ident &lt;- getAuditIdentity
+  p &lt;- dbQuery1' $ fmap (\p -&gt; Party p Nothing PermissionREAD Nothing) $(insertParty 'ident 'bp)
+  let pa = p{ partyAccount = Just a }
+      a = ba{ accountParty = pa }
+  dbExecute1' $(insertAccount 'ident 'a)
+  return a
+
+removeParty :: MonadAudit c m =&gt; Party -&gt; m Bool
+removeParty p = do
+  ident &lt;- getAuditIdentity
+  dbTransaction $ handleJust (guard . isForeignKeyViolation) (\_ -&gt; return False) $ do
+    _ &lt;- dbExecute1 $(deleteAccount 'ident 'p)
+    dbExecute1 $(deleteParty 'ident 'p)
+
+lookupFixedParty :: Id Party -&gt; Identity -&gt; Maybe Party
+lookupFixedParty (Id (-1)) _ = Just nobodyParty
+lookupFixedParty (Id 0) i = Just rootParty{ partyPermission = accessPermission i `max` PermissionSHARED, partyAccess = accessMember i &gt; PermissionNONE ?&gt; view i }
+lookupFixedParty i a = view a &lt;? (i == view a)
+
+lookupParty :: (MonadDB c m, MonadHasIdentity c m) =&gt; Id Party -&gt; m (Maybe Party)
+lookupParty i = do
+  ident &lt;- peek
+  lookupFixedParty i ident `orElseM`
+    dbQuery1 $(selectQuery (selectParty 'ident) &quot;$WHERE party.id = ${i}&quot;)
+
+lookupPartyAuthorizations :: (MonadDB c m, MonadHasIdentity c m) =&gt; m [(Party, Maybe Permission)]
+lookupPartyAuthorizations = do
+  ident &lt;- peek
+  dbQuery $(selectQuery (selectPartyAuthorization 'ident) &quot;WHERE party.id &gt; 0&quot;)
+
+lookupAuthParty :: (MonadDB c m, MonadHasIdentity c m) =&gt; Id Party -&gt; m (Maybe Party)
+lookupAuthParty i = do
+  ident &lt;- peek
+  lookupFixedParty i ident `orElseM`
+    dbQuery1 $(selectQuery (selectAuthParty 'ident) &quot;$WHERE party.id = ${i}&quot;)
+
+lookupSiteAuthByEmail :: MonadDB c m =&gt; Bool -&gt; BS.ByteString -&gt; m (Maybe SiteAuth)
+lookupSiteAuthByEmail ic e = do
+  r &lt;- dbQuery1 $(selectQuery selectSiteAuth &quot;WHERE account.email = ${e}&quot;)
+  if ic &amp;&amp; isNothing r
+    then do
+      a &lt;- dbQuery $(selectQuery selectSiteAuth &quot;WHERE lower(account.email) = lower(${e}) LIMIT 2&quot;)
+      return $ case a of
+        [x] -&gt; Just x
+        _ -&gt; Nothing
+    else
+      return r
+
+auditAccountLogin :: (MonadHasRequest c m, MonadDB c m) =&gt; Bool -&gt; Party -&gt; BS.ByteString -&gt; m ()
+auditAccountLogin success who email = do
+  ip &lt;- getRemoteIp
+  dbExecute1' [pgSQL|INSERT INTO audit.account (audit_action, audit_user, audit_ip, id, email) VALUES
+    (${if success then AuditActionOpen else AuditActionAttempt}, -1, ${ip}, ${partyId $ partyRow who}, ${email})|]
+
+recentAccountLogins :: MonadDB c m =&gt; Party -&gt; m Int64
+recentAccountLogins who = fromMaybe 0 &lt;$&gt;
+  dbQuery1 [pgSQL|!SELECT count(*) FROM audit.account WHERE audit_action = 'attempt' AND id = ${partyId $ partyRow who} AND audit_time &gt; CURRENT_TIMESTAMP - interval '1 hour'|]
+
+data PartyFilter = PartyFilter
+  { partyFilterQuery :: Maybe String
+  , partyFilterAuthorization :: Maybe Permission
+  , partyFilterInstitution :: Maybe Bool
+  , partyFilterPaginate :: Paginate
+  }
+
+instance Monoid PartyFilter where
+  mempty = PartyFilter Nothing Nothing Nothing def
+  mappend (PartyFilter q1 a1 i1 p) (PartyFilter q2 a2 i2 _) =
+    PartyFilter (q1 &lt;&gt; q2) (a1 &lt;|&gt; a2) (i1 &lt;|&gt; i2) p
+
+partyFilter :: PartyFilter -&gt; Identity -&gt; BS.ByteString
+partyFilter PartyFilter{..} ident = BS.concat
+  [ withq partyFilterAuthorization (const &quot; JOIN authorize_view ON party.id = child AND parent = 0&quot;)
+  , &quot; WHERE id &gt; 0 AND id != &quot;, pgLiteralRep (partyId $ partyRow $ staffParty)
+  , withq partyFilterQuery (\n -&gt; &quot; AND &quot; &lt;&gt; queryVal &lt;&gt; &quot; ILIKE &quot; &lt;&gt; pgLiteralRep (wordPat n))
+  , withq partyFilterAuthorization (\a -&gt; &quot; AND site = &quot; &lt;&gt; pgSafeLiteral a)
+  , withq partyFilterInstitution (\i -&gt; if i then &quot; AND account.id IS NULL&quot; else &quot; AND account.password IS NOT NULL&quot;)
+  , &quot; ORDER BY name, prename &quot;
+  , paginateSQL partyFilterPaginate
+  ]
+  where
+  withq v f = maybe &quot;&quot; f v
+  wordPat = intercalate &quot;%&quot; . (&quot;&quot;:) . (++[&quot;&quot;]) . words
+  queryVal
+    | showEmail ident = &quot;(COALESCE(prename || ' ', '') || name || COALESCE(' ' || email, ''))&quot;
+    | otherwise = &quot;(COALESCE(prename || ' ', '') || name)&quot;
+
+findParties :: (MonadHasIdentity c m, MonadDB c m) =&gt; PartyFilter -&gt; m [Party]
+findParties pf = do
+  ident &lt;- peek
+  dbQuery $ unsafeModifyQuery $(selectQuery (selectParty 'ident) &quot;&quot;)
+    (&lt;&gt; partyFilter pf ident)
+
+lookupAvatar :: MonadDB c m =&gt; Id Party -&gt; m (Maybe Asset)
+lookupAvatar p =
+  dbQuery1 $ (`Asset` coreVolume) &lt;$&gt; $(selectQuery selectAssetRow $ &quot;$JOIN avatar ON asset.id = avatar.asset WHERE avatar.party = ${p} AND asset.volume = &quot; ++ pgLiteralString (volumeId $ volumeRow coreVolume))
+
+changeAvatar :: MonadAudit c m =&gt; Party -&gt; Maybe Asset -&gt; m Bool
+changeAvatar p Nothing = do
+  ident &lt;- getAuditIdentity
+  dbExecute1 $(auditDelete 'ident &quot;avatar&quot; &quot;party = ${partyId $ partyRow p}&quot; Nothing)
+changeAvatar p (Just a) = do
+  ident &lt;- getAuditIdentity
+  (0 &lt;) . fst &lt;$&gt; updateOrInsert
+    $(auditUpdate 'ident &quot;avatar&quot; [(&quot;asset&quot;, &quot;${assetId $ assetRow a}&quot;)] &quot;party = ${partyId $ partyRow p}&quot; Nothing)
+    $(auditInsert 'ident &quot;avatar&quot; [(&quot;asset&quot;, &quot;${assetId $ assetRow a}&quot;), (&quot;party&quot;, &quot;${partyId $ partyRow p}&quot;)] Nothing)
+</span></pre></body></html>

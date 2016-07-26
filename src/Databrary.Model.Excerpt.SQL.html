@@ -1,0 +1,104 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+</span><a name="line-2"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Excerpt</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span><span>
+</span><a name="line-3"></a><span>  </span><span class="hs-special">(</span><span> </span><a href="Databrary.Model.Excerpt.SQL.html#selectAssetSlotExcerpt"><span class="hs-identifier hs-var">selectAssetSlotExcerpt</span></a><span>
+</span><a name="line-4"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Excerpt.SQL.html#selectContainerExcerpt"><span class="hs-identifier hs-var">selectContainerExcerpt</span></a><span>
+</span><a name="line-5"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Excerpt.SQL.html#selectVolumeExcerpt"><span class="hs-identifier hs-var">selectVolumeExcerpt</span></a><span>
+</span><a name="line-6"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Excerpt.SQL.html#insertExcerpt"><span class="hs-identifier hs-var">insertExcerpt</span></a><span>
+</span><a name="line-7"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Excerpt.SQL.html#updateExcerpt"><span class="hs-identifier hs-var">updateExcerpt</span></a><span>
+</span><a name="line-8"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Excerpt.SQL.html#deleteExcerpt"><span class="hs-identifier hs-var">deleteExcerpt</span></a><span>
+</span><a name="line-9"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-10"></a><span>
+</span><a name="line-11"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Language</span><span class="hs-operator">.</span><span class="hs-identifier">Haskell</span><span class="hs-operator">.</span><span class="hs-identifier">TH</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">TH</span><span>
+</span><a name="line-12"></a><span>
+</span><a name="line-13"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.SQL.Select.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span><span class="hs-operator">.</span><span class="hs-identifier">Select</span></a><span>
+</span><a name="line-14"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Audit.SQL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Audit</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span></a><span>
+</span><a name="line-15"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Release.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Release</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-16"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Volume.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Volume</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-17"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Container.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Container</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-18"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Container.SQL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Container</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span></a><span>
+</span><a name="line-19"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Segment.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Segment</span></a><span>
+</span><a name="line-20"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Asset.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Asset</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-21"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Asset.SQL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Asset</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span></a><span>
+</span><a name="line-22"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.AssetSlot.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">AssetSlot</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-23"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.AssetSlot.SQL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">AssetSlot</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span></a><span>
+</span><a name="line-24"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.AssetSegment.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">AssetSegment</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-25"></a><span>
+</span><a name="line-26"></a><span class="hs-identifier">makeExcerpt</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.Model.Segment.html#Segment"><span class="hs-identifier hs-type">Segment</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">Maybe</span><span> </span><a href="Databrary.Model.Release.Types.html#Release"><span class="hs-identifier hs-type">Release</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Databrary.Model.AssetSlot.Types.html#AssetSlot"><span class="hs-identifier hs-type">AssetSlot</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Databrary.Model.AssetSegment.Types.html#Excerpt"><span class="hs-identifier hs-type">Excerpt</span></a><span>
+</span><a name="line-27"></a><a name="makeExcerpt"><a href="Databrary.Model.Excerpt.SQL.html#makeExcerpt"><span class="hs-identifier">makeExcerpt</span></a></a><span> </span><a name="local-1628575800"><a href="#local-1628575800"><span class="hs-identifier">s</span></a></a><span> </span><a name="local-1628575801"><a href="#local-1628575801"><span class="hs-identifier">r</span></a></a><span> </span><a name="local-1628575802"><a href="#local-1628575802"><span class="hs-identifier">a</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Databrary.Model.AssetSegment.Types.html#newExcerpt"><span class="hs-identifier hs-var">newExcerpt</span></a><span> </span><a href="#local-1628575802"><span class="hs-identifier hs-var">a</span></a><span> </span><a href="#local-1628575800"><span class="hs-identifier hs-var">s</span></a><span> </span><a href="#local-1628575801"><span class="hs-identifier hs-var">r</span></a><span>
+</span><a name="line-28"></a><span>
+</span><a name="line-29"></a><span class="hs-identifier">excerptRow</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.Model.SQL.Select.html#Selector"><span class="hs-identifier hs-type">Selector</span></a><span> </span><span class="hs-comment">-- ^ @'AssetSlot' -&gt; 'Excerpt'@</span><span>
+</span><a name="line-30"></a><a name="excerptRow"><a href="Databrary.Model.Excerpt.SQL.html#excerptRow"><span class="hs-identifier">excerptRow</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Databrary.Model.SQL.Select.html#selectColumns"><span class="hs-identifier hs-var">selectColumns</span></a><span> </span><span class="hs-char">'makeExcerpt &quot;excerpt&quot; [&quot;segment&quot;, &quot;release&quot;]
+
+selectAssetSlotExcerpt :: Selector -- ^ @'AssetSlot' -&gt; 'Excerpt'@
+selectAssetSlotExcerpt = excerptRow
+
+makeAssetContainerExcerpt :: Segment -&gt; (AssetSlot -&gt; Excerpt) -&gt; Asset -&gt; Container -&gt; Excerpt
+makeAssetContainerExcerpt as e a c = e $ makeSlotAsset a c as
+
+selectAssetContainerExcerpt :: Selector -- ^ @'Asset' -&gt; 'Container' -&gt; 'Excerpt'@
+selectAssetContainerExcerpt = selectJoin 'makeAssetContainerExcerpt
+  [ slotAssetRow
+  , joinOn &quot;slot_asset.asset = excerpt.asset&quot;
+    excerptRow
+  ]
+
+makeContainerExcerpt :: (Asset -&gt; Container -&gt; Excerpt) -&gt; AssetRow -&gt; Container -&gt; Excerpt
+makeContainerExcerpt f ar c = f (Asset ar (containerVolume c)) c
+
+selectContainerExcerpt :: Selector -- ^ @'Container' -&gt; 'Excerpt'@
+selectContainerExcerpt = selectJoin 'makeContainerExcerpt
+  [ selectAssetContainerExcerpt
+  , joinOn &quot;slot_asset.asset = asset.id&quot;
+    selectAssetRow -- XXX volumes match?
+  ]
+
+makeVolumeExcerpt :: (Asset -&gt; Container -&gt; Excerpt) -&gt; AssetRow -&gt; (Volume -&gt; Container) -&gt; Volume -&gt; Excerpt
+makeVolumeExcerpt f ar cf v = f (Asset ar v) (cf v)
+
+selectVolumeExcerpt :: Selector -- ^ @'Volume' -&gt; 'Excerpt'@
+selectVolumeExcerpt = selectJoin 'makeVolumeExcerpt
+  [ selectAssetContainerExcerpt
+  , joinOn &quot;slot_asset.asset = asset.id&quot;
+    selectAssetRow
+  , joinOn &quot;slot_asset.container = container.id AND asset.volume = container.volume&quot;
+    selectVolumeContainer
+  ]
+
+excerptKeys :: String -- ^ @'Excerpt'@
+  -&gt; [(String, String)]
+excerptKeys o =
+  [ (&quot;asset&quot;, &quot;${assetId $ assetRow $ slotAsset $ segmentAsset $ excerptAsset &quot; ++ o ++ &quot;}&quot;)
+  , (&quot;segment&quot;, &quot;${assetSegment $ excerptAsset &quot; ++ o ++ &quot;}&quot;)
+  ]
+
+excerptSets :: String -- ^ @'Excerpt'@
+  -&gt; [(String, String)]
+excerptSets o =
+  [ (&quot;release&quot;, &quot;${excerptRelease &quot; ++ o ++ &quot;}&quot;)
+  ]
+
+insertExcerpt :: TH.Name -- ^ @'AuditIdentity'@
+  -&gt; TH.Name -- ^ @'Excerpt'@
+  -&gt; TH.ExpQ
+insertExcerpt ident o = auditInsert ident &quot;excerpt&quot;
+  (excerptKeys os ++ excerptSets os)
+  Nothing
+  where os = nameRef o
+
+updateExcerpt :: TH.Name -- ^ @'AuditIdentity'@
+  -&gt; TH.Name -- ^ @'Excerpt'@
+  -&gt; TH.ExpQ
+updateExcerpt ident o = auditUpdate ident &quot;excerpt&quot;
+  (excerptSets os)
+  (whereEq $ excerptKeys os)
+  Nothing
+  where os = nameRef o
+
+deleteExcerpt :: TH.Name -- ^ @'AuditIdentity'@
+  -&gt; TH.Name -- ^ @'AssetSegment'@
+  -&gt; TH.ExpQ
+deleteExcerpt ident o = auditDelete ident &quot;excerpt&quot;
+  (&quot;asset = ${assetId $ assetRow $ slotAsset $ segmentAsset &quot; ++ os ++ &quot;} AND segment &lt;@ ${assetSegment &quot; ++ os ++ &quot;}&quot;)
+  Nothing
+  where os = nameRef o
+</span></pre></body></html>

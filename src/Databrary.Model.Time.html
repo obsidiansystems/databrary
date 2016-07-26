@@ -1,0 +1,60 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+</span><a name="line-2"></a><span class="hs-pragma">{-# OPTIONS_GHC -fno-warn-orphans #-}</span><span>
+</span><a name="line-3"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Time</span><span>
+</span><a name="line-4"></a><span>  </span><span class="hs-special">(</span><span> </span><a href="Databrary.Model.Time.html#Date"><span class="hs-identifier hs-type">Date</span></a><span>
+</span><a name="line-5"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Time.html#Timestamp"><span class="hs-identifier hs-type">Timestamp</span></a><span>
+</span><a name="line-6"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Time.html#dateYear"><span class="hs-identifier hs-var">dateYear</span></a><span>
+</span><a name="line-7"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Time.html#MaskedDate"><span class="hs-identifier hs-type">MaskedDate</span></a><span>
+</span><a name="line-8"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Time.html#maskDateIf"><span class="hs-identifier hs-var">maskDateIf</span></a><span>
+</span><a name="line-9"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Time.html#maskedYear"><span class="hs-identifier hs-var">maskedYear</span></a><span>
+</span><a name="line-10"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-11"></a><span>
+</span><a name="line-12"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Aeson</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">JSON</span><span>
+</span><a name="line-13"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Fixed</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Fixed</span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-14"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Time</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Day</span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">UTCTime</span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">DiffTime</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">toGregorian</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">fromGregorian</span><span class="hs-special">)</span><span>
+</span><a name="line-15"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Time</span><span class="hs-operator">.</span><span class="hs-identifier">Format</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">FormatTime</span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">formatTime</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">dateFmt</span><span class="hs-special">)</span><span>
+</span><a name="line-16"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Language</span><span class="hs-operator">.</span><span class="hs-identifier">Haskell</span><span class="hs-operator">.</span><span class="hs-identifier">TH</span><span class="hs-operator">.</span><span class="hs-identifier">Lift</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">deriveLiftMany</span><span class="hs-special">)</span><span>
+</span><a name="line-17"></a><span>
+</span><a name="line-18"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Has.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Has</span></a><span> </span><span class="hs-special">(</span><a href="Databrary.Has.html#Has"><span class="hs-identifier hs-type">Has</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-19"></a><span>
+</span><a name="line-20"></a><span class="hs-keyword">type</span><span> </span><a name="Date"><a href="Databrary.Model.Time.html#Date"><span class="hs-identifier">Date</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-type">Day</span><span>
+</span><a name="line-21"></a><span class="hs-keyword">type</span><span> </span><a name="Timestamp"><a href="Databrary.Model.Time.html#Timestamp"><span class="hs-identifier">Timestamp</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-type">UTCTime</span><span>
+</span><a name="line-22"></a><span>
+</span><a name="line-23"></a><a href="#local-1627668241"><span class="hs-identifier hs-var">deriveLiftMany</span></a><span> </span><span class="hs-special">[</span><span class="hs-char">''Fixed, ''DiffTime, ''Day, ''UTCTime]
+
+instance Has Day Timestamp where
+  view = utctDay
+
+data MaskedDate
+  = MaskedDate !Int
+  | UnmaskedDate !Date
+
+dateYear :: Date -&gt; Int
+dateYear d = fromInteger y where (y,_,_) = toGregorian d
+
+maskDate :: Date -&gt; MaskedDate
+maskDate = MaskedDate . dateYear
+
+maskDateIf :: Bool -&gt; Date -&gt; MaskedDate
+maskDateIf True = maskDate
+maskDateIf False = UnmaskedDate
+
+maskedYear :: MaskedDate -&gt; Int
+maskedYear (MaskedDate y) = y
+maskedYear (UnmaskedDate d) = dateYear d
+
+instance FormatTime MaskedDate where
+  formatCharacter 'D' = Just (\locale _ -&gt; formatTime locale &quot;%m/%d/%y&quot;)
+  formatCharacter 'F' = Just (\locale _ -&gt; formatTime locale &quot;%Y-%m-%d&quot;)
+  formatCharacter 'x' = Just (\locale _ -&gt; formatTime locale (dateFmt locale))
+  formatCharacter c = f &lt;$&gt; formatCharacter c where
+    f g l o (UnmaskedDate d) = g l o d
+    f g l o (MaskedDate y)
+      | c `elem` &quot;YyCGgf&quot; = r
+      | otherwise = map (const 'X') r
+      where r = g l o $ fromGregorian (toInteger y) 11 21
+
+instance JSON.ToJSON MaskedDate where
+  toJSON (MaskedDate y) = JSON.toJSON y
+  toJSON (UnmaskedDate d) = JSON.toJSON d
+</span></pre></body></html>

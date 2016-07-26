@@ -1,0 +1,104 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+</span><a name="line-2"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">VolumeAccess</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span><span>
+</span><a name="line-3"></a><span>  </span><span class="hs-special">(</span><span> </span><a href="Databrary.Model.VolumeAccess.SQL.html#selectVolumeAccess"><span class="hs-identifier hs-var">selectVolumeAccess</span></a><span>
+</span><a name="line-4"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.VolumeAccess.SQL.html#selectVolumeAccessParty"><span class="hs-identifier hs-var">selectVolumeAccessParty</span></a><span>
+</span><a name="line-5"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.VolumeAccess.SQL.html#selectPartyVolumeAccess"><span class="hs-identifier hs-var">selectPartyVolumeAccess</span></a><span>
+</span><a name="line-6"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.VolumeAccess.SQL.html#updateVolumeAccess"><span class="hs-identifier hs-var">updateVolumeAccess</span></a><span>
+</span><a name="line-7"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.VolumeAccess.SQL.html#insertVolumeAccess"><span class="hs-identifier hs-var">insertVolumeAccess</span></a><span>
+</span><a name="line-8"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.VolumeAccess.SQL.html#deleteVolumeAccess"><span class="hs-identifier hs-var">deleteVolumeAccess</span></a><span>
+</span><a name="line-9"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.VolumeAccess.SQL.html#selectVolumeActivity"><span class="hs-identifier hs-var">selectVolumeActivity</span></a><span>
+</span><a name="line-10"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-11"></a><span>
+</span><a name="line-12"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Language</span><span class="hs-operator">.</span><span class="hs-identifier">Haskell</span><span class="hs-operator">.</span><span class="hs-identifier">TH</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">TH</span><span>
+</span><a name="line-13"></a><span>
+</span><a name="line-14"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Permission.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Permission</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-15"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Party.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Party</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-16"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Volume.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Volume</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-17"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.SQL.Select.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span><span class="hs-operator">.</span><span class="hs-identifier">Select</span></a><span>
+</span><a name="line-18"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Audit.SQL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Audit</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span></a><span>
+</span><a name="line-19"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Party.SQL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Party</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span></a><span>
+</span><a name="line-20"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Volume.SQL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Volume</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span></a><span>
+</span><a name="line-21"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.VolumeAccess.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">VolumeAccess</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-22"></a><span>
+</span><a name="line-23"></a><span class="hs-identifier">volumeAccessRow</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.Model.SQL.Select.html#Selector"><span class="hs-identifier hs-type">Selector</span></a><span> </span><span class="hs-comment">-- ^ @'Party' -&gt; 'Volume' -&gt; 'VolumeAccess'@</span><span>
+</span><a name="line-24"></a><a name="volumeAccessRow"><a href="Databrary.Model.VolumeAccess.SQL.html#volumeAccessRow"><span class="hs-identifier">volumeAccessRow</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Databrary.Model.SQL.Select.html#selectColumns"><span class="hs-identifier hs-var">selectColumns</span></a><span> </span><span class="hs-char">'VolumeAccess &quot;volume_access&quot; [&quot;individual&quot;, &quot;children&quot;, &quot;sort&quot;]
+
+selectVolumeAccess :: TH.Name -- ^ 'Volume'
+  -&gt; TH.Name -- ^ 'Identity'
+  -&gt; Selector -- ^ 'VolumeAccess'
+selectVolumeAccess vol ident = selectMap (`TH.AppE` TH.VarE vol) $ selectJoin '($)
+  [ volumeAccessRow
+  , joinOn (&quot;volume_access.party = party.id AND volume_access.volume = ${volumeId $ volumeRow &quot; ++ nameRef vol ++ &quot;}&quot;)
+    $ selectAuthParty ident
+  ]
+
+makeVolumeAccessParty :: Party -&gt; Maybe (Party -&gt; Volume -&gt; VolumeAccess) -&gt; Volume -&gt; VolumeAccess
+makeVolumeAccessParty p Nothing v = VolumeAccess PermissionNONE PermissionNONE Nothing p v
+makeVolumeAccessParty p (Just af) v = af p v
+
+selectVolumeAccessParty :: TH.Name -- ^ 'Volume'
+  -&gt; TH.Name -- ^ 'Identity'
+  -&gt; Selector -- ^ 'VolumeAccess'
+selectVolumeAccessParty vol ident = selectMap (`TH.AppE` TH.VarE vol) $ selectJoin 'makeVolumeAccessParty
+  [ selectAuthParty ident
+  , maybeJoinOn (&quot;party.id = volume_access.party AND volume_access.volume = ${volumeId $ volumeRow &quot; ++ nameRef vol ++ &quot;}&quot;)
+    volumeAccessRow
+  ]
+
+selectPartyVolumeAccess :: TH.Name -- ^ 'Party'
+  -&gt; TH.Name -- ^ 'Identity'
+  -&gt; Selector -- ^ 'VolumeAccess'
+selectPartyVolumeAccess p ident = selectJoin '($)
+  [ selectMap (`TH.AppE` TH.VarE p) volumeAccessRow
+  , joinOn (&quot;volume_access.volume = volume.id AND volume_access.party = ${partyId $ partyRow &quot; ++ nameRef p ++ &quot;}&quot;)
+    $ selectVolume ident
+  ]
+
+volumeAccessKeys :: String -- ^ @'VolumeAccess'@
+  -&gt; [(String, String)]
+volumeAccessKeys a =
+  [ (&quot;volume&quot;, &quot;${volumeId $ volumeRow $ volumeAccessVolume &quot; ++ a ++ &quot;}&quot;)
+  , (&quot;party&quot;, &quot;${partyId $ partyRow $ volumeAccessParty &quot; ++ a ++ &quot;}&quot;)
+  ]
+
+volumeAccessSets :: String -- ^ @'VolumeAccess'@
+  -&gt; [(String, String)]
+volumeAccessSets a =
+  [ (&quot;individual&quot;, &quot;${volumeAccessIndividual &quot; ++ a ++ &quot;}&quot;)
+  , (&quot;children&quot;, &quot;${volumeAccessChildren &quot; ++ a ++ &quot;}&quot;)
+  , (&quot;sort&quot;, &quot;${volumeAccessSort &quot; ++ a ++ &quot;}&quot;)
+  ]
+
+updateVolumeAccess :: TH.Name -- ^ @'AuditIdentity'@
+  -&gt; TH.Name -- ^ @'VolumeAccess'@
+  -&gt; TH.ExpQ
+updateVolumeAccess ident a = auditUpdate ident &quot;volume_access&quot;
+  (volumeAccessSets as)
+  (whereEq $ volumeAccessKeys as)
+  Nothing
+  where as = nameRef a
+
+insertVolumeAccess :: TH.Name -- ^ @'AuditIdentity'@
+  -&gt; TH.Name -- ^ @'VolumeAccess'@
+  -&gt; TH.ExpQ
+insertVolumeAccess ident a = auditInsert ident &quot;volume_access&quot;
+  (volumeAccessKeys as ++ volumeAccessSets as)
+  Nothing
+  where as = nameRef a
+
+deleteVolumeAccess :: TH.Name -- ^ @'AuditIdentity'@
+  -&gt; TH.Name -- ^ @'VolumeAccess'@
+  -&gt; TH.ExpQ
+deleteVolumeAccess ident a = auditDelete ident &quot;volume_access&quot;
+  (whereEq $ volumeAccessKeys as)
+  Nothing
+  where as = nameRef a
+
+selectVolumeActivity :: TH.Name -- ^@'Identity'@
+  -&gt; Selector -- ^ @('Timestamp', 'Volume')@
+selectVolumeActivity ident = selectJoin '(,)
+  [ selectAuditActivity &quot;volume_access&quot;
+  , joinOn &quot;audit.volume = volume.id&quot;
+    $ selectVolume ident
+  ]
+</span></pre></body></html>

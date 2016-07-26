@@ -1,0 +1,100 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell, OverloadedStrings, RecordWildCards #-}</span><span>
+</span><a name="line-2"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">EZID</span><span class="hs-operator">.</span><span class="hs-identifier">API</span><span>
+</span><a name="line-3"></a><span>  </span><span class="hs-special">(</span><span> </span><a href="Databrary.EZID.API.html#EZIDM"><span class="hs-identifier hs-type">EZIDM</span></a><span>
+</span><a name="line-4"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.EZID.API.html#runEZIDM"><span class="hs-identifier hs-var">runEZIDM</span></a><span>
+</span><a name="line-5"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.EZID.API.html#ezidStatus"><span class="hs-identifier hs-var">ezidStatus</span></a><span>
+</span><a name="line-6"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.EZID.API.html#EZIDMeta"><span class="hs-identifier hs-type">EZIDMeta</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-7"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.EZID.API.html#ezidCreate"><span class="hs-identifier hs-var">ezidCreate</span></a><span>
+</span><a name="line-8"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.EZID.API.html#ezidModify"><span class="hs-identifier hs-var">ezidModify</span></a><span>
+</span><a name="line-9"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-10"></a><span>
+</span><a name="line-11"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control</span><span class="hs-operator">.</span><span class="hs-identifier">Arrow</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">left</span><span class="hs-special">)</span><span>
+</span><a name="line-12"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control</span><span class="hs-operator">.</span><span class="hs-identifier">Exception</span><span class="hs-operator">.</span><span class="hs-identifier">Lifted</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">try</span><span class="hs-special">)</span><span>
+</span><a name="line-13"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control</span><span class="hs-operator">.</span><span class="hs-identifier">Monad</span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="hs-operator hs-var">&lt;=&lt;</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">join</span><span class="hs-special">)</span><span>
+</span><a name="line-14"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control</span><span class="hs-operator">.</span><span class="hs-identifier">Monad</span><span class="hs-operator">.</span><span class="hs-identifier">IO</span><span class="hs-operator">.</span><span class="hs-identifier">Class</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">liftIO</span><span class="hs-special">)</span><span>
+</span><a name="line-15"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control</span><span class="hs-operator">.</span><span class="hs-identifier">Monad</span><span class="hs-operator">.</span><span class="hs-identifier">Trans</span><span class="hs-operator">.</span><span class="hs-identifier">Reader</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">ReaderT</span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-16"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Attoparsec</span><span class="hs-operator">.</span><span class="hs-identifier">ByteString</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">P</span><span>
+</span><a name="line-17"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">ByteString</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">BS</span><span>
+</span><a name="line-18"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">ByteString</span><span class="hs-operator">.</span><span class="hs-identifier">Builder</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">B</span><span>
+</span><a name="line-19"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Char</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">isSpace</span><span class="hs-special">)</span><span>
+</span><a name="line-20"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Maybe</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">isJust</span><span class="hs-special">)</span><span>
+</span><a name="line-21"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Monoid</span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="hs-operator hs-var">&lt;&gt;</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-22"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Text</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">T</span><span>
+</span><a name="line-23"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Text</span><span class="hs-operator">.</span><span class="hs-identifier">Encoding</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">TE</span><span>
+</span><a name="line-24"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Time</span><span class="hs-operator">.</span><span class="hs-identifier">Clock</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">getCurrentTime</span><span class="hs-special">)</span><span>
+</span><a name="line-25"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Network</span><span class="hs-operator">.</span><span class="hs-identifier">HTTP</span><span class="hs-operator">.</span><span class="hs-identifier">Client</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">HC</span><span>
+</span><a name="line-26"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Network</span><span class="hs-operator">.</span><span class="hs-identifier">HTTP</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">methodGet</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">methodPut</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">methodPost</span><span class="hs-special">)</span><span>
+</span><a name="line-27"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Network</span><span class="hs-operator">.</span><span class="hs-identifier">URI</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">URI</span><span class="hs-special">)</span><span>
+</span><a name="line-28"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Text</span><span class="hs-operator">.</span><span class="hs-identifier">XML</span><span class="hs-operator">.</span><span class="hs-identifier">Light</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">XML</span><span>
+</span><a name="line-29"></a><span>
+</span><a name="line-30"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Ops.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Ops</span></a><span>
+</span><a name="line-31"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Has.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Has</span></a><span>
+</span><a name="line-32"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Service.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Service</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-33"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Service.Log.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Service</span><span class="hs-operator">.</span><span class="hs-identifier">Log</span></a><span>
+</span><a name="line-34"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Context.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Context</span></a><span>
+</span><a name="line-35"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.HTTP.Client.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">HTTP</span><span class="hs-operator">.</span><span class="hs-identifier">Client</span></a><span>
+</span><a name="line-36"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.EZID.Service.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">EZID</span><span class="hs-operator">.</span><span class="hs-identifier">Service</span></a><span>
+</span><a name="line-37"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><a href="Databrary.EZID.ANVL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">EZID</span><span class="hs-operator">.</span><span class="hs-identifier">ANVL</span></a><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">ANVL</span><span>
+</span><a name="line-38"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.EZID.DataCite.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">EZID</span><span class="hs-operator">.</span><span class="hs-identifier">DataCite</span></a><span>
+</span><a name="line-39"></a><span>
+</span><a name="line-40"></a><span class="hs-keyword">data</span><span> </span><a name="EZIDContext"><a href="Databrary.EZID.API.html#EZIDContext"><span class="hs-identifier">EZIDContext</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="EZIDContext"><a href="Databrary.EZID.API.html#EZIDContext"><span class="hs-identifier">EZIDContext</span></a></a><span>
+</span><a name="line-41"></a><span>  </span><span class="hs-special">{</span><span> </span><a name="ezidContext"><a href="Databrary.EZID.API.html#ezidContext"><span class="hs-identifier">ezidContext</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><a href="Databrary.Context.html#BackgroundContext"><span class="hs-identifier hs-type">BackgroundContext</span></a><span>
+</span><a name="line-42"></a><span>  </span><span class="hs-special">,</span><span> </span><a name="contextEZID"><a href="Databrary.EZID.API.html#contextEZID"><span class="hs-identifier">contextEZID</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><a href="Databrary.EZID.Service.html#EZID"><span class="hs-identifier hs-type">EZID</span></a><span>
+</span><a name="line-43"></a><span>  </span><span class="hs-special">}</span><span>
+</span><a name="line-44"></a><span>
+</span><a name="line-45"></a><a href="Databrary.EZID.API.html#contextEZID"><span class="hs-identifier hs-var">makeHasRec</span></a><span> </span><span class="hs-char">''EZIDContext ['ezidContext, 'contextEZID]
+
+type EZIDM a = CookiesT (ReaderT EZIDContext IO) a
+
+runEZIDM :: EZIDM a -&gt; BackgroundContextM (Maybe a)
+runEZIDM f = ReaderT $ \ctx -&gt;
+  mapM (runReaderT (runCookiesT f) . EZIDContext ctx)
+    (serviceEZID $ contextService $ backgroundContext ctx)
+
+ezidCall :: BS.ByteString -&gt; BS.ByteString -&gt; ANVL.ANVL -&gt; EZIDM (Maybe ANVL.ANVL)
+ezidCall path method body = do
+  req &lt;- peeks ezidRequest
+  t &lt;- liftIO getCurrentTime
+  r &lt;- try $ withResponseCookies (requestAcceptContent &quot;text/plain&quot; req)
+    { HC.path = path
+    , HC.method = method
+    , HC.requestBody = HC.RequestBodyLBS $ B.toLazyByteString $ ANVL.encode body
+    } (fmap P.eitherResult . httpParse ANVL.parse)
+  let r' = join $ left (show :: HC.HttpException -&gt; String) r
+  focusIO $ logMsg t $ toLogStr (&quot;ezid: &quot; &lt;&gt; method &lt;&gt; &quot; &quot; &lt;&gt; path &lt;&gt; &quot;: &quot;) &lt;&gt; toLogStr (either id show r')
+  return $ rightJust r'
+
+ezidCheck :: ANVL.ANVL -&gt; Maybe T.Text
+ezidCheck = lookup &quot;success&quot;
+
+ezidStatus :: EZIDM Bool
+ezidStatus =
+  isJust . (ezidCheck =&lt;&lt;) &lt;$&gt; ezidCall &quot;/status&quot; methodGet []
+
+data EZIDMeta
+  = EZIDPublic
+    { ezidTarget :: !URI
+    , ezidDataCite :: !DataCite
+    }
+  | EZIDUnavailable
+
+ezidMeta :: EZIDMeta -&gt; ANVL.ANVL
+ezidMeta EZIDPublic{..} =
+  [ (&quot;_target&quot;, T.pack $ show ezidTarget)
+  , (&quot;_status&quot;, &quot;public&quot;)
+  , (&quot;_profile&quot;, &quot;datacite&quot;)
+  , (&quot;datacite&quot;, T.pack $ XML.showTopElement $ dataCiteXML ezidDataCite)
+  ]
+ezidMeta EZIDUnavailable = [ (&quot;_status&quot;, &quot;unavailable&quot;) ]
+
+ezidCreate :: BS.ByteString -&gt; EZIDMeta -&gt; EZIDM (Maybe BS.ByteString)
+ezidCreate hdl meta = do
+  ns &lt;- peeks ezidNS
+  fmap (TE.encodeUtf8 . T.takeWhile (\c -&gt; c /= '|' &amp;&amp; not (isSpace c))) . (=&lt;&lt;) (T.stripPrefix &quot;doi:&quot; &lt;=&lt; ezidCheck) &lt;$&gt;
+    ezidCall (&quot;/id/&quot; &lt;&gt; ns &lt;&gt; hdl) methodPut (ezidMeta meta)
+
+ezidModify :: BS.ByteString -&gt; EZIDMeta -&gt; EZIDM Bool
+ezidModify hdl meta =
+  isJust . (ezidCheck =&lt;&lt;) &lt;$&gt;
+    ezidCall (&quot;/id/doi:&quot; &lt;&gt; hdl) methodPost (ezidMeta meta)
+</span></pre></body></html>

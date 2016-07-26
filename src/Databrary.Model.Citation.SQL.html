@@ -1,0 +1,103 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+</span><a name="line-2"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Citation</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span><span>
+</span><a name="line-3"></a><span>  </span><span class="hs-special">(</span><span> </span><a href="Databrary.Model.Citation.SQL.html#selectVolumeCitation"><span class="hs-identifier hs-var">selectVolumeCitation</span></a><span>
+</span><a name="line-4"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Citation.SQL.html#selectCitation"><span class="hs-identifier hs-var">selectCitation</span></a><span>
+</span><a name="line-5"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Citation.SQL.html#insertVolumeCitation"><span class="hs-identifier hs-var">insertVolumeCitation</span></a><span>
+</span><a name="line-6"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Citation.SQL.html#updateVolumeCitation"><span class="hs-identifier hs-var">updateVolumeCitation</span></a><span>
+</span><a name="line-7"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Citation.SQL.html#deleteVolumeCitation"><span class="hs-identifier hs-var">deleteVolumeCitation</span></a><span>
+</span><a name="line-8"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Citation.SQL.html#selectVolumeLink"><span class="hs-identifier hs-var">selectVolumeLink</span></a><span>
+</span><a name="line-9"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Citation.SQL.html#insertVolumeLink"><span class="hs-identifier hs-var">insertVolumeLink</span></a><span>
+</span><a name="line-10"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Citation.SQL.html#deleteVolumeLink"><span class="hs-identifier hs-var">deleteVolumeLink</span></a><span>
+</span><a name="line-11"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-12"></a><span>
+</span><a name="line-13"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Text</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">T</span><span>
+</span><a name="line-14"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Language</span><span class="hs-operator">.</span><span class="hs-identifier">Haskell</span><span class="hs-operator">.</span><span class="hs-identifier">TH</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">TH</span><span>
+</span><a name="line-15"></a><span>
+</span><a name="line-16"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Ops.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Ops</span></a><span>
+</span><a name="line-17"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.SQL.Select.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span><span class="hs-operator">.</span><span class="hs-identifier">Select</span></a><span>
+</span><a name="line-18"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Audit.SQL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Audit</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span></a><span>
+</span><a name="line-19"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Volume.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Volume</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-20"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Volume.SQL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Volume</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span></a><span>
+</span><a name="line-21"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Citation.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Citation</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-22"></a><span>
+</span><a name="line-23"></a><span class="hs-identifier">citationRow</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.Model.SQL.Select.html#Selector"><span class="hs-identifier hs-type">Selector</span></a><span> </span><span class="hs-comment">-- ^ @Maybe 'T.Text' -&gt; 'Citation'@</span><span>
+</span><a name="line-24"></a><a name="citationRow"><a href="Databrary.Model.Citation.SQL.html#citationRow"><span class="hs-identifier">citationRow</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Databrary.Model.SQL.Select.html#selectColumns"><span class="hs-identifier hs-var">selectColumns</span></a><span> </span><span class="hs-char">'Citation &quot;volume_citation&quot; [&quot;head&quot;, &quot;url&quot;, &quot;year&quot;]
+
+selectVolumeCitation :: Selector -- ^ @Maybe 'T.Text' -&gt; 'Citation'@
+selectVolumeCitation = citationRow
+
+makeVolumeCitation :: Volume -&gt; Maybe (Maybe T.Text -&gt; Citation) -&gt; (Volume, Maybe Citation)
+makeVolumeCitation v cf = (v, cf &lt;*- Just (volumeName $ volumeRow v))
+
+selectCitation :: TH.Name -- ^ @'Identity'@
+  -&gt; Selector -- ^ @('Volume', Maybe 'Citation')@
+selectCitation i = selectJoin 'makeVolumeCitation
+  [ selectVolume i
+  , maybeJoinOn &quot;volume.id = volume_citation.volume&quot;
+    selectVolumeCitation
+  ]
+
+linkRow :: Selector -- ^ @'Citation'@
+linkRow = selectColumns 'Citation &quot;volume_link&quot; [&quot;head&quot;, &quot;url&quot;]
+
+selectVolumeLink :: Selector -- ^ @'Citation'@
+selectVolumeLink = selectMap ((`TH.AppE` TH.ConE 'Nothing) . (`TH.AppE` TH.ConE 'Nothing))
+  linkRow
+
+volumeKeys :: String -- ^ @'Volume'@
+  -&gt; [(String, String)]
+volumeKeys v =
+  [ (&quot;volume&quot;, &quot;${volumeId $ volumeRow &quot; ++ v ++ &quot;}&quot;) ]
+
+linkSets :: String -- ^ @'Citation'@
+  -&gt; [(String, String)]
+linkSets c =
+  [ (&quot;head&quot;, &quot;${citationHead &quot; ++ c ++ &quot;}&quot;)
+  , (&quot;url&quot;, &quot;${citationURL &quot; ++ c ++ &quot;}&quot;)
+  ]
+
+citationSets :: String -- ^ @'Citation'@
+  -&gt; [(String, String)]
+citationSets c = linkSets c ++
+  [ (&quot;year&quot;, &quot;${citationYear &quot; ++ c ++ &quot;}&quot;)
+  ]
+
+insertVolumeCitation :: TH.Name -- ^ @'AuditIdentity'@
+  -&gt; TH.Name -- ^ @'Volume'@
+  -&gt; TH.Name -- ^ @'Citation'@
+  -&gt; TH.ExpQ -- ^ ()
+insertVolumeCitation ident v c = auditInsert ident &quot;volume_citation&quot;
+  (volumeKeys (nameRef v) ++ citationSets (nameRef c))
+  Nothing
+
+updateVolumeCitation :: TH.Name -- ^ @'AuditIdentity'@
+  -&gt; TH.Name -- ^ @'Volume'@
+  -&gt; TH.Name -- ^ @'Citation'@
+  -&gt; TH.ExpQ -- ^ ()
+updateVolumeCitation ident v c = auditUpdate ident &quot;volume_citation&quot;
+  (citationSets (nameRef c))
+  (whereEq $ volumeKeys (nameRef v))
+  Nothing
+
+deleteVolumeCitation :: TH.Name -- ^ @'AuditIdentity'@
+  -&gt; TH.Name -- ^ @'Volume'@
+  -&gt; TH.ExpQ -- ^ ()
+deleteVolumeCitation ident v = auditDelete ident &quot;volume_citation&quot;
+  (whereEq $ volumeKeys (nameRef v))
+  Nothing
+
+insertVolumeLink :: TH.Name -- ^ @'AuditIdentity'@
+  -&gt; TH.Name -- ^ @'Volume'@
+  -&gt; TH.Name -- ^ @'Citation'@
+  -&gt; TH.ExpQ -- ^ ()
+insertVolumeLink ident v c = auditInsert ident &quot;volume_link&quot;
+  (volumeKeys (nameRef v) ++ linkSets (nameRef c))
+  Nothing
+
+deleteVolumeLink :: TH.Name -- ^ @'AuditIdentity'@
+  -&gt; TH.Name -- ^ @'Volume'@
+  -&gt; TH.ExpQ -- ^ ()
+deleteVolumeLink ident v = auditDelete ident &quot;volume_link&quot;
+  (whereEq $ volumeKeys (nameRef v))
+  Nothing
+</span></pre></body></html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell, RecordWildCards, OverloadedStrings, ScopedTypeVariables, DataKinds #-}</span><span>
+</span><a name="line-2"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">VolumeAccess</span><span>
+</span><a name="line-3"></a><span>  </span><span class="hs-special">(</span><span> </span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">VolumeAccess</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span>
+</span><a name="line-4"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.VolumeAccess.html#lookupVolumeAccess"><span class="hs-identifier hs-var">lookupVolumeAccess</span></a><span>
+</span><a name="line-5"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.VolumeAccess.html#lookupVolumeAccessParty"><span class="hs-identifier hs-var">lookupVolumeAccessParty</span></a><span>
+</span><a name="line-6"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.VolumeAccess.html#lookupPartyVolumeAccess"><span class="hs-identifier hs-var">lookupPartyVolumeAccess</span></a><span>
+</span><a name="line-7"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.VolumeAccess.html#lookupPartyVolumes"><span class="hs-identifier hs-var">lookupPartyVolumes</span></a><span>
+</span><a name="line-8"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.VolumeAccess.html#changeVolumeAccess"><span class="hs-identifier hs-var">changeVolumeAccess</span></a><span>
+</span><a name="line-9"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.VolumeAccess.html#volumeAccessProvidesADMIN"><span class="hs-identifier hs-var">volumeAccessProvidesADMIN</span></a><span>
+</span><a name="line-10"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.VolumeAccess.html#volumeAccessJSON"><span class="hs-identifier hs-var">volumeAccessJSON</span></a><span>
+</span><a name="line-11"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.VolumeAccess.html#volumeAccessPartyJSON"><span class="hs-identifier hs-var">volumeAccessPartyJSON</span></a><span>
+</span><a name="line-12"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.VolumeAccess.html#volumeAccessVolumeJSON"><span class="hs-identifier hs-var">volumeAccessVolumeJSON</span></a><span>
+</span><a name="line-13"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.VolumeAccess.html#lookupVolumeShareActivity"><span class="hs-identifier hs-var">lookupVolumeShareActivity</span></a><span>
+</span><a name="line-14"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-15"></a><span>
+</span><a name="line-16"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Int</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Int64</span><span class="hs-special">)</span><span>
+</span><a name="line-17"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Monoid</span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="hs-operator hs-var">&lt;&gt;</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-18"></a><span>
+</span><a name="line-19"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Ops.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Ops</span></a><span>
+</span><a name="line-20"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Has.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Has</span></a><span> </span><span class="hs-special">(</span><a href="Databrary.Has.html#peek"><span class="hs-identifier hs-var">peek</span></a><span class="hs-special">,</span><span> </span><a href="Databrary.Has.html#view"><span class="hs-identifier hs-var">view</span></a><span class="hs-special">)</span><span>
+</span><a name="line-21"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><a href="Databrary.JSON.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">JSON</span></a><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">JSON</span><span>
+</span><a name="line-22"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Service.DB.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Service</span><span class="hs-operator">.</span><span class="hs-identifier">DB</span></a><span>
+</span><a name="line-23"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.SQL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span></a><span>
+</span><a name="line-24"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.SQL.Select.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span><span class="hs-operator">.</span><span class="hs-identifier">Select</span></a><span> </span><span class="hs-special">(</span><a href="Databrary.Model.SQL.Select.html#selectDistinctQuery"><span class="hs-identifier hs-var">selectDistinctQuery</span></a><span class="hs-special">)</span><span>
+</span><a name="line-25"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Time.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Time</span></a><span>
+</span><a name="line-26"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Id.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Id</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-27"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Permission.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Permission</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-28"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Identity.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Identity</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-29"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Audit.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Audit</span></a><span>
+</span><a name="line-30"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Party.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Party</span></a><span>
+</span><a name="line-31"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Volume.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Volume</span></a><span>
+</span><a name="line-32"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Volume.SQL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Volume</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span></a><span>
+</span><a name="line-33"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.VolumeAccess.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">VolumeAccess</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-34"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.VolumeAccess.SQL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">VolumeAccess</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span></a><span>
+</span><a name="line-35"></a><span>
+</span><a name="line-36"></a><span class="hs-identifier">lookupVolumeAccess</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><a href="Databrary.Service.DB.html#MonadDB"><span class="hs-identifier hs-type">MonadDB</span></a><span> </span><a href="#local-1628610897"><span class="hs-identifier hs-type">c</span></a><span> </span><a href="#local-1628610896"><span class="hs-identifier hs-type">m</span></a><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Identity.Types.html#MonadHasIdentity"><span class="hs-identifier hs-type">MonadHasIdentity</span></a><span> </span><a href="#local-1628610897"><span class="hs-identifier hs-type">c</span></a><span> </span><a href="#local-1628610896"><span class="hs-identifier hs-type">m</span></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><a href="Databrary.Model.Volume.Types.html#Volume"><span class="hs-identifier hs-type">Volume</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Databrary.Model.Permission.Types.html#Permission"><span class="hs-identifier hs-type">Permission</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-1628610896"><span class="hs-identifier hs-type">m</span></a><span> </span><span class="hs-special">[</span><a href="Databrary.Model.VolumeAccess.Types.html#VolumeAccess"><span class="hs-identifier hs-type">VolumeAccess</span></a><span class="hs-special">]</span><span>
+</span><a name="line-37"></a><a name="lookupVolumeAccess"><a href="Databrary.Model.VolumeAccess.html#lookupVolumeAccess"><span class="hs-identifier">lookupVolumeAccess</span></a></a><span> </span><a name="local-1628610898"><a href="#local-1628610898"><span class="hs-identifier">vol</span></a></a><span> </span><a name="local-1628610899"><a href="#local-1628610899"><span class="hs-identifier">perm</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><a name="line-38"></a><span>  </span><a name="local-1628610900"><a href="#local-1628610900"><span class="hs-identifier">ident</span></a></a><span> </span><span class="hs-glyph">&lt;-</span><span> </span><a href="Databrary.Has.html#peek"><span class="hs-identifier hs-var">peek</span></a><span>
+</span><a name="line-39"></a><span>  </span><a href="Databrary.Service.DB.html#dbQuery"><span class="hs-identifier hs-var">dbQuery</span></a><span> </span><span class="hs-operator">$</span><span class="hs-special">(</span><span class="hs-identifier hs-var">selectQuery</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">selectVolumeAccess</span><span> </span><span class="hs-char">'vol 'ident) &quot;$WHERE volume_access.individual &gt;= ${perm} ORDER BY individual DESC, sort&quot;)
+
+lookupVolumeAccessParty :: (MonadDB c m, MonadHasIdentity c m) =&gt; Volume -&gt; Id Party -&gt; m (Maybe VolumeAccess)
+lookupVolumeAccessParty vol p = do
+  ident &lt;- peek
+  dbQuery1 $(selectQuery (selectVolumeAccessParty 'vol 'ident) &quot;WHERE party.id = ${p}&quot;)
+
+lookupPartyVolumeAccess :: (MonadDB c m, MonadHasIdentity c m) =&gt; Party -&gt; Permission -&gt; m [VolumeAccess]
+lookupPartyVolumeAccess p perm = do
+  ident &lt;- peek
+  dbQuery $(selectQuery (selectPartyVolumeAccess 'p 'ident) &quot;$WHERE volume_access.individual &gt;= ${perm} ORDER BY individual DESC, children DESC&quot;)
+
+lookupPartyVolumes :: (MonadDB c m, MonadHasIdentity c m) =&gt; Party -&gt; Permission -&gt; m [Volume]
+lookupPartyVolumes p perm = do
+  ident &lt;- peek
+  dbQuery $(selectDistinctQuery (Just [&quot;volume.id&quot;]) (selectVolume 'ident) &quot;$JOIN volume_access_view ON volume.id = volume_access_view.volume WHERE party = ${partyId $ partyRow p} AND access &gt;= ${perm}&quot;)
+
+changeVolumeAccess :: (MonadAudit c m) =&gt; VolumeAccess -&gt; m Bool
+changeVolumeAccess va = do
+  ident &lt;- getAuditIdentity
+  if volumeAccessIndividual va == PermissionNONE
+    then dbExecute1 $(deleteVolumeAccess 'ident 'va)
+    else (0 &lt;) . fst &lt;$&gt; updateOrInsert
+      $(updateVolumeAccess 'ident 'va)
+      $(insertVolumeAccess 'ident 'va)
+
+volumeAccessProvidesADMIN :: VolumeAccess -&gt; Bool
+volumeAccessProvidesADMIN VolumeAccess{ volumeAccessChildren   = PermissionADMIN, volumeAccessParty = p } = accessMember     p == PermissionADMIN
+volumeAccessProvidesADMIN VolumeAccess{ volumeAccessIndividual = PermissionADMIN, volumeAccessParty = p } = accessPermission p == PermissionADMIN
+volumeAccessProvidesADMIN _ = False
+
+volumeAccessJSON :: JSON.ToObject o =&gt; VolumeAccess -&gt; o
+volumeAccessJSON VolumeAccess{..} =
+     &quot;individual&quot; JSON..=? (volumeAccessIndividual &lt;? volumeAccessIndividual &gt;= PermissionNONE)
+  &lt;&gt; &quot;children&quot;   JSON..=? (volumeAccessChildren   &lt;? volumeAccessChildren   &gt;= PermissionNONE)
+  &lt;&gt; &quot;sort&quot; JSON..=? volumeAccessSort
+
+volumeAccessPartyJSON :: JSON.ToNestedObject o u =&gt; VolumeAccess -&gt; o
+volumeAccessPartyJSON va@VolumeAccess{..} = volumeAccessJSON va
+  &lt;&gt; &quot;party&quot; JSON..=: partyJSON volumeAccessParty
+
+volumeAccessVolumeJSON :: JSON.ToNestedObject o u =&gt; VolumeAccess -&gt; o
+volumeAccessVolumeJSON va@VolumeAccess{..} = volumeAccessJSON va
+  &lt;&gt; &quot;volume&quot; JSON..=: volumeJSON volumeAccessVolume
+
+lookupVolumeShareActivity :: (MonadDB c m, MonadHasIdentity c m) =&gt; Int -&gt; m [(Timestamp, Volume)]
+lookupVolumeShareActivity limit = do
+  ident :: Identity &lt;- peek
+  dbQuery $(selectQuery (selectVolumeActivity 'ident) &quot;$WHERE audit.audit_action = 'add' AND audit.party = 0 AND audit.children &gt; 'NONE' ORDER BY audit.audit_time DESC LIMIT ${fromIntegral limit :: Int64}&quot;)
+</span></pre></body></html>

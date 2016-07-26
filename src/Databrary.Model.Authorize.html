@@ -1,0 +1,106 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell, RecordWildCards, OverloadedStrings, ScopedTypeVariables, DataKinds #-}</span><span>
+</span><a name="line-2"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Authorize</span><span>
+</span><a name="line-3"></a><span>  </span><span class="hs-special">(</span><span> </span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Authorize</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span>
+</span><a name="line-4"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Authorize.html#selfAuthorize"><span class="hs-identifier hs-var">selfAuthorize</span></a><span>
+</span><a name="line-5"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Authorize.html#lookupAuthorizedChildren"><span class="hs-identifier hs-var">lookupAuthorizedChildren</span></a><span>
+</span><a name="line-6"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Authorize.html#lookupAuthorizedParents"><span class="hs-identifier hs-var">lookupAuthorizedParents</span></a><span>
+</span><a name="line-7"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Authorize.html#lookupAuthorize"><span class="hs-identifier hs-var">lookupAuthorize</span></a><span>
+</span><a name="line-8"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Authorize.html#lookupAuthorizeParent"><span class="hs-identifier hs-var">lookupAuthorizeParent</span></a><span>
+</span><a name="line-9"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Authorize.html#lookupAuthorization"><span class="hs-identifier hs-var">lookupAuthorization</span></a><span>
+</span><a name="line-10"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Authorize.html#changeAuthorize"><span class="hs-identifier hs-var">changeAuthorize</span></a><span>
+</span><a name="line-11"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Authorize.html#removeAuthorize"><span class="hs-identifier hs-var">removeAuthorize</span></a><span>
+</span><a name="line-12"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Authorize.html#authorizeExpired"><span class="hs-identifier hs-var">authorizeExpired</span></a><span>
+</span><a name="line-13"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Authorize.html#authorizeActive"><span class="hs-identifier hs-var">authorizeActive</span></a><span>
+</span><a name="line-14"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Authorize.html#authorizeJSON"><span class="hs-identifier hs-var">authorizeJSON</span></a><span>
+</span><a name="line-15"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Authorize.html#lookupAuthorizeActivity"><span class="hs-identifier hs-var">lookupAuthorizeActivity</span></a><span>
+</span><a name="line-16"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-17"></a><span>
+</span><a name="line-18"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control</span><span class="hs-operator">.</span><span class="hs-identifier">Monad</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">when</span><span class="hs-special">)</span><span>
+</span><a name="line-19"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Int</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Int64</span><span class="hs-special">)</span><span>
+</span><a name="line-20"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Maybe</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">fromMaybe</span><span class="hs-special">)</span><span>
+</span><a name="line-21"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Monoid</span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="hs-operator hs-var">&lt;&gt;</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-22"></a><span>
+</span><a name="line-23"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Has.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Has</span></a><span> </span><span class="hs-special">(</span><a href="Databrary.Has.html#peek"><span class="hs-identifier hs-var">peek</span></a><span class="hs-special">,</span><span> </span><a href="Databrary.Has.html#view"><span class="hs-identifier hs-var">view</span></a><span class="hs-special">)</span><span>
+</span><a name="line-24"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><a href="Databrary.JSON.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">JSON</span></a><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">JSON</span><span>
+</span><a name="line-25"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Service.DB.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Service</span><span class="hs-operator">.</span><span class="hs-identifier">DB</span></a><span>
+</span><a name="line-26"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.SQL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span></a><span>
+</span><a name="line-27"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Time.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Time</span></a><span>
+</span><a name="line-28"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Id.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Id</span></a><span>
+</span><a name="line-29"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Audit.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Audit</span></a><span>
+</span><a name="line-30"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Permission.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Permission</span></a><span>
+</span><a name="line-31"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Party.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Party</span></a><span>
+</span><a name="line-32"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Identity.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Identity</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-33"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Authorize.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Authorize</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-34"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Authorize.SQL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Authorize</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span></a><span>
+</span><a name="line-35"></a><span>
+</span><a name="line-36"></a><span class="hs-identifier">selfAuthorize</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.Model.Party.Types.html#Party"><span class="hs-identifier hs-type">Party</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Databrary.Model.Authorize.Types.html#Authorize"><span class="hs-identifier hs-type">Authorize</span></a><span>
+</span><a name="line-37"></a><a name="selfAuthorize"><a href="Databrary.Model.Authorize.html#selfAuthorize"><span class="hs-identifier">selfAuthorize</span></a></a><span> </span><a name="local-1628579464"><a href="#local-1628579464"><span class="hs-identifier">p</span></a></a><span> </span><span class="hs-glyph">=</span><span>
+</span><a name="line-38"></a><span>  </span><a href="Databrary.Model.Authorize.Types.html#Authorize"><span class="hs-identifier hs-var">Authorize</span></a><span> </span><span class="hs-special">(</span><a href="Databrary.Model.Authorize.Types.html#Authorization"><span class="hs-identifier hs-var">Authorization</span></a><span> </span><span class="hs-special">(</span><span class="hs-keyword">if</span><span> </span><a href="Databrary.Model.Party.Types.html#partyId"><span class="hs-identifier hs-var">partyId</span></a><span> </span><span class="hs-special">(</span><a href="Databrary.Model.Party.Types.html#partyRow"><span class="hs-identifier hs-var">partyRow</span></a><span> </span><a href="#local-1628579464"><span class="hs-identifier hs-var">p</span></a><span class="hs-special">)</span><span> </span><span class="hs-operator hs-var">==</span><span> </span><a href="Databrary.Model.Party.Types.html#partyId"><span class="hs-identifier hs-var">partyId</span></a><span> </span><span class="hs-special">(</span><a href="Databrary.Model.Party.Types.html#partyRow"><span class="hs-identifier hs-var">partyRow</span></a><span> </span><a href="Databrary.Model.Party.html#nobodyParty"><span class="hs-identifier hs-var">nobodyParty</span></a><span class="hs-special">)</span><span> </span><span class="hs-keyword">then</span><span> </span><span class="hs-identifier hs-var">minBound</span><span> </span><span class="hs-keyword">else</span><span> </span><span class="hs-identifier hs-var">maxBound</span><span class="hs-special">)</span><span> </span><a href="#local-1628579464"><span class="hs-identifier hs-var">p</span></a><span> </span><a href="#local-1628579464"><span class="hs-identifier hs-var">p</span></a><span class="hs-special">)</span><span> </span><span class="hs-identifier hs-var">Nothing</span><span>
+</span><a name="line-39"></a><span>
+</span><a name="line-40"></a><span class="hs-identifier">lookupAuthorizedParents</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><a href="Databrary.Service.DB.html#MonadDB"><span class="hs-identifier hs-type">MonadDB</span></a><span> </span><a href="#local-1628579463"><span class="hs-identifier hs-type">c</span></a><span> </span><a href="#local-1628579462"><span class="hs-identifier hs-type">m</span></a><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Identity.Types.html#MonadHasIdentity"><span class="hs-identifier hs-type">MonadHasIdentity</span></a><span> </span><a href="#local-1628579463"><span class="hs-identifier hs-type">c</span></a><span> </span><a href="#local-1628579462"><span class="hs-identifier hs-type">m</span></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><a href="Databrary.Model.Party.Types.html#Party"><span class="hs-identifier hs-type">Party</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">Maybe</span><span> </span><a href="Databrary.Model.Permission.Types.html#Permission"><span class="hs-identifier hs-type">Permission</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-1628579462"><span class="hs-identifier hs-type">m</span></a><span> </span><span class="hs-special">[</span><a href="Databrary.Model.Authorize.Types.html#Authorize"><span class="hs-identifier hs-type">Authorize</span></a><span class="hs-special">]</span><span>
+</span><a name="line-41"></a><a name="lookupAuthorizedParents"><a href="Databrary.Model.Authorize.html#lookupAuthorizedParents"><span class="hs-identifier">lookupAuthorizedParents</span></a></a><span> </span><a name="local-1628579465"><a href="#local-1628579465"><span class="hs-identifier">child</span></a></a><span> </span><a name="local-1628579466"><a href="#local-1628579466"><span class="hs-identifier">perm</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><a name="line-42"></a><span>  </span><a name="local-1628579467"><a href="#local-1628579467"><span class="hs-identifier">ident</span></a></a><span> </span><span class="hs-glyph">&lt;-</span><span> </span><a href="Databrary.Has.html#peek"><span class="hs-identifier hs-var">peek</span></a><span>
+</span><a name="line-43"></a><span>  </span><a href="Databrary.Service.DB.html#dbQuery"><span class="hs-identifier hs-var">dbQuery</span></a><span> </span><span class="hs-operator hs-var">$</span><span> </span><span class="hs-identifier hs-var">maybe</span><span>
+</span><a name="line-44"></a><span>    </span><span class="hs-operator">$</span><span class="hs-special">(</span><span class="hs-identifier hs-var">selectQuery</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">selectAuthorizeParent</span><span> </span><span class="hs-char">'child 'ident) &quot;$&quot;)
+    (\p -&gt; $(selectQuery (selectAuthorizeParent 'child 'ident) &quot;$WHERE (expires IS NULL OR expires &gt; CURRENT_TIMESTAMP) AND site &gt;= ${p} AND member &gt;= ${p} AND (site &lt;&gt; 'NONE' OR member &lt;&gt; 'NONE')&quot;))
+    perm
+
+lookupAuthorizedChildren :: (MonadDB c m, MonadHasIdentity c m) =&gt; Party -&gt; Maybe Permission -&gt; m [Authorize]
+lookupAuthorizedChildren parent perm = do
+  ident &lt;- peek
+  dbQuery $ maybe
+    $(selectQuery (selectAuthorizeChild 'parent 'ident) &quot;$&quot;)
+    (\p -&gt; $(selectQuery (selectAuthorizeChild 'parent 'ident) &quot;$WHERE (expires IS NULL OR expires &gt; CURRENT_TIMESTAMP) AND site &gt;= ${p} AND member &gt;= ${p} AND (site &lt;&gt; 'NONE' OR member &lt;&gt; 'NONE')&quot;))
+    perm
+
+lookupAuthorize :: (MonadDB c m, MonadHasIdentity c m) =&gt; Party -&gt; Party -&gt; m (Maybe Authorize)
+lookupAuthorize child parent =
+  dbQuery1 $ (\a -&gt; a child parent) &lt;$&gt; $(selectQuery authorizeRow &quot;$WHERE authorize.child = ${partyId $ partyRow child} AND authorize.parent = ${partyId $ partyRow parent} AND (expires IS NULL OR expires &gt; CURRENT_TIMESTAMP)&quot;)
+
+lookupAuthorizeParent :: (MonadDB c m, MonadHasIdentity c m) =&gt; Party -&gt; Id Party -&gt; m (Maybe Authorize)
+lookupAuthorizeParent child parent = do
+  ident &lt;- peek
+  dbQuery1 $ $(selectQuery (selectAuthorizeParent 'child 'ident) &quot;$WHERE authorize.parent = ${parent} AND (expires IS NULL OR expires &gt; CURRENT_TIMESTAMP)&quot;)
+
+lookupAuthorization :: (MonadDB c m, MonadHasIdentity c m) =&gt; Party -&gt; Party -&gt; m Authorization
+lookupAuthorization child parent
+  | partyId (partyRow child) == partyId (partyRow parent) = return $ authorization $ selfAuthorize child
+  | otherwise = do
+    auth &lt;- peek
+    if partyId (view auth) == partyId (partyRow child) &amp;&amp; partyId (partyRow parent) == partyId (partyRow rootParty)
+      then return $ Authorization (siteAccess auth) child parent
+      else fromMaybe (Authorization mempty child parent) &lt;$&gt;
+        dbQuery1 ((\a -&gt; a child parent) &lt;$&gt; $(selectQuery authorizationRow &quot;!$WHERE authorize_view.child = ${partyId $ partyRow child} AND authorize_view.parent = ${partyId $ partyRow parent}&quot;))
+
+changeAuthorize :: (MonadAudit c m) =&gt; Authorize -&gt; m ()
+changeAuthorize auth = do
+  ident &lt;- getAuditIdentity
+  (r, _) &lt;- updateOrInsert
+    $(updateAuthorize 'ident 'auth)
+    $(insertAuthorize 'ident 'auth)
+  when (r /= 1) $ fail $ &quot;changeAuthorize: &quot; ++ show r ++ &quot; rows&quot;
+
+removeAuthorize :: (MonadAudit c m) =&gt; Authorize -&gt; m Bool
+removeAuthorize auth = do
+  ident &lt;- getAuditIdentity
+  dbExecute1 $(deleteAuthorize 'ident 'auth)
+
+authorizationActive :: Authorization -&gt; Bool
+authorizationActive Authorization{ authorizeAccess = a } = a /= mempty
+
+authorizeExpired :: Authorize -&gt; Timestamp -&gt; Bool
+authorizeExpired Authorize{ authorizeExpires = Just e } = (e &lt;)
+authorizeExpired _ = const False
+
+authorizeActive :: Authorize -&gt; Timestamp -&gt; Bool
+authorizeActive a t = authorizationActive (authorization a) &amp;&amp; not (authorizeExpired a t)
+
+authorizeJSON :: JSON.ToObject o =&gt; Authorize -&gt; o
+authorizeJSON Authorize{..} = accessJSON (authorizeAccess authorization)
+  &lt;&gt; &quot;expires&quot; JSON..=? authorizeExpires
+
+lookupAuthorizeActivity :: (MonadDB c m, MonadHasIdentity c m) =&gt; Int -&gt; m [(Timestamp, Party)]
+lookupAuthorizeActivity limit = do
+  ident :: Identity &lt;- peek
+  dbQuery $(selectQuery (selectAuthorizeActivity 'ident) &quot;$JOIN authorize_view ON audit.parent = authorize_view.child AND authorize_view.parent = 0 WHERE audit.audit_action IN ('add','change') AND audit.site &gt;= 'EDIT' AND authorize_view.site &gt; 'EDIT' ORDER BY audit.audit_time DESC LIMIT ${fromIntegral limit :: Int64}&quot;)
+</span></pre></body></html>

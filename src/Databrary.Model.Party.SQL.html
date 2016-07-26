@@ -1,0 +1,186 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell, OverloadedStrings #-}</span><span>
+</span><a name="line-2"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Party</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span><span>
+</span><a name="line-3"></a><span>  </span><span class="hs-special">(</span><span> </span><a href="Databrary.Model.Party.SQL.html#selectPartyRow"><span class="hs-identifier hs-var">selectPartyRow</span></a><span>
+</span><a name="line-4"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.SQL.html#selectParty"><span class="hs-identifier hs-var">selectParty</span></a><span>
+</span><a name="line-5"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.SQL.html#selectPartyAuthorization"><span class="hs-identifier hs-var">selectPartyAuthorization</span></a><span>
+</span><a name="line-6"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.SQL.html#selectAuthParty"><span class="hs-identifier hs-var">selectAuthParty</span></a><span>
+</span><a name="line-7"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.SQL.html#selectAccount"><span class="hs-identifier hs-var">selectAccount</span></a><span>
+</span><a name="line-8"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.SQL.html#selectUserAccount"><span class="hs-identifier hs-var">selectUserAccount</span></a><span>
+</span><a name="line-9"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.SQL.html#selectSiteAuth"><span class="hs-identifier hs-var">selectSiteAuth</span></a><span>
+</span><a name="line-10"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.SQL.html#updateParty"><span class="hs-identifier hs-var">updateParty</span></a><span>
+</span><a name="line-11"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.SQL.html#updateAccount"><span class="hs-identifier hs-var">updateAccount</span></a><span>
+</span><a name="line-12"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.SQL.html#insertParty"><span class="hs-identifier hs-var">insertParty</span></a><span>
+</span><a name="line-13"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.SQL.html#insertAccount"><span class="hs-identifier hs-var">insertAccount</span></a><span>
+</span><a name="line-14"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.SQL.html#deleteParty"><span class="hs-identifier hs-var">deleteParty</span></a><span>
+</span><a name="line-15"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Party.SQL.html#deleteAccount"><span class="hs-identifier hs-var">deleteAccount</span></a><span>
+</span><a name="line-16"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-17"></a><span>
+</span><a name="line-18"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">ByteString</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">BS</span><span>
+</span><a name="line-19"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Foldable</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">fold</span><span class="hs-special">)</span><span>
+</span><a name="line-20"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Monoid</span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="hs-operator hs-var">&lt;&gt;</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-21"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Language</span><span class="hs-operator">.</span><span class="hs-identifier">Haskell</span><span class="hs-operator">.</span><span class="hs-identifier">TH</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">TH</span><span>
+</span><a name="line-22"></a><span>
+</span><a name="line-23"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Has.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Has</span></a><span> </span><span class="hs-special">(</span><a href="Databrary.Has.html#Has"><span class="hs-identifier hs-type">Has</span></a><span class="hs-special">,</span><span> </span><a href="Databrary.Has.html#view"><span class="hs-identifier hs-var">view</span></a><span class="hs-special">)</span><span>
+</span><a name="line-24"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.SQL.Select.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span><span class="hs-operator">.</span><span class="hs-identifier">Select</span></a><span>
+</span><a name="line-25"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Audit.SQL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Audit</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span></a><span>
+</span><a name="line-26"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Permission.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Permission</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-27"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Permission.SQL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Permission</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span></a><span>
+</span><a name="line-28"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Id.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Id</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-29"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Identity.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Identity</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-30"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Party.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Party</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-31"></a><span>
+</span><a name="line-32"></a><span class="hs-identifier">selectPartyRow</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.Model.SQL.Select.html#Selector"><span class="hs-identifier hs-type">Selector</span></a><span> </span><span class="hs-comment">-- ^ @'PartyRow'@</span><span>
+</span><a name="line-33"></a><a name="selectPartyRow"><a href="Databrary.Model.Party.SQL.html#selectPartyRow"><span class="hs-identifier">selectPartyRow</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Databrary.Model.SQL.Select.html#selectColumns"><span class="hs-identifier hs-var">selectColumns</span></a><span> </span><span class="hs-char">'PartyRow &quot;party&quot; [&quot;id&quot;, &quot;name&quot;, &quot;prename&quot;, &quot;orcid&quot;, &quot;affiliation&quot;, &quot;url&quot;]
+
+accountRow :: Selector -- ^ @'Party' -&gt; 'Account'@
+accountRow = selectColumns 'Account &quot;account&quot; [&quot;email&quot;]
+
+makeParty :: PartyRow -&gt; Maybe (Party -&gt; Account) -&gt; Permission -&gt; Maybe Access -&gt; Party
+makeParty pr ac perm a = p where
+  p = Party pr (fmap ($ p) ac) perm a
+
+selectPermissionParty :: Selector -- ^ @'Permission' -&gt; Maybe 'Access' -&gt; 'Party'@
+selectPermissionParty = selectJoin 'makeParty
+  [ selectPartyRow
+  , maybeJoinUsing [&quot;id&quot;] accountRow
+  ]
+
+permissionParty :: Has (Id Party) a =&gt; (Permission -&gt; Maybe Access -&gt; a) -&gt; Maybe Access -&gt; Identity -&gt; a
+permissionParty pf a' ident = p where
+  p = pf
+    (maybe id (max . accessPermission') a $ max PermissionPUBLIC $ min PermissionREAD $ accessSite ident)
+    a
+  a | foldIdentity False (((view p :: Id Party) ==) . view) ident = Just maxBound
+    | identityAdmin ident = Just $ maybe id (&lt;&gt;) a' $ view ident
+    | otherwise = a'
+
+selectParty :: TH.Name -- ^ 'Identity'
+  -&gt; Selector -- ^ @'Party'@
+selectParty ident = selectMap ((`TH.AppE` TH.VarE ident) . (`TH.AppE` (TH.ConE 'Nothing)) . (TH.VarE 'permissionParty `TH.AppE`)) $
+  selectPermissionParty
+
+makePartyAuthorization :: Party -&gt; Maybe Access -&gt; (Party, Maybe Permission)
+makePartyAuthorization p a = (p, accessSite &lt;$&gt; a)
+
+selectPartyAuthorization :: TH.Name -- ^ 'Identity'
+  -&gt; Selector -- ^ @('Party', Maybe 'Permission')@
+selectPartyAuthorization ident = selectJoin 'makePartyAuthorization
+  [ selectParty ident
+  , maybeJoinOn &quot;party.id = authorize_view.child AND authorize_view.parent = 0&quot;
+    $ accessRow &quot;authorize_view&quot;
+  ]
+
+selectAuthParty :: TH.Name -- ^ 'Identity`
+  -&gt; Selector -- ^ @'Party'@
+selectAuthParty ident = selectMap (`TH.AppE` TH.VarE ident) $ selectJoin 'permissionParty
+  [ selectPermissionParty
+  , maybeJoinOn (&quot;party.id = authorize_valid.parent AND authorize_valid.child = ${view &quot; ++ nameRef ident ++ &quot; :: Id Party}&quot;)
+    $ accessRow &quot;authorize_valid&quot; -- optimization, should be authorize_view if we used site
+  ]
+
+makeAccount :: PartyRow -&gt; (Party -&gt; Account) -&gt; Permission -&gt; Maybe Access -&gt; Account
+makeAccount pr ac perm ma = a where
+  a = ac $ Party pr (Just a) perm ma
+
+selectPermissionAccount :: Selector -- ^ @'Permission' -&gt; Maybe 'Access' -&gt; 'Account'@
+selectPermissionAccount = selectJoin 'makeAccount
+  [ selectPartyRow
+  , joinUsing [&quot;id&quot;] accountRow
+  ]
+
+selectAccount :: TH.Name -- ^ 'Identity'
+  -&gt; Selector -- ^ @'Account'@
+selectAccount ident = selectMap ((`TH.AppE` TH.VarE ident) . (`TH.AppE` (TH.ConE 'Nothing)) . (TH.VarE 'permissionParty `TH.AppE`)) $
+  selectPermissionAccount
+
+makeUserAccount :: (Permission -&gt; Maybe Access -&gt; Account) -&gt; Account
+makeUserAccount a = a maxBound (Just maxBound)
+
+selectUserAccount :: Selector -- @'Account'
+selectUserAccount = selectMap (TH.VarE 'makeUserAccount `TH.AppE`) selectPermissionAccount
+
+makeSiteAuth :: Account -&gt; Maybe BS.ByteString -&gt; Maybe Access -&gt; SiteAuth
+makeSiteAuth p w a = SiteAuth p w (fold a)
+
+selectSiteAuth :: Selector -- @'SiteAuth'@
+selectSiteAuth = selectJoin 'makeSiteAuth
+  [ selectUserAccount
+  , Selector (SelectColumn &quot;account&quot; &quot;password&quot;) &quot;&quot; &quot;&quot;
+  , maybeJoinOn &quot;account.id = authorize_view.child AND authorize_view.parent = 0&quot;
+    $ accessRow &quot;authorize_view&quot;
+  ]
+
+partyKeys :: String -- ^ @'Party'@
+  -&gt; [(String, String)]
+partyKeys p =
+  [ (&quot;id&quot;, &quot;${partyId $ partyRow &quot; ++ p ++ &quot;}&quot;) ]
+
+accountKeys :: String -- ^ @'Account'@
+  -&gt; [(String, String)]
+accountKeys a = partyKeys $ &quot;(accountParty &quot; ++ a ++ &quot;)&quot;
+
+partySets :: String -- ^ @'Party'@
+  -&gt; [(String, String)]
+partySets p =
+  [ (&quot;name&quot;,        &quot;${partySortName $ partyRow &quot;    ++ p ++ &quot;}&quot;)
+  , (&quot;prename&quot;,     &quot;${partyPreName $ partyRow &quot;     ++ p ++ &quot;}&quot;)
+  , (&quot;affiliation&quot;, &quot;${partyAffiliation $ partyRow &quot; ++ p ++ &quot;}&quot;)
+  , (&quot;url&quot;,         &quot;${partyURL $ partyRow &quot;         ++ p ++ &quot;}&quot;)
+  ]
+
+accountSets :: String -- ^ @'Account'@
+  -&gt; [(String, String)]
+accountSets a =
+  [ (&quot;email&quot;, &quot;${accountEmail &quot; ++ a ++ &quot;}&quot;)
+  ]
+
+updateParty :: TH.Name -- ^ @'AuditIdentity'
+  -&gt; TH.Name -- ^ @'Party'@
+  -&gt; TH.ExpQ -- ()
+updateParty ident p = auditUpdate ident &quot;party&quot;
+  (partySets ps)
+  (whereEq $ partyKeys ps)
+  Nothing
+  where ps = nameRef p
+
+updateAccount :: TH.Name -- ^ @'AuditIdentity'
+  -&gt; TH.Name -- ^ @'Account'@
+  -&gt; TH.ExpQ -- ()
+updateAccount ident a = auditUpdate ident &quot;account&quot;
+  (accountSets as ++ [(&quot;password&quot;, &quot;${accountPasswd &quot; ++ us ++ &quot;}&quot;)])
+  (whereEq $ accountKeys as)
+  Nothing
+  where
+  as = &quot;(siteAccount &quot; ++ us ++ &quot;)&quot;
+  us = nameRef a
+
+insertParty :: TH.Name -- ^ @'AuditIdentity'
+  -&gt; TH.Name -- ^ @'Party'@
+  -&gt; TH.ExpQ -- ^ @'PartyRow'@
+insertParty ident p = auditInsert ident &quot;party&quot;
+  (partySets ps)
+  (Just $ selectOutput selectPartyRow)
+  where ps = nameRef p
+
+insertAccount :: TH.Name -- ^ @'AuditIdentity'
+  -&gt; TH.Name -- ^ @'Account'@
+  -&gt; TH.ExpQ
+insertAccount ident a = auditInsert ident &quot;account&quot;
+  (accountKeys as ++ accountSets as)
+  Nothing
+  where as = nameRef a
+
+deleteParty :: TH.Name -- ^ @'AuditIdentity'
+  -&gt; TH.Name -- ^ @'Party'@
+  -&gt; TH.ExpQ -- ^ @()@
+deleteParty ident p = auditDelete ident &quot;party&quot;
+  (whereEq $ partyKeys (nameRef p))
+  Nothing
+
+deleteAccount :: TH.Name -- ^ @'AuditIdentity'
+  -&gt; TH.Name -- ^ @'Party'@
+  -&gt; TH.ExpQ -- ^ @()@
+deleteAccount ident p = auditDelete ident &quot;account&quot;
+  (whereEq $ partyKeys (nameRef p))
+  Nothing
+</span></pre></body></html>

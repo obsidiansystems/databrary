@@ -1,0 +1,145 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell, OverloadedStrings #-}</span><span>
+</span><a name="line-2"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">AssetSlot</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span><span>
+</span><a name="line-3"></a><span>  </span><span class="hs-special">(</span><span> </span><a href="Databrary.Model.AssetSlot.SQL.html#slotAssetRow"><span class="hs-identifier hs-var">slotAssetRow</span></a><span>
+</span><a name="line-4"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.AssetSlot.SQL.html#makeSlotAsset"><span class="hs-identifier hs-var">makeSlotAsset</span></a><span>
+</span><a name="line-5"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.AssetSlot.SQL.html#selectContainerSlotAsset"><span class="hs-identifier hs-var">selectContainerSlotAsset</span></a><span>
+</span><a name="line-6"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.AssetSlot.SQL.html#selectAssetSlotAsset"><span class="hs-identifier hs-var">selectAssetSlotAsset</span></a><span>
+</span><a name="line-7"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.AssetSlot.SQL.html#selectVolumeSlotAsset"><span class="hs-identifier hs-var">selectVolumeSlotAsset</span></a><span>
+</span><a name="line-8"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.AssetSlot.SQL.html#selectVolumeSlotIdAsset"><span class="hs-identifier hs-var">selectVolumeSlotIdAsset</span></a><span>
+</span><a name="line-9"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.AssetSlot.SQL.html#selectSlotAsset"><span class="hs-identifier hs-var">selectSlotAsset</span></a><span>
+</span><a name="line-10"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.AssetSlot.SQL.html#selectAssetSlot"><span class="hs-identifier hs-var">selectAssetSlot</span></a><span>
+</span><a name="line-11"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.AssetSlot.SQL.html#insertSlotAsset"><span class="hs-identifier hs-var">insertSlotAsset</span></a><span>
+</span><a name="line-12"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.AssetSlot.SQL.html#updateSlotAsset"><span class="hs-identifier hs-var">updateSlotAsset</span></a><span>
+</span><a name="line-13"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.AssetSlot.SQL.html#deleteSlotAsset"><span class="hs-identifier hs-var">deleteSlotAsset</span></a><span>
+</span><a name="line-14"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-15"></a><span>
+</span><a name="line-16"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data</span><span class="hs-operator">.</span><span class="hs-identifier">Maybe</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">fromMaybe</span><span class="hs-special">)</span><span>
+</span><a name="line-17"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Language</span><span class="hs-operator">.</span><span class="hs-identifier">Haskell</span><span class="hs-operator">.</span><span class="hs-identifier">TH</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">TH</span><span>
+</span><a name="line-18"></a><span>
+</span><a name="line-19"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Has.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Has</span></a><span> </span><span class="hs-special">(</span><a href="Databrary.Has.html#view"><span class="hs-identifier hs-var">view</span></a><span class="hs-special">)</span><span>
+</span><a name="line-20"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Segment.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Segment</span></a><span>
+</span><a name="line-21"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Volume.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Volume</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-22"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Asset.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Asset</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-23"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Asset.SQL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Asset</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span></a><span>
+</span><a name="line-24"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Container.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Container</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-25"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Container.SQL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Container</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span></a><span>
+</span><a name="line-26"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Slot.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Slot</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-27"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.SQL.Select.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span><span class="hs-operator">.</span><span class="hs-identifier">Select</span></a><span>
+</span><a name="line-28"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Audit.SQL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Audit</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span></a><span>
+</span><a name="line-29"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Volume.SQL.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Volume</span><span class="hs-operator">.</span><span class="hs-identifier">SQL</span></a><span>
+</span><a name="line-30"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.AssetSlot.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">AssetSlot</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-31"></a><span>
+</span><a name="line-32"></a><span class="hs-identifier">slotAssetRow</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.Model.SQL.Select.html#Selector"><span class="hs-identifier hs-type">Selector</span></a><span> </span><span class="hs-comment">-- ^ @'Segment'@</span><span>
+</span><a name="line-33"></a><a name="slotAssetRow"><a href="Databrary.Model.AssetSlot.SQL.html#slotAssetRow"><span class="hs-identifier">slotAssetRow</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Databrary.Model.SQL.Select.html#selectColumn"><span class="hs-identifier hs-var">selectColumn</span></a><span> </span><span class="hs-string">&quot;slot_asset&quot;</span><span> </span><span class="hs-string">&quot;segment&quot;</span><span>
+</span><a name="line-34"></a><span>
+</span><a name="line-35"></a><span class="hs-identifier">makeSlotAsset</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.Model.Asset.Types.html#Asset"><span class="hs-identifier hs-type">Asset</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Databrary.Model.Container.Types.html#Container"><span class="hs-identifier hs-type">Container</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Databrary.Model.Segment.html#Segment"><span class="hs-identifier hs-type">Segment</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Databrary.Model.AssetSlot.Types.html#AssetSlot"><span class="hs-identifier hs-type">AssetSlot</span></a><span>
+</span><a name="line-36"></a><a name="makeSlotAsset"><a href="Databrary.Model.AssetSlot.SQL.html#makeSlotAsset"><span class="hs-identifier">makeSlotAsset</span></a></a><span> </span><a name="local-1628569282"><a href="#local-1628569282"><span class="hs-identifier">a</span></a></a><span> </span><a name="local-1628569283"><a href="#local-1628569283"><span class="hs-identifier">c</span></a></a><span> </span><a name="local-1628569284"><a href="#local-1628569284"><span class="hs-identifier">s</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Databrary.Model.AssetSlot.Types.html#AssetSlot"><span class="hs-identifier hs-var">AssetSlot</span></a><span> </span><a href="#local-1628569282"><span class="hs-identifier hs-var">a</span></a><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">Just</span><span> </span><span class="hs-special">(</span><a href="Databrary.Model.Slot.Types.html#Slot"><span class="hs-identifier hs-var">Slot</span></a><span> </span><a href="#local-1628569283"><span class="hs-identifier hs-var">c</span></a><span> </span><a href="#local-1628569284"><span class="hs-identifier hs-var">s</span></a><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-37"></a><span>
+</span><a name="line-38"></a><span class="hs-identifier">_selectAssetContainerSlotAsset</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.Model.SQL.Select.html#Selector"><span class="hs-identifier hs-type">Selector</span></a><span> </span><span class="hs-comment">-- ^ @'Asset' -&gt; 'Container' -&gt; 'AssetSlot'@</span><span>
+</span><a name="line-39"></a><a name="_selectAssetContainerSlotAsset"><a href="Databrary.Model.AssetSlot.SQL.html#_selectAssetContainerSlotAsset"><span class="hs-identifier">_selectAssetContainerSlotAsset</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Databrary.Model.SQL.Select.html#selectMap"><span class="hs-identifier hs-var">selectMap</span></a><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">TH</span><span class="hs-operator hs-var">.</span><span class="hs-identifier hs-var">VarE</span><span> </span><span class="hs-char">'makeSlotAsset `TH.AppE`) slotAssetRow
+
+makeContainerSlotAsset :: Segment -&gt; AssetRow -&gt; Container -&gt; AssetSlot
+makeContainerSlotAsset s ar c = makeSlotAsset (Asset ar $ view c) c s
+
+selectContainerSlotAsset :: Selector -- ^ @'Container' -&gt; 'AssetSlot'@
+selectContainerSlotAsset = selectJoin 'makeContainerSlotAsset
+  [ slotAssetRow
+  , joinOn &quot;slot_asset.asset = asset.id&quot;
+    selectAssetRow -- XXX volumes match?
+  ]
+
+makeVolumeSlotIdAsset :: SlotId -&gt; AssetRow -&gt; Volume -&gt; (Asset, SlotId)
+makeVolumeSlotIdAsset s ar v = (Asset ar v, s)
+
+selectVolumeSlotIdAsset :: Selector -- ^ @'Volume' -&gt; ('Asset', 'SlotId')@
+selectVolumeSlotIdAsset = selectJoin 'makeVolumeSlotIdAsset
+  [ selectColumns 'SlotId &quot;slot_asset&quot; [&quot;container&quot;, &quot;segment&quot;]
+  , joinOn &quot;slot_asset.asset = asset.id&quot;
+    selectAssetRow -- XXX volumes match?
+  ]
+
+makeAssetSlotAsset :: Segment -&gt; (Volume -&gt; Container) -&gt; Asset -&gt; AssetSlot
+makeAssetSlotAsset s cf a = makeSlotAsset a (cf (view a)) s
+
+selectAssetSlotAsset :: Selector -- ^ @'Asset' -&gt; 'AssetSlot'@
+selectAssetSlotAsset = selectJoin 'makeAssetSlotAsset
+  [ slotAssetRow
+  , joinOn &quot;slot_asset.container = container.id&quot;
+    selectVolumeContainer -- XXX volumes match?
+  ]
+
+makeVolumeSlotAsset :: Segment -&gt; AssetRow -&gt; (Volume -&gt; Container) -&gt; Volume -&gt; AssetSlot
+makeVolumeSlotAsset s ar cf v = makeSlotAsset (Asset ar v) (cf v) s
+
+selectVolumeSlotAsset :: Selector -- ^ @'Volume' -&gt; 'AssetSlot'@
+selectVolumeSlotAsset = selectJoin 'makeVolumeSlotAsset
+  [ slotAssetRow
+  , joinOn &quot;slot_asset.asset = asset.id&quot;
+    selectAssetRow
+  , joinOn &quot;slot_asset.container = container.id AND asset.volume = container.volume&quot;
+    selectVolumeContainer
+  ]
+
+selectSlotAsset :: TH.Name -- ^ @'Identity'@
+  -&gt; Selector -- ^ @'AssetSlot'@
+selectSlotAsset ident = selectJoin '($)
+  [ selectVolumeSlotAsset
+  , joinOn &quot;asset.volume = volume.id&quot;
+    $ selectVolume ident
+  ]
+
+makeVolumeAssetSlot :: AssetRow -&gt; Maybe (Asset -&gt; AssetSlot) -&gt; Volume -&gt; AssetSlot
+makeVolumeAssetSlot ar sf = fromMaybe assetNoSlot sf . Asset ar
+
+selectVolumeAssetSlot :: Selector -- ^ @'Volume' -&gt; 'AssetSlot'@
+selectVolumeAssetSlot = selectJoin 'makeVolumeAssetSlot
+  [ selectAssetRow
+  , maybeJoinOn &quot;asset.id = slot_asset.asset AND asset.volume = container.volume&quot;
+    selectAssetSlotAsset
+  ]
+
+selectAssetSlot :: TH.Name -- ^ @'Identity'@
+  -&gt; Selector -- ^ @'AssetSlot'@
+selectAssetSlot ident = selectJoin '($)
+  [ selectVolumeAssetSlot
+  , joinOn &quot;asset.volume = volume.id&quot;
+    $ selectVolume ident
+  ]
+
+slotAssetKeys :: String -- ^ @'AssetSlot'@
+  -&gt; [(String, String)]
+slotAssetKeys as =
+  [ (&quot;asset&quot;, &quot;${assetId $ assetRow $ slotAsset &quot; ++ as ++ &quot;}&quot;) ]
+
+slotAssetSets :: String -- ^ @'AssetSlot'@
+  -&gt; [(String, String)]
+slotAssetSets as =
+  [ (&quot;container&quot;, &quot;${containerId . containerRow . slotContainer &lt;$&gt; assetSlot &quot; ++ as ++ &quot;}&quot;)
+  , (&quot;segment&quot;, &quot;${slotSegment &lt;$&gt; assetSlot &quot; ++ as ++ &quot;}&quot;)
+  ]
+
+insertSlotAsset :: TH.Name -- ^ @'AuditIdentity'@
+  -&gt; TH.Name -- ^ @'AssetSlot'@
+  -&gt; TH.ExpQ
+insertSlotAsset ident o = auditInsert ident &quot;slot_asset&quot;
+  (slotAssetKeys os ++ slotAssetSets os)
+  Nothing
+  where os = nameRef o
+
+updateSlotAsset :: TH.Name -- ^ @'AuditIdentity'@
+  -&gt; TH.Name -- ^ @'AssetSlot'@
+  -&gt; TH.ExpQ
+updateSlotAsset ident o = auditUpdate ident &quot;slot_asset&quot;
+  (slotAssetSets os)
+  (whereEq $ slotAssetKeys os)
+  Nothing
+  where os = nameRef o
+
+deleteSlotAsset :: TH.Name -- ^ @'AuditIdentity'@
+  -&gt; TH.Name -- ^ @'AssetSlot'@
+  -&gt; TH.ExpQ
+deleteSlotAsset ident o = auditDelete ident &quot;slot_asset&quot;
+  (whereEq $ slotAssetKeys os)
+  Nothing
+  where os = nameRef o
+</span></pre></body></html>

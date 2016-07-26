@@ -1,0 +1,26 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+</span><a name="line-2"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Authorize</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span><span>
+</span><a name="line-3"></a><span>  </span><span class="hs-special">(</span><span> </span><a href="Databrary.Model.Authorize.Types.html#Authorization"><span class="hs-identifier hs-type">Authorization</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-4"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Databrary.Model.Authorize.Types.html#Authorize"><span class="hs-identifier hs-type">Authorize</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-5"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-6"></a><span>
+</span><a name="line-7"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Has.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Has</span></a><span> </span><span class="hs-special">(</span><a href="Databrary.Has.html#makeHasRec"><span class="hs-identifier hs-var">makeHasRec</span></a><span class="hs-special">)</span><span>
+</span><a name="line-8"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Time.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Time</span></a><span>
+</span><a name="line-9"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Permission.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Permission</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-10"></a><span class="hs-keyword">import</span><span> </span><a href="Databrary.Model.Party.Types.html"><span class="hs-identifier">Databrary</span><span class="hs-operator">.</span><span class="hs-identifier">Model</span><span class="hs-operator">.</span><span class="hs-identifier">Party</span><span class="hs-operator">.</span><span class="hs-identifier">Types</span></a><span>
+</span><a name="line-11"></a><span>
+</span><a name="line-12"></a><span class="hs-keyword">data</span><span> </span><a name="Authorization"><a href="Databrary.Model.Authorize.Types.html#Authorization"><span class="hs-identifier">Authorization</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="Authorization"><a href="Databrary.Model.Authorize.Types.html#Authorization"><span class="hs-identifier">Authorization</span></a></a><span>
+</span><a name="line-13"></a><span>  </span><span class="hs-special">{</span><span> </span><a name="authorizeAccess"><a href="Databrary.Model.Authorize.Types.html#authorizeAccess"><span class="hs-identifier">authorizeAccess</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-glyph">!</span><a href="Databrary.Model.Permission.Types.html#Access"><span class="hs-identifier hs-type">Access</span></a><span>
+</span><a name="line-14"></a><span>  </span><span class="hs-special">,</span><span> </span><a name="authorizeChild"><a href="Databrary.Model.Authorize.Types.html#authorizeChild"><span class="hs-identifier">authorizeChild</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.Model.Party.Types.html#Party"><span class="hs-identifier hs-type">Party</span></a><span>
+</span><a name="line-15"></a><span>  </span><span class="hs-special">,</span><span> </span><a name="authorizeParent"><a href="Databrary.Model.Authorize.Types.html#authorizeParent"><span class="hs-identifier">authorizeParent</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><a href="Databrary.Model.Party.Types.html#Party"><span class="hs-identifier hs-type">Party</span></a><span>
+</span><a name="line-16"></a><span>  </span><span class="hs-special">}</span><span>
+</span><a name="line-17"></a><span>
+</span><a name="line-18"></a><a href="Databrary.Model.Authorize.Types.html#authorizeAccess"><span class="hs-identifier hs-var">makeHasRec</span></a><span> </span><span class="hs-char">''Authorization ['authorizeAccess]
+
+data Authorize = Authorize
+  { authorization :: Authorization
+  , authorizeExpires :: Maybe Timestamp
+  }
+
+makeHasRec ''Authorize ['authorization]
+</span></pre></body></html>
