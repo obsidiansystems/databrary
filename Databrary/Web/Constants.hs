@@ -48,7 +48,7 @@ constantsJSON =
 #endif
   -- TODO: url?
   where
-  enumValues :: forall a . DBEnum a => a -> [String]
+  enumValues :: forall a . (DBEnum a, Show a) => a -> [String]
   enumValues _ = map show $ enumFromTo minBound (maxBound :: a)
 
 constantsJSONB :: BSB.Builder

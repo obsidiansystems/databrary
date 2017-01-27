@@ -10,7 +10,7 @@ import qualified Data.Aeson as JSON
 import Data.Hashable (Hashable(..))
 import Data.Int (Int32)
 import Database.PostgreSQL.Typed.Types (PGParameter(..), PGColumn(..))
-import Database.PostgreSQL.Typed.Dynamic (PGRep)
+import Database.PostgreSQL.Typed.Dynamic (PGRep(..))
 import qualified Language.Haskell.TH as TH
 import qualified Language.Haskell.TH.Syntax as TH
 import Text.Read (Read(..))
@@ -35,7 +35,8 @@ instance PGParameter t (IdType a) => PGParameter t (Id a) where
 instance PGColumn t (IdType a) => PGColumn t (Id a) where
   pgDecode t = Id . pgDecode t
   pgDecodeValue e t = Id . pgDecodeValue e t
-instance (PGParameter t (IdType a), PGColumn t (IdType a), PGRep t (IdType a)) => PGRep t (Id a)
+instance (PGParameter (PGRepType (IdType a)) (IdType a), PGColumn (PGRepType (IdType a)) (IdType a), PGRep (IdType a)) => PGRep (Id a) where
+  type PGRepType (Id a) = PGRepType (IdType a)
 
 instance Show (IdType a) => Show (Id a) where
   showsPrec p (Id a) = showsPrec p a

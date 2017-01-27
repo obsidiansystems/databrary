@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, TemplateHaskell, QuasiQuotes, DeriveDataTypeable, DataKinds #-}
+{-# LANGUAGE OverloadedStrings, TemplateHaskell, QuasiQuotes, DeriveDataTypeable, DataKinds, TypeFamilies #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Databrary.Model.Permission.Types
   ( Permission(..)

@@ -20,7 +20,7 @@ import Data.Function (on)
 import Data.Maybe (catMaybes)
 import Data.Monoid ((<>))
 import qualified Database.PostgreSQL.Typed.Range as Range
-import Database.PostgreSQL.Typed.Types (PGTypeName(..))
+import Database.PostgreSQL.Typed.Types (PGTypeID(..))
 
 import Databrary.Ops
 import qualified Databrary.JSON as JSON
@@ -90,7 +90,7 @@ removeRecordAllSlot r = do
 
 recordSlotAge :: RecordSlot -> Maybe Age
 recordSlotAge rs@RecordSlot{..} =
-  clip <$> liftM2 age (decodeMeasure (PGTypeProxy :: PGTypeName "date") =<< getMeasure birthdateMetric (recordMeasures slotRecord)) (containerDate $ containerRow $ slotContainer recordSlot)
+  clip <$> liftM2 age (decodeMeasure (PGTypeProxy :: PGTypeID "date") =<< getMeasure birthdateMetric (recordMeasures slotRecord)) (containerDate $ containerRow $ slotContainer recordSlot)
   where
   clip a
     | dataPermission rs == PermissionNONE = a `min` ageLimit

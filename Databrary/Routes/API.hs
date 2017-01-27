@@ -12,6 +12,7 @@ import Data.Monoid ((<>))
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import Data.Version (showVersion)
+import Database.PostgreSQL.Typed.Types (PGName, pgNameString)
 import qualified Network.HTTP.Types as HTTP
 import qualified Web.Route.Invertible as R
 
@@ -169,8 +170,8 @@ ref r = HM.singleton "$ref" (String ("#/" <> r))
 def = ref . ("definitions/" <>)
 
 enum :: forall a . (DBEnum a, ToJSON a) => a -> Pair
-enum _ = "enum" .= (map (toJSON . fst) v ++ map (toJSON . snd) v) where
-  v :: [(a, String)]
+enum _ = "enum" .= (map (toJSON . fst) v ++ map (toJSON . pgNameString . snd) v) where
+  v :: [(a, PGName)]
   v = pgEnumValues
 
 readOnly :: HasFields o => o -> o

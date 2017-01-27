@@ -13,8 +13,10 @@ import Control.Monad (liftM2)
 import qualified Data.Aeson.Types as JSON
 import qualified Data.ByteString.Char8 as BSC
 import qualified Data.CaseInsensitive as CI (mk)
+import Data.String (fromString)
 import qualified Data.Text as T
-import Database.PostgreSQL.Typed.Enum (PGEnum, pgEnumValues, makePGEnum)
+import Database.PostgreSQL.Typed.Types (pgNameString)
+import Database.PostgreSQL.Typed.Enum (PGEnum, pgEnumName, pgEnumValues, dataPGEnum)
 import Text.Read (readMaybe)
 
 import qualified Language.Haskell.TH as TH
@@ -30,8 +32,8 @@ class (PGEnum a, Kinded a) => DBEnum a
 readDBEnum :: forall a . DBEnum a => String -> Maybe a
 readDBEnum s
   | Just i <- readMaybe s, i >= fe minBound, i <= fe maxBound = Just (toEnum i)
-  | [(x, _)] <- filter ((==) s . snd) pgEnumValues = Just x
-  | [(x, _)] <- filter ((==) (CI.mk s) . CI.mk . snd) pgEnumValues = Just x
+  | [(x, _)] <- filter ((==) s . pgNameString . snd) pgEnumValues = Just x
+  | [(x, _)] <- filter ((==) (CI.mk s) . CI.mk . pgNameString . snd) pgEnumValues = Just x
   | otherwise = Nothing
   where
   fe :: a -> Int
@@ -58,8 +60,10 @@ makeDBEnum :: String -> String -> TH.DecsQ
 makeDBEnum name typs = do
   [] <- useTDB
   liftM2 (++)
-    (makePGEnum name typs (\s -> typs ++ toCamel s))
-    [d| instance Kinded $(return typt) where
+    (dataPGEnum typs (fromString name) (\s -> typs ++ toCamel s))
+    [d| instance Show $(return typt) where
+          show = pgNameString . pgEnumName
+        instance Kinded $(return typt) where
           kindOf _ = $(TH.litE $ TH.stringL name)
         instance DBEnum $(return typt)
         instance JSON.ToJSON $(return typt) where

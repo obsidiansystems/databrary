@@ -25,6 +25,7 @@ import qualified Data.ByteString.Char8 as BSC
 import Data.Foldable (fold)
 import qualified Data.Text as T
 import Data.Time.Format (formatTime, defaultTimeLocale)
+import Database.PostgreSQL.Typed.Types (pgNameString)
 import qualified Text.Blaze.Internal as M
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as HA
@@ -126,7 +127,7 @@ inputSelect val choices ref dat = H.select
 
 inputEnum :: forall a . DBEnum a => Bool -> Maybe a -> Field
 inputEnum req val =
-  inputSelect (bshow <$> val) $ (if req then id else (("", "") :)) $ map (\(x, v) -> (bshow (x :: a), v)) pgEnumValues
+  inputSelect (bshow <$> val) $ (if req then id else (("", "") :)) $ map (\(x, v) -> (bshow (x :: a), pgNameString v)) pgEnumValues
   where bshow = BSC.pack . show . fromEnum
 
 inputDate :: Maybe Date -> Field

@@ -1,4 +1,4 @@
-{-# LANGUAGE DataKinds, TemplateHaskell, DeriveDataTypeable, OverloadedStrings #-}
+{-# LANGUAGE DataKinds, TemplateHaskell, DeriveDataTypeable, OverloadedStrings, TypeFamilies #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Databrary.Model.Audit.Types
   ( AuditAction(..)

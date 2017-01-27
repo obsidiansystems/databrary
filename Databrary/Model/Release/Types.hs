@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, OverloadedStrings, DeriveDataTypeable, DataKinds #-}
+{-# LANGUAGE TemplateHaskell, OverloadedStrings, DeriveDataTypeable, DataKinds, TypeFamilies #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Databrary.Model.Release.Types
   ( Release(..)

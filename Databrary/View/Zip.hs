@@ -11,6 +11,7 @@ import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
 import Data.String (fromString)
 import Data.Time.Format (formatTime, defaultTimeLocale)
+import Database.PostgreSQL.Typed.Types (pgNameString)
 import System.FilePath ((<.>))
 import System.Posix.FilePath ((</>))
 import qualified Text.Blaze.Html5 as H
@@ -124,12 +125,13 @@ htmlVolumeDescription inzip Volume{ volumeRow = VolumeRow{..}, ..} cite fund glo
     H.h2 "Contents"
     H.h3 "Legend of release levels"
     H.dl $ forM_ pgEnumValues $ \(_ :: Release, n) -> do
-      H.dt $ H.string n
+      let s = pgNameString n
+      H.dt $ H.string s
       H.dd $ do
-        H.img H.! HA.src (link webFile (Just $ staticPath ["icons", "release", BSC.pack $ map toLower n <.> "svg"]))
-        msg (fromString $ "release." ++ n ++ ".title")
+        H.img H.! HA.src (link webFile (Just $ staticPath ["icons", "release", BSC.pack $ map toLower s <.> "svg"]))
+        msg (fromString $ "release." ++ s ++ ".title")
         void ": "
-        msg (fromString $ "release." ++ n ++ ".description")
+        msg (fromString $ "release." ++ s ++ ".description")
     H.h3 "Materials"
     atable atl
     H.h3 "Sessions"

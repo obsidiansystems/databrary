@@ -9,6 +9,7 @@ module Databrary.Solr.Service
 import Control.Monad (when, forM_)
 import Control.Monad.IO.Class (MonadIO)
 import Data.Maybe (isNothing, fromMaybe)
+import Database.PostgreSQL.Typed.Types (pgNameString)
 import qualified Network.HTTP.Client as HC
 import System.Directory (makeAbsolute, createDirectoryIfMissing, getDirectoryContents, copyFile)
 import System.Environment (getEnvironment)
@@ -43,7 +44,7 @@ confSolr src dst = do
   where
   pe h n t = do
     hPutStrLn h $ "<enum name=\"" ++ n ++ "\">"
-    forM_ pgEnumValues $ \(x, s) -> hPutStrLn h $ "  <value>" ++ const s (x `asTypeOf` t) ++ "</value>"
+    forM_ pgEnumValues $ \(x, s) -> hPutStrLn h $ "  <value>" ++ const (pgNameString s) (x `asTypeOf` t) ++ "</value>"
     hPutStrLn h "</enum>"
 
 initSolr :: Bool -> C.Config -> IO Solr

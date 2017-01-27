@@ -14,7 +14,7 @@ import Data.Maybe (fromMaybe)
 import Data.Ord (comparing)
 import qualified Data.Text as T
 import Database.PostgreSQL.Typed.Protocol (PGError(..), pgErrorCode)
-import Database.PostgreSQL.Typed.Types (PGTypeName, pgTypeName, PGColumn(pgDecode))
+import Database.PostgreSQL.Typed.Types (PGTypeID, pgTypeName, pgNameString, PGColumn(pgDecode))
 
 import Databrary.Ops
 import Databrary.Has (view)
@@ -75,9 +75,9 @@ getRecordMeasures :: Record -> Measures
 getRecordMeasures r = maybe [] filt $ readRelease (view r) where
   filt rr = filter ((rr <=) . fromMaybe (view r) . view) $ recordMeasures r
 
-decodeMeasure :: PGColumn t d => PGTypeName t -> Measure -> Maybe d
+decodeMeasure :: PGColumn t d => PGTypeID t -> Measure -> Maybe d
 decodeMeasure t Measure{ measureMetric = Metric{ metricType = m }, measureDatum = d } =
-  pgTypeName t == show m ?> pgDecode t d
+  pgNameString (pgTypeName t) == show m ?> pgDecode t d
 
 measureJSONPair :: JSON.KeyValue kv => Measure -> kv
 measureJSONPair m = T.pack (show (metricId (measureMetric m))) JSON..= measureDatum m

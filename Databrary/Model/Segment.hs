@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, DataKinds, DeriveDataTypeable #-}
+{-# LANGUAGE OverloadedStrings, DataKinds, DeriveDataTypeable, TypeFamilies #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Databrary.Model.Segment
   ( Segment(..)
@@ -22,8 +22,8 @@ import Control.Monad (guard, liftM2)
 import Data.Maybe (fromMaybe, isNothing)
 import qualified Data.Text as T
 import Data.Typeable (Typeable)
-import Database.PostgreSQL.Typed.Types (PGType, PGParameter(..), PGColumn(..))
-import Database.PostgreSQL.Typed.Array (PGArrayType)
+import Database.PostgreSQL.Typed.Types (PGType(..), PGParameter(..), PGColumn(..))
+import Database.PostgreSQL.Typed.Array (PGArrayType(..), PGArray)
 import qualified Database.PostgreSQL.Typed.Range as Range
 import qualified Text.ParserCombinators.ReadP as RP
 import qualified Text.ParserCombinators.ReadPrec as RP (lift, readPrec_to_P, minPrec)
@@ -40,10 +40,14 @@ upperBound = Range.bound . Range.upperBound
 
 newtype Segment = Segment { segmentRange :: Range.Range Offset } deriving (Eq, Ord, Typeable)
 
-instance PGType "segment"
-instance Range.PGRangeType "segment" "interval"
-instance PGType "segment[]"
-instance PGArrayType "segment[]" "segment"
+instance PGType "segment" where
+  type PGVal "segment" = Segment
+instance Range.PGRangeType "segment" where
+  type PGSubType "segment" = "interval"
+instance PGType "segment[]" where
+  type PGVal "segment[]" = PGArray Segment
+instance PGArrayType "segment[]" where
+  type PGElemType "segment[]" = "segment"
 
 instance PGParameter "segment" Segment where
   pgEncode t (Segment r) = pgEncode t r
