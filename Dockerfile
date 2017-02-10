@@ -6,7 +6,8 @@ MAINTAINER "Dylan Simon" <dylan@databrary.org>
 ENV container docker
 RUN yum -y update
 RUN yum -y install epel-release
-RUN yum -y install which file gmp-devel git yasm nginx npm cracklib-devel
+RUN yum -y install which file gmp-devel git yasm nginx npm cracklib-devel \ 
+				   gcc make gcc-c++ autoconf automake zlib-devel 
 RUN echo 'fs.protected_hardlinks = 0' > /etc/sysctl.d/hardlinks.conf
 
 WORKDIR /usr/local/src
@@ -24,21 +25,11 @@ RUN curl -L http://sourceforge.net/projects/opencore-amr/files/fdk-aac/fdk-aac-$
   cd fdk-aac-${fdkaac} && \
   ./configure && make install
 
-ARG ghc=7.10.3b
-RUN curl -L https://www.haskell.org/ghc/dist/${ghc%[a-z]}/ghc-${ghc}-x86_64-deb7-linux.tar.xz | tar -xJf- && \
-  cd ghc-${ghc} && \
-  ./configure && make install
-
-ARG cabal=1.22.9.0
-RUN curl -L http://hackage.haskell.org/package/cabal-install-${cabal}/cabal-install-${cabal}.tar.gz | tar -xzf- && \
-  cd cabal-install-${cabal} && \
-  EXTRA_CONFIGURE_OPTS= ./bootstrap.sh --global
-
 RUN yum -y localinstall http://yum.postgresql.org/9.5/redhat/rhel-7-x86_64/pgdg-centos95-9.5-2.noarch.rpm
-RUN yum -y install postgresql95
+RUN yum -y install postgresql95 postgresql-devel
 
 ARG solr=5.5.0
-RUN curl http://mirror.cc.columbia.edu/pub/software/apache/lucene/solr/${solr}/solr-${solr}.tgz | tar -xzf- && \
+RUN curl http://archive.apache.org/dist/lucene/solr/${solr}/solr-${solr}.tgz | tar -xzf- && \
   ln -s ../src/solr-${solr}/bin/solr /usr/local/bin
 
 ARG ffmpeg=2.8.6
@@ -51,17 +42,24 @@ RUN cd ffmpeg && \
 
 RUN yum -y update && yum clean all
 
+RUN curl -sSL https://get.haskellstack.org/ | sh
+RUN echo 'max' |passwd root --stdin 
+
 RUN useradd -m databrary
+WORKDIR /home/databrary/
 USER databrary
-WORKDIR /home/databrary
-RUN cabal update
-RUN cabal install happy
+#RUN cabal update
+#RUN cabal install happy
 RUN git clone git://github.com/databrary/databrary src
-
 WORKDIR src
-ARG commit=origin/stage
+ARG commit=origin/build_system
 RUN git remote update && git checkout $commit
-COPY databrary.conf ./
-RUN git describe ; ./dev -f -p -i
+USER root
+RUN make -C pgranges install
+USER databrary
 
-#CMD ["/bin/bash"]
+#RUN stack setup && stack build
+#COPY example.conf databrary.conf
+##RUN git describe ; ./dev -f -p -i
+#RUN git describe
+##CMD ["/bin/bash"]
