@@ -18,12 +18,6 @@ data-files:
   transctl.sh,
   transcode,
   volume.json,
-  --web/all.min.css,
-  --web/all.min.css.gz,
-  --web/all.min.js,
-  --web/all.min.js.gz,
-  --web/constants.json,
-  --web/constants.json.gz,
   web/icons/*.ico,
   web/icons/*.png,
   web/icons/*.svg,
@@ -40,10 +34,6 @@ data-files:
   web/images/logo/*.svg,
   web/images/logo/*.svg.gz,
   web/images/social/16px/*.png
-  --solr/solr.xml,
-  --solr/log4j.properties,
-  --solr/conf/*.xml,
-  --solr/conf/*.txt
 
 Source-Repository head
   Type:	git
