@@ -18,12 +18,12 @@ data-files:
   transctl.sh,
   transcode,
   volume.json,
-  web/all.min.css,
-  web/all.min.css.gz,
-  web/all.min.js,
-  web/all.min.js.gz,
-  web/constants.json,
-  web/constants.json.gz,
+  --web/all.min.css,
+  --web/all.min.css.gz,
+  --web/all.min.js,
+  --web/all.min.js.gz,
+  --web/constants.json,
+  --web/constants.json.gz,
   web/icons/*.ico,
   web/icons/*.png,
   web/icons/*.svg,
@@ -40,10 +40,10 @@ data-files:
   web/images/logo/*.svg,
   web/images/logo/*.svg.gz,
   web/images/social/16px/*.png,
-  solr/solr.xml,
-  solr/log4j.properties,
-  solr/conf/*.xml,
-  solr/conf/*.txt
+  --solr/solr.xml,
+  --solr/log4j.properties,
+  --solr/conf/*.xml,
+  --solr/conf/*.txt
 
 Source-Repository head
   Type:	git
@@ -127,7 +127,7 @@ Executable databrary
     cookie,
     resource-pool,
     scientific,
-    postgresql-typed >= 0.4.2.2,
+    postgresql-typed >= 0.4.2.2 && <= 0.4.5,
     memory >= 0.8,
     cryptonite,
     resourcet,
@@ -163,6 +163,6 @@ Executable databrary
   if flag(sandbox)
     cpp-options: -DSANDBOX
 
- -- pkgconfig-depends: libavformat, libswscale, libavcodec, libavutil
- -- extra-libraries: crack
+  pkgconfig-depends: libavformat, libswscale, libavcodec, libavutil
+  extra-libraries: crack
   build-tools: happy
