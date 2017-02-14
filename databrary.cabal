@@ -21,18 +21,13 @@ data-files:
   web/icons/*.ico,
   web/icons/*.png,
   web/icons/*.svg,
-  web/icons/*.svg.gz,
   web/icons/release/*.svg,
-  web/icons/release/*.svg.gz,
   web/images/*.png,
   web/images/elements/*.svg,
-  web/images/elements/*.svg.gz,
   web/images/filetype/16px/*.svg,
-  web/images/filetype/16px/*.svg.gz,
   web/images/grants/*.png,
   web/images/logo/*.png,
   web/images/logo/*.svg,
-  web/images/logo/*.svg.gz,
   web/images/social/16px/*.png
 
 Source-Repository head
