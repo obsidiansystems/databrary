@@ -70,11 +70,11 @@ updateDBSchema dir unattendedUpdate = do
         $ pgDecodeRep . head <$> rawPGSimpleQuery "SELECT max(id) FROM play_evolutions WHERE state = 'applied'"
       case pr of
         Left _ -> do
-          unless unattendedUpdate confirm "No schema found. Initialize?"
+          unless unattendedUpdate $ confirm "No schema found. Initialize?"
           sqlFile base
         Right n
           | n == playEvolution ->
-            unless unattendedUpdate confirm "Migrate from play to schema?"
+            unless unattendedUpdate $ confirm "Migrate from play to schema?"
             -- dbExecute_ "DROP TABLE play_evolutions"
           | otherwise ->
             schemaError ("Play evolutions found but not up to date (expecting " ++ show playEvolution ++ " got " ++ show n ++ ")")
@@ -93,7 +93,7 @@ updateDBSchema dir unattendedUpdate = do
   transact "0" = False
   transact _ = True
   apply n = do
-    unless unattendedUpdate confirm $ "Apply schema " ++ show n ++ "?"
+    unless unattendedUpdate $ confirm $ "Apply schema " ++ show n ++ "?"
     if transact n then dbTransaction (run n) else run n
   run n = do
     dbExecute_ $ BSL.fromChunks ["INSERT INTO schema (name) VALUES (", pgLiteralRep n, ")"]
