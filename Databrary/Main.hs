@@ -78,6 +78,7 @@ main = do
   withService True conf $ \rc -> do
 #ifndef DEVEL
     schema <- getDataFileName "schema"
-    withDB (serviceDB rc) $ runReaderT $ updateDBSchema schema
+    let unattendedUpdate = True
+    withDB (serviceDB rc) $ runReaderT $ updateDBSchema schema unattendedUpdate
 #endif
     runWarp conf rc (runActionRoute routes rc)

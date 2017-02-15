@@ -50,7 +50,7 @@ main = defaultMainWithHooks simpleUserHooks
     nodeModuleGenerate verb desc lbi
     let args = buildArgs flag
         build c = buildHook simpleUserHooks desc lbi hooks flag{ buildArgs = c }
-    when (null args) $ do
+    when (null args || "exe:schemabrary" `elem` args) $ do
       build ["schemabrary"]
       run verb desc lbi "schemabrary" []
     build args
