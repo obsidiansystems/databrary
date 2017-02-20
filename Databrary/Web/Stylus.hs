@@ -13,7 +13,7 @@ import Databrary.Web
 import Databrary.Web.Types
 import Databrary.Web.Files
 import Databrary.Web.Generate
-binDir = "/home/maksim/dev_projects/databrary/node_modules/.bin"
+binDir = "/home/maksim/dev_projects/databrary/node_modules/.bin" -- TODO: remove
 
 generateStylusCSS :: WebGenerator
 generateStylusCSS fo@(f, _) = do

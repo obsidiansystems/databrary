@@ -17,7 +17,7 @@ import Databrary.Web.Types
 import Databrary.Web.Files
 import Databrary.Web.Generate
 import Databrary.Web.Libs
-binDir = "/home/maksim/dev_projects/databrary/node_modules/.bin"
+binDir = "/home/maksim/dev_projects/databrary/node_modules/.bin" -- TODO: remove
 
 appWebJS :: IO [WebFilePath]
 appWebJS = liftM2 union

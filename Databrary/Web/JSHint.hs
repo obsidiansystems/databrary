@@ -16,7 +16,7 @@ import Databrary.Files
 import Databrary.Web
 import Databrary.Web.Types
 import Databrary.Web.Generate
-binDir = "/home/maksim/dev_projects/databrary/node_modules/.bin"
+binDir = "/home/maksim/dev_projects/databrary/node_modules/.bin" -- TODO: remove
 checkJSHint :: WebGenerator
 checkJSHint fo@(f, _)
   | takeExtensions (webFileRel f) == ".js" = do
