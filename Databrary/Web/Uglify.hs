@@ -10,13 +10,14 @@ import Data.List (isPrefixOf, union)
 import qualified System.FilePath as FP
 import System.Process (callProcess)
 
-import Paths_databrary.Node
+--import Paths_databrary.Node
 import Databrary.Files
 import Databrary.Web
 import Databrary.Web.Types
 import Databrary.Web.Files
 import Databrary.Web.Generate
 import Databrary.Web.Libs
+binDir = "/home/maksim/dev_projects/databrary/node_modules/.bin"
 
 appWebJS :: IO [WebFilePath]
 appWebJS = liftM2 union

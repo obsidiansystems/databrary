@@ -11,12 +11,12 @@ import System.Posix.FilePath (splitFileName, addExtension)
 import System.Posix.IO.ByteString (openFd, OpenMode(WriteOnly), defaultFileFlags, closeFd)
 import System.Process (callProcess)
 
-import Paths_databrary.Node
+--import Paths_databrary.Node
 import Databrary.Files
 import Databrary.Web
 import Databrary.Web.Types
 import Databrary.Web.Generate
-
+binDir = "/home/maksim/dev_projects/databrary/node_modules/.bin"
 checkJSHint :: WebGenerator
 checkJSHint fo@(f, _)
   | takeExtensions (webFileRel f) == ".js" = do

@@ -7,12 +7,13 @@ import Control.Monad.IO.Class (liftIO)
 import System.Process (callProcess)
 import System.FilePath (takeExtensions)
 
-import Paths_databrary.Node
+--import Paths_databrary.Node
 import Databrary.Files
 import Databrary.Web
 import Databrary.Web.Types
 import Databrary.Web.Files
 import Databrary.Web.Generate
+binDir = "/home/maksim/dev_projects/databrary/node_modules/.bin"
 
 generateStylusCSS :: WebGenerator
 generateStylusCSS fo@(f, _) = do

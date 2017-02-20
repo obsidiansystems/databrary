@@ -7,11 +7,12 @@ import Control.Monad (mzero)
 import System.FilePath (takeDirectory)
 import System.Process (callProcess)
 
-import Paths_databrary.Node
+--import Paths_databrary.Node
 import Databrary.Files
 import Databrary.Web
 import Databrary.Web.Types
 import Databrary.Web.Generate
+binDir = "/home/maksim/dev_projects/databrary/node_modules/.bin"
 
 generateCoffeeJS :: WebGenerator
 generateCoffeeJS fo@(f, _)
