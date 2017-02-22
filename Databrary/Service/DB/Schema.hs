@@ -59,6 +59,7 @@ checkDNE = guard . ("42P01" ==) . pgErrorCode
 
 updateDBSchema :: FilePath -> Bool -> DBM ()
 updateDBSchema dir unattendedUpdate = do
+  --schemalist
   sl <- maybe (schemaError $ "Base schema " ++ show base ++ " not found") return
     =<< schemaList <$> liftIO (getDirectoryContents dir)
 

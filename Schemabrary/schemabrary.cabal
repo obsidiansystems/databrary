@@ -1,0 +1,73 @@
+Name:                schemabrary
+Version:             1
+Synopsis:            Schemabrary
+Description:         Schema creation script for Databrary
+License:             GPL-3
+License-file:        COPYING
+Author:              Dylan Simon
+Maintainer:          dylan@dylex.net
+Stability:           Provisional
+Category:            Web
+Tested-with:         GHC == 7.10.3
+Build-type:          Custom
+Cabal-version:       >=1.22
+
+Source-Repository head
+  Type:	git
+  Location: https://github.com/databrary/databrary
+
+Flag devel
+  description: Enable development mode
+  default: False
+  manual: True
+
+Flag sandbox
+  description: Enable sandbox/demo mode
+  default: False
+  manual: True
+
+Executable schemabrary
+  hs-source-dirs: ., ../
+  main-is: Databrary/Setup/DB.hs
+  other-modules:
+    Databrary.Has,
+    Databrary.Ops,
+    Databrary.Service.DB,
+    Databrary.Service.DB.Schema,
+    Databrary.Store.Config
+  default-language: Haskell2010
+  build-depends:
+    base == 4.8.*,
+    bytestring >= 0.10,
+    transformers == 0.4.*,
+    transformers-base,
+    mtl >= 2.2.1,
+    monad-control >= 1,
+    lifted-base,
+    template-haskell,
+    filepath,
+    directory,
+    text,
+    unordered-containers,
+    parsec >= 3,
+    resource-pool,
+    network,
+    postgresql-typed >= 0.4.2.2 && <= 0.4.5,
+    vector,
+    aeson
+
+  default-language: Haskell2010
+  default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
+
+  ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields -i ../Databrary
+
+  if flag(devel)
+    cpp-options: -DDEVEL
+  else
+    ghc-options: -with-rtsopts -N
+  if flag(sandbox)
+    cpp-options: -DSANDBOX
+
+  pkgconfig-depends: libavformat, libswscale, libavcodec, libavutil
+  extra-libraries: crack
+  build-tools: happy
