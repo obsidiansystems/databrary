@@ -1,0 +1,10 @@
+version: '2'
+services:
+  databrary:
+    build: ./databrary/
+    image: databrary
+  postgres:
+    build: ./postgres/
+    image: databrary_postgres
+  solr:
+    image: solr

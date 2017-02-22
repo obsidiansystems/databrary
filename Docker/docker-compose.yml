@@ -1,0 +1,17 @@
+version: '2'
+services:
+  databrary:
+    build: ./databrary/
+    ports:
+    - "8642:8642"
+    links:
+    - "postgres:databrary_postgres"
+    - "solr:databrary_solr"
+  postgres:
+    build: ./postgres/
+    ports:
+    - "5432:5432"
+  solr:
+    image: solr
+    ports:
+    - "8983:8983"

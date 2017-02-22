@@ -1,0 +1,25 @@
+FROM ubuntu:16.04
+MAINTAINER "Maksim Levental" <maksim@databrary.org>
+
+RUN sed -i "/^# deb.*multiverse/ s/^# //" /etc/apt/sources.list
+RUN echo 'deb http://us.archive.ubuntu.com/ubuntu/ xenial multiverse' >> /etc/apt/sources.list
+RUN echo 'deb http://us.archive.ubuntu.com/ubuntu/ xenial-updates multiverse' >> /etc/apt/sources.list
+RUN apt-get update
+RUN apt-get install -y libgmp-dev git yasm npm libcrack2-dev gcc g++ autoconf automake zlib1g-dev \
+		   x264 ffmpeg fdkaac libavformat-dev libswscale-dev libavcodec-dev libavutil-dev curl \
+		   pkg-config
+
+RUN ln -s /usr/bin/nodejs /usr/bin/node
+
+RUN curl -sSL https://get.haskellstack.org/ | sh
+
+RUN useradd -m databrary
+USER databrary
+WORKDIR /home/databrary
+
+RUN git clone git://github.com/databrary/databrary src
+WORKDIR src
+ARG commit=origin/build_system
+RUN git remote update && git checkout $commit
+RUN stack setup 
+RUN stack build --only-dependencies

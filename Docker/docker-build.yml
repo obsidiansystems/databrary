@@ -1,0 +1,25 @@
+version: '2'
+services:
+  databrary: 
+    image: databrary
+    depends_on:
+      - postgres
+      - solr
+    ports: 
+      - "8642:8642"
+    links:
+      - "postgres:databrary_postgres"
+      - "solr:databrary_solr"
+    command: bash -c "git pull origin build_system; curl https://gist.githubusercontent.com/makslevental/e755d0cb34f613980f0cd9f7629c1ae4/raw/9a6f9dbb860cfa08dc60c892c6d89cba681788cb/databrary.conf > databrary.conf; stack build"
+  postgres:
+    image: databrary_postgres
+    ports:
+      - "5432:5432"
+  solr:
+    image: solr
+    ports:
+      - "8983:8983"
+networks:
+    default:
+      external:
+        name: databrary
