@@ -6,19 +6,20 @@ module Databrary.Web.Coffee
 import Control.Monad (mzero)
 import System.FilePath (takeDirectory)
 import System.Process (callProcess)
+import Control.Monad.IO.Class (liftIO)
 
---import Paths_databrary.Node
 import Databrary.Files
 import Databrary.Web
 import Databrary.Web.Types
 import Databrary.Web.Generate
-binDir = "/home/maksim/dev_projects/databrary/node_modules/.bin" --TODO: remove
+import qualified Databrary.Store.Config as Conf
 
 generateCoffeeJS :: WebGenerator
 generateCoffeeJS fo@(f, _)
   | (b, e) <- splitWebExtensions f, e `elem` [".js", ".js.map"] = do
     let src = b <.> ".coffee"
-    webRegenerate
-      (callProcess (binDir </> "coffee") ["-b", "-c", "-m", "-o", takeDirectory (webFileAbs f), webFileAbs src])
-      [] [src] fo
+    nodeModulesPath <- liftIO $ Conf.get "node.modules.path" <$> Conf.getConfig
+    let coffeeBinPath = nodeModulesPath </> ".bin" </> "coffee"
+    let coffeeArgs = ["-b", "-c", "-m", "-o", takeDirectory (webFileAbs f), webFileAbs src ]
+    webRegenerate (callProcess coffeeBinPath coffeeArgs) [] [src] fo
   | otherwise = mzero

@@ -3,9 +3,11 @@ module Main (main) where
 
 import Control.Exception (evaluate)
 import Control.Monad (void)
+
 #ifndef DEVEL
 import Control.Monad.Reader (runReaderT)
 #endif
+
 import qualified Data.Aeson.Encode as J (encodeToBuilder)
 import Data.ByteString.Builder (hPutBuilder)
 import Data.Either (partitionEithers)
@@ -20,6 +22,7 @@ import Databrary.Service.Types (serviceDB)
 import Databrary.Service.DB (withDB)
 import Databrary.Service.DB.Schema (updateDBSchema)
 #endif
+
 import qualified Databrary.Store.Config as Conf
 import Databrary.Service.Init (withService)
 import Databrary.Context
@@ -49,15 +52,14 @@ flagConfig :: Flag -> Either FilePath Flag
 flagConfig (FlagConfig f) = Left f
 flagConfig f = Right f
 
+
 main :: IO ()
 main = do
   prog <- getProgName
   args <- getArgs
   let (flags, args', err) = Opt.getOpt Opt.Permute opts args
-      (configs, flags') = partitionEithers $ map flagConfig flags
-  conf <- mconcat <$> mapM Conf.load (case configs of
-    [] -> ["databrary.conf"]
-    l -> l)
+      (configPaths, flags') = partitionEithers $ map flagConfig flags
+  conf <- Conf.initConfig configPaths
   case (flags', args', err) of
     ([FlagWeb], [], []) -> do
       void generateWebFiles

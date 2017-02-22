@@ -11,12 +11,12 @@ import System.Posix.FilePath (splitFileName, addExtension)
 import System.Posix.IO.ByteString (openFd, OpenMode(WriteOnly), defaultFileFlags, closeFd)
 import System.Process (callProcess)
 
---import Paths_databrary.Node
 import Databrary.Files
 import Databrary.Web
 import Databrary.Web.Types
 import Databrary.Web.Generate
-binDir = "/home/maksim/dev_projects/databrary/node_modules/.bin" -- TODO: remove
+import qualified Databrary.Store.Config as Conf
+
 checkJSHint :: WebGenerator
 checkJSHint fo@(f, _)
   | takeExtensions (webFileRel f) == ".js" = do
@@ -24,8 +24,11 @@ checkJSHint fo@(f, _)
     when r $ liftIO $ do
       ht <- fmap snd <$> fileInfo h
       ft <- modificationTimestamp <$> getFileStatus f
+      nodeModulesPath <- liftIO $ Conf.get "node.modules.path" <$> Conf.getConfig
+      let jshintBinPath = nodeModulesPath </> ".bin" </> "jshint"
+
       when (all (ft >) ht) $ do
-        callProcess (binDir </> "jshint") [webFileAbs f]
+        callProcess jshintBinPath [webFileAbs f]
         maybe
           (openFd h WriteOnly (Just 0o666) defaultFileFlags >>= closeFd)
           (\_ -> setFileTimestamps h ft ft)

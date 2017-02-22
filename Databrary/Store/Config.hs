@@ -9,6 +9,8 @@ module Databrary.Store.Config
   , configMap
   , configPath
   , load
+  , initConfig
+  , getConfig
   , Configurable(..)
   , (!)
   ) where
@@ -34,8 +36,102 @@ import qualified Data.Vector as V
 import qualified Text.Parsec as P
 import qualified Text.Parsec.ByteString.Lazy as P
 import qualified Text.Parsec.Token as PT
+import System.IO.Unsafe
+import Data.IORef
 
 import Databrary.Ops
+
+topConfig :: ConfigMap -> Config
+topConfig = Config (Path [])
+
+unionValue :: Path -> Value -> Value -> Value
+unionValue _ Empty v = v
+unionValue _ v Empty = v
+unionValue p (Sub m1) (Sub m2) = Sub $ unionConfig p m1 m2
+unionValue p v1 v2
+  | v1 == v2 = v1
+  | otherwise = throw $ ConflictError{ errorPath = p, errorValue1 = v1, errorValue2 = v2 }
+
+unionConfig :: Path -> ConfigMap -> ConfigMap -> ConfigMap
+unionConfig p = HM.foldrWithKey $ \k -> HM.insertWith (flip $ unionValue (pathSnoc p k)) k
+
+lookup :: Path -> ConfigMap -> Value
+lookup (Path []) m = Sub m
+lookup (Path [k]) m | Just v <- HM.lookup k m = v
+lookup (Path (k:l)) m | Just (Sub km) <- HM.lookup k m = lookup (Path l) km
+lookup _ _ = Empty
+
+load :: FilePath -> IO Config
+load f = either (throw . ParseError) (return . topConfig) =<< P.parseFromFile parser f
+
+-- global variable. principally bad design. be careful
+databraryConfig :: IORef (Maybe Config)
+{-# NOINLINE databraryConfig #-}
+databraryConfig = unsafeDupablePerformIO $ newIORef Nothing
+
+getConfig :: IO Config
+getConfig = do
+  potentialConf <- readIORef databraryConfig
+  return $ fromMaybe (error "how did you get here? config was never loaded") potentialConf
+
+initConfig :: [FilePath] -> IO Config
+initConfig configArgs = do
+  parsedConf <- mconcat <$> mapM load (case configArgs of
+                             [] -> ["databrary.conf"] -- looks in root dir of app (will probably fail)
+                             l -> l)
+  writeIORef databraryConfig (Just parsedConf)
+  getConfig
+
+parser :: P.Parser ConfigMap
+parser = whiteSpace *> block mempty HM.empty <* P.eof where
+  block p m = (block p =<< pair p m) <|> return m
+  pair p m = do
+    ks <- identifier P.<?> "key"
+    let k = BSC.pack ks
+        kp = pathSnoc p k
+    km <- case HM.lookupDefault Empty k m of
+      Empty -> return Nothing
+      Sub km -> return $ Just km
+      _ -> fail $ "Duplicate key value: " ++ show kp
+    kv <- lexeme dot *> (Sub <$> pair kp (fold km)) <|> rhs kp km
+    return $ HM.insert k kv m
+  rhs p Nothing = sub p HM.empty <|>
+    lexeme (P.char '=') *> val
+  rhs p (Just m) = sub p m
+  sub p m = Sub <$> braces (block p m)
+  val = P.choice
+    [ Boolean True <$ reserved "true"
+    , Boolean False <$ reserved "false"
+    , Integer <$> integer
+    , String . BSC.pack <$> stringLiteral
+    , List <$> brackets (commaSep val)
+    ] P.<?> "value"
+  PT.TokenParser{..} = PT.makeTokenParser PT.LanguageDef
+    { PT.commentStart = ""
+    , PT.commentEnd = ""
+    , PT.commentLine = "#"
+    , PT.nestedComments = False
+    , PT.identStart = P.letter
+    , PT.identLetter = (P.alphaNum <|> P.oneOf "-_")
+    , PT.opStart = P.unexpected "operator"
+    , PT.opLetter = P.unexpected "operator"
+    , PT.reservedNames = []
+    , PT.reservedOpNames = ["="]
+    , PT.caseSensitive = True
+    }
+
+-- class/type defs
+
+-- |Merge two configs, throwing 'ConflictError' on conflicts
+instance Monoid Config where
+  mempty = topConfig HM.empty
+  Config (Path p1) m1 `mappend` Config (Path p2) m2 = Config p m where
+    (p', (p1', p2')) = cpfx p1 p2
+    p = Path p'
+    m = unionConfig p (nest m1 p1') (nest m2 p2')
+    cpfx (a:al) (b:bl) | a == b = first (a :) $ cpfx al bl
+    cpfx al bl = ([], (al, bl))
+    nest = foldr (\k -> HM.singleton k . Sub)
 
 type Key = BS.ByteString
 newtype Path = Path { pathList :: [Key] } deriving (Monoid)
@@ -86,77 +182,6 @@ data Config = Config
   , configMap :: !ConfigMap
   } deriving (Typeable, Show)
 
-topConfig :: ConfigMap -> Config
-topConfig = Config (Path [])
-
-unionValue :: Path -> Value -> Value -> Value
-unionValue _ Empty v = v
-unionValue _ v Empty = v
-unionValue p (Sub m1) (Sub m2) = Sub $ unionConfig p m1 m2
-unionValue p v1 v2
-  | v1 == v2 = v1
-  | otherwise = throw $ ConflictError{ errorPath = p, errorValue1 = v1, errorValue2 = v2 }
-
-unionConfig :: Path -> ConfigMap -> ConfigMap -> ConfigMap
-unionConfig p = HM.foldrWithKey $ \k -> HM.insertWith (flip $ unionValue (pathSnoc p k)) k
-
--- |Merge two configs, throwing 'ConflictError' on conflicts
-instance Monoid Config where
-  mempty = topConfig HM.empty
-  Config (Path p1) m1 `mappend` Config (Path p2) m2 = Config p m where
-    (p', (p1', p2')) = cpfx p1 p2
-    p = Path p'
-    m = unionConfig p (nest m1 p1') (nest m2 p2')
-    cpfx (a:al) (b:bl) | a == b = first (a :) $ cpfx al bl
-    cpfx al bl = ([], (al, bl))
-    nest = foldr (\k -> HM.singleton k . Sub)
-
-lookup :: Path -> ConfigMap -> Value
-lookup (Path []) m = Sub m
-lookup (Path [k]) m | Just v <- HM.lookup k m = v
-lookup (Path (k:l)) m | Just (Sub km) <- HM.lookup k m = lookup (Path l) km
-lookup _ _ = Empty
-
-parser :: P.Parser ConfigMap
-parser = whiteSpace *> block mempty HM.empty <* P.eof where
-  block p m = (block p =<< pair p m) <|> return m
-  pair p m = do
-    ks <- identifier P.<?> "key"
-    let k = BSC.pack ks
-        kp = pathSnoc p k
-    km <- case HM.lookupDefault Empty k m of
-      Empty -> return Nothing
-      Sub km -> return $ Just km
-      _ -> fail $ "Duplicate key value: " ++ show kp
-    kv <- lexeme dot *> (Sub <$> pair kp (fold km)) <|> rhs kp km
-    return $ HM.insert k kv m
-  rhs p Nothing = sub p HM.empty <|>
-    lexeme (P.char '=') *> val
-  rhs p (Just m) = sub p m
-  sub p m = Sub <$> braces (block p m)
-  val = P.choice
-    [ Boolean True <$ reserved "true"
-    , Boolean False <$ reserved "false"
-    , Integer <$> integer
-    , String . BSC.pack <$> stringLiteral
-    , List <$> brackets (commaSep val)
-    ] P.<?> "value"
-  PT.TokenParser{..} = PT.makeTokenParser PT.LanguageDef
-    { PT.commentStart = ""
-    , PT.commentEnd = ""
-    , PT.commentLine = "#"
-    , PT.nestedComments = False
-    , PT.identStart = P.letter
-    , PT.identLetter = (P.alphaNum <|> P.oneOf "-_")
-    , PT.opStart = P.unexpected "operator"
-    , PT.opLetter = P.unexpected "operator"
-    , PT.reservedNames = []
-    , PT.reservedOpNames = ["="]
-    , PT.caseSensitive = True
-    }
-
-load :: FilePath -> IO Config
-load f = either (throw . ParseError) (return . topConfig) =<< P.parseFromFile parser f
 
 class Typeable a => Configurable a where
   get :: Path -> Config -> a

@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Databrary.Web
   ( WebFilePath
   , webFileRel
@@ -21,7 +23,7 @@ import qualified System.FilePath as FP
 import System.IO.Unsafe (unsafeDupablePerformIO)
 import qualified System.Posix.FilePath as RFP
 
-import Paths_databrary (getDataFileName)
+import qualified Databrary.Store.Config as Conf
 import Databrary.Files
 
 data WebFilePath = WebFilePath
@@ -42,7 +44,7 @@ instance Show WebFilePath where
   showsPrec p = showsPrec p . ("web" FP.</>) . webFileRel
 
 webDir :: FilePath
-webDir = unsafeDupablePerformIO $ getDataFileName "web"
+webDir = unsafeDupablePerformIO $ Conf.get "web.path" <$> Conf.getConfig
 
 webDirRaw :: RawFilePath
 webDirRaw = toRawFilePath webDir
