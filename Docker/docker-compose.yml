@@ -29,7 +29,7 @@ services:
     image: databrary-base
 
 
-postgres:
+  postgres:
     build: ./postgres/
     image: databrary_postgres
     ports:
