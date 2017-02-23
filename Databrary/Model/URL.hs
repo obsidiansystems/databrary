@@ -16,7 +16,7 @@ import Language.Haskell.TH.Lift (deriveLiftMany)
 import Network.URI
 import qualified Text.Blaze as H
 
-import qualified Databrary.Store.Config as C
+import qualified Databrary.Store.Config as Conf
 
 toPG :: URI -> String
 toPG u = uriToString id u ""
@@ -35,8 +35,8 @@ instance PGColumn "text" URI where
 instance ToJSON URI where
   toJSON = toJSON . show
 
-instance C.Configurable URI where
-  config = parseAbsoluteURI <=< C.config
+instance Conf.Configurable URI where
+  config = parseAbsoluteURI <=< Conf.config
 
 instance H.ToValue URI where
   toValue = H.stringValue . show . urlLink

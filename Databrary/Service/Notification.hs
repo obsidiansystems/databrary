@@ -11,7 +11,7 @@ import qualified Data.ByteString as BS
 import qualified Text.Regex.Posix as Regex
 
 import Databrary.Model.Periodic (Period)
-import qualified Databrary.Store.Config as C
+import qualified Databrary.Store.Config as Conf
 
 data Notifications = Notifications
   { notificationsTrigger :: !(MVar (Maybe Period))
@@ -19,13 +19,13 @@ data Notifications = Notifications
   , notificationsCopy :: !(Maybe BS.ByteString)
   }
 
-initNotifications :: C.Config -> IO Notifications
+initNotifications :: Conf.Config -> IO Notifications
 initNotifications conf = do
   t <- newMVar Nothing -- run async notification pass at boot
   return Notifications
     { notificationsTrigger = t
-    , notificationsFilter = Regex.makeRegexOpts Regex.compIgnoreCase Regex.blankExecOpt (conf C.! "filter" :: BS.ByteString)
-    , notificationsCopy = conf C.! "copy"
+    , notificationsFilter = Regex.makeRegexOpts Regex.compIgnoreCase Regex.blankExecOpt (conf Conf.! "filter" :: BS.ByteString)
+    , notificationsCopy = conf Conf.! "copy"
     }
 
 triggerNotifications :: Maybe Period -> Notifications -> IO ()

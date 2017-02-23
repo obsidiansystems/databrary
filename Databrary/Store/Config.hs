@@ -16,7 +16,7 @@ module Databrary.Store.Config
   ) where
 
 import Prelude hiding (lookup)
-
+import GHC.Stack
 import Control.Applicative ((<|>))
 import Control.Arrow (first, (***))
 import Control.Exception (Exception, throw)
@@ -72,12 +72,12 @@ databraryConfig = unsafeDupablePerformIO $ newIORef Nothing
 getConfig :: IO Config
 getConfig = do
   potentialConf <- readIORef databraryConfig
-  return $ fromMaybe (error "how did you get here? config was never loaded") potentialConf
+  return $ fromMaybe (errorWithStackTrace "how did you get here? config was never loaded") potentialConf
 
 initConfig :: [FilePath] -> IO Config
 initConfig configArgs = do
   parsedConf <- mconcat <$> mapM load (case configArgs of
-                             [] -> ["databrary.conf"] -- looks in root dir of app (will probably fail)
+                             [] -> errorWithStackTrace "you have to provide a config file"
                              l -> l)
   writeIORef databraryConfig (Just parsedConf)
   getConfig

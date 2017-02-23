@@ -20,7 +20,7 @@ import System.Timeout (timeout)
 import Paths_databrary (getDataFileName)
 import Databrary.Ops
 import Databrary.Has
-import qualified Databrary.Store.Config as C
+import qualified Databrary.Store.Config as Conf
 import Databrary.HTTP.Client (HTTPClient)
 import Databrary.Model.Enum (pgEnumValues)
 import Databrary.Model.Permission.Types
@@ -46,9 +46,9 @@ confSolr src dst = do
     forM_ pgEnumValues $ \(x, s) -> hPutStrLn h $ "  <value>" ++ const s (x `asTypeOf` t) ++ "</value>"
     hPutStrLn h "</enum>"
 
-initSolr :: Bool -> C.Config -> IO Solr
+initSolr :: Bool -> Conf.Config -> IO Solr
 initSolr fg conf = do
-  home <- makeAbsolute $ conf C.! "home"
+  home <- makeAbsolute $ conf Conf.! "home"
 
   dir <- makeAbsolute =<< getDataFileName "solr"
   createDirectoryIfMissing True (home </> core </> "conf")
@@ -58,8 +58,8 @@ initSolr fg conf = do
   confSolr (dir </> "conf") (home </> core </> "conf")
 
   env <- getEnvironment
-  out <- maybe (return Proc.Inherit) (\f -> Proc.UseHandle <$> openFile f AppendMode) $ conf C.! "log"
-  p <- fromMaybe fg (conf C.! "run") ?$> Proc.createProcess (Proc.proc (fromMaybe "solr" $ conf C.! "bin") ["start", "-Djetty.host=" ++ host, "-p", show port, "-f", "-s", home])
+  out <- maybe (return Proc.Inherit) (\f -> Proc.UseHandle <$> openFile f AppendMode) $ conf Conf.! "log"
+  p <- fromMaybe fg (conf Conf.! "run") ?$> Proc.createProcess (Proc.proc (fromMaybe "solr" $ conf Conf.! "bin") ["start", "-Djetty.host=" ++ host, "-p", show port, "-f", "-s", home])
     { Proc.std_out = out
     , Proc.std_err = out
     , Proc.close_fds = True
@@ -77,9 +77,9 @@ initSolr fg conf = do
     , solrProcess = (\(_,_,_,h) -> h) <$> p
     }
   where
-  host = fromMaybe "127.0.0.1" $ conf C.! "host"
-  port = conf C.! "port"
-  core = fromMaybe "databrary" $ conf C.! "core"
+  host = fromMaybe "127.0.0.1" $ conf Conf.! "host"
+  port = conf Conf.! "port"
+  core = fromMaybe "databrary" $ conf Conf.! "core"
 
 finiSolr :: Solr -> IO ()
 finiSolr Solr{ solrProcess = Just ph } = do

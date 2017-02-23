@@ -12,16 +12,16 @@ import System.Posix.FilePath (addTrailingPathSeparator)
 import System.Posix.Files.ByteString (isDirectory, deviceID)
 
 import Databrary.Ops
-import qualified Databrary.Store.Config as C
+import qualified Databrary.Store.Config as Conf
 import Databrary.Files
 import Databrary.Store.Types
 import Databrary.Store.Transcoder
 
-initStorage :: C.Config -> IO Storage
+initStorage :: Conf.Config -> IO Storage
 initStorage conf
-  | Just down <- conf C.! "DOWN" = return $ error $ "Storage unavailable: " ++ down
+  | Just down <- conf Conf.! "DOWN" = return $ error $ "Storage unavailable: " ++ down
   | otherwise = do
-  temp <- fromMaybeM (toRawFilePath <$> getTemporaryDirectory) $ conf C.! "temp"
+  temp <- fromMaybeM (toRawFilePath <$> getTemporaryDirectory) $ conf Conf.! "temp"
 
   foldM_ (\dev f -> do
     s <- getFileStatus f
@@ -35,11 +35,11 @@ initStorage conf
 
   mapM_ (\c -> createDirectoryIfMissing False (toFilePath c </> "tmp")) cache
 
-  tc <- initTranscoder (conf C.! "transcode")
+  tc <- initTranscoder (conf Conf.! "transcode")
 
   return $ Storage
     { storageMaster = master
-    , storageFallback = conf C.! "fallback"
+    , storageFallback = conf Conf.! "fallback"
     , storageTemp = addTrailingPathSeparator temp
     , storageUpload = upload
     , storageCache = cache
@@ -47,7 +47,7 @@ initStorage conf
     , storageTranscoder = tc
     }
   where
-  master = conf C.! "master"
-  upload = conf C.! "upload"
-  cache = conf C.! "cache"
-  stage = conf C.! "stage"
+  master = conf Conf.! "master"
+  upload = conf Conf.! "upload"
+  cache = conf Conf.! "cache"
+  stage = conf Conf.! "stage"

@@ -3,7 +3,6 @@ module Main (main) where
 
 import System.Environment (getArgs)
 import qualified System.Console.GetOpt as Opt
-import Data.Typeable
 
 import Data.Either (partitionEithers)
 import Databrary.Service.DB (runDBConnection)
@@ -27,7 +26,6 @@ main = do
   let (flags, _, _) = Opt.getOpt Opt.Permute opts args
       (configPaths, _) = partitionEithers $ map flagConfig flags
   conf <- Conf.initConfig configPaths
-  print (typeOf conf)
   let schemapath = Conf.get "db.schemapath" conf
   let unattendedUpdate = True
   runDBConnection $ updateDBSchema schemapath unattendedUpdate

@@ -9,7 +9,7 @@ import qualified Data.ByteString.Char8 as BSC
 import Data.Monoid ((<>))
 import qualified Data.Text as T
 
-import qualified Databrary.Store.Config as C
+import qualified Databrary.Store.Config as Conf
 import Databrary.Service.Messages
 import Databrary.Action
 import Databrary.Model.Party
@@ -22,10 +22,10 @@ import Databrary.View.Form
 import {-# SOURCE #-} Databrary.Controller.VolumeAccess
 
 volumeAccessTitle :: Permission -> Messages -> T.Text
-volumeAccessTitle perm = getMessage $ C.Path ["access", "edit", BSC.pack (show perm), "title"]
+volumeAccessTitle perm = getMessage $ Conf.Path ["access", "edit", BSC.pack (show perm), "title"]
 
 volumeAccessPresetTitle :: Bool -> Messages -> T.Text
-volumeAccessPresetTitle shared = getMessage $ C.Path ["access", "preset", "title" <> BSC.pack (show (fromEnum shared))]
+volumeAccessPresetTitle shared = getMessage $ Conf.Path ["access", "preset", "title" <> BSC.pack (show (fromEnum shared))]
 
 htmlVolumeAccessForm :: VolumeAccess -> RequestContext -> FormHtml f
 htmlVolumeAccessForm a@VolumeAccess{ volumeAccessVolume = vol, volumeAccessParty = p } = htmlForm

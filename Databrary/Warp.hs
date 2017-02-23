@@ -13,14 +13,14 @@ import qualified Network.Wai.Handler.Warp as Warp
 import qualified Network.Wai.Handler.WarpTLS as WarpTLS
 
 import Paths_databrary (version)
-import qualified Databrary.Store.Config as C
+import qualified Databrary.Store.Config as Conf
 import Databrary.Service.Types
 import Databrary.Service.Log
 
-runWarp :: C.Config -> Service -> Wai.Application -> IO ()
+runWarp :: Conf.Config -> Service -> Wai.Application -> IO ()
 runWarp conf rc app =
-  run (conf C.! "ssl.key") (certs $ conf C.! "ssl.cert")
-    ( Warp.setPort (conf C.! "port")
+  run (conf Conf.! "ssl.key") (certs $ conf Conf.! "ssl.cert")
+    ( Warp.setPort (conf Conf.! "port")
     $ Warp.setTimeout 300
 #ifndef DEVEL
     $ Warp.setFdCacheDuration 300
@@ -35,6 +35,6 @@ runWarp conf rc app =
     $ Warp.defaultSettings)
     app
   where
-  certs c = C.config c <|> return <$> C.config c
+  certs c = Conf.config c <|> return <$> Conf.config c
   run (Just k) (Just (cert:chain)) = WarpTLS.runTLS (WarpTLS.tlsSettingsChain cert chain k)
   run _ _ = Warp.runSettings

@@ -11,14 +11,14 @@ import System.Process (readProcessWithExitCode)
 import System.Exit (ExitCode(..))
 
 import Paths_databrary (version, getDataFileName)
-import qualified Databrary.Store.Config as C
+import qualified Databrary.Store.Config as Conf
 import Databrary.Store.Types
 
 runTranscoder :: Transcoder -> [String] -> IO (ExitCode, String, String)
 runTranscoder (Transcoder cmd arg) args =
   readProcessWithExitCode cmd (arg ++ args) ""
 
-initTranscoder :: C.Config -> IO (Maybe Transcoder)
+initTranscoder :: Conf.Config -> IO (Maybe Transcoder)
 initTranscoder conf =
   case (host, dir) of
     (Nothing, Nothing) -> return Nothing
@@ -34,9 +34,9 @@ initTranscoder conf =
         ExitSuccess -> return t
         ExitFailure e -> fail $ "initTranscoder test: " ++ show e ++ "\n" ++ out ++ err
   where
-  host = conf C.! "host"
-  dir = conf C.! "dir"
-  mount = conf C.! "mount"
+  host = conf Conf.! "host"
+  dir = conf Conf.! "dir"
+  mount = conf Conf.! "mount"
 
 transcodeEnabled :: Storage -> Bool
 transcodeEnabled = isJust . storageTranscoder

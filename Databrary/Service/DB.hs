@@ -44,28 +44,28 @@ import Network (PortID(..))
 import System.IO.Unsafe (unsafePerformIO)
 
 import Databrary.Has
-import qualified Databrary.Store.Config as C
+import qualified Databrary.Store.Config as Conf
 
-confPGDatabase :: C.Config -> PGDatabase
+confPGDatabase :: Conf.Config -> PGDatabase
 confPGDatabase conf = defaultPGDatabase
   { pgDBHost = fromMaybe "localhost" host
   , pgDBPort = if isJust host
-      then PortNumber (maybe 5432 fromInteger $ conf C.! "port")
-      else UnixSocket (fromMaybe "/tmp/.s.PGSQL.5432" $ conf C.! "sock")
-  , pgDBName = fromMaybe user $ conf C.! "db"
+      then PortNumber (maybe 5432 fromInteger $ conf Conf.! "port")
+      else UnixSocket (fromMaybe "/tmp/.s.PGSQL.5432" $ conf Conf.! "sock")
+  , pgDBName = fromMaybe user $ conf Conf.! "db"
   , pgDBUser = user
-  , pgDBPass = fromMaybe "" $ conf C.! "pass"
-  , pgDBDebug = fromMaybe False $ conf C.! "debug"
+  , pgDBPass = fromMaybe "" $ conf Conf.! "pass"
+  , pgDBDebug = fromMaybe False $ conf Conf.! "debug"
   }
   where
-  host = conf C.! "host"
-  user = conf C.! "user"
+  host = conf Conf.! "host"
+  user = conf Conf.! "user"
 
 
 newtype DBPool = PGPool (Pool PGConnection)
 type DBConn = PGConnection
 
-initDB :: C.Config -> IO DBPool
+initDB :: Conf.Config -> IO DBPool
 initDB conf =
   PGPool <$> createPool
     (pgConnect db)
@@ -73,9 +73,9 @@ initDB conf =
     stripes (fromInteger idle) conn
   where
   db = confPGDatabase conf
-  stripes = fromMaybe 1 $ conf C.! "stripes"
-  idle = fromMaybe 300 $ conf C.! "idle"
-  conn = fromMaybe 16 $ conf C.! "maxconn"
+  stripes = fromMaybe 1 $ conf Conf.! "stripes"
+  idle = fromMaybe 300 $ conf Conf.! "idle"
+  conn = fromMaybe 16 $ conf Conf.! "maxconn"
 
 finiDB :: DBPool -> IO ()
 finiDB (PGPool p) = do
@@ -152,7 +152,7 @@ dbTransaction' f = do
 -- For connections outside runtime:
 
 loadPGDatabase :: IO PGDatabase
-loadPGDatabase = confPGDatabase . C.get "db" <$> C.load "databrary.conf"
+loadPGDatabase = confPGDatabase . Conf.get "db" <$> Conf.getConfig
 
 runDBConnection :: DBM a -> IO a
 runDBConnection f = bracket

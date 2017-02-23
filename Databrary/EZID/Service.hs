@@ -10,20 +10,20 @@ import qualified Data.ByteString.Char8 as BSC
 import qualified Network.HTTP.Client as HC
 import Network.HTTP.Types (hContentType)
 
-import qualified Databrary.Store.Config as C
+import qualified Databrary.Store.Config as Conf
 
 data EZID = EZID
   { ezidRequest :: !HC.Request
   , ezidNS :: !BS.ByteString
   }
 
-initEZID :: C.Config -> IO (Maybe EZID)
-initEZID conf = conf C.! "ns" `forM` \ns -> do
+initEZID :: Conf.Config -> IO (Maybe EZID)
+initEZID conf = conf Conf.! "ns" `forM` \ns -> do
   unless ("doi:10." `BSC.isPrefixOf` ns) $
     fail "ezid.ns must be for DOIs"
   req <- HC.parseUrl "https://ezid.cdlib.org/"
   return $ EZID
-    { ezidRequest = HC.applyBasicAuth (conf C.! "user") (conf C.! "pass") req
+    { ezidRequest = HC.applyBasicAuth (conf Conf.! "user") (conf Conf.! "pass") req
       { HC.requestHeaders = (hContentType, "text/plain") : HC.requestHeaders req
       , HC.responseTimeout = Just 100000000
       , HC.redirectCount = 1

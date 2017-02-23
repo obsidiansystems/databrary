@@ -5,7 +5,7 @@ Description:         Schema creation script for Databrary
 License:             GPL-3
 License-file:        COPYING
 Author:              Dylan Simon
-Maintainer:          dylan@dylex.net
+Maintainer:          ml5881@nyu.edu
 Stability:           Provisional
 Category:            Web
 Tested-with:         GHC == 7.10.3
@@ -16,15 +16,11 @@ Source-Repository head
   Type:	git
   Location: https://github.com/databrary/databrary
 
-Flag devel
-  description: Enable development mode
+Flag trace
+  description: Enable profiling for stack traces mode
   default: False
   manual: True
 
-Flag sandbox
-  description: Enable sandbox/demo mode
-  default: False
-  manual: True
 
 Executable schemabrary
   hs-source-dirs: ., ../
@@ -58,16 +54,9 @@ Executable schemabrary
 
   default-language: Haskell2010
   default-extensions: MultiParamTypeClasses, FlexibleContexts, FlexibleInstances, ScopedTypeVariables, ConstraintKinds, PatternGuards
-
+  -- this is a hack until stack fixes https://github.com/commercialhaskell/stack/issues/1406
   ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields -i ../Databrary/Ops.hs ../Databrary/Has.hs ../Databrary/Service/DB.hs ../Databrary/Service/DB/Schema.hs ../Databrary/Store/Config.hs
-
-  if flag(devel)
-    cpp-options: -DDEVEL
+  if flag(trace)
+    ghc-options: -prof -fprof-auto -fprof-cafs -fprof-auto-calls
   else
-    ghc-options: -with-rtsopts -N
-  if flag(sandbox)
-    cpp-options: -DSANDBOX
-
-  pkgconfig-depends: libavformat, libswscale, libavcodec, libavutil
-  extra-libraries: crack
-  build-tools: happy
+    ghc-options: -with-rtsopts -N 

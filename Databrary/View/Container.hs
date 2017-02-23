@@ -9,7 +9,7 @@ import Data.Foldable (fold)
 import Data.Monoid ((<>))
 import qualified Data.Text as T
 
-import qualified Databrary.Store.Config as C
+import qualified Databrary.Store.Config as Conf
 import Databrary.Model.Volume.Types
 import Databrary.Model.Container.Types
 import Databrary.Model.Slot.Types
@@ -22,7 +22,7 @@ import Databrary.View.Form
 import {-# SOURCE #-} Databrary.Controller.Container
 
 releaseTitle :: Maybe Release -> Messages -> T.Text
-releaseTitle rel = getMessage $ C.Path ["release", maybe "UNRELEASED" (BSC.pack . show) rel, "title"]
+releaseTitle rel = getMessage $ Conf.Path ["release", maybe "UNRELEASED" (BSC.pack . show) rel, "title"]
 
 htmlContainerForm :: Maybe Container -> FormHtml f
 htmlContainerForm cont = do

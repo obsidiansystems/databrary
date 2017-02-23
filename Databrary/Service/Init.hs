@@ -9,7 +9,7 @@ import Data.IORef (newIORef)
 import Data.Time.Clock (getCurrentTime)
 
 import Databrary.Ops
-import qualified Databrary.Store.Config as C
+import qualified Databrary.Store.Config as Conf
 import Databrary.Service.DB (initDB, finiDB, runDBM)
 import Databrary.Service.Entropy (initEntropy)
 import Databrary.HTTP.Client (initHTTPClient)
@@ -29,28 +29,28 @@ import Databrary.Service.Periodic (forkPeriodic)
 import Databrary.Service.Types
 import Databrary.Controller.Notification (forkNotifier)
 
-initService :: Bool -> C.Config -> IO Service
+initService :: Bool -> Conf.Config -> IO Service
 initService fg conf = do
   time <- getCurrentTime
-  logs <- initLogs (conf C.! (if fg then "log" else "log.bg"))
+  logs <- initLogs (conf Conf.! (if fg then "log" else "log.bg"))
   entropy <- initEntropy
   passwd <- initPasswd
   messages <- loadMessages
-  db <- initDB (conf C.! "db")
-  storage <- initStorage (conf C.! "store")
+  db <- initDB (conf Conf.! "db")
+  storage <- initStorage (conf Conf.! "store")
   av <- initAV
   web <- initWeb
   httpc <- initHTTPClient
-  static <- initStatic (conf C.! "static")
-  solr <- initSolr fg (conf C.! "solr")
-  ezid <- initEZID (conf C.! "ezid")
+  static <- initStatic (conf Conf.! "static")
+  solr <- initSolr fg (conf Conf.! "solr")
+  ezid <- initEZID (conf Conf.! "ezid")
   ingest <- initIngest
-  notify <- initNotifications (conf C.! "notification")
+  notify <- initNotifications (conf Conf.! "notification")
   stats <- if fg then runDBM db lookupSiteStats else return (error "siteStats")
   statsref <- newIORef stats
   let rc = Service
         { serviceStartTime = time
-        , serviceSecret = Secret $ conf C.! "secret"
+        , serviceSecret = Secret $ conf Conf.! "secret"
         , serviceEntropy = entropy
         , servicePasswd = passwd
         , serviceLogs = logs
@@ -67,7 +67,7 @@ initService fg conf = do
         , serviceEZID = ezid
         , servicePeriodic = Nothing
         , serviceNotification = notify
-        , serviceDown = conf C.! "store.DOWN"
+        , serviceDown = conf Conf.! "store.DOWN"
         }
   periodic <- fg ?$> forkPeriodic rc
   when fg $ void $ forkNotifier rc
@@ -81,5 +81,5 @@ finiService Service{..} = do
   finiDB serviceDB
   finiLogs serviceLogs
 
-withService :: Bool -> C.Config -> (Service -> IO a) -> IO a
+withService :: Bool -> Conf.Config -> (Service -> IO a) -> IO a
 withService fg c = bracket (initService fg c) finiService

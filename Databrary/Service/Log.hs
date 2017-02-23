@@ -24,7 +24,7 @@ import qualified Network.Wai as Wai
 import System.Log.FastLogger
 
 import Databrary.Has (MonadHas)
-import qualified Databrary.Store.Config as C
+import qualified Databrary.Store.Config as Conf
 import Databrary.Model.Time
 
 data Logs = Logs
@@ -33,7 +33,7 @@ data Logs = Logs
 
 type MonadLog c m = (MonadHas Logs c m, MonadIO m)
 
-initLog :: FilePath -> C.Config -> IO (Maybe LoggerSet)
+initLog :: FilePath -> Conf.Config -> IO (Maybe LoggerSet)
 initLog def conf = do
   case file of
     "" -> return Nothing
@@ -44,15 +44,15 @@ initLog def conf = do
       mapM_ (rotate . FileLogSpec file size) (num :: Maybe Int)
       Just <$> newFileLoggerSet buf file
   where
-  file = fromMaybe def $ conf C.! "file"
-  buf = fromMaybe defaultBufSize $ conf C.! "buf"
-  num = conf C.! "rotate"
-  size = fromMaybe (1024*1024) $ conf C.! "size"
+  file = fromMaybe def $ conf Conf.! "file"
+  buf = fromMaybe defaultBufSize $ conf Conf.! "buf"
+  num = conf Conf.! "rotate"
+  size = fromMaybe (1024*1024) $ conf Conf.! "size"
 
-initLogs :: C.Config -> IO Logs
+initLogs :: Conf.Config -> IO Logs
 initLogs conf = Logs
-  <$> initLog "stderr" (conf C.! "messages")
-  <*> initLog "stdout" (conf C.! "access")
+  <$> initLog "stderr" (conf Conf.! "messages")
+  <*> initLog "stdout" (conf Conf.! "access")
 
 finiLogs :: Logs -> IO ()
 finiLogs (Logs lm la) =
