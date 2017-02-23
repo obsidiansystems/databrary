@@ -1,17 +1,41 @@
 version: '2'
 services:
-  databrary:
-    build: ./databrary/
-    ports:
-    - "8642:8642"
+  databrary: 
+    build: ./databrary/Dockerfile_final
+    image: databrary-final
+    depends_on:
+      - postgres
+      - solr
+    ports: 
+      - "8642:8642"
     links:
-    - "postgres:databrary_postgres"
-    - "solr:databrary_solr"
-  postgres:
+      - "postgres:databrary_postgres"
+      - "solr:databrary_solr"
+
+  databrary-config:
+    build: ./databrary/Dockerfile_config
+    image: databrary-config
+    depends_on:
+      - databrary-base
+      - postgres 
+    volumes:
+      - ./databrary/config:/tmp/databrary_config
+    links:
+      - "postgres:databrary_postgres"
+      - "solr:databrary_solr"
+
+  databrary-base:
+    build: ./databrary/Dockerfile_base
+    image: databrary-base
+
+
+postgres:
     build: ./postgres/
+    image: databrary_postgres
     ports:
-    - "5432:5432"
+      - "5432:5432"
+
   solr:
     image: solr
     ports:
-    - "8983:8983"
+      - "8983:8983"

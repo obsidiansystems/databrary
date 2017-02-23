@@ -1,0 +1,5 @@
+FROM databrary-config
+
+RUN stack exec databrary -- -c /tmp/databrary_config/databrary.conf
+
+
