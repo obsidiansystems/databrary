@@ -152,7 +152,7 @@ dbTransaction' f = do
 -- For connections outside runtime:
 
 loadPGDatabase :: IO PGDatabase
-loadPGDatabase = confPGDatabase . Conf.get "db" <$> Conf.getConfig
+loadPGDatabase = confPGDatabase . C.get "db" <$> C.load "databrary.conf" -- FIXME: get rid of useTDB
 
 runDBConnection :: DBM a -> IO a
 runDBConnection f = bracket
