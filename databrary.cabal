@@ -12,39 +12,6 @@ Tested-with:         GHC == 7.10.3
 Build-type:          Custom
 Cabal-version:       >=1.22
 
-data-files:
-  messages.conf,
-  schema/*.sql,
-  transctl.sh,
-  transcode,
-  volume.json,
-  web/all.min.css,
-  web/all.min.css.gz,
-  web/all.min.js,
-  web/all.min.js.gz,
-  web/constants.json,
-  web/constants.json.gz,
-  web/icons/*.ico,
-  web/icons/*.png,
-  web/icons/*.svg,
-  web/icons/*.svg.gz,
-  web/icons/release/*.svg,
-  web/icons/release/*.svg.gz,
-  web/images/*.png,
-  web/images/elements/*.svg,
-  web/images/elements/*.svg.gz,
-  web/images/filetype/16px/*.svg,
-  web/images/filetype/16px/*.svg.gz,
-  web/images/grants/*.png,
-  web/images/logo/*.png,
-  web/images/logo/*.svg,
-  web/images/logo/*.svg.gz,
-  web/images/social/16px/*.png,
-  solr/solr.xml,
-  solr/log4j.properties,
-  solr/conf/*.xml,
-  solr/conf/*.txt
-
 Source-Repository head
   Type:	git
   Location: https://github.com/databrary/databrary
@@ -59,35 +26,6 @@ Flag sandbox
   default: False
   manual: True
 
-Executable schemabrary
-  main-is: Databrary/Setup/DB.hs
-  other-modules:
-    Databrary.Has,
-    Databrary.Ops,
-    Databrary.Service.DB,
-    Databrary.Service.DB.Schema,
-    Databrary.Store.Config
-  default-language: Haskell2010
-  build-depends:
-    base == 4.8.*,
-    bytestring >= 0.10,
-    transformers == 0.4.*,
-    transformers-base,
-    mtl >= 2.2.1,
-    monad-control >= 1,
-    lifted-base,
-    template-haskell,
-    filepath,
-    directory,
-    text,
-    unordered-containers,
-    parsec >= 3,
-    resource-pool,
-    network,
-    postgresql-typed >= 0.4.2.2 && <= 0.4.5,
-    vector,
-    aeson
-	
 Executable databrary
   main-is: Databrary/Main.hs
   other-modules:
