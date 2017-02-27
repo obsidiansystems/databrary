@@ -7,5 +7,6 @@ RUN `npm root`/.bin/bower update
 # prep for schema construction
 WORKDIR Schemabrary
 RUN git pull origin build_system && stack build
+ADD ./databrary_config/databrary_build.conf /home/databrary/src/Schemabrary/databrary.conf 
 RUN stack exec schemabrary -- -c databrary.conf
 WORKDIR /home/databrary/src
