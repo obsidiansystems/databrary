@@ -24,6 +24,7 @@ import Databrary.Service.DB.Schema (updateDBSchema)
 #endif
 
 import qualified Databrary.Store.Config as Conf
+import Databrary.Solr.Service (confSolr)
 import Databrary.Service.Init (withService)
 import Databrary.Context
 import Databrary.Web.Rules (generateWebFiles)
@@ -38,11 +39,13 @@ data Flag
   | FlagWeb
   | FlagAPI
   | FlagEZID
+  | FlagSolr
   deriving (Eq)
 
 opts :: [Opt.OptDescr Flag]
 opts =
   [ Opt.Option "c" ["config"] (Opt.ReqArg FlagConfig "FILE") "Path to configuration file [./databrary.conf]"
+  , Opt.Option "s" ["solr"] (Opt.NoArg FlagSolr) "Generate solr conf"
   , Opt.Option "w" ["webgen"] (Opt.NoArg FlagWeb) "Generate web assets only"
   , Opt.Option "a" ["api"] (Opt.NoArg FlagAPI) "Output Swagger API documention"
   , Opt.Option "e" ["ezid"] (Opt.NoArg FlagEZID) "Update EZID DOIs"
@@ -63,6 +66,9 @@ main = do
   case (flags', args', err) of
     ([FlagWeb], [], []) -> do
       void generateWebFiles
+      exitSuccess
+    ([FlagSolr], [], []) -> do
+      confSolr (Conf.get "solr.config" conf) (Conf.get "docker.solr.confpath" conf)
       exitSuccess
     ([FlagAPI], [], []) -> do
       hPutBuilder stdout $ J.encodeToBuilder swagger

@@ -3,6 +3,7 @@ module Databrary.Solr.Service
   ( Solr(..)
   , initSolr
   , finiSolr
+  , confSolr
   , MonadSolr
   ) where
 
