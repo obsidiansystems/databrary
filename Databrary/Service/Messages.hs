@@ -10,6 +10,7 @@ module Databrary.Service.Messages
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
+import System.FilePath ((</>))
 
 import qualified Databrary.Store.Config as Conf
 import qualified Databrary.JSON as JSON
@@ -20,7 +21,7 @@ newtype Messages = Messages Conf.Config
 messagesFile :: IO FilePath
 messagesFile = do
   appRoot <- Conf.get "root.path" <$> Conf.getConfig
-  return (appRoot ++ "messages.conf")
+  return (appRoot </> "messages.conf")
 
 loadMessagesFrom :: FilePath -> IO Messages
 loadMessagesFrom f = Messages <$> Conf.load f

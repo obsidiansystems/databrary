@@ -66,7 +66,7 @@ staticWebGenerate g (w, _) = liftIO $ do
 webLinkDataFile :: FilePath -> WebGenerator
 webLinkDataFile filePath fo@(f, _) = do
   appRoot <- liftIO $ Conf.get "root.path" <$> Conf.getConfig
-  let webFile = appRoot ++ filePath
+  let webFile = appRoot </> filePath
   webRegenerate (do
     r <- removeFile f
     unless r $ createDirectoryIfMissing False $ takeDirectory (webFileAbs f)

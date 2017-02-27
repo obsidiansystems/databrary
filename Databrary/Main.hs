@@ -15,6 +15,7 @@ import qualified System.Console.GetOpt as Opt
 import System.Environment (getProgName, getArgs)
 import System.Exit (exitSuccess, exitFailure)
 import System.IO (stdout)
+import System.FilePath ((</>))
 
 #ifndef DEVEL
 import Databrary.Service.Types (serviceDB)
@@ -79,7 +80,7 @@ main = do
   withService True conf $ \rc -> do
 #ifndef DEVEL
     appRoot <- Conf.get "root.path" <$> Conf.getConfig
-    let schema = appRoot ++ "schema"
+    let schema = appRoot </> "schema"
     let unattendedUpdate = True
     withDB (serviceDB rc) $ runReaderT $ updateDBSchema schema unattendedUpdate
 #endif

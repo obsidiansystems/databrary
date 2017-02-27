@@ -3,5 +3,5 @@ ADD ./databrary_config/databrary_build.conf /home/databrary/src/databrary.conf
 
 RUN git pull origin build_system && stack build
 ADD ./databrary_config/databrary.conf /home/databrary/src/databrary.conf 
-CMD ["stack", "exec", "databrary","--","-c ~/src/databrary.conf"]
+CMD ["stack", "exec", "databrary","--","-c /home/databrary/src/databrary.conf"]
 
