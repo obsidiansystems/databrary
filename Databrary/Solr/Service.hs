@@ -17,7 +17,6 @@ import System.IO (withFile, openFile, IOMode(AppendMode, WriteMode), hPutStrLn)
 import qualified System.Process as Proc
 import System.Timeout (timeout)
 
-import Paths_databrary (getDataFileName)
 import Databrary.Ops
 import Databrary.Has
 import qualified Databrary.Store.Config as Conf
@@ -48,9 +47,11 @@ confSolr src dst = do
 
 initSolr :: Bool -> Conf.Config -> IO Solr
 initSolr fg conf = do
+  -- solr cores home
   home <- makeAbsolute $ conf Conf.! "home"
-
-  dir <- makeAbsolute =<< getDataFileName "solr"
+  -- solr dir
+  appRoot <- Conf.get "root.path" <$> Conf.getConfig
+  let dir = appRoot </> "solr"
   createDirectoryIfMissing True (home </> core </> "conf")
   copyFile (dir </> "solr.xml") (home </> "solr.xml")
   withFile (home </> core </> "core.properties") WriteMode $ \h ->

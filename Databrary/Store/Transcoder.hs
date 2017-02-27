@@ -9,8 +9,9 @@ import Data.Maybe (isJust)
 import Data.Version (showVersion)
 import System.Process (readProcessWithExitCode)
 import System.Exit (ExitCode(..))
+import System.FilePath ((</>))
 
-import Paths_databrary (version, getDataFileName)
+import Paths_databrary (version)
 import qualified Databrary.Store.Config as Conf
 import Databrary.Store.Types
 
@@ -23,7 +24,8 @@ initTranscoder conf =
   case (host, dir) of
     (Nothing, Nothing) -> return Nothing
     _ -> Just <$> do
-      cmd <- getDataFileName "transctl.sh"
+      appRoot <- Conf.get "root.path" <$> Conf.getConfig
+      let cmd = appRoot </> "transctl.sh"
       let t = Transcoder cmd $
                 [ "-v", showVersion version ]
                 ++ maybe [] (\d -> ["-d", d]) dir
