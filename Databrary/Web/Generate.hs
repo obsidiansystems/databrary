@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Databrary.Web.Generate
   ( fileNewer
   , staticWebGenerate
@@ -12,7 +13,7 @@ import System.Directory (createDirectoryIfMissing)
 import System.FilePath (splitFileName, takeDirectory)
 import System.Posix.Files (createLink, rename)
 
-import Paths_databrary (getDataFileName)
+import qualified Databrary.Store.Config as Conf
 import Databrary.Files
 import Databrary.Model.Time
 import Databrary.Web
@@ -63,10 +64,11 @@ staticWebGenerate g (w, _) = liftIO $ do
   t = d </> ('.' : n)
 
 webLinkDataFile :: FilePath -> WebGenerator
-webLinkDataFile s fo@(f, _) = do
-  wf <- liftIO $ getDataFileName s
+webLinkDataFile filePath fo@(f, _) = do
+  appRoot <- liftIO $ Conf.get "root.path" <$> Conf.getConfig
+  let webFile = appRoot ++ filePath
   webRegenerate (do
     r <- removeFile f
     unless r $ createDirectoryIfMissing False $ takeDirectory (webFileAbs f)
-    createLink wf (webFileAbs f))
-    [wf] [] fo
+    createLink webFile (webFileAbs f))
+    [webFile] [] fo

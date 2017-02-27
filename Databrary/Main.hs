@@ -17,7 +17,6 @@ import System.Exit (exitSuccess, exitFailure)
 import System.IO (stdout)
 
 #ifndef DEVEL
-import Paths_databrary (getDataFileName)
 import Databrary.Service.Types (serviceDB)
 import Databrary.Service.DB (withDB)
 import Databrary.Service.DB.Schema (updateDBSchema)
@@ -79,7 +78,8 @@ main = do
   routes <- evaluate routeMap
   withService True conf $ \rc -> do
 #ifndef DEVEL
-    schema <- getDataFileName "schema"
+    appRoot <- Conf.get "root.path" <$> Conf.getConfig
+    let schema = appRoot ++ "schema"
     let unattendedUpdate = True
     withDB (serviceDB rc) $ runReaderT $ updateDBSchema schema unattendedUpdate
 #endif

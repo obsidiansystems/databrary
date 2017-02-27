@@ -1,4 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, OverloadedStrings #-}
 module Databrary.Service.Messages
   ( Messages
   , messagesFile
@@ -11,7 +11,6 @@ import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 
-import Paths_databrary (getDataFileName)
 import qualified Databrary.Store.Config as Conf
 import qualified Databrary.JSON as JSON
 
@@ -19,7 +18,9 @@ newtype Messages = Messages Conf.Config
   deriving (JSON.ToJSON)
 
 messagesFile :: IO FilePath
-messagesFile = getDataFileName "messages.conf"
+messagesFile = do
+  appRoot <- Conf.get "root.path" <$> Conf.getConfig
+  return (appRoot ++ "messages.conf")
 
 loadMessagesFrom :: FilePath -> IO Messages
 loadMessagesFrom f = Messages <$> Conf.load f
