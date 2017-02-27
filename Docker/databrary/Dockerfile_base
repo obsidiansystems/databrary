@@ -23,6 +23,8 @@ RUN git clone git://github.com/databrary/databrary src
 WORKDIR src
 ARG commit=origin/build_system
 RUN git remote update && git checkout $commit
+ADD ./databrary_config/databrary_build.conf /home/databrary/src/databrary.conf 
+ADD ./databrary_config/databrary_build.conf /home/databrary/src/Schemabrary/databrary.conf 
 
 RUN stack setup 
 RUN stack build --only-dependencies
@@ -31,4 +33,4 @@ WORKDIR Schemabrary
 RUN stack setup
 RUN stack build --only-dependencies
 
-WORKDIR ../
+WORKDIR /home/databrary/src

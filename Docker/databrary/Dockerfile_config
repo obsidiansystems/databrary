@@ -1,14 +1,11 @@
-FROM databrary-base
+FROM databrary_databrary:base
 
-WORKDIR Schemabrary
-RUN stack build
-RUN stack exec schemabrary -- -c /tmp/databrary_config/databrary.conf
-
-WORKDIR ../
 RUN npm install
 RUN npm update
 RUN `npm root`/.bin/bower update
 
-RUN stack build
-RUN stack exec databrary -- -w
-
+# prep for schema construction
+WORKDIR Schemabrary
+RUN git pull origin build_system && stack build
+RUN stack exec schemabrary -- -c databrary.conf
+WORKDIR /home/databrary/src

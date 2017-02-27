@@ -1,5 +1,4 @@
-FROM databrary-config
+FROM databrary_databrary:config
 
-RUN stack exec databrary -- -c /tmp/databrary_config/databrary.conf
-
+RUN git pull origin build_system && stack build
 

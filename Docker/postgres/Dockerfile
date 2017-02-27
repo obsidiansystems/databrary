@@ -1,4 +1,5 @@
 FROM postgres
+ENV POSTGRES_PASSWORD mysecretpassword
 RUN apt-get update
 RUN apt-get install -y libpq-dev postgresql-server-dev-all git gcc
 WORKDIR /usr/local/src
@@ -8,5 +9,5 @@ ARG commit=origin/build_system
 RUN git remote update && git checkout $commit
 RUN make -C pgranges install
 
-ADD init-user-db.sh /docker-entrypoint-initdb.d/init-user-db.sh
-RUN chmod 755 /docker-entrypoint-initdb.d/init-user-db.sh
+ADD init-user-db.sh /usr/local/src/databrary/init-user-db.sh
+RUN chmod 755 /usr/local/src/databrary/init-user-db.sh
