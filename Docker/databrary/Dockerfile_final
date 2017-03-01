@@ -1,7 +1,14 @@
 FROM databrary_databrary:config
-ADD ./databrary_config/databrary_build.conf /home/databrary/src/databrary.conf 
 
+
+COPY ./databrary_config/databrary_build.conf /home/databrary/src/databrary.conf 
 RUN git pull origin build_system && stack build
-ADD ./databrary_config/databrary.conf /home/databrary/src/databrary.conf 
-CMD ["stack", "exec", "databrary","--","-c /home/databrary/src/databrary.conf"]
+COPY ./databrary_config/databrary.conf /home/databrary/src/databrary.conf 
+COPY ./databrary-entrypoint.sh /usr/local/bin/databrary-entrypoint.sh
+USER root
+RUN chmod 755 /usr/local/bin/databrary-entrypoint.sh
+RUN mkdir /databrary_logs
+RUN chown databrary:databrary /databrary_logs
+USER databrary
+ENTRYPOINT ["databrary-entrypoint.sh"]
 
