@@ -16,7 +16,7 @@ RUN sed -i "/^relayhost =/ s/=.*/= smtp.nyu.edu/" /etc/postfix/main.cf
 RUN sed -i "/^mydestination =/ s/=.*/= $(hostname), databrary.org, localhost.localdomain, localhost/" /etc/postfix/main.cf 
 RUN sed -i "/^inet_interfaces =/ s/=.*/= loopback-only/" /etc/postfix/main.cf 
 RUN sed -i "/^inet_protocols =/ s/=.*/= ipv4/" /etc/postfix/main.cf 
-
+RUN service postfix restart
 
 
 RUN ln -s /usr/bin/nodejs /usr/bin/node
