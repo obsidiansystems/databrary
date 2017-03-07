@@ -29,9 +29,9 @@ generateUglifyJS :: WebGenerator
 generateUglifyJS fo@(f, _) = do
   jl <- liftIO appWebJS
   guard (not $ null jl)
-  let fm = f <.> ".map"
   nodeModulesPath <- liftIO $ Conf.get "node.modules.path" <$> Conf.getConfig
-  let uglifyArgs = [ "--output"
+  let fm = f <.> ".map"
+      uglifyArgs = [ "--output"
                    , webFileAbs f
                    , "--source-map"
                    , webFileAbs fm
@@ -46,5 +46,5 @@ generateUglifyJS fo@(f, _) = do
                    , "DEBUG=false"
                    , "--wrap"
                    , "app"]
-  let uglifyBinPath = nodeModulesPath FP.</> ".bin" FP.</> "uglifyjs"
+      uglifyBinPath = nodeModulesPath FP.</> ".bin" FP.</> "uglifyjs"
   webRegenerate (callProcess uglifyBinPath $ uglifyArgs ++ map webFileAbs jl) [] jl fo

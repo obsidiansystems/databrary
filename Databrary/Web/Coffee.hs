@@ -20,6 +20,6 @@ generateCoffeeJS fo@(f, _)
     let src = b <.> ".coffee"
     nodeModulesPath <- liftIO $ Conf.get "node.modules.path" <$> Conf.getConfig
     let coffeeBinPath = nodeModulesPath </> ".bin" </> "coffee"
-    let coffeeArgs = ["-b", "-c", "-m", "-o", takeDirectory (webFileAbs f), webFileAbs src ]
+        coffeeArgs = ["-b", "-c", "-m", "-o", takeDirectory (webFileAbs f), webFileAbs src ]
     webRegenerate (callProcess coffeeBinPath coffeeArgs) [] [src] fo
   | otherwise = mzero

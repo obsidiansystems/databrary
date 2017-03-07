@@ -92,7 +92,7 @@ updateDBSchema dir unattendedUpdate = do
   file = (dir </>) . (<.> ".sql")
   base = file "0"
   transact "0" = False
-  transact _ = False -- TODO: change back to true
+  transact _ = True
   apply n = do
     unless unattendedUpdate $ confirm $ "Apply schema " ++ show n ++ "?"
     if transact n then dbTransaction (run n) else run n

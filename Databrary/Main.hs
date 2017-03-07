@@ -87,7 +87,7 @@ main = do
 #ifndef DEVEL
     appRoot <- Conf.get "root.path" <$> Conf.getConfig
     let schema = appRoot </> "schema"
-    let unattendedUpdate = True
+        unattendedUpdate = True
     withDB (serviceDB rc) $ runReaderT $ updateDBSchema schema unattendedUpdate
 #endif
     runWarp conf rc (runActionRoute routes rc)

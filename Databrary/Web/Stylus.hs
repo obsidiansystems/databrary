@@ -20,6 +20,6 @@ generateStylusCSS fo@(f, _) = do
   sl <- liftIO $ findWebFiles ".styl"
   nodeModulesPath <- liftIO $ Conf.get "node.modules.path" <$> Conf.getConfig
   let stylusBinPath = nodeModulesPath </> ".bin" </> "stylus"
-  let cssFilter = if takeExtensions (webFileRel f) == ".min.css" then ("-c":) else id
-  let stylusArgs = ["-u", "nib", "-u", "autoprefixer-stylus", "-o", webFileAbs f, webFileAbs src]
+      cssFilter = if takeExtensions (webFileRel f) == ".min.css" then ("-c":) else id
+      stylusArgs = ["-u", "nib", "-u", "autoprefixer-stylus", "-o", webFileAbs f, webFileAbs src]
   webRegenerate (callProcess stylusBinPath $ cssFilter stylusArgs) [] sl fo
