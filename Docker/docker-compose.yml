@@ -11,6 +11,7 @@ services:
     volumes:
       - ./databrary/databrary_config/databrary.conf:/home/databrary/src/databrary.conf
       - databrary_logs_store:/databrary_logs
+      - /nyu:/nyu
     ports: 
       - "8642:8642"
     links:

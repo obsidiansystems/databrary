@@ -361,7 +361,7 @@ Executable databrary
     bcrypt,
     http-client,
     http-client-tls,
-    mime-mail,
+    mime-mail >0.4.12,
     fast-logger,
     digest,
     hjsonschema == 0.9.*,

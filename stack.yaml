@@ -45,6 +45,7 @@ resolver: lts-6.30
 # will not be run. This is useful for tweaking upstream packages.
 packages:
 - '.'
+- Schemabrary/
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
 extra-deps:
@@ -57,8 +58,9 @@ extra-deps:
 - hjsonschema-0.9.0.0
 - invertible-0.1.2
 - lazysmallcheck-0.6
+- mime-mail-0.4.13.1
 - mtlparse-0.1.4.0
-- posix-paths-0.2.1.0
+- posix-paths-0.2.1.1
 - postgresql-typed-0.4.5
 - regexpr-0.5.4
 - web-inv-route-0.1.1
