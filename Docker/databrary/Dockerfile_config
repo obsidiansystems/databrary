@@ -1,7 +1,8 @@
 FROM databrary_databrary:base
 
 RUN npm install
-RUN npm update
+# Fix bug https://github.com/npm/npm/issues/9863
+#RUN npm update
 RUN `npm root`/.bin/bower update
 
 # prep for schema construction

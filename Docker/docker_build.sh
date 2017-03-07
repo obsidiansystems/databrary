@@ -9,7 +9,7 @@ docker build -t databrary_postgres postgres/
 docker run -d -v databrary_postgres_store:/var/lib/postgresql/data -p 5432:5432 --rm --name databrary_postgres databrary_postgres
 ./wait-for-postgres.sh localhost "docker exec databrary_postgres /usr/local/src/databrary/init-user-db.sh"
 
-docker volume create --name databrary_log_store
+docker volume create --name databrary_logs_store
 docker build -t databrary_databrary:base -f databrary/Dockerfile_base ./databrary
 docker build -t databrary_databrary:config -f databrary/Dockerfile_config ./databrary
 docker build -t databrary_databrary:final -f databrary/Dockerfile_final ./databrary
