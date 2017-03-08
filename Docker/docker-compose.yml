@@ -17,7 +17,6 @@ services:
     links:
       - "databrary_postgres:databrary_postgres"
       - "databrary_solr:databrary_solr"
-    command: ls -l /
 
   databrary_postgres:
     build: ./postgres/

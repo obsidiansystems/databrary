@@ -1,6 +1,7 @@
 #!/bin/bash
-git pull origin build_system 
+service postfix restart
+su databrary -c 'git pull origin build_system'
 ##stack init --force --solver
-stack build
-stack exec databrary -- -c/home/databrary/src/databrary.conf
+su databrary -c 'stack build'
+su databrary -c 'stack exec databrary -- -c/home/databrary/src/databrary.conf'
 
