@@ -355,7 +355,7 @@ Executable databrary
     resourcet,
     streaming-commons,
     blaze-builder >= 0.4,
-    blaze-markup,
+    blaze-markup >= 0.8.0.0,
     blaze-html,
     regex-posix,
     bcrypt,

@@ -5,12 +5,12 @@
 # http://docs.haskellstack.org/en/stable/yaml_configuration/
 
 # A warning or info to be displayed to the user on config load.
-# user-message: ! 'Warning (added by new or init): Specified resolver could not satisfy
-#  all dependencies. Some external packages have been added as dependencies.
-#
-#  You can suppress this message by removing it from stack.yaml
-#
-#'
+user-message: ! 'Warning (added by new or init): Specified resolver could not satisfy
+  all dependencies. Some external packages have been added as dependencies.
+
+  You can suppress this message by removing it from stack.yaml
+
+'
 
 # Resolver to choose a 'specific' stackage snapshot or a compiler version.
 # A snapshot resolver dictates the compiler version and the set of packages
@@ -53,7 +53,10 @@ extra-deps:
 - Stream-0.4.7.2
 - TypeCompose-0.9.12
 - arrows-0.4.4.1
+- blaze-html-0.9.0.1
+- blaze-markup-0.8.0.0
 - file-embed-0.0.9.1
+- happstack-server-7.4.6.4
 - hjsonpointer-0.3.0.2
 - hjsonschema-0.9.0.0
 - invertible-0.1.2
