@@ -11,5 +11,5 @@ RUN make -C pgranges install
 
 ADD init-user-db.sh /usr/local/src/databrary/init-user-db.sh
 RUN chmod 755 /usr/local/src/databrary/init-user-db.sh
-ADD init-user-db.sh /usr/local/src/databrary/remove-superuser-db.sh
+ADD remove-superuser-db.sh /usr/local/src/databrary/remove-superuser-db.sh
 RUN chmod 755 /usr/local/src/databrary/remove-superuser-db.sh
