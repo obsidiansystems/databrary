@@ -353,13 +353,9 @@ CREATE AGGREGATE "segment_intersect" (segment) (SFUNC = range_intersect, STYPE =
 CREATE FUNCTION "segments" (segment) RETURNS segment[] LANGUAGE sql IMMUTABLE STRICT AS $$
 	SELECT CASE WHEN isempty($1) THEN ARRAY[]::segment[] ELSE ARRAY[$1] END
 $$;
--- this needs to be done as SU, so we use a placeholder:
-CREATE FUNCTION segments_union(segment[], segment[]) RETURNS segment[] IMMUTABLE STRICT LANGUAGE -- C AS 'pgranges.so', 'ranges_union';
-	sql AS $$ SELECT NULL::segment[] $$;
-CREATE FUNCTION segments_union(segment[], segment) RETURNS segment[] IMMUTABLE STRICT LANGUAGE -- C AS 'pgranges.so', 'ranges_union1';
-	sql AS $$ SELECT segments_union($1, segments($2)) $$;
+CREATE OR REPLACE FUNCTION segments_union(segment[], segment[]) RETURNS segment[] IMMUTABLE STRICT LANGUAGE C AS 'pgranges.so', 'ranges_union';
+CREATE OR REPLACE FUNCTION segments_union(segment[], segment) RETURNS segment[] IMMUTABLE STRICT LANGUAGE C AS 'pgranges.so', 'ranges_union1';
 CREATE AGGREGATE "segments_union" (segment) (SFUNC = segments_union, STYPE = segment[], INITCOND = '{}');
-
 ----------------------------------------------------------- containers
 
 CREATE TABLE "container" (

@@ -13,6 +13,7 @@ docker volume create --name databrary_logs_store
 docker build -t databrary_databrary:base -f databrary/Dockerfile_base ./databrary
 docker build -t databrary_databrary:config -f databrary/Dockerfile_config ./databrary
 docker build -t databrary_databrary:final -f databrary/Dockerfile_final ./databrary
+./wait-for-postgres.sh localhost "docker exec databrary_postgres /usr/local/src/databrary/remove-superuser-db.sh"
 docker stop databrary_postgres
 
 docker volume create --name databrary_solr_store
