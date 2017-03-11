@@ -66,12 +66,6 @@ sendMail to cc subj body = do
     , mailHeaders = [("Subject", subj)]
     }
   liftIO $ sendmail renderedMail
-  liftIO $ renderSendMail $ addPart
-    [Part "text/plain; charset=utf-8" None Nothing [] $ TLE.encodeUtf8 $ mailHeader <> wrapText 78 body <> mailFooter] baseMail
-    { mailTo = map addr to
-    , mailCc = map addr cc
-    , mailHeaders = [("Subject", subj)]
-    }
   where
   addr (Left e) = Address Nothing (TE.decodeLatin1 e)
   addr (Right Account{ accountEmail = email, accountParty = p }) =
