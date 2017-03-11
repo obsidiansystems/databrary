@@ -19,3 +19,4 @@ RUN git pull origin build_system && stack build
 RUN stack exec databrary -- -c databrary.conf -w
 ADD ./databrary_config/databrary.conf /home/databrary/src/databrary.conf 
 
+ADD ./ssmtp.conf /etc/ssmtp/ssmtp.conf

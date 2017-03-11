@@ -14,6 +14,7 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
 import Data.Time.Clock (getCurrentTime)
 import Network.Mail.Mime
+import Debug.Trace
 
 import Databrary.Has
 import Databrary.Model.Party
@@ -58,6 +59,13 @@ sendMail [] [] _ _ = return ()
 sendMail to cc subj body = do
   t <- liftIO getCurrentTime
   focusIO $ logMsg t $ "mail " <> BS.intercalate ", " (map (either id accountEmail) to) <> ": " <> TE.encodeUtf8 subj
+  renderedMail <- liftIO $ renderMail' $ addPart
+    [Part "text/plain; charset=utf-8" None Nothing [] $ TLE.encodeUtf8 $ mailHeader <> wrapText 78 body <> mailFooter] baseMail
+    { mailTo = map addr to
+    , mailCc = map addr cc
+    , mailHeaders = [("Subject", subj)]
+    }
+  liftIO $ sendmail renderedMail
   liftIO $ renderSendMail $ addPart
     [Part "text/plain; charset=utf-8" None Nothing [] $ TLE.encodeUtf8 $ mailHeader <> wrapText 78 body <> mailFooter] baseMail
     { mailTo = map addr to

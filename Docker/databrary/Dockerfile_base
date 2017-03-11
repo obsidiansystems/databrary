@@ -9,13 +9,7 @@ RUN echo 'deb http://us.archive.ubuntu.com/ubuntu/ xenial-updates multiverse' >>
 RUN apt-get update
 RUN apt-get install -y libgmp-dev git yasm npm libcrack2-dev gcc g++ autoconf automake zlib1g-dev \
 		   x264 ffmpeg fdkaac libavformat-dev libswscale-dev libavcodec-dev libavutil-dev curl \
-		   pkg-config vim
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y postfix
-# configure postfix 
-RUN sed -i "/^relayhost =/ s/=.*/= smtp.nyu.edu/" /etc/postfix/main.cf 
-RUN sed -i "/^mydestination =/ s/=.*/= $(hostname), databrary.org, localhost.$mydomain, localhost/" /etc/postfix/main.cf 
-RUN sed -i "/^inet_interfaces =/ s/=.*/= loopback-only/" /etc/postfix/main.cf 
-RUN sed -i "/^inet_protocols =/ s/=.*/= ipv4/" /etc/postfix/main.cf 
+		   pkg-config vim ssmtp
 
 RUN ln -s /usr/bin/nodejs /usr/bin/node
 

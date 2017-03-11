@@ -23,6 +23,7 @@ import Data.Time.Clock (getCurrentTime, addUTCTime)
 import Database.PostgreSQL.Typed (pgSQL)
 import Network.HTTP.Types (noContent204)
 import qualified Text.Regex.Posix as Regex
+import Debug.Trace
 
 import Databrary.Has
 import Databrary.Ops
@@ -111,9 +112,9 @@ sendTargetNotifications :: (MonadMail c m, MonadHas Notifications c m, MonadHas 
 sendTargetNotifications l@(Notification{ notificationTarget = u }:_) = do
   Notifications{ notificationsFilter = filt, notificationsCopy = copy } <- peek
   msg <- peek
-  sendMail (map Right (filter (Regex.matchTest filt . accountEmail) [u])) (maybe [] (return . Left) copy)
-    "Databrary notifications"
-    $ mailNotifications msg l
+  let to = (map Right (filter (Regex.matchTest filt . accountEmail) [u]))
+      cc = (maybe [] (return . Left) copy)
+  sendMail to cc "Databrary notifications" $ mailNotifications msg l
 sendTargetNotifications [] = return ()
 
 emitNotifications :: Delivery -> ContextM ()

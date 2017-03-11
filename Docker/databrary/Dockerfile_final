@@ -11,6 +11,6 @@ COPY ./databrary-entrypoint.sh /usr/local/bin/databrary-entrypoint.sh
 RUN chmod 755 /usr/local/bin/databrary-entrypoint.sh
 RUN mkdir /databrary_logs
 RUN chown databrary:databrary /databrary_logs
-
+USER databrary
 ENTRYPOINT ["databrary-entrypoint.sh"]
 
