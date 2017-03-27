@@ -74,7 +74,7 @@ if [[ -n $collect ]] ; then
 elif [[ -n $host ]] ; then
 	if [[ -z $kill ]] ; then
 		if [[ -n $mount ]] ; then
-			ln -fT "$src" "$mount/$dir/$id"
+			ln -s -fT "$src" "$mount/$dir/$id"
 		else
 			rsync "$src" "$host:$dir/$id"
 		fi
@@ -83,7 +83,7 @@ elif [[ -n $host ]] ; then
 elif [[ -n $kill ]] ; then
 	"$cmd" "$@"
 else
-	ln -fT "$src" "$dir/$id"
+	ln -s -fT "$src" "$dir/$id"
 	"$cmd" "$@" &
 	echo $!
 fi
