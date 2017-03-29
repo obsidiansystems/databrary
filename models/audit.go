@@ -41,7 +41,9 @@ func (act Action) Value() (driver.Value, error) {
 
 func (act *Action) Scan(value interface{}) error {
 	if value == nil {
-		return ActionErrorDatabase
+		return ActionErrDb{
+			msg: "got nil value from database for Action",
+		}
 	}
 	if exposure_val, err := driver.String.ConvertValue(value); err == nil {
 		if v, ok := exposure_val.(Action); ok {
@@ -49,7 +51,9 @@ func (act *Action) Scan(value interface{}) error {
 			return nil
 		}
 	}
-	return ActionErrorScanFail
+	return ActionErrScn{
+		msg: "failed to scan Action",
+	}
 }
 
 // house keeping
@@ -58,13 +62,24 @@ func (act *Action) Scan(value interface{}) error {
 var _ sql.Scanner = (*Action)(nil)
 var _ driver.Valuer = ActionSUPERUSER
 
-type ActionError struct {
-	message string
+type ActionErr interface {
+	error
 }
 
-func (e *ActionError) Error() string {
-	return fmt.Sprintf("%s", e.message)
+type ActionErrDb struct {
+	msg string
 }
 
-var ActionErrorDatabase = &ActionError{"got nil value from database for Action"}
-var ActionErrorScanFail = &ActionError{"failed to scan Action"}
+func (e ActionErrDb) Error() string {
+	return fmt.Sprintf("%s", e.msg)
+}
+
+type ActionErrScn struct {
+	msg string
+}
+
+func (e ActionErrScn) Error() string {
+	return fmt.Sprintln("%s", e.msg)
+}
+
+// consult volume.Test_error

@@ -29,53 +29,65 @@ type (
 )
 
 // Permission enum
-
-
-type Permission string
+type Perm string
 
 // Levels of access parties can have to the site data.
-
 const (
-	PermissionNONE   Permission = Permission("NONE")
-	PermissionPUBLIC Permission = Permission("PUBLIC")
-	PermissionSHARED Permission = Permission("SHARED")
-	PermissionREAD   Permission = Permission("READ")
-	PermissionEDIT   Permission = Permission("EDIT")
-	PermissionADMIN  Permission = Permission("ADMIN")
+	PermNONE   Perm = Perm("NONE")
+	PermPUBLIC Perm = Perm("PUBLIC")
+	PermSHARED Perm = Perm("SHARED")
+	PermREAD   Perm = Perm("READ")
+	PermEDIT   Perm = Perm("EDIT")
+	PermADMIN  Perm = Perm("ADMIN")
 )
 
-func (exp Permission) Value() (driver.Value, error) {
+func (exp Perm) Value() (driver.Value, error) {
 	// value needs to be a base driver.Value type
 	// such as bool.
 	return string(exp), nil
 }
 
-func (exp *Permission) Scan(value interface{}) error {
+func (exp *Perm) Scan(value interface{}) error {
 	if value == nil {
-		return PermissionErrorDatabase
+		return PermErrDb{
+			msg: "got nil from database for Permission for volume",
+		}
 	}
 	if exposure_val, err := driver.String.ConvertValue(value); err == nil {
-		if v, ok := exposure_val.(Permission); ok {
-			*exp = Permission(v)
+		if v, ok := exposure_val.(Perm); ok {
+			*exp = Perm(v)
 			return nil
 		}
 	}
-	return PermissionErrorScan
+	return PermErrScn{
+		msg: "failed to scan Permission",
+	}
 }
 
 // house keeping
 
 // checking to make sure interface is implemented
-var _ sql.Scanner = (*Permission)(nil)
-var _ driver.Valuer = PermissionADMIN
+var _ sql.Scanner = (*Perm)(nil)
+var _ driver.Valuer = PermADMIN
 
-type PermissionError struct {
-	message string
+type PermErr interface {
+	error
 }
 
-func (e *PermissionError) Error() string {
-	return fmt.Sprintf("%s", e.message)
+type PermErrDb struct {
+	msg string
 }
 
-var PermissionErrorDatabase = &PermissionError{"got nil value from database for Action for volume"}
-var PermissionErrorScan = &PermissionError{"failed to scan Action"}
+func (e PermErrDb) Error() string {
+	return fmt.Sprintf("%s", e.msg)
+}
+
+type PermErrScn struct {
+	msg string
+}
+
+func (e PermErrScn) Error() string {
+	return fmt.Sprint("%s", e.msg)
+}
+
+// consult volume.Test_error

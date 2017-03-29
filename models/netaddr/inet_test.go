@@ -6,10 +6,10 @@ import (
 	"bytes"
 	"database/sql"
 	"net"
+	"os"
 	"testing"
 
 	_ "github.com/lib/pq"
-	"os"
 )
 
 type Fatalistic interface {

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
+	"reflect"
 )
 
 type (
@@ -21,8 +22,8 @@ type (
 	VolumeAccess struct {
 		Volume     uint          `json:"volume_access_volume" db:"volume"` // references volume.id
 		Party      uint          `json:"volume_access_party" db:"party"`
-		Individual Permission    `json:"volume_access_individual" db:"individual"`
-		Children   Permission    `json:"volume_access_children" db:"permission"`
+		Individual Perm          `json:"volume_access_individual" db:"individual"`
+		Children   Perm          `json:"volume_access_children" db:"permission"`
 		Sort       sql.NullInt64 `json:"volume_access_sort" db:"sort"`
 	}
 
@@ -62,49 +63,73 @@ type (
 )
 
 // ReleaseLevel enum
-type ReleaseLevel string
+type ReleaseLvl string
 
 // Levels at which participants or researchers may choose to share data.
 const (
-	ReleaseLevelNONE     ReleaseLevel = ReleaseLevel("NONE")
-	ReleaseLevelEXCERPTS ReleaseLevel = ReleaseLevel("EXCERPTS")
-	ReleaseLevelPUBLIC   ReleaseLevel = ReleaseLevel("PUBLIC")
-	ReleaseLevelPRIVATE  ReleaseLevel = ReleaseLevel("PRIVATE")
-	ReleaseLevelSHARED   ReleaseLevel = ReleaseLevel("SHARED")
+	ReleaseLvlNONE     ReleaseLvl = ReleaseLvl("NONE")
+	ReleaseLvlEXCERPTS ReleaseLvl = ReleaseLvl("EXCERPTS")
+	ReleaseLvlPUBLIC   ReleaseLvl = ReleaseLvl("PUBLIC")
+	ReleaseLvlPRIVATE  ReleaseLvl = ReleaseLvl("PRIVATE")
+	ReleaseLvlSHARED   ReleaseLvl = ReleaseLvl("SHARED")
 )
 
-func (exp ReleaseLevel) Value() (driver.Value, error) {
+func (rls ReleaseLvl) Value() (driver.Value, error) {
 	// value needs to be a base driver.Value type
 	// such as bool.
-	return string(exp), nil
+	return string(rls), nil
 }
 
-func (exp *ReleaseLevel) Scan(value interface{}) error {
+func (rls *ReleaseLvl) Scan(value interface{}) error {
 	if value == nil {
-		return ReleaseLevelErrorDatabase
+		return RlsLvlErrDb{
+			msg: "got nil value from database for ReleaseLevel for volume",
+		}
 	}
 	if exposure_val, err := driver.String.ConvertValue(value); err == nil {
-		if v, ok := exposure_val.(ReleaseLevel); ok {
-			*exp = ReleaseLevel(v)
+		if v, ok := exposure_val.(ReleaseLvl); ok {
+			*rls = ReleaseLvl(v)
 			return nil
 		}
 	}
-	return ReleaseLevelErrorScan
+	return RlsLvlErrScn{
+		msg: "failed to scan ReleaseLevel",
+	}
 }
 
 // house keeping
 
 // checking to make sure interface is implemented
-var _ sql.Scanner = (*ReleaseLevel)(nil)
-var _ driver.Valuer = ReleaseLevelNONE
+var _ sql.Scanner = (*ReleaseLvl)(nil)
+var _ driver.Valuer = ReleaseLvlNONE
 
-type ReleaseLevelError struct {
-	message string
+type RlsLvlErr interface {
+	error
 }
 
-func (e *ReleaseLevelError) Error() string {
-	return fmt.Sprintf("%s", e.message)
+type RlsLvlErrDb struct {
+	msg string
 }
 
-var ReleaseLevelErrorDatabase = &ReleaseLevelError{"got nil value from database for ReleaseLevel for volume"}
-var ReleaseLevelErrorScan = &ReleaseLevelError{"failed to scan ReleaseLevel"}
+func (e RlsLvlErrDb) Error() string {
+	return fmt.Sprintf("%s", e.msg)
+}
+
+type RlsLvlErrScn struct {
+	msg string
+}
+
+func (e RlsLvlErrScn) Error() string {
+	return fmt.Sprintf("%s", e.msg)
+}
+
+func Test_error() error {
+	var test RlsLvlErr = RlsLvlErrScn{
+		msg: "test string",
+	}
+	fmt.Printf("'%#v'", &test)
+	fmt.Println(reflect.TypeOf(test))
+	err, ok := test.(RlsLvlErrScn)
+	fmt.Println(err, ok)
+	return err
+}
