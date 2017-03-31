@@ -1,0 +1,2 @@
+log_path = "/tmp/databrary_log"
+log_level = "DEBUG" #PANIC FATAL ERROR WARN INFO DEBUB
