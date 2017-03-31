@@ -4,31 +4,34 @@ package netaddr
 
 import (
 	"bytes"
-	"database/sql"
 	"net"
-	"os"
 	"testing"
 
-	_ "github.com/lib/pq"
+	"fmt"
+	"github.com/databrary/databrary/config"
+	"upper.io/db.v3/lib/sqlbuilder"
+	pg "upper.io/db.v3/postgresql"
 )
+
+func init() {
+	config.InitConf("../../../config/databrary_dev.toml")
+}
 
 type Fatalistic interface {
 	Fatal(args ...interface{})
 }
 
-func openTestConn(t Fatalistic) *sql.DB {
-	datname := os.Getenv("PGDATABASE")
-	sslmode := os.Getenv("PGSSLMODE")
+func openTestConn(t Fatalistic) sqlbuilder.Database {
 
-	if datname == "" {
-		os.Setenv("PGDATABASE", "pqgotest")
+	conf := config.GetConf()
+	settings := &pg.ConnectionURL{
+		Host:     conf.GetString("database.addr") + ":" + conf.GetString("database.port"),
+		Database: conf.GetString("database.db_name"),
+		User:     conf.GetString("database.user"),
+		Password: conf.GetString("database.pw"),
 	}
 
-	if sslmode == "" {
-		os.Setenv("PGSSLMODE", "disable")
-	}
-
-	conn, err := sql.Open("postgres", "")
+	conn, err := pg.Open(settings)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -37,35 +40,38 @@ func openTestConn(t Fatalistic) *sql.DB {
 }
 
 func TestInet(t *testing.T) {
-	db := openTestConn(t)
-	defer db.Close()
+	conn := openTestConn(t)
+	defer conn.Close()
 
 	inet := Inet{}
 
 	// Test scanning NULL values
-	err := db.QueryRow("SELECT NULL::inet").Scan(&inet)
+	rows, err := conn.QueryRow("SELECT NULL::inet")
 	if err != nil {
-		t.Fatal(err)
+
 	}
+	rows.Scan(&inet)
 	if inet.Valid {
 		t.Fatalf("expected null result")
 	}
 
 	// Test setting NULL values
-	err = db.QueryRow("SELECT $1::inet", inet).Scan(&inet)
+	rows, err = conn.QueryRow("SELECT $1::inet", inet)
 	if err != nil {
 		t.Fatalf("re-query null value failed: %s", err.Error())
 	}
+	rows.Scan(&inet)
 	if inet.Valid {
 		t.Fatalf("expected null result")
 	}
 
 	// test encoding in query params, then decoding during Scan
 	testBidirectional := func(i Inet, label string) {
-		err = db.QueryRow("SELECT $1::inet", i).Scan(&inet)
+		rows, err = conn.QueryRow("SELECT $1::inet", i)
 		if err != nil {
 			t.Fatalf("re-query %s inet failed: %s", label, err.Error())
 		}
+		rows.Scan(&inet)
 		if !inet.Valid {
 			t.Fatalf("expected non-null value, got null for %s", label)
 		}

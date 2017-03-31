@@ -1,2 +1,11 @@
-log_path = "/tmp/databrary_log"
-log_level = "PANIC" #PANIC FATAL ERROR WARN INFO DEBUB
+[log]
+path = "/tmp/databrary_log"
+level = "DEBUG" #PANIC FATAL ERROR WARN INFO DEBUB
+
+[database]
+addr = "localhost"
+db_name = "databrary"
+port = "5432"
+user = "postgres"
+pw = "mysecretpassword"
+
