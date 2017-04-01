@@ -3,18 +3,17 @@ package main
 import (
 	"path/filepath"
 
-	"gopkg.in/alecthomas/kingpin.v2"
 	"github.com/databrary/databrary/config"
-	"github.com/databrary/databrary/logging"
+	log "github.com/databrary/databrary/logging"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
 	config_path = kingpin.Flag("config", "Path to config file").
-			Required().
-			Short('c').
-			String()
+		Required().
+		Short('c').
+		String()
 )
-
 
 func init() {
 	// cmd line flags
@@ -24,11 +23,11 @@ func init() {
 	if err != nil {
 		panic("command line config file path error")
 	}
-	logging.InitLgr(config.InitConf(config_path))
+	log.InitLgr(config.InitConf(config_path))
 
 }
 
 func main() {
-	logrs := logging.GetLgr()
-	logrs.WithField("test", "test").Debug("dfadfadf")
+
+	log.Logger.WithField("test", "test").Debug("dfadfadf")
 }

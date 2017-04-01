@@ -1,4 +1,4 @@
-package netaddr
+package inet
 
 import (
 	"database/sql/driver"
@@ -17,16 +17,14 @@ func (i *Inet) Scan(value interface{}) error {
 	i.Inet = nil
 	i.Valid = false
 	if value == nil {
-		i.Valid = false
 		return nil
 	}
 	ipAsBytes, ok := value.([]byte)
 	if !ok {
-		return errors.New("Could not convert scanned value to bytes")
+		return errors.New("Could not convert scanned Inet value to bytes")
 	}
 	parsedIP := net.ParseIP(string(ipAsBytes))
 	if parsedIP == nil {
-		i.Valid = false
 		return nil
 	}
 	i.Valid = true

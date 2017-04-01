@@ -1,13 +1,12 @@
 // this is until https://github.com/lib/pq/pull/390 gets merged in
 
-package netaddr
+package inet
 
 import (
 	"bytes"
 	"net"
 	"testing"
 
-	"fmt"
 	"github.com/databrary/databrary/config"
 	"upper.io/db.v3/lib/sqlbuilder"
 	pg "upper.io/db.v3/postgresql"
@@ -48,7 +47,7 @@ func TestInet(t *testing.T) {
 	// Test scanning NULL values
 	rows, err := conn.QueryRow("SELECT NULL::inet")
 	if err != nil {
-
+		t.Fatalf("db error %s", err)
 	}
 	rows.Scan(&inet)
 	if inet.Valid {
@@ -76,7 +75,7 @@ func TestInet(t *testing.T) {
 			t.Fatalf("expected non-null value, got null for %s", label)
 		}
 		if bytes.Compare(i.Inet, inet.Inet) != 0 {
-			t.Fatalf("expected IP addresses to match, but did not for %s - %s %s", label, inet.Inet.String(), inet.Inet.String())
+			t.Fatalf("expected IP addresses to match, but did not for %s - %s %s", label, i.Inet.String(), inet.Inet.String())
 		}
 	}
 

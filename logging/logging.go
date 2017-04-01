@@ -1,6 +1,5 @@
 package logging
 
-
 import (
 	"io/ioutil"
 	"time"
@@ -11,13 +10,11 @@ import (
 	"github.com/spf13/viper"
 )
 
-
-var log *logrus.Logger
-
+var Logger *logrus.Logger
 
 func InitLgr(conf *viper.Viper) *logrus.Logger {
-	if log != nil {
-		return log
+	if Logger != nil {
+		return Logger
 	}
 
 	log_path := conf.GetString("log.path")
@@ -28,9 +25,9 @@ func InitLgr(conf *viper.Viper) *logrus.Logger {
 		panic("can't parse log level")
 	}
 
-	log = logrus.New()
-	log.Level = lvl
-	log.Out = ioutil.Discard
+	Logger = logrus.New()
+	Logger.Level = lvl
+	Logger.Out = ioutil.Discard
 	logrus.SetOutput(ioutil.Discard)
 
 	// roratelogs config
@@ -53,14 +50,6 @@ func InitLgr(conf *viper.Viper) *logrus.Logger {
 		logrus.ErrorLevel: writer,
 	})
 	hook.SetFormatter(&logrus.JSONFormatter{})
-	log.Hooks.Add(hook)
-	return log
-}
-
-
-func GetLgr() *logrus.Logger {
-	if log == nil {
-		panic("tried to get uninited logger")
-	}
-	return log
+	Logger.Hooks.Add(hook)
+	return Logger
 }
