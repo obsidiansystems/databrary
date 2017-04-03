@@ -1,7 +1,7 @@
 package logging
 
 import (
-	"io/ioutil"
+	//"io/ioutil"
 	"time"
 
 	logrus "github.com/Sirupsen/logrus"
@@ -27,11 +27,11 @@ func InitLgr(conf *viper.Viper) *logrus.Logger {
 
 	Logger = logrus.New()
 	Logger.Level = lvl
-	Logger.Out = ioutil.Discard
-	logrus.SetOutput(ioutil.Discard)
+	//Logger.Out = ioutil.Discard
+	//logrus.SetOutput(ioutil.Discard)
 
 	// roratelogs config
-	writer, err := rotatelogs.New(
+	writer := rotatelogs.New(
 		log_path+".%Y%m%d%H%M", // rotation pattern
 		rotatelogs.WithLinkName(log_path),
 		rotatelogs.WithRotationTime(time.Duration(86400)*time.Second), // rotate once a day

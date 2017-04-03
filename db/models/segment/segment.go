@@ -19,20 +19,145 @@ const (
 	SEG_FORMAT     = "15:04:05"
 )
 
-// A wrapper for transferring Inet values back and forth easily.
-// Valid == true and Segment == nil <=> (,)
 type Segment struct {
-	Segment *timespan.Span
-	Valid   bool
+	bounds *string
+	lower *time.Time
+	upper *time.Time
+	segment *timespan.Span
 }
 
+
 func (s *Segment) String() string {
-	return fmt.Sprintf(
-		"[%s,%s)",
-		s.Segment.Start().Format(MIL_SEG_FORMAT),
-		s.Segment.End().Format(MIL_SEG_FORMAT),
-	)
+	if s.bounds == nil {
+		return "empty"
+	} else if s.lower == nil && s.upper != nil {
+		return fmt.Sprintf(`(∞,%s%c`, s.upper, (*s.bounds)[1])
+	} else if s.lower != nil && s.upper == nil {
+		return fmt.Sprintf(`%c%s,∞)`, (*s.bounds)[0], s.upper)
+	} else if s.lower == nil && s.upper == nil {
+		return fmt.Sprint(`(∞,∞)`)
+	} else {
+		return fmt.Sprintf(`%c%s,%s%c`, (*s.bounds)[0], s.lower, s.upper, (*s.bounds)[1])
+	}
 }
+
+
+// bounds nil is empty (also make sure lower and upper are nil)
+// infinite ranges include endpoints
+func NewSegment(lower *time.Time, upper *time.Time, bounds *string) (*Segment, error) {
+	var seg timespan.Span
+	if lower != nil && upper != nil {
+		seg = timespan.New(*lower, upper.Sub(*lower))
+	}
+
+	if lower == nil && (*bounds)[0] == '[' {
+		log.Logger.Error("lower unbounded necessitates ( in bounds")
+		return nil, errors.New("lower unbounded necessitates ( in bounds")
+	}
+
+	if upper == nil && (*bounds)[1] == ']' {
+		log.Logger.Error("upper unbounded necessitates ) in bounds")
+		return nil, errors.New("upper unbounded necessitates ) in bounds")
+	}
+
+	return &Segment{
+		bounds: bounds,
+		lower: lower,
+		upper: upper,
+		segment: &seg,
+	}, nil
+}
+
+
+func (s *Segment) Lower() (*time.Time, error) {
+	if s.lower == nil && s.bounds == nil {
+		log.Logger.Errorf("no lower bound empty Segment %s", s)
+		return nil, errors.New(fmt.Sprintf("no lower bound empty Segment %s", s))
+	} else {
+		return s.lower, nil
+	}
+}
+
+
+func (s *Segment) Upper() (*time.Time, error) {
+	if s.upper == nil && s.bounds == nil {
+		log.Logger.Errorf("no upper bound empty Segment %s", s)
+		return nil, errors.New(fmt.Sprintf("no upper bound empty Segment %s", s))
+	} else {
+		return s.upper, nil
+	}
+}
+
+
+func (s *Segment) IsEmpty() (bool, error) {
+	if s.bounds != nil {
+		if s.lower == nil && s.upper == nil{
+			log.Logger.Errorf("non-nil bounds, nil bound Segment %s", s)
+			return false, errors.New(fmt.Sprintf("non-nil bounds, nil bound Segment %s", s))
+		}
+		return false, nil
+	} else {
+		if s.lower != nil || s.upper != nil {
+			log.Logger.Errorf("nil bounds, non-nil bound Segment %s", s)
+			return false, errors.New(fmt.Sprintf("nil bounds, non-nil bound Segment %s", s))
+		}
+		return true, nil
+	}
+}
+
+
+
+// true is lower bound is infinite
+func (s *Segment) InfLower() (bool, error) {
+	if s.bounds != nil {
+		return s.lower == nil, nil
+	} else {
+		log.Logger.Errorf("no lower bound empty Segment %s", s)
+		return false, errors.New(fmt.Sprintf("no lower bound empty Segment %s", s))
+	}
+}
+
+
+func (s *Segment) InfUpper() (bool, error) {
+	if s.bounds != nil {
+		return s.upper == nil, nil
+	} else {
+		log.Logger.Errorf("no upper bound empty Segment %s", s)
+		return false, errors.New(fmt.Sprintf("no upper bound empty Segment %s", s))
+	}
+}
+
+
+// true if lower bound is included
+func (s *Segment) IncLower() (bool, error) {
+	if s.bounds != nil {
+		if s.lower == nil {
+			return true, nil
+		} else {
+			return (*s.bounds)[0] == '[', nil
+		}
+	} else {
+		log.Logger.Errorf("no lower bound empty Segment %s", s)
+		return false, errors.New(fmt.Sprintf("no lower bound empty Segment %s", s))
+	}
+}
+
+
+// true if upper bound is included
+func (s *Segment) IncUpper() (bool, error) {
+	if s.bounds != nil {
+		if s.upper == nil {
+			return true, nil
+		} else {
+			return (*s.bounds)[1] == ']', nil
+		}
+	} else {
+		log.Logger.Errorf("no upper bound empty Segment %s", s)
+		return false, errors.New(fmt.Sprintf("no upper bound empty Segment %s", s))
+	}
+}
+
+
 
 func parseTimeToString(timeAsString string) (*time.Time, error) {
 
@@ -78,8 +203,7 @@ func parseSegment(segment string) (*time.Time, *time.Time, error) {
 
 // Scan implements the Scanner interface.
 func (s *Segment) Scan(value interface{}) error {
-	s.Segment = nil
-	s.Valid = false
+	s.segment = nil
 	if value == nil {
 		return nil
 	}
@@ -94,7 +218,6 @@ func (s *Segment) Scan(value interface{}) error {
 		return errors.New("empty segment")
 	}
 	if segmentAsString == "(,)" {
-		s.Valid = true
 		return nil
 	}
 	begin, end, err := parseSegment(segmentAsString)
@@ -104,16 +227,12 @@ func (s *Segment) Scan(value interface{}) error {
 		return errors.New(msg)
 	}
 	seg := timespan.New(*begin, end.Sub(*begin))
-	s.Segment = &seg
-	s.Valid = true
+	s.segment = &seg
 
 	return nil
 }
 
 func (s Segment) Value() (driver.Value, error) {
-	if s.Valid == false || s.Segment == nil {
-		return nil, nil
-	}
 	// [00:18:34.15,00:22:46.909)
 	segAsString := s.String()
 	return []byte(segAsString), nil
