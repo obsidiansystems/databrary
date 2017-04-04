@@ -20,7 +20,7 @@ const (
 )
 
 type Segment struct {
-	bounds *string
+	bounds string
 	lower *time.Time
 	upper *time.Time
 	segment *timespan.Span
@@ -28,49 +28,70 @@ type Segment struct {
 
 
 func (s *Segment) String() string {
-	if s.bounds == nil {
+	if s.bounds == "" {
 		return "empty"
 	} else if s.lower == nil && s.upper != nil {
-		return fmt.Sprintf(`(∞,%s%c`, s.upper, (*s.bounds)[1])
+		return fmt.Sprintf(`(∞,%s%c`, s.upper, s.bounds[1])
 	} else if s.lower != nil && s.upper == nil {
-		return fmt.Sprintf(`%c%s,∞)`, (*s.bounds)[0], s.upper)
+		return fmt.Sprintf(`%c%s,∞)`, s.bounds[0], s.upper)
 	} else if s.lower == nil && s.upper == nil {
 		return fmt.Sprint(`(∞,∞)`)
 	} else {
-		return fmt.Sprintf(`%c%s,%s%c`, (*s.bounds)[0], s.lower, s.upper, (*s.bounds)[1])
+		return fmt.Sprintf(`%c%s,%s%c`, s.bounds[0], s.lower, s.upper, s.bounds[1])
 	}
 }
 
 
 // bounds nil is empty (also make sure lower and upper are nil)
 // infinite ranges include endpoints
-func NewSegment(lower *time.Time, upper *time.Time, bounds *string) (*Segment, error) {
-	var seg timespan.Span
+func NewSegment(lower *time.Time, upper *time.Time, bounds string) (*Segment, error) {
+	var seg *timespan.Span
 	if lower != nil && upper != nil {
-		seg = timespan.New(*lower, upper.Sub(*lower))
+		if !(upper.Sub(*lower).Nanoseconds()>=0) {
+			log.Logger.Errorf("lower bound %s above upper bound %s", *lower, *upper)
+			return nil, errors.New(fmt.Sprintf("lower bound %s above upper bound %s", *lower, *upper))
+		}
+		realSeg := timespan.New(*lower, upper.Sub(*lower))
+		seg = &realSeg
 	}
 
-	if lower == nil && (*bounds)[0] == '[' {
-		log.Logger.Error("lower unbounded necessitates ( in bounds")
-		return nil, errors.New("lower unbounded necessitates ( in bounds")
+	if lower == nil {
+		if len(bounds) > 0 {
+			if bounds[0] == '[' {
+				log.Logger.Error("lower unbounded necessitates ( in bounds")
+				return nil, errors.New("lower unbounded necessitates ( in bounds")
+			}
+		} else if upper != nil {
+			log.Logger.Error("empty bounds with non-nil upper")
+			return nil, errors.New("empty bounds with non-nil upper")
+
+		}
 	}
 
-	if upper == nil && (*bounds)[1] == ']' {
-		log.Logger.Error("upper unbounded necessitates ) in bounds")
-		return nil, errors.New("upper unbounded necessitates ) in bounds")
+	if upper == nil {
+		if len(bounds) > 0 {
+			if bounds[1] == ']' {
+				log.Logger.Error("upper unbounded necessitates ] in bounds")
+				return nil, errors.New("upper unbounded necessitates ] in bounds")
+			}
+		} else if lower != nil {
+			log.Logger.Error("empty bounds with non-nil lower")
+			return nil, errors.New("empty bounds with non-nil lower")
+
+		}
 	}
 
 	return &Segment{
 		bounds: bounds,
 		lower: lower,
 		upper: upper,
-		segment: &seg,
+		segment: seg,
 	}, nil
 }
 
 
 func (s *Segment) Lower() (*time.Time, error) {
-	if s.lower == nil && s.bounds == nil {
+	if s.lower == nil && s.bounds == "" {
 		log.Logger.Errorf("no lower bound empty Segment %s", s)
 		return nil, errors.New(fmt.Sprintf("no lower bound empty Segment %s", s))
 	} else {
@@ -80,7 +101,7 @@ func (s *Segment) Lower() (*time.Time, error) {
 
 
 func (s *Segment) Upper() (*time.Time, error) {
-	if s.upper == nil && s.bounds == nil {
+	if s.upper == nil && s.bounds == "" {
 		log.Logger.Errorf("no upper bound empty Segment %s", s)
 		return nil, errors.New(fmt.Sprintf("no upper bound empty Segment %s", s))
 	} else {
@@ -90,26 +111,24 @@ func (s *Segment) Upper() (*time.Time, error) {
 
 
 func (s *Segment) IsEmpty() (bool, error) {
-	if s.bounds != nil {
-		if s.lower == nil && s.upper == nil{
-			log.Logger.Errorf("non-nil bounds, nil bound Segment %s", s)
-			return false, errors.New(fmt.Sprintf("non-nil bounds, nil bound Segment %s", s))
-		}
+	if s.bounds != "" {
 		return false, nil
 	} else {
 		if s.lower != nil || s.upper != nil {
-			log.Logger.Errorf("nil bounds, non-nil bound Segment %s", s)
-			return false, errors.New(fmt.Sprintf("nil bounds, non-nil bound Segment %s", s))
+			log.Logger.Errorf("non-nil bounds, nil bound Segment %s", s)
+			return false, errors.New(fmt.Sprintf("non-nil bounds, nil bound Segment %s %#v", s, s))
 		}
 		return true, nil
 	}
 }
 
 
-
+func (s *Segment) IsBounded() bool {
+	return s.segment != nil
+}
 // true is lower bound is infinite
 func (s *Segment) InfLower() (bool, error) {
-	if s.bounds != nil {
+	if s.bounds != "" {
 		return s.lower == nil, nil
 	} else {
 		log.Logger.Errorf("no lower bound empty Segment %s", s)
@@ -119,7 +138,7 @@ func (s *Segment) InfLower() (bool, error) {
 
 
 func (s *Segment) InfUpper() (bool, error) {
-	if s.bounds != nil {
+	if s.bounds != "" {
 		return s.upper == nil, nil
 	} else {
 		log.Logger.Errorf("no upper bound empty Segment %s", s)
@@ -130,11 +149,11 @@ func (s *Segment) InfUpper() (bool, error) {
 
 // true if lower bound is included
 func (s *Segment) IncLower() (bool, error) {
-	if s.bounds != nil {
+	if s.bounds != "" {
 		if s.lower == nil {
 			return true, nil
 		} else {
-			return (*s.bounds)[0] == '[', nil
+			return s.bounds[0] == '[', nil
 		}
 	} else {
 		log.Logger.Errorf("no lower bound empty Segment %s", s)
@@ -145,11 +164,11 @@ func (s *Segment) IncLower() (bool, error) {
 
 // true if upper bound is included
 func (s *Segment) IncUpper() (bool, error) {
-	if s.bounds != nil {
+	if s.bounds != "" {
 		if s.upper == nil {
 			return true, nil
 		} else {
-			return (*s.bounds)[1] == ']', nil
+			return s.bounds[1] == ']', nil
 		}
 	} else {
 		log.Logger.Errorf("no upper bound empty Segment %s", s)
