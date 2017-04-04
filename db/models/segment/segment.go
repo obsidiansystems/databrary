@@ -126,6 +126,8 @@ func (s *Segment) IsEmpty() (bool, error) {
 func (s *Segment) IsBounded() bool {
 	return s.segment != nil
 }
+
+
 // true is lower bound is infinite
 func (s *Segment) InfLower() (bool, error) {
 	if s.bounds != "" {

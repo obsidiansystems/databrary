@@ -175,11 +175,13 @@ func TestSegmentType(t *testing.T) {
 		t.Fatalf("should be unbounded %s", s)
 	}
 
+	// test IsEmpty
 	s, _ = NewSegment(nil, nil, "")
 	if ie, e := s.IsEmpty(); !ie || e != nil {
 		t.Fatalf("should be empty %s or error %s", s, e)
 	}
 
+	// test constructor errors
 	if s, e := NewSegment(&times[0], nil, ""); e == nil {
 		t.Fatalf("empty bounds with non-nil lower %s", s)
 	}
@@ -208,6 +210,7 @@ func TestSegmentType(t *testing.T) {
 		t.Fatalf("no lower bound empty Segment %s", s)
 	}
 }
+
 
 //func TestInet(t *testing.T) {
 //	conn := openTestConn(t)
