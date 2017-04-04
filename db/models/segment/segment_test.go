@@ -3,7 +3,6 @@ package segment
 import (
 	"testing"
 
-	//"github.com/SaidinWoT/timespan"
 	"github.com/databrary/databrary/config"
 	"github.com/databrary/databrary/logging"
 	"time"
@@ -47,169 +46,418 @@ func openTestConn(t Fatalistic) sqlbuilder.Database {
 }
 
 
-func TestSegmentType(t *testing.T) {
-	s, _ := NewSegment(&times[0], &times[1], "[]")
-	if l, e := s.Lower(); *l != times[0] || *l != s.segment.Start() || e != nil {
-		t.Fatalf("lowers don't match %s or error %s", s, e)
+func TestConstructor(t *testing.T) {
+	// test empty
+	if _, e := NewSegment(nil, nil, ""); e != nil {
+		t.Fatalf(e.Error())
 	}
-	if u, e := s.Upper(); *u != times[1] || *u != s.segment.End() || e != nil {
-		t.Fatalf("uppers don't match %s or error %s", s, e)
+	// test empty erroring
+	if _, e := NewSegment(&times[0], nil, ""); e == nil {
+		t.Fatal("empty bounds with non-nil lower")
 	}
-	if l, e := s.IncLower(); !l || e != nil {
-		t.Fatalf("excluded lower %s or error %s", s, e)
+	if _, e := NewSegment(nil, &times[0], ""); e == nil {
+		t.Fatal("empty bounds with non-nil upper")
 	}
-	if u, e := s.IncUpper(); !u || e != nil {
-		t.Fatalf("excluded upper %s or error %s", s, e)
-	}
-	if l, e := s.InfLower(); l || e != nil {
-		t.Fatalf("unbounded lower %s or error %s", s, e)
-	}
-	if u, e := s.InfUpper(); u || e != nil {
-		t.Fatalf("unbounded upper %s or error %s", s, e)
-	}
-	if ie, e := s.IsEmpty(); ie || e != nil {
-		t.Fatalf("empty %s or error %s", s, e)
+	if _, e := NewSegment(&times[0], &times[1], ""); e == nil {
+		t.Fatal("empty bounds with non-nil lower and upper")
 	}
 
-	s, _ = NewSegment(nil ,&times[1], "(]")
-	if l, e := s.Lower(); l != nil || e != nil {
-		t.Fatalf("lowers don't match %s or error %s", s, e)
+	// test finite
+	if _, e := NewSegment(&times[0], &times[1], "[]"); e != nil {
+		t.Fatal(e.Error())
 	}
-	if u, e := s.Upper(); *u != times[1] || e != nil {
-		t.Fatalf("uppers don't match %s or error %s", s, e)
+	if _, e := NewSegment(&times[0], &times[1], "[)"); e != nil {
+		t.Fatal(e.Error())
 	}
-	if l, e := s.IncLower(); !l || e != nil {
-		t.Fatalf("excluded lower %s or error %s", s, e)
+	if _, e := NewSegment(&times[0], &times[1], "(]"); e != nil {
+		t.Fatal(e.Error())
 	}
-	if u, e := s.IncUpper(); !u || e != nil {
-		t.Fatalf("excluded upper %s or error %s", s, e)
+	if _, e := NewSegment(&times[0], &times[1], "()"); e != nil {
+		t.Fatal(e.Error())
 	}
-	if l, e := s.InfLower(); !l || e != nil {
-		t.Fatalf("bounded lower %s or error %s", s, e)
-	}
-	if u, e := s.InfUpper(); u || e != nil {
-		t.Fatalf("unbounded upper %s or error %s", s, e)
-	}
-	if ie, e := s.IsEmpty(); ie || e != nil {
-		t.Fatalf("empty %s or error %s", s, e)
-	}
-	if i := s.IsBounded(); i {
-		t.Fatalf("should be bounded %s", s)
+	// test finite errors
+	if _, e := NewSegment(&times[1], &times[0], "[]"); e == nil {
+		t.Fatal(e.Error())
 	}
 
-	s, _ = NewSegment(&times[0], nil, "[)")
-	if l, e := s.Lower(); *l != times[0] || e != nil {
-		t.Fatalf("lowers don't match %s or error %s", s, e)
+	// test lower unbound
+	if _, e := NewSegment(nil, &times[0], "(]"); e != nil {
+		t.Fatal(e.Error())
 	}
-	if u, e := s.Upper(); u != nil || e != nil {
-		t.Fatalf("uppers don't match %s or error %s", s, e)
+	if _, e := NewSegment(nil, &times[0], "()"); e != nil {
+		t.Fatal(e.Error())
 	}
-	if l, e := s.IncLower(); !l || e != nil {
-		t.Fatalf("excluded lower %s or error %s", s, e)
+	if _, e := NewSegment(nil, nil, "()"); e != nil {
+		t.Fatal(e.Error())
 	}
-	if u, e := s.IncUpper(); !u || e != nil {
-		t.Fatalf("excluded upper %s or error %s", s, e)
+	// test lower unbound error
+	if _, e := NewSegment(nil, &times[0], "[]"); e == nil {
+		t.Fatal(e.Error())
 	}
-	if l, e := s.InfLower(); l || e != nil {
-		t.Fatalf("unbounded lower %s or error %s", s, e)
-	}
-	if u, e := s.InfUpper(); !u || e != nil {
-		t.Fatalf("bounded upper %s or error %s", s, e)
-	}
-	if ie, e := s.IsEmpty(); ie || e != nil {
-		t.Fatalf("empty %s or error %s", s, e)
-	}
-	if i := s.IsBounded(); i {
-		t.Fatalf("should be unbounded %s", s)
+	if _, e := NewSegment(nil, nil, "[]"); e == nil {
+		t.Fatal(e.Error())
 	}
 
-	s, _ = NewSegment(nil, nil, "()")
-	if l, e := s.Lower(); l != nil || e != nil {
-		t.Fatalf("lowers don't match %s or error %s", s, e)
+	// test upper unbound
+	if _, e := NewSegment(&times[0], nil, "[)"); e != nil {
+		t.Fatal(e.Error())
 	}
-	if u, e := s.Upper(); u != nil || e != nil {
-		t.Fatalf("uppers don't match %s or error %s", s, e)
-	}
-	if l, e := s.IncLower(); !l || e != nil {
-		t.Fatalf("excluded lower %s or error %s", s, e)
-	}
-	if u, e := s.IncUpper(); !u || e != nil {
-		t.Fatalf("excluded upper %s or error %s", s, e)
-	}
-	if l, e := s.InfLower(); !l || e != nil {
-		t.Fatalf("bounded lower %s or error %s", s, e)
-	}
-	if u, e := s.InfUpper(); !u || e != nil {
-		t.Fatalf("bounded upper %s or error %s", s, e)
-	}
-	if ie, e := s.IsEmpty(); ie || e != nil {
-		t.Fatalf("empty %s or error %s", s, e)
-	}
-	if i := s.IsBounded(); i {
-		t.Fatalf("should be unbounded %s", s)
-	}
-
-	s, _ = NewSegment(nil, nil, "()")
-	if l, e := s.Lower(); l != nil || e != nil {
-		t.Fatalf("lowers don't match %s or error %s", s, e)
-	}
-	if u, e := s.Upper(); u != nil || e != nil {
-		t.Fatalf("uppers don't match %s or error %s", s, e)
-	}
-	if l, e := s.IncLower(); !l || e != nil {
-		t.Fatalf("excluded lower %s or error %s", s, e)
-	}
-	if u, e := s.IncUpper(); !u || e != nil {
-		t.Fatalf("excluded upper %s or error %s", s, e)
-	}
-	if l, e := s.InfLower(); !l || e != nil {
-		t.Fatalf("bounded lower %s or error %s", s, e)
-	}
-	if u, e := s.InfUpper(); !u || e != nil {
-		t.Fatalf("bounded upper %s or error %s", s, e)
-	}
-	if ie, e := s.IsEmpty(); ie || e != nil {
-		t.Fatalf("empty %s or error %s", s, e)
-	}
-	if i := s.IsBounded(); i {
-		t.Fatalf("should be unbounded %s", s)
-	}
-
-	// test IsEmpty
-	s, _ = NewSegment(nil, nil, "")
-	if ie, e := s.IsEmpty(); !ie || e != nil {
-		t.Fatalf("should be empty %s or error %s", s, e)
-	}
-
-	// test constructor errors
-	if s, e := NewSegment(&times[0], nil, ""); e == nil {
-		t.Fatalf("empty bounds with non-nil lower %s", s)
-	}
-
-	if s, e := NewSegment(nil, &times[0], ""); e == nil {
-		t.Fatalf("empty bounds with non-nil upper %s", s)
-	}
-
-	if s, e := NewSegment(&times[1], &times[0], ""); e == nil {
-		t.Fatalf("lower bound above upper bound %s", s)
-	}
-
-	if s, e := NewSegment(nil, &times[0], "[]"); e == nil {
-		t.Fatalf("lower unbounded necessitates ( in bounds", s)
-	}
-
-	if s, e := NewSegment(&times[0], nil, "[]"); e == nil {
-		t.Fatalf("upper unbounded necessitates ) in bounds", s)
-	}
-
-	if s, e := NewSegment(&times[0], nil, ""); e == nil {
-		t.Fatalf("no upper bound empty Segment %s", s)
-	}
-
-	if s, e := NewSegment(nil, &times[0], ""); e == nil {
-		t.Fatalf("no lower bound empty Segment %s", s)
+	// test upper unbound error
+	if _, e := NewSegment(&times[0], nil, "[]"); e == nil {
+		t.Fatal(e.Error())
 	}
 }
+
+func TestOrder(tt *testing.T) {
+	s, _ := NewSegment(&times[0], &times[2], "[]")
+	t, _ := NewSegment(&times[1], &times[3], "[]")
+	if lt := s.LowerLT(t); !lt {
+		tt.Fatal("should be <")
+	}
+	if lt := s.LowerLE(t); !lt {
+		tt.Fatal("should be <=")
+	}
+	if lt := s.LowerGT(t); lt {
+		tt.Fatal("should not be >")
+	}
+	if lt := s.LowerGE(t); lt {
+		tt.Fatal("should not be >=")
+	}
+	if lt := s.UpperLT(t); !lt {
+		tt.Fatal("should be <")
+	}
+	if lt := s.UpperLE(t); !lt {
+		tt.Fatal("should be <=")
+	}
+	if lt := s.UpperGT(t); lt {
+		tt.Fatal("should not be >")
+	}
+	if lt := s.UpperGE(t); lt {
+		tt.Fatal("should not be >=")
+	}
+
+	s, _ = NewSegment(&times[0], &times[2], "[]")
+	t, _ = NewSegment(&times[0], &times[3], "(]")
+	if lt := s.LowerLT(t); lt {
+		tt.Fatal("should not be <")
+	}
+	if lt := s.LowerLE(t); !lt {
+		tt.Fatal("should be <=")
+	}
+	if lt := s.LowerGT(t); lt {
+		tt.Fatal("should not be >")
+	}
+	if lt := s.LowerGE(t); !lt {
+		tt.Fatal("should be >=")
+	}
+	if lt := t.LowerLT(s); lt {
+		tt.Fatal("should not be <")
+	}
+	if lt := t.LowerLE(s); !lt {
+		tt.Fatal("should be <=")
+	}
+	if lt := t.UpperLT(s); lt {
+		tt.Fatal("should not be <")
+	}
+	if lt := t.UpperLE(s); !lt {
+		tt.Fatal("should be <=")
+	}
+
+	s, _ = NewSegment(&times[0], &times[2], "[]")
+	t, _ = NewSegment(&times[1], &times[2], "[)")
+	if lt := s.UpperLT(t); lt {
+		tt.Fatal("should not be <")
+	}
+	if lt := s.UpperLE(t); !lt {
+		tt.Fatal("should be <=")
+	}
+	if lt := s.UpperGT(t); lt {
+		tt.Fatal("should not be >=")
+	}
+	if lt := s.UpperGE(t); !lt {
+		tt.Fatal("should be >=")
+	}
+	if lt := t.UpperLT(s); lt {
+		tt.Fatal("should not be <")
+	}
+	if lt := t.UpperLE(s); !lt {
+		tt.Fatal("should be <=")
+	}
+	if lt := t.UpperGT(s); lt {
+		tt.Fatal("should not be >")
+	}
+	if lt := t.UpperGE(s); !lt {
+		tt.Fatal("should be >=")
+	}
+
+	// compare s with itself
+	if lt := s.LowerLT(s); lt {
+		tt.Fatal("should not be <")
+	}
+	if lt := s.LowerLE(s); !lt {
+		tt.Fatal("should be <=")
+	}
+	if lt := s.LowerGT(s); lt {
+		tt.Fatal("should not be >")
+	}
+	if lt := s.LowerGE(s); !lt {
+		tt.Fatal("should be >=")
+	}
+	if lt := s.UpperLT(s); lt {
+		tt.Fatal("should not be <")
+	}
+	if lt := s.UpperLE(s); !lt {
+		tt.Fatal("should be <=")
+	}
+	if lt := s.UpperGT(s); lt {
+		tt.Fatal("should not be >=")
+	}
+	if lt := s.UpperGE(s); !lt {
+		tt.Fatal("should be >=")
+	}
+
+	// compare t with itself
+	if lt := t.LowerLT(t); lt {
+		tt.Fatal("should not be <")
+	}
+	if lt := t.LowerLE(t); !lt {
+		tt.Fatal("should be <=")
+	}
+	if lt := t.LowerGT(t); lt {
+		tt.Fatal("should not be >")
+	}
+	if lt := t.LowerGE(t); !lt {
+		tt.Fatal("should be >=")
+	}
+	if lt := t.UpperLT(t); lt {
+		tt.Fatal("should not be <")
+	}
+	if lt := t.UpperLE(t); !lt {
+		tt.Fatal("should be <=")
+	}
+	if lt := t.UpperGT(t); lt {
+		tt.Fatal("should not be >=")
+	}
+	if lt := t.UpperGE(t); !lt {
+		tt.Fatal("should be >=")
+	}
+
+	s, _ = NewSegment(nil, &times[2], "(]")
+	t, _ = NewSegment(&times[1], &times[2], "[]")
+	if lt := s.LowerLT(t); !lt {
+		tt.Fatal("should be <")
+	}
+	if lt := s.LowerLE(t); !lt {
+		tt.Fatal("should be <=")
+	}
+	if lt := s.LowerGT(t); lt {
+		tt.Fatal("should not be >")
+	}
+	if lt := s.LowerGE(t); lt {
+		tt.Fatal("should not be >=")
+	}
+	if lt := t.LowerLT(s); lt {
+		tt.Fatal("should not be <")
+	}
+	if lt := t.LowerLE(s); lt {
+		tt.Fatal("should not be <=")
+	}
+	if lt := t.LowerGT(s); !lt {
+		tt.Fatal("should be >")
+	}
+	if lt := t.LowerGE(s); !lt {
+		tt.Fatal("should be >=")
+	}
+
+	s, _ = NewSegment(&times[2],nil, "[)")
+	t, _ = NewSegment(&times[1], &times[2], "[]")
+	if lt := s.UpperLT(t); lt {
+		tt.Fatal("should not be <")
+	}
+	if lt := s.UpperLE(t); lt {
+		tt.Fatal("should not be <=")
+	}
+	if lt := s.UpperGT(t); !lt {
+		tt.Fatal("should be >")
+	}
+	if lt := s.UpperGE(t); !lt {
+		tt.Fatal("should be >=")
+	}
+	if lt := t.UpperLT(s); !lt {
+		tt.Fatal("should be <")
+	}
+	if lt := t.UpperLE(s); !lt {
+		tt.Fatal("should be <=")
+	}
+	if lt := t.UpperGT(s); lt {
+		tt.Fatal("should not be >")
+	}
+	if lt := t.UpperGE(s); lt {
+		tt.Fatal("should not be >=")
+	}
+
+	s, _ = NewSegment(nil, &times[1], "()")
+	t, _ = NewSegment(nil, &times[0], "()")
+	if lt := s.LowerLT(t); !lt {
+		tt.Fatal("should be <")
+	}
+	if lt := s.LowerLE(t); !lt {
+		tt.Fatal("should be <=")
+	}
+	if lt := s.LowerGT(t); lt {
+		tt.Fatal("should not be >")
+	}
+	if lt := s.LowerGE(t); lt {
+		tt.Fatal("should not be >=")
+	}
+	if lt := t.LowerLT(s); !lt {
+		tt.Fatal("should be <")
+	}
+	if lt := t.LowerLE(s); !lt {
+		tt.Fatal("should be <=")
+	}
+	if lt := t.LowerGT(s); lt {
+		tt.Fatal("should not be >")
+	}
+	if lt := t.LowerGE(s); lt {
+		tt.Fatal("should not be >=")
+	}
+
+	s, _ = NewSegment(&times[2],nil, "[)")
+	t, _ = NewSegment(&times[1], nil, "[)")
+	if lt := s.UpperLT(t); lt {
+		tt.Fatal("should not be <")
+	}
+	if lt := s.UpperLE(t); lt {
+		tt.Fatal("should not be <=")
+	}
+	if lt := s.UpperGT(t); !lt {
+		tt.Fatal("should be >")
+	}
+	if lt := s.UpperGE(t); !lt {
+		tt.Fatal("should be >=")
+	}
+	if lt := t.UpperLT(s); lt {
+		tt.Fatal("should not be <")
+	}
+	if lt := t.UpperLE(s); lt {
+		tt.Fatal("should not be <=")
+	}
+	if lt := t.UpperGT(s); !lt {
+		tt.Fatal("should be >")
+	}
+	if lt := t.UpperGE(s); !lt {
+		tt.Fatal("should be >=")
+	}
+}
+
+
+func TestSegment_Contains(tt *testing.T) {
+	s, _ := NewSegment(&times[0], &times[2], "[]")
+	t, _ := NewSegment(&times[1], &times[3], "[]")
+	if c := s.Contains(t); c {
+		tt.Fatal("should not contain")
+	}
+	if c := t.Contains(s); c {
+		tt.Fatal("should not contain")
+	}
+
+	s, _ = NewSegment(&times[0], &times[3], "[]")
+	t, _ = NewSegment(&times[1], &times[2], "[]")
+	if c := s.Contains(t); !c {
+		tt.Fatal("should contain")
+	}
+	if c := t.Contains(s); c {
+		tt.Fatal("should not contain")
+	}
+	s, t = t, s
+	if c := s.Contains(t); c {
+		tt.Fatal("should not contain")
+	}
+	if c := t.Contains(s); !c {
+		tt.Fatal("should contain")
+	}
+
+	s, _ = NewSegment(&times[0], &times[2], "[]")
+	t, _ = NewSegment(&times[0], &times[2], "()")
+	if c := s.Contains(t); !c {
+		tt.Fatal("should contain")
+	}
+	if c := t.Contains(s); !c {
+		tt.Fatal("should contain")
+	}
+	s, t = t, s
+	if c := s.Contains(t); !c {
+		tt.Fatal("should contain")
+	}
+	if c := t.Contains(s); !c {
+		tt.Fatal("should contain")
+	}
+
+	s, _ = NewSegment(nil, &times[2], "(]")
+	t, _ = NewSegment(&times[0], &times[2], "()")
+	if c := s.Contains(t); !c {
+		tt.Fatal("should contain")
+	}
+	if c := t.Contains(s); c {
+		tt.Fatal("should not contain")
+	}
+	s, t = t, s
+	if c := s.Contains(t); c {
+		tt.Fatal("should not contain")
+	}
+	if c := t.Contains(s); !c {
+		tt.Fatal("should contain")
+	}
+
+	s, _ = NewSegment(nil, nil, "()")
+	t, _ = NewSegment(&times[0], &times[2], "()")
+	if c := s.Contains(t); !c {
+		tt.Fatal("should contain")
+	}
+	if c := t.Contains(s); c {
+		tt.Fatal("should not contain")
+	}
+	s, t = t, s
+	if c := s.Contains(t); c {
+		tt.Fatal("should not contain")
+	}
+	if c := t.Contains(s); !c {
+		tt.Fatal("should contain")
+	}
+	s = t
+	t, _ = NewSegment(nil, &times[2], "()")
+	if c := s.Contains(t); !c {
+		tt.Fatal("should contain")
+	}
+	if c := t.Contains(s); c {
+		tt.Fatal("should not contain")
+	}
+	s, t = t, s
+	if c := s.Contains(t); c {
+		tt.Fatal("should not contain")
+	}
+	if c := t.Contains(s); !c {
+		tt.Fatal("should contain")
+	}
+
+	s = t
+	t, _ = NewSegment(nil, nil, "()")
+	if c := s.Contains(t); !c {
+		tt.Fatal("should contain")
+	}
+	if c := t.Contains(s); !c {
+		tt.Fatal("should contain")
+	}
+	s, t = t, s
+	if c := s.Contains(t); !c {
+		tt.Fatal("should contain")
+	}
+	if c := t.Contains(s); !c {
+		tt.Fatal("should contain")
+	}
+}
+
 
 
 //func TestInet(t *testing.T) {

@@ -1,12 +1,9 @@
 package segment
 
 import (
-	//"net"
 	"errors"
-	//"database/sql/driver"
 	"fmt"
 	"strings"
-	//"time"
 
 	"database/sql/driver"
 	"github.com/SaidinWoT/timespan"
@@ -20,12 +17,11 @@ const (
 )
 
 type Segment struct {
-	bounds string
-	lower *time.Time
-	upper *time.Time
+	bounds  string
+	lower   *time.Time
+	upper   *time.Time
 	segment *timespan.Span
 }
-
 
 func (s *Segment) String() string {
 	if s.bounds == "" {
@@ -41,144 +37,207 @@ func (s *Segment) String() string {
 	}
 }
 
-
-// bounds nil is empty (also make sure lower and upper are nil)
-// infinite ranges include endpoints
 func NewSegment(lower *time.Time, upper *time.Time, bounds string) (*Segment, error) {
 	var seg *timespan.Span
+	// empty -> bounds = "", lower = nil, upper = nil, segment = nil
+	if bounds == "" {
+		if lower != nil || upper != nil {
+			errF := fmt.Sprintf("empty segment with non-nil lower %s or upper %s", lower, upper)
+			log.Logger.Error(errF)
+			return nil, errors.New(errF)
+		}
+		return &Segment{bounds: bounds, lower: lower, upper: upper, segment: seg}, nil
+	}
+	// [a,b] -> bounds = "[]", lower = a, upper = b, segment = Segment(a,b)
+	// [a,b) -> bounds = "[)", lower = a, upper = b, segment = Segment(a,b)
+	// (a,b] -> bounds = "(]", lower = a, upper = b, segment = Segment(a,b)
+	// (a,b) -> bounds = "()", lower = a, upper = b, segment = Segment(a,b)
 	if lower != nil && upper != nil {
-		if !(upper.Sub(*lower).Nanoseconds()>=0) {
-			log.Logger.Errorf("lower bound %s above upper bound %s", *lower, *upper)
-			return nil, errors.New(fmt.Sprintf("lower bound %s above upper bound %s", *lower, *upper))
+		if !(upper.Sub(*lower).Nanoseconds() >= 0) {
+			return nil, log.LogAndError(fmt.Sprintf("lower bound %s above upper bound %s", *lower, *upper))
 		}
 		realSeg := timespan.New(*lower, upper.Sub(*lower))
-		seg = &realSeg
+		return &Segment{bounds: bounds, lower: lower, upper: upper, segment: &realSeg}, nil
 	}
-
+	// (∞,a) -> bounds = "()", lower = nil, upper = a, segment = nil
+	// (∞,a] -> bounds = "(]", lower = nil, upper = a, segment = nil
+	// (∞,∞) -> bounds = "()", lower = nil, upper = nil
 	if lower == nil {
-		if len(bounds) > 0 {
-			if bounds[0] == '[' {
-				log.Logger.Error("lower unbounded necessitates ( in bounds")
-				return nil, errors.New("lower unbounded necessitates ( in bounds")
-			}
-		} else if upper != nil {
-			log.Logger.Error("empty bounds with non-nil upper")
-			return nil, errors.New("empty bounds with non-nil upper")
-
+		if bounds[0] != '(' {
+			return nil, log.LogAndError(fmt.Sprintf("nil lower %s with wrong bound %s", lower, bounds[0]))
 		}
+		if upper == nil && bounds[1] != ')' {
+			return nil, log.LogAndError(fmt.Sprintf("nil upper %s with wrong bound %s", upper, bounds[1]))
+		}
+		return &Segment{bounds: bounds, lower: lower, upper: upper, segment: seg}, nil
 	}
-
+	// (a,∞) -> bounds = "()", lower = a, upper = nil, segment = nil
+	// [a,∞) -> bounds = "[)", lower = a, upper = nil, segment = nil
 	if upper == nil {
-		if len(bounds) > 0 {
-			if bounds[1] == ']' {
-				log.Logger.Error("upper unbounded necessitates ] in bounds")
-				return nil, errors.New("upper unbounded necessitates ] in bounds")
-			}
-		} else if lower != nil {
-			log.Logger.Error("empty bounds with non-nil lower")
-			return nil, errors.New("empty bounds with non-nil lower")
-
+		if bounds[1] != ')' {
+			return nil, log.LogAndError(fmt.Sprintf("nil upper %s with wrong bound %s", upper, bounds[1]))
 		}
+		return &Segment{bounds: bounds, lower: lower, upper: upper, segment: seg}, nil
 	}
-
-	return &Segment{
-		bounds: bounds,
-		lower: lower,
-		upper: upper,
-		segment: seg,
-	}, nil
+	log.Logger.Errorf("unreachable edge case %s %s %s", lower, upper, bounds)
+	panic(fmt.Sprintf("unreachable edge case %s %s %s", lower, upper, bounds))
 }
 
-
-func (s *Segment) Lower() (*time.Time, error) {
-	if s.lower == nil && s.bounds == "" {
-		log.Logger.Errorf("no lower bound empty Segment %s", s)
-		return nil, errors.New(fmt.Sprintf("no lower bound empty Segment %s", s))
-	} else {
-		return s.lower, nil
+func (s *Segment) Lower() *time.Time {
+	if s.bounds == "" {
+		panic(fmt.Sprintf("no Lower for empty segment %s", s))
 	}
+	return s.lower
 }
 
-
-func (s *Segment) Upper() (*time.Time, error) {
-	if s.upper == nil && s.bounds == "" {
-		log.Logger.Errorf("no upper bound empty Segment %s", s)
-		return nil, errors.New(fmt.Sprintf("no upper bound empty Segment %s", s))
-	} else {
-		return s.upper, nil
+func (s *Segment) Upper() *time.Time {
+	if s.bounds == "" {
+		panic(fmt.Sprintf("no Upper for empty segment %s", s))
 	}
+	return s.upper
 }
 
-
-func (s *Segment) IsEmpty() (bool, error) {
-	if s.bounds != "" {
-		return false, nil
-	} else {
-		if s.lower != nil || s.upper != nil {
-			log.Logger.Errorf("non-nil bounds, nil bound Segment %s", s)
-			return false, errors.New(fmt.Sprintf("non-nil bounds, nil bound Segment %s %#v", s, s))
-		}
-		return true, nil
-	}
+func (s *Segment) IsEmpty() bool {
+	return s.bounds == ""
 }
 
+func (s *Segment) IsInfLower() bool {
+	return s.Lower() == nil
+}
+
+func (s *Segment) IsInfUpper() bool {
+	return s.Upper() == nil
+}
 
 func (s *Segment) IsBounded() bool {
-	return s.segment != nil
+	return s.IsInfLower() || s.IsInfUpper()
 }
 
-
-// true is lower bound is infinite
-func (s *Segment) InfLower() (bool, error) {
+func (s *Segment) IncLower() bool {
 	if s.bounds != "" {
-		return s.lower == nil, nil
+		panic(fmt.Sprintf("no Lower for empty segment %s", s))
+	}
+	return s.bounds[0] == '['
+}
+
+func (s *Segment) IncUpper() bool {
+	if s.bounds != "" {
+		panic(fmt.Sprintf("no Upper for empty segment %s", s))
+	}
+	return s.bounds[1] == ']'
+}
+
+const (
+	lt = iota
+	eq
+	gt
+)
+
+// this is wrt the infimum of each interval
+// left to right
+func finiteOrder(s, t *time.Time) int {
+	diff := t.Sub(*s)
+	if diff > 0 {
+		return lt
+	} else if diff == 0 {
+		return eq
 	} else {
-		log.Logger.Errorf("no lower bound empty Segment %s", s)
-		return false, errors.New(fmt.Sprintf("no lower bound empty Segment %s", s))
+		return gt
 	}
 }
 
 
-func (s *Segment) InfUpper() (bool, error) {
-	if s.bounds != "" {
-		return s.upper == nil, nil
-	} else {
-		log.Logger.Errorf("no upper bound empty Segment %s", s)
-		return false, errors.New(fmt.Sprintf("no upper bound empty Segment %s", s))
+func (s *Segment) LowerLT(t *Segment) bool {
+	if s.IsInfLower() {
+		return true
+	}
+	if t.IsInfLower() {
+		return false
+	}
+
+	sl := s.Lower()
+	tl := t.Lower()
+	switch finiteOrder(sl, tl) {
+	case lt:
+		return true
+	case eq, gt:
+		return false
+	default:
+		return false
 	}
 }
 
+// eg (a,x] and (a,y]
+// or (a,x] and [a,y]
+func (s *Segment) LowerLE(t *Segment) bool {
+	if s.IsInfLower() {
+		return true
+	}
+	if t.IsInfLower() {
+		return false
+	}
+	sl := s.Lower()
+	tl := t.Lower()
+	return finiteOrder(sl, tl) != gt
+}
 
-// true if lower bound is included
-func (s *Segment) IncLower() (bool, error) {
-	if s.bounds != "" {
-		if s.lower == nil {
-			return true, nil
-		} else {
-			return s.bounds[0] == '[', nil
-		}
-	} else {
-		log.Logger.Errorf("no lower bound empty Segment %s", s)
-		return false, errors.New(fmt.Sprintf("no lower bound empty Segment %s", s))
+func (s *Segment) LowerGE(t *Segment) bool {
+	return !s.LowerLT(t)
+}
+
+func (s *Segment) LowerGT(t *Segment) bool {
+	return !s.LowerLE(t)
+}
+
+func (s *Segment) UpperLT(t *Segment) bool {
+	if s.IsInfUpper() {
+		return false
+	}
+	if t.IsInfUpper() {
+		return true
+	}
+	su := s.Upper()
+	tu := t.Upper()
+	switch finiteOrder(su, tu) {
+	case lt:
+		return true
+	case eq, gt:
+		return false
+	default:
+		return false
 	}
 }
 
-
-// true if upper bound is included
-func (s *Segment) IncUpper() (bool, error) {
-	if s.bounds != "" {
-		if s.upper == nil {
-			return true, nil
-		} else {
-			return s.bounds[1] == ']', nil
-		}
-	} else {
-		log.Logger.Errorf("no upper bound empty Segment %s", s)
-		return false, errors.New(fmt.Sprintf("no upper bound empty Segment %s", s))
+func (s *Segment) UpperLE(t *Segment) bool {
+	if s.IsInfUpper() {
+		return false
 	}
+	if t.IsInfUpper() {
+		return true
+	}
+	su := s.Upper()
+	tu := s.Upper()
+	return finiteOrder(su, tu) != gt
 }
 
+func (s *Segment) UpperGE(t *Segment) bool {
+	return !s.UpperLT(t)
+}
 
+func (s *Segment) UpperGT(t *Segment) bool {
+	return !s.UpperLE(t)
+}
+
+func (s *Segment) Contains(t *Segment) bool {
+	if s.IsEmpty() {
+		return false
+	}
+
+	if t.IsEmpty() || (s.IsInfUpper() && s.IsInfUpper()) {
+		return true
+	}
+	return s.LowerLE(t) && s.UpperGE(t)
+}
 
 func parseTimeToString(timeAsString string) (*time.Time, error) {
 

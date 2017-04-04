@@ -1,13 +1,13 @@
 package logging
 
 import (
-	//"io/ioutil"
 	"time"
 
 	logrus "github.com/Sirupsen/logrus"
 	"github.com/lestrrat/go-file-rotatelogs"
 	"github.com/rifflock/lfshook"
 	"github.com/spf13/viper"
+	"errors"
 )
 
 var Logger *logrus.Logger
@@ -27,8 +27,6 @@ func InitLgr(conf *viper.Viper) *logrus.Logger {
 
 	Logger = logrus.New()
 	Logger.Level = lvl
-	//Logger.Out = ioutil.Discard
-	//logrus.SetOutput(ioutil.Discard)
 
 	// roratelogs config
 	writer := rotatelogs.New(
@@ -52,4 +50,9 @@ func InitLgr(conf *viper.Viper) *logrus.Logger {
 	hook.SetFormatter(&logrus.JSONFormatter{})
 	Logger.Hooks.Add(hook)
 	return Logger
+}
+
+func LogAndError(msg string) error {
+	Logger.Error(msg)
+	return errors.New(msg)
 }
