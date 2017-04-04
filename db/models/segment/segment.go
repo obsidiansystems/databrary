@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"database/sql/driver"
-	"github.com/SaidinWoT/timespan"
 	log "github.com/databrary/databrary/logging"
 	"time"
 )
@@ -20,7 +19,7 @@ type Segment struct {
 	bounds  string
 	lower   *time.Time
 	upper   *time.Time
-	segment *timespan.Span
+	//segment *timespan.Span
 }
 
 func (s *Segment) String() string {
@@ -38,7 +37,6 @@ func (s *Segment) String() string {
 }
 
 func NewSegment(lower *time.Time, upper *time.Time, bounds string) (*Segment, error) {
-	var seg *timespan.Span
 	// empty -> bounds = "", lower = nil, upper = nil, segment = nil
 	if bounds == "" {
 		if lower != nil || upper != nil {
@@ -46,7 +44,7 @@ func NewSegment(lower *time.Time, upper *time.Time, bounds string) (*Segment, er
 			log.Logger.Error(errF)
 			return nil, errors.New(errF)
 		}
-		return &Segment{bounds: bounds, lower: lower, upper: upper, segment: seg}, nil
+		return &Segment{bounds: bounds, lower: lower, upper: upper}, nil
 	}
 	// [a,b] -> bounds = "[]", lower = a, upper = b, segment = Segment(a,b)
 	// [a,b) -> bounds = "[)", lower = a, upper = b, segment = Segment(a,b)
@@ -56,8 +54,7 @@ func NewSegment(lower *time.Time, upper *time.Time, bounds string) (*Segment, er
 		if !(upper.Sub(*lower).Nanoseconds() >= 0) {
 			return nil, log.LogAndError(fmt.Sprintf("lower bound %s above upper bound %s", *lower, *upper))
 		}
-		realSeg := timespan.New(*lower, upper.Sub(*lower))
-		return &Segment{bounds: bounds, lower: lower, upper: upper, segment: &realSeg}, nil
+		return &Segment{bounds: bounds, lower: lower, upper: upper}, nil
 	}
 	// (∞,a) -> bounds = "()", lower = nil, upper = a, segment = nil
 	// (∞,a] -> bounds = "(]", lower = nil, upper = a, segment = nil
@@ -69,7 +66,7 @@ func NewSegment(lower *time.Time, upper *time.Time, bounds string) (*Segment, er
 		if upper == nil && bounds[1] != ')' {
 			return nil, log.LogAndError(fmt.Sprintf("nil upper %s with wrong bound %s", upper, bounds[1]))
 		}
-		return &Segment{bounds: bounds, lower: lower, upper: upper, segment: seg}, nil
+		return &Segment{bounds: bounds, lower: lower, upper: upper}, nil
 	}
 	// (a,∞) -> bounds = "()", lower = a, upper = nil, segment = nil
 	// [a,∞) -> bounds = "[)", lower = a, upper = nil, segment = nil
@@ -77,7 +74,7 @@ func NewSegment(lower *time.Time, upper *time.Time, bounds string) (*Segment, er
 		if bounds[1] != ')' {
 			return nil, log.LogAndError(fmt.Sprintf("nil upper %s with wrong bound %s", upper, bounds[1]))
 		}
-		return &Segment{bounds: bounds, lower: lower, upper: upper, segment: seg}, nil
+		return &Segment{bounds: bounds, lower: lower, upper: upper}, nil
 	}
 	log.Logger.Errorf("unreachable edge case %s %s %s", lower, upper, bounds)
 	panic(fmt.Sprintf("unreachable edge case %s %s %s", lower, upper, bounds))
@@ -228,6 +225,10 @@ func (s *Segment) UpperGT(t *Segment) bool {
 	return !s.UpperLE(t)
 }
 
+func (s *Segment) Equal(t *Segment) bool {
+	return s.bounds == t.bounds && s.Lower() == t.Lower() && s.Upper() == t.Upper()
+}
+
 func (s *Segment) Contains(t *Segment) bool {
 	if s.IsEmpty() {
 		return false
@@ -237,6 +238,17 @@ func (s *Segment) Contains(t *Segment) bool {
 		return true
 	}
 	return s.LowerLE(t) && s.UpperGE(t)
+}
+
+func (s *Segment) Durations() (time.Duration, error) {
+	if !s.IsBounded() {
+		return 0, log.LogAndError(fmt.Sprintf("unbounded %s", s))
+	}
+	sl := s.Lower()
+	su := s.Upper()
+	return su.Sub(*sl), nil
+
+
 }
 
 func parseTimeToString(timeAsString string) (*time.Time, error) {
@@ -282,35 +294,35 @@ func parseSegment(segment string) (*time.Time, *time.Time, error) {
 }
 
 // Scan implements the Scanner interface.
-func (s *Segment) Scan(value interface{}) error {
-	s.segment = nil
-	if value == nil {
-		return nil
-	}
-	segmentAsBytes, ok := value.([]byte)
-	if !ok {
-		log.Logger.Errorf("Could not convert %#v scanned Segment value to bytes", value)
-		return errors.New("Could not convert scanned Segment value to bytes")
-	}
-	segmentAsString := string(segmentAsBytes)
-	if segmentAsString == "empty" {
-		log.Logger.Errorf("empty segment %#v scanned", value)
-		return errors.New("empty segment")
-	}
-	if segmentAsString == "(,)" {
-		return nil
-	}
-	begin, end, err := parseSegment(segmentAsString)
-	if err != nil {
-		msg := fmt.Sprintf("Could not parse %v into string. error", value, err)
-		log.Logger.Error(msg)
-		return errors.New(msg)
-	}
-	seg := timespan.New(*begin, end.Sub(*begin))
-	s.segment = &seg
-
-	return nil
-}
+//func (s *Segment) Scan(value interface{}) error {
+//	s.segment = nil
+//	if value == nil {
+//		return nil
+//	}
+//	segmentAsBytes, ok := value.([]byte)
+//	if !ok {
+//		log.Logger.Errorf("Could not convert %#v scanned Segment value to bytes", value)
+//		return errors.New("Could not convert scanned Segment value to bytes")
+//	}
+//	segmentAsString := string(segmentAsBytes)
+//	if segmentAsString == "empty" {
+//		log.Logger.Errorf("empty segment %#v scanned", value)
+//		return errors.New("empty segment")
+//	}
+//	if segmentAsString == "(,)" {
+//		return nil
+//	}
+//	begin, end, err := parseSegment(segmentAsString)
+//	if err != nil {
+//		msg := fmt.Sprintf("Could not parse %v into string. error", value, err)
+//		log.Logger.Error(msg)
+//		return errors.New(msg)
+//	}
+//	seg := timespan.New(*begin, end.Sub(*begin))
+//	s.segment = &seg
+//
+//	return nil
+//}
 
 func (s Segment) Value() (driver.Value, error) {
 	// [00:18:34.15,00:22:46.909)

@@ -135,6 +135,9 @@ func TestOrder(tt *testing.T) {
 	if lt := s.UpperGE(t); lt {
 		tt.Fatal("should not be >=")
 	}
+	if eq := s.Equal(s); !eq {
+		tt.Fatal("should be equal")
+	}
 
 	s, _ = NewSegment(&times[0], &times[2], "[]")
 	t, _ = NewSegment(&times[0], &times[3], "(]")
@@ -322,6 +325,9 @@ func TestOrder(tt *testing.T) {
 	if lt := t.LowerGE(s); lt {
 		tt.Fatal("should not be >=")
 	}
+	if eq := s.Equal(s); !eq {
+		tt.Fatal("should be equal")
+	}
 
 	s, _ = NewSegment(&times[2],nil, "[)")
 	t, _ = NewSegment(&times[1], nil, "[)")
@@ -348,6 +354,14 @@ func TestOrder(tt *testing.T) {
 	}
 	if lt := t.UpperGE(s); !lt {
 		tt.Fatal("should be >=")
+	}
+	if eq := s.Equal(s); !eq {
+		tt.Fatal("should be equal")
+	}
+
+	s, _ = NewSegment(nil, nil, "()")
+	if eq := s.Equal(s); !eq {
+		tt.Fatal("should be equal")
 	}
 }
 
