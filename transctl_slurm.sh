@@ -9,7 +9,7 @@ escape() {
 	done
 }
 
-cmd=`dirname $0`/transcode
+cmd=`dirname $0`/transcode_slurm
 
 if [[ ! -f $cmd ]] ; then
 	echo "$cmd: not found" >&2
@@ -33,7 +33,7 @@ while getopts 'i:h:d:v:m:c:k:s:r:f:t' opt ; do case "$opt" in
 	?) exit 1 ;;
 esac ; done
 
-hcmd=./transcode${version:+-$version}
+hcmd=./transcode_slurm${version:+-$version}
 
 if [[ -n $test ]] ; then
 	if [[ -z $dir ]] ; then
