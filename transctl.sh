@@ -79,7 +79,8 @@ elif [[ -n $host ]] ; then
 			rsync "$src" "$host:$dir/$id"
 		fi
 	fi
-	ssh "$host" "$hcmd" `escape "$@"` | sed 's/^\([0-9]\+\)\.[.a-z0-9-]*$/\1/'
+	# grab only job id from e.g. "Submitted batch job 234324324"
+	ssh "$host" "$hcmd" `escape "$@"` | sed 's/^[^0-9]*\([0-9]\+\)$/\1/'
 elif [[ -n $kill ]] ; then
 	"$cmd" "$@"
 else
@@ -87,3 +88,4 @@ else
 	"$cmd" "$@" &
 	echo $!
 fi
+
