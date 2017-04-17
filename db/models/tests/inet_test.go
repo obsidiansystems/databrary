@@ -1,6 +1,6 @@
 // this is until https://github.com/lib/pq/pull/390 gets merged in
 
-package inet
+package tests
 
 import (
 	"bytes"
@@ -8,38 +8,20 @@ import (
 	"testing"
 
 	"github.com/databrary/databrary/config"
-	"upper.io/db.v3/lib/sqlbuilder"
-	pg "upper.io/db.v3/postgresql"
-)
 
-func init() {
-	config.InitConf("../../../config/databrary_dev.toml")
-}
+	. "github.com/databrary/databrary/db/models/custom_types/inet"
+	"github.com/databrary/databrary/logging"
+)
 
 type Fatalistic interface {
 	Fatal(args ...interface{})
 }
 
-func openTestConn(t Fatalistic) sqlbuilder.Database {
-
-	conf := config.GetConf()
-	settings := &pg.ConnectionURL{
-		Host:     conf.GetString("database.addr") + ":" + conf.GetString("database.port"),
-		Database: conf.GetString("database.db_name"),
-		User:     conf.GetString("database.user"),
-		Password: conf.GetString("database.pw"),
-	}
-
-	conn, err := pg.Open(settings)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return conn
-}
-
 func TestInet(t *testing.T) {
-	conn := openTestConn(t)
+	config.InitConf("../../../config/databrary_test.toml")
+	conf := config.GetConf()
+	logging.InitLgr(conf)
+	conn := OpenTestConn(conf, t)
 	defer conn.Close()
 
 	inet := Inet{}

@@ -1,23 +1,12 @@
-package segment
+package tests
 
 import (
+	"github.com/databrary/databrary/config"
+	. "github.com/databrary/databrary/db/models/custom_types/segment"
+	"github.com/databrary/databrary/logging"
 	"testing"
 	"time"
-
-	"github.com/databrary/databrary/config"
-	"github.com/databrary/databrary/logging"
-	"upper.io/db.v3/lib/sqlbuilder"
-	pg "upper.io/db.v3/postgresql"
 )
-
-func init() {
-	config.InitConf("../../../config/databrary_dev.toml")
-	logging.InitLgr(config.GetConf())
-}
-
-type Fatalistic interface {
-	Fatal(args ...interface{})
-}
 
 var times = []time.Time{
 	time.Date(2014, time.February, 3, 2, 0, 0, 0, time.UTC),
@@ -582,26 +571,11 @@ func TestSegment_Minus(t *testing.T) {
 	}
 }
 
-func openTestConn(t Fatalistic) sqlbuilder.Database {
-
-	conf := config.GetConf()
-	settings := &pg.ConnectionURL{
-		Host:     conf.GetString("database.addr") + ":" + conf.GetString("database.port"),
-		Database: conf.GetString("database.db_name"),
-		User:     conf.GetString("database.user"),
-		Password: conf.GetString("database.pw"),
-	}
-
-	conn, err := pg.Open(settings)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return conn
-}
-
 func TestSegment_Scan(t *testing.T) {
-	conn := openTestConn(t)
+	config.InitConf("../../../config/databrary_test.toml")
+	conf := config.GetConf()
+	logging.InitLgr(conf)
+	conn := OpenTestConn(conf, t)
 	defer conn.Close()
 
 	var segment *Segment
@@ -633,7 +607,7 @@ func TestSegment_Scan(t *testing.T) {
 			t.Fatalf("re-query %s segment failed: %s", label, err.Error())
 		}
 		err := rows.Scan(&segment)
-		if segment == nil || err != nil{
+		if segment == nil || err != nil {
 			t.Fatalf("expected non-null value, got null for %s or error %s", label, err)
 		}
 
@@ -645,21 +619,29 @@ func TestSegment_Scan(t *testing.T) {
 	start := time.Time{}
 	end := start.Add(7200000000000)
 	end2 := start.Add(9200000000000)
-	testBidirectional(Segment{bounds: "[]", lower: &start, upper: &end}, "Simple time milli")
-	testBidirectional(Segment{bounds: "(]", lower: &start, upper: &end}, "Simple time milli")
-	testBidirectional(Segment{bounds: "[)", lower: &start, upper: &end}, "Simple time milli")
-	testBidirectional(Segment{bounds: "()", lower: &start, upper: &end}, "Simple time milli")
-
-	testBidirectional(Segment{bounds: "[]", lower: &end, upper: &end2}, "Simple time milli")
-	testBidirectional(Segment{bounds: "(]", lower: &end, upper: &end2}, "Simple time milli")
-	testBidirectional(Segment{bounds: "[)", lower: &end, upper: &end2}, "Simple time milli")
-	testBidirectional(Segment{bounds: "()", lower: &end, upper: &end2}, "Simple time milli")
-
-	testBidirectional(Segment{bounds: "(]", lower: nil, upper: &end2}, "Simple time milli")
-	testBidirectional(Segment{bounds: "[)", lower: &end, upper: nil}, "Simple time milli")
-	testBidirectional(Segment{bounds: "()", lower: nil, upper: nil}, "Simple time milli")
-
-	testBidirectional(Segment{bounds: "", lower: nil, upper: nil}, "Simple time milli")
-
+	seg, _ := NewSegment(&start, &end, "[]")
+	testBidirectional(*seg, "Simple time milli")
+	seg, _ = NewSegment(&start, &end, "(]")
+	testBidirectional(*seg, "Simple time milli")
+	seg, _ = NewSegment(&start, &end, "[)")
+	testBidirectional(*seg, "Simple time milli")
+	seg, _ = NewSegment(&start, &end, "()")
+	testBidirectional(*seg, "Simple time milli")
+	seg, _ = NewSegment(&end, &end2, "[]")
+	testBidirectional(*seg, "Simple time milli")
+	seg, _ = NewSegment(&end, &end2, "(]")
+	testBidirectional(*seg, "Simple time milli")
+	seg, _ = NewSegment(&end, &end2, "[)")
+	testBidirectional(*seg, "Simple time milli")
+	seg, _ = NewSegment(&end, &end2, "()")
+	testBidirectional(*seg, "Simple time milli")
+	seg, _ = NewSegment(nil, &end2, "(]")
+	testBidirectional(*seg, "Simple time milli")
+	seg, _ = NewSegment(&end, nil, "[)")
+	testBidirectional(*seg, "Simple time milli")
+	seg, _ = NewSegment(nil, nil, "()")
+	testBidirectional(*seg, "Simple time milli")
+	seg, _ = NewSegment(nil, nil, "")
+	testBidirectional(*seg, "Simple time milli")
 
 }

@@ -25,16 +25,15 @@
     so 00:00:00 is parsed as -31622400 seconds or 31622400000000000 nanoseconds (1 year before january 1 01.
     EPOCHSHIFT shifts 00:00:00 forward by simply addding 31622400000000000 to time.Parse(00:00:00)
 
- */
+*/
 
 package segment
 
 import (
-	"errors"
+	"database/sql/driver"
 	"fmt"
 	"strings"
 	"time"
-	"database/sql/driver"
 
 	log "github.com/databrary/databrary/logging"
 )
@@ -45,9 +44,9 @@ const (
 )
 
 type Segment struct {
-	bounds  string
-	lower   *time.Time
-	upper   *time.Time
+	bounds string
+	lower  *time.Time
+	upper  *time.Time
 }
 
 func (s *Segment) String() string {
@@ -75,8 +74,8 @@ func NewSegment(lower *time.Time, upper *time.Time, bounds string) (*Segment, er
 	if bounds == "" {
 		if lower != nil || upper != nil {
 			errF := fmt.Sprintf("empty segment with non-nil lower %s or upper %s", lower, upper)
-			log.Logger.Error(errF)
-			return nil, errors.New(errF)
+
+			return nil, log.LogAndError(errF)
 		}
 		return &Segment{bounds: bounds, lower: lower, upper: upper}, nil
 	}
@@ -182,7 +181,6 @@ func finiteOrder(s, t *time.Time) int {
 	}
 }
 
-
 func (s *Segment) LowerLT(t *Segment) bool {
 	if s.IsInfLower() {
 		return true
@@ -218,7 +216,6 @@ func (s *Segment) LowerLE(t *Segment) bool {
 	tl := t.Lower()
 	return finiteOrder(sl, tl) != gt
 }
-
 
 func (s *Segment) LowerGE(t *Segment) bool {
 	return !s.LowerLT(t)
@@ -267,13 +264,12 @@ func (s *Segment) UpperGT(t *Segment) bool {
 	return !s.UpperLE(t)
 }
 
-
 func (s *Segment) Equal(t *Segment) bool {
 	zero := Segment{}
 	if *s == zero && *t == zero {
 		return true
 	}
-	eqTime := func (t1 *time.Time, t2 *time.Time) bool {
+	eqTime := func(t1 *time.Time, t2 *time.Time) bool {
 		if t1 == nil {
 			return t2 == nil
 		}
@@ -305,11 +301,9 @@ func (s *Segment) Duration() time.Duration {
 	return su.Sub(*sl)
 }
 
-
 func (s *Segment) IsSingleton() bool {
 	return s.Upper().Sub(*s.Lower()) == 0 && s.IsBounded()
 }
-
 
 func (s *Segment) Shift(d time.Duration) {
 	// shifting (,) should have no effect
@@ -323,10 +317,9 @@ func (s *Segment) Shift(d time.Duration) {
 	}
 }
 
-
 func (s *Segment) Minus(t *Segment) time.Duration {
 	if !s.IsBounded() || !t.IsBounded() {
-		log.Logger.Panic(log.LogAndError(fmt.Sprintf("unbounded s %s or t %s", s , t)))
+		log.Logger.Panic(log.LogAndError(fmt.Sprintf("unbounded s %s or t %s", s, t)))
 	}
 	return s.Duration() - t.Duration()
 }
@@ -343,7 +336,6 @@ const EPOCHSHIFT = time.Duration(31622400000000000)
 //	d := time.Duration(time.Time{}.Sub(timeAsTime).Nanoseconds())
 //	return d
 //}
-
 
 func parseTimeToString(timeAsString string) (*time.Time, error) {
 
@@ -370,15 +362,15 @@ func parseSegment(segment string) (*time.Time, *time.Time, error) {
 		return nil, nil, nil
 	}
 	var (
-		endAsTime *time.Time
+		endAsTime   *time.Time
 		beginAsTime *time.Time
-		err error
+		err         error
 	)
 	if len(beginAsString) != 0 {
 		beginAsTime, err = parseTimeToString(beginAsString)
 	}
 	if err != nil {
-			return nil, nil, err
+		return nil, nil, err
 	}
 	if len(endAsString) != 0 {
 		endAsTime, err = parseTimeToString(endAsString)
@@ -419,7 +411,7 @@ func (s *Segment) Scan(value interface{}) error {
 	if err != nil {
 		return log.LogAndError(fmt.Sprintf("Could not parse %v into string. error", value, err))
 	}
-	s.bounds = string(segmentAsString[0])+string(segmentAsString[len(segmentAsString)-1])
+	s.bounds = string(segmentAsString[0]) + string(segmentAsString[len(segmentAsString)-1])
 	s.lower = begin
 	s.upper = end
 

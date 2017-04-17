@@ -4,8 +4,8 @@ level = "DEBUG" #PANIC FATAL ERROR WARN INFO DEBUB
 
 [database]
 addr = "localhost"
-db_name = "databrary"
-port = "5433"
+db_name = "postgres"
+port = "5432"
 user = "postgres"
 pw = "mysecretpassword"
-
+schema = "/home/maksim/go/src/github.com/databrary/databrary/db/schema/master_sql"
