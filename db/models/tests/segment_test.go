@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/databrary/databrary/config"
-	. "github.com/databrary/databrary/db/models/custom_types/segment"
+	. "github.com/databrary/databrary/db/models/custom_types"
 	"github.com/databrary/databrary/logging"
 )
 

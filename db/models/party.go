@@ -3,7 +3,7 @@ package models
 import (
 	"database/sql"
 
-	. "github.com/databrary/databrary/db/models/custom_types/varchar"
+	. "github.com/databrary/databrary/db/models/custom_types"
 )
 
 type (

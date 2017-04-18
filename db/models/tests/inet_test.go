@@ -9,7 +9,7 @@ import (
 
 	"github.com/databrary/databrary/config"
 
-	. "github.com/databrary/databrary/db/models/custom_types/inet"
+	. "github.com/databrary/databrary/db/models/custom_types"
 	"github.com/databrary/databrary/logging"
 )
 

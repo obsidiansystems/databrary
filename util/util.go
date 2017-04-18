@@ -42,5 +42,14 @@ func PrintReps(stuff ...interface{}) {
 }
 
 func Now() time.Time {
+	// postgres rounds
 	return time.Now().Round(time.Microsecond)
+}
+
+func Date(t time.Time) time.Time {
+	return t.Truncate(24 * time.Hour)
+}
+
+func Today() time.Time {
+	return Date(Now())
 }

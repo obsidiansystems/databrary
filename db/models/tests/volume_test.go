@@ -4,31 +4,16 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"reflect"
 	"testing"
-
-	"math/rand"
 	"time"
 
 	"github.com/databrary/databrary/db/models"
-	. "github.com/databrary/databrary/db/models/custom_types/varchar"
+	. "github.com/databrary/databrary/db/models/custom_types"
 	"github.com/databrary/databrary/util"
 	"github.com/lib/pq"
 )
-
-func createInsertTestVolume() models.Volume {
-	vol := models.Volume{
-		Name:  util.RandStringRunes(10),
-		Body:  sql.NullString{util.RandStringRunes(10), true},
-		Alias: NewVarChar(util.RandStringRunes(10), true),
-		DOI:   NewVarChar(util.RandStringRunes(10), true),
-	}
-	vols := testConn.Collection("volume")
-	id, err := vols.Insert(vol)
-	util.CheckErr(err)
-	vol.VolumeID = id.(int64)
-	return vol
-}
 
 func TestVolume(t *testing.T) {
 	testFuncs = []testFunc{
@@ -43,8 +28,22 @@ func TestVolume(t *testing.T) {
 	test(t)
 }
 
+func createInsertVolume() models.Volume {
+	vol := models.Volume{
+		Name:  util.RandStringRunes(10),
+		Body:  sql.NullString{util.RandStringRunes(10), true},
+		Alias: NewVarChar(util.RandStringRunes(10), true),
+		DOI:   NewVarChar(util.RandStringRunes(10), true),
+	}
+	vols := testConn.Collection("volume")
+	id, err := vols.Insert(vol)
+	util.CheckErr(err)
+	vol.VolumeID = id.(int64)
+	return vol
+}
+
 func testVolume(t *testing.T) {
-	vol := createInsertTestVolume()
+	vol := createInsertVolume()
 	vols := testConn.Collection("volume")
 	res := vols.Find("id", vol.VolumeID)
 	defer res.Close()
@@ -60,7 +59,7 @@ func testVolume(t *testing.T) {
 	}
 
 	// fetch multiple vols
-	vol2 := createInsertTestVolume()
+	vol2 := createInsertVolume()
 
 	modelVols := map[int64]models.Volume{
 		vol.VolumeID:  vol,
@@ -97,7 +96,7 @@ func createInsertVolumeAccess(volId int64) models.VolumeAccess {
 }
 
 func testVolumeAccess(t *testing.T) {
-	vol := createInsertTestVolume()
+	vol := createInsertVolume()
 	volA := createInsertVolumeAccess(vol.VolumeID)
 	volAs := testConn.Collection("volume_access")
 	dbVolAs := &models.VolumeAccess{}
@@ -120,7 +119,7 @@ func createInsertVolumeOwners(volId int64, ownersStr []string) (models.VolumeOwn
 
 func testVolumeOwners(t *testing.T) {
 
-	vol := createInsertTestVolume()
+	vol := createInsertVolume()
 	owners := testConn.Collection("volume_owners")
 	owners_test := []string{"32:Karasik, Lana", "11:Tamis-LeMonda, Catherine", "5:Adolph, Karen"}
 	volOwners, pkey := createInsertVolumeOwners(vol.VolumeID, owners_test)
@@ -151,7 +150,7 @@ func createInsertVolumeLink(volId int64) (models.VolumeLink, interface{}) {
 func testVolumeLink(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		links := testConn.Collection("volume_link")
-		vol := createInsertTestVolume()
+		vol := createInsertVolume()
 		volL, pkey := createInsertVolumeLink(vol.VolumeID)
 		newVolL := models.VolumeLink{}
 		links.Find(pkey).One(&newVolL)
@@ -176,7 +175,7 @@ func createInsertVolumeCitation(volId int64) (models.VolumeCitation, interface{}
 }
 
 func testVolumeCitatation(t *testing.T) {
-	vol := createInsertTestVolume()
+	vol := createInsertVolume()
 	volC, pkey := createInsertVolumeCitation(vol.VolumeID)
 	cits := testConn.Collection("volume_citation")
 
@@ -230,7 +229,7 @@ func createInsertVolumeFunding(funderId, volId int64) (models.VolumeFunding, int
 
 func testVolumeFunding(t *testing.T) {
 	fun, _ := createInsertFunder()
-	vol := createInsertTestVolume()
+	vol := createInsertVolume()
 	volFund := testConn.Collection("volume_funding")
 	volFunder, pkey := createInsertVolumeFunding(fun.FunderReferenceID, vol.VolumeID)
 	dbVolFund := models.VolumeFunding{}

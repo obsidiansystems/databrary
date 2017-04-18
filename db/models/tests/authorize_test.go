@@ -5,6 +5,7 @@ import (
 
 	"github.com/databrary/databrary/db/models"
 	"github.com/databrary/databrary/util"
+	"github.com/lib/pq"
 )
 
 func TestAuthorize(t *testing.T) {
@@ -21,7 +22,7 @@ func createInsertAuthorize(childPartyId, parentPartyId int64) (models.Authorize,
 		SitePerm:    models.PermADMIN,
 		MemberPerm:  models.PermADMIN,
 		// only use util.Now() because it rounds to microsecond (which is the highest precision postgres uses)
-		Expires: util.Now(),
+		Expires: pq.NullTime{util.Now(), true},
 	}
 	auths := testConn.Collection("authorize")
 	pkey, err := auths.Insert(auth)

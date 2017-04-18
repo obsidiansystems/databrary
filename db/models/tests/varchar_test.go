@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/databrary/databrary/config"
-	. "github.com/databrary/databrary/db/models/custom_types/varchar"
+	. "github.com/databrary/databrary/db/models/custom_types"
 	"github.com/databrary/databrary/logging"
 )
 

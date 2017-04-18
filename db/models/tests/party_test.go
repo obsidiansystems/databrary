@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/databrary/databrary/db/models"
-	"github.com/databrary/databrary/db/models/custom_types/varchar"
+	. "github.com/databrary/databrary/db/models/custom_types"
 	"github.com/databrary/databrary/util"
 )
 
@@ -21,7 +21,7 @@ func createInsertParty() (models.Party, interface{}) {
 	party := models.Party{
 		Name:        util.RandStringRunes(10),
 		PreName:     sql.NullString{util.RandStringRunes(10), true},
-		ORCID:       varchar.NewVarChar(util.RandStringRunes(10), true),
+		ORCID:       NewVarChar(util.RandStringRunes(10), true),
 		Affiliation: sql.NullString{util.RandStringRunes(10), true},
 		Url:         sql.NullString{util.RandStringRunes(10), true},
 	}
@@ -51,8 +51,8 @@ func createInsertAccount(partyId int64) (models.Account, interface{}) {
 	accounts := testConn.Collection("account")
 	account := models.Account{
 		PartyID:  partyId,
-		Email:    varchar.NewVarChar(util.RandStringRunes(10), true),
-		Password: varchar.NewVarChar(util.RandStringRunes(10), true),
+		Email:    NewVarChar(util.RandStringRunes(10), true),
+		Password: NewVarChar(util.RandStringRunes(10), true),
 	}
 	pkey, err := accounts.Insert(account)
 	util.CheckErr(err)

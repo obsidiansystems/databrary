@@ -4,22 +4,22 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"github.com/databrary/databrary/logging"
-	"time"
+	"github.com/lib/pq"
 )
 
 type (
 	// Relationships and permissions granted between parties.
 	Authorize struct {
-		ChildParty  int64     `json:"auth_child_party_id" db:"child"`   // Party granted permissions
-		ParentParty int64     `json:"auth_parent_party_id" db:"parent"` // Party granting permissions
-		SitePerm    Perm      `json:"auth_site_perm" db:"site"`         // Level of site access granted to child, inherited (but degraded) from parent
-		MemberPerm  Perm      `json:"auth_memeber_perm" db:"member"`    // Level of permission granted to the child as a member of the parent's group
-		Expires     time.Time `json:"auth_expires" db:"expires"`
+		ChildParty  int64       `json:"auth_child_party_id" db:"child"`   // Party granted permissions
+		ParentParty int64       `json:"auth_parent_party_id" db:"parent"` // Party granting permissions
+		SitePerm    Perm        `json:"auth_site_perm" db:"site"`         // Level of site access granted to child, inherited (but degraded) from parent
+		MemberPerm  Perm        `json:"auth_memeber_perm" db:"member"`    // Level of permission granted to the child as a member of the parent's group
+		Expires     pq.NullTime `json:"auth_expires" db:"expires"`
 	}
 )
 
 func (a Authorize) Equal(aa Authorize) bool {
-	return a.Expires.Equal(aa.Expires) &&
+	return a.Expires.Time.Equal(aa.Expires.Time) &&
 		a.MemberPerm == aa.MemberPerm &&
 		a.SitePerm == aa.SitePerm &&
 		a.ParentParty == aa.ParentParty &&

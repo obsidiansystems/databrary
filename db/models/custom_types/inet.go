@@ -1,4 +1,4 @@
-package inet
+package custom_types
 
 import (
 	"database/sql/driver"

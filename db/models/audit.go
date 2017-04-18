@@ -3,9 +3,10 @@ package models
 import (
 	"database/sql"
 	"database/sql/driver"
-	"github.com/databrary/databrary/db/models/custom_types/inet"
-	"github.com/databrary/databrary/logging"
 	"time"
+
+	. "github.com/databrary/databrary/db/models/custom_types"
+	"github.com/databrary/databrary/logging"
 )
 
 type (
@@ -14,7 +15,7 @@ type (
 	Audit struct {
 		Time      time.Time `json:"audit_time" db:"audit_time"`
 		UserID    int64     `json:"audit_user" db:"audit_user"` // references party
-		IpAddress inet.Inet `json:"audit_ip" db:"audit_ip"`
+		IpAddress Inet      `json:"audit_ip" db:"audit_ip"`
 		Action    Action    `json:"audit_action" db:"audit_action"`
 	}
 )

@@ -1,22 +1,17 @@
 package tests
 
 import (
-	"github.com/databrary/databrary/db"
-	"github.com/spf13/viper"
-	"testing"
-	"upper.io/db.v3/lib/sqlbuilder"
-	//"github.com/databrary/databrary/config"
-	//"github.com/databrary/databrary/logging"
-	//"strings"
-	//"fmt"
-	//"github.com/databrary/databrary/util"
-	//"io/ioutil"
 	"fmt"
-	"github.com/databrary/databrary/config"
-	"github.com/databrary/databrary/logging"
-	"github.com/databrary/databrary/util"
 	"io/ioutil"
 	"strings"
+	"testing"
+
+	"github.com/databrary/databrary/config"
+	"github.com/databrary/databrary/db"
+	"github.com/databrary/databrary/logging"
+	"github.com/databrary/databrary/util"
+	"github.com/spf13/viper"
+	"upper.io/db.v3/lib/sqlbuilder"
 )
 
 func OpenTestConn(conf *viper.Viper, t *testing.T) sqlbuilder.Database {
@@ -81,16 +76,16 @@ func test(t *testing.T) {
 	_, err = testConn.Exec(string(schemaFile))
 	util.CheckErr(err)
 
-	// drop test db
-	//defer func() {
-	//	err = testConn.Close()
-	//	util.CheckErr(err)
-	//	// can't drop db you're connected to
-	//	conf.Set("database.db_name", "postgres")
-	//	conn2 := OpenTestConn(conf, t)
-	//	_, err = conn2.Exec(fmt.Sprintf("DROP DATABASE %s", testSchemaDbName))
-	//	util.CheckErr(err)
-	//}()
+	//drop test db
+	defer func() {
+		err = testConn.Close()
+		util.CheckErr(err)
+		// can't drop db you're connected to
+		conf.Set("database.db_name", "postgres")
+		conn2 := OpenTestConn(conf, t)
+		_, err = conn2.Exec(fmt.Sprintf("DROP DATABASE %s", testSchemaDbName))
+		util.CheckErr(err)
+	}()
 
 	if len(testFuncs) == 0 {
 		t.Fatal("no test functions set")

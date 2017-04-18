@@ -1,4 +1,4 @@
-package varchar
+package custom_types
 
 import (
 	"database/sql"
@@ -23,7 +23,7 @@ func (ns *VarChar) Valid() bool {
 }
 
 func (ns *VarChar) String() string {
-	return strings.Trim(ns.string, " ")
+	return ns.string
 }
 
 // Scan implements the Scanner interface.
@@ -33,7 +33,7 @@ func (ns *VarChar) Scan(value interface{}) error {
 		return nil
 	}
 	ns.valid = true
-	ns.string = strings.Trim(value.(string), " ")
+	ns.string = value.(string)
 	return nil
 }
 
