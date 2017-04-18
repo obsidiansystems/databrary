@@ -4,7 +4,8 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"github.com/databrary/databrary/logging"
-	pq "github.com/lib/pq"
+	"github.com/lib/pq"
+	"github.com/databrary/databrary/db/models/custom_types/varchar"
 )
 
 type (
@@ -13,8 +14,8 @@ type (
 		VolumeID int64          `json:"volume_id" db:"id,omitempty"`
 		Name     string         `json:"volume_name" db:"name"`
 		Body     sql.NullString `json:"volume_body" db:"body"`
-		Alias    sql.NullString `json:"volume_alias" db:"alias"` // Short, internal, code name for this volume, for contributors to reference their own data.
-		DOI      sql.NullString `json:"volume_doi" db:"doi"`     // DOIs issued for volumes (currently via EZID).
+		Alias    varchar.VarChar `json:"volume_alias" db:"alias"` // Short, internal, code name for this volume, for contributors to reference their own data.
+		DOI      varchar.VarChar `json:"volume_doi" db:"doi"`     // DOIs issued for volumes (currently via EZID).
 	}
 
 	// Permissions over volumes assigned to users.

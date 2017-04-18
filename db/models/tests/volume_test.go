@@ -1,38 +1,29 @@
 package tests
 
 import (
-	"testing"
-
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/databrary/databrary/config"
-	"github.com/databrary/databrary/db/models"
-	"github.com/databrary/databrary/logging"
-	"github.com/databrary/databrary/util"
-	pq "github.com/lib/pq"
-	"io/ioutil"
 	"reflect"
-	"strings"
-	"upper.io/db.v3/lib/sqlbuilder"
+	"testing"
+
+	"math/rand"
+	"time"
+
+	"github.com/databrary/databrary/db/models"
+	. "github.com/databrary/databrary/db/models/custom_types/varchar"
+	"github.com/databrary/databrary/util"
+	"github.com/lib/pq"
 )
 
-var conn sqlbuilder.Database
-
 func createInsertTestVolume() models.Volume {
-	var (
-		name  = "a"
-		body  = sql.NullString{"b", true}
-		alias = sql.NullString{"c", true}
-		doi   = sql.NullString{util.RandStringRunes(10), true}
-	)
 	vol := models.Volume{
-		Name:  name,
-		Body:  body,
-		Alias: alias,
-		DOI:   doi,
+		Name:  util.RandStringRunes(10),
+		Body:  sql.NullString{util.RandStringRunes(10), true},
+		Alias: NewVarChar(util.RandStringRunes(10), true),
+		DOI:   NewVarChar(util.RandStringRunes(10), true),
 	}
-	vols := conn.Collection("volume")
+	vols := testConn.Collection("volume")
 	id, err := vols.Insert(vol)
 	util.CheckErr(err)
 	vol.VolumeID = id.(int64)
@@ -40,49 +31,21 @@ func createInsertTestVolume() models.Volume {
 }
 
 func TestVolume(t *testing.T) {
-	config.InitConf("../../../config/databrary_test.toml")
-	conf := config.GetConf()
-	logging.InitLgr(conf)
-
-	// create test db
-	conn1 := OpenTestConn(conf, t)
-	testSchemaDbName := strings.ToLower(fmt.Sprintf("testdb_%s", util.RandStringRunes(10)))
-	_, err := conn1.Exec(fmt.Sprintf("CREATE DATABASE %s", testSchemaDbName))
-	util.CheckErr(err)
-	err = conn1.Close()
-
-	// install schema
-	conf.Set("database.db_name", testSchemaDbName)
-	util.CheckErr(err)
-	conn = OpenTestConn(conf, t)
-	schemaFile, err := ioutil.ReadFile(conf.GetString("database.schema"))
-	util.CheckErr(err)
-	_, err = conn.Exec(string(schemaFile))
-	util.CheckErr(err)
-
-	// drop test db
-	defer func() {
-		err = conn.Close()
-		util.CheckErr(err)
-		// can't drop db you're connected to
-		conf.Set("database.db_name", "postgres")
-		conn2 := OpenTestConn(conf, t)
-		_, err = conn2.Exec(fmt.Sprintf("DROP DATABASE %s", testSchemaDbName))
-		util.CheckErr(err)
-	}()
-
-	t.Run("", testVolume)
-	t.Run("", testVolumeAccess)
-	t.Run("", testVolumeOwners)
-	t.Run("", testVolumeLink)
-	t.Run("", testVolumeCitatation)
-	t.Run("", testFunder)
-	t.Run("", testVolumeFunding)
+	testFuncs = []testFunc{
+		{"", testVolume},
+		{"", testVolumeAccess},
+		{"", testVolumeOwners},
+		{"", testVolumeLink},
+		{"", testVolumeCitatation},
+		{"", testFunder},
+		{"", testVolumeFunding},
+	}
+	test(t)
 }
 
 func testVolume(t *testing.T) {
 	vol := createInsertTestVolume()
-	vols := conn.Collection("volume")
+	vols := testConn.Collection("volume")
 	res := vols.Find("id", vol.VolumeID)
 	defer res.Close()
 	c, err := res.Count()
@@ -97,20 +60,7 @@ func testVolume(t *testing.T) {
 	}
 
 	// fetch multiple vols
-	name := "e"
-	body := sql.NullString{"f", true}
-	alias := sql.NullString{"g", true}
-	doi := sql.NullString{"h", true}
-
-	vol2 := models.Volume{
-		Name:  name,
-		Body:  body,
-		Alias: alias,
-		DOI:   doi,
-	}
-	id, err := vols.Insert(vol2)
-	util.CheckErr(err)
-	vol2.VolumeID = id.(int64)
+	vol2 := createInsertTestVolume()
 
 	modelVols := map[int64]models.Volume{
 		vol.VolumeID:  vol,
@@ -131,18 +81,25 @@ func testVolume(t *testing.T) {
 	fmt.Println(string(jvol))
 }
 
-func testVolumeAccess(t *testing.T) {
-	vol := createInsertTestVolume()
+func createInsertVolumeAccess(volId int64) models.VolumeAccess {
+
 	volA := models.VolumeAccess{
-		Volume:     vol.VolumeID,
+		Volume:     volId,
 		Party:      0,
 		Individual: models.PermADMIN,
 		Children:   models.PermADMIN,
 		Sort:       sql.NullInt64{0, true},
 	}
-	volAs := conn.Collection("volume_access")
+	volAs := testConn.Collection("volume_access")
 	_, err := volAs.Insert(volA)
 	util.CheckErr(err)
+	return volA
+}
+
+func testVolumeAccess(t *testing.T) {
+	vol := createInsertTestVolume()
+	volA := createInsertVolumeAccess(vol.VolumeID)
+	volAs := testConn.Collection("volume_access")
 	dbVolAs := &models.VolumeAccess{}
 	volAs.Find("volume = ? AND party = ?", vol.VolumeID, 0).One(dbVolAs)
 	if *dbVolAs != volA {
@@ -150,19 +107,25 @@ func testVolumeAccess(t *testing.T) {
 	}
 }
 
+func createInsertVolumeOwners(volId int64, ownersStr []string) (models.VolumeOwners, interface{}) {
+	owners := testConn.Collection("volume_owners")
+	volOwners := models.VolumeOwners{
+		Volume: volId,
+		Owners: pq.StringArray(ownersStr),
+	}
+	pkey, err := owners.Insert(volOwners)
+	util.CheckErr(err)
+	return volOwners, pkey
+}
+
 func testVolumeOwners(t *testing.T) {
 
 	vol := createInsertTestVolume()
-	owners := conn.Collection("volume_owners")
+	owners := testConn.Collection("volume_owners")
 	owners_test := []string{"32:Karasik, Lana", "11:Tamis-LeMonda, Catherine", "5:Adolph, Karen"}
-	volOwners := models.VolumeOwners{
-		Volume: vol.VolumeID,
-		Owners: pq.StringArray(owners_test),
-	}
-	id, err := owners.Insert(volOwners)
-	util.CheckErr(err)
+	volOwners, pkey := createInsertVolumeOwners(vol.VolumeID, owners_test)
 	dbVolOwners := &models.VolumeOwners{}
-	owners.Find(id).One(dbVolOwners)
+	owners.Find(pkey).One(dbVolOwners)
 	if volOwners.Volume != dbVolOwners.Volume || !reflect.DeepEqual(volOwners.Owners, dbVolOwners.Owners) {
 		fmt.Println(
 			volOwners.Volume == dbVolOwners.Volume,
@@ -173,19 +136,25 @@ func testVolumeOwners(t *testing.T) {
 	}
 }
 
+func createInsertVolumeLink(volId int64) (models.VolumeLink, interface{}) {
+	volL := models.VolumeLink{
+		Volume: volId,
+		Head:   util.RandStringRunes(10),
+		Url:    util.RandStringRunes(10),
+	}
+	links := testConn.Collection("volume_link")
+	pkey, err := links.Insert(&volL)
+	util.CheckErr(err)
+	return volL, pkey
+}
+
 func testVolumeLink(t *testing.T) {
-	vol := createInsertTestVolume()
 	for i := 0; i < 5; i++ {
-		volL := models.VolumeLink{
-			Volume: vol.VolumeID,
-			Head:   util.RandStringRunes(10),
-			Url:    util.RandStringRunes(10),
-		}
-		links := conn.Collection("volume_link")
-		id, err := links.Insert(&volL)
-		util.CheckErr(err)
+		links := testConn.Collection("volume_link")
+		vol := createInsertTestVolume()
+		volL, pkey := createInsertVolumeLink(vol.VolumeID)
 		newVolL := models.VolumeLink{}
-		links.Find(id).One(&newVolL)
+		links.Find(pkey).One(&newVolL)
 		if volL != newVolL {
 			util.PrintReps()
 			t.Fatal("didn't match")
@@ -193,35 +162,49 @@ func testVolumeLink(t *testing.T) {
 	}
 }
 
-func testVolumeCitatation(t *testing.T) {
-	vol := createInsertTestVolume()
+func createInsertVolumeCitation(volId int64) (models.VolumeCitation, interface{}) {
 	vc := models.VolumeCitation{
-		Volume: vol.VolumeID,
+		Volume: volId,
 		Head:   util.RandStringRunes(10),
 		Url:    sql.NullString{util.RandStringRunes(10), true},
 		Year:   2017,
 	}
-	cits := conn.Collection("volume_citation")
-	id, err := cits.Insert(&vc)
+	cits := testConn.Collection("volume_citation")
+	pkey, err := cits.Insert(&vc)
 	util.CheckErr(err)
+	return vc, pkey
+}
+
+func testVolumeCitatation(t *testing.T) {
+	vol := createInsertTestVolume()
+	volC, pkey := createInsertVolumeCitation(vol.VolumeID)
+	cits := testConn.Collection("volume_citation")
+
 	newCit := models.VolumeCitation{}
-	cits.Find(id).One(&newCit)
-	if vc != newCit {
-		util.PrintReps(vc, newCit)
+	cits.Find(pkey).One(&newCit)
+	if volC != newCit {
+		util.PrintReps(volC, newCit)
 		t.Fatal()
 	}
 }
 
-func testFunder(t *testing.T) {
+func createInsertFunder() (models.Funder, interface{}) {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	fun := models.Funder{
-		FunderReferenceID: 12345,
+		FunderReferenceID: int64(r.Int31()),
 		Name:              util.RandStringRunes(10),
 	}
-	funds := conn.Collection("funder")
-	id, err := funds.Insert(&fun)
+	funds := testConn.Collection("funder")
+	pkey, err := funds.Insert(&fun)
 	util.CheckErr(err)
+	return fun, pkey
+}
+
+func testFunder(t *testing.T) {
+	funds := testConn.Collection("funder")
+	fun, pkey := createInsertFunder()
 	newFund := models.Funder{}
-	funds.Find(id).One(&newFund)
+	funds.Find(pkey).One(&newFund)
 	if newFund != fun {
 		util.PrintReps(newFund, fun)
 		t.Fatal("funders don't match")
@@ -229,25 +212,29 @@ func testFunder(t *testing.T) {
 
 }
 
-func testVolumeFunding(t *testing.T) {
-	fun := models.Funder{
-		FunderReferenceID: 12346,
-		Name:              util.RandStringRunes(10),
-	}
-	funds := conn.Collection("funder")
-	id, err := funds.Insert(&fun)
-	util.CheckErr(err)
-
-	vol := createInsertTestVolume()
-	volFund := conn.Collection("volume_funding")
+func createInsertVolumeFunding(funderId, volId int64) (models.VolumeFunding, interface{}) {
+	volFund := testConn.Collection("volume_funding")
 	volFunder := models.VolumeFunding{
-		Volume: vol.VolumeID,
-		Funder: id.(int64),
-		Awards: pq.StringArray{"a", "b", "c", "d"},
+		Volume: volId,
+		Funder: funderId,
+		Awards: pq.StringArray{
+			util.RandStringRunes(10),
+			util.RandStringRunes(10),
+			util.RandStringRunes(10),
+		},
 	}
-	id, err = volFund.Insert(&volFunder)
+	pkey, err := volFund.Insert(&volFunder)
+	util.CheckErr(err)
+	return volFunder, pkey
+}
+
+func testVolumeFunding(t *testing.T) {
+	fun, _ := createInsertFunder()
+	vol := createInsertTestVolume()
+	volFund := testConn.Collection("volume_funding")
+	volFunder, pkey := createInsertVolumeFunding(fun.FunderReferenceID, vol.VolumeID)
 	dbVolFund := models.VolumeFunding{}
-	volFund.Find(id).One(&dbVolFund)
+	volFund.Find(pkey).One(&dbVolFund)
 	if dbVolFund.Volume != volFunder.Volume || dbVolFund.Funder != volFunder.Funder || !reflect.DeepEqual(dbVolFund.Awards, volFunder.Awards) {
 		util.PrintReps(volFunder, dbVolFund)
 		t.Fatal("mismatch	")

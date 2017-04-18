@@ -39,3 +39,7 @@ func PrintReps(stuff ...interface{}) {
 		fmt.Printf("%#v\n", v)
 	}
 }
+
+func Now() time.Time {
+	return time.Now().Round(time.Microsecond)
+}
