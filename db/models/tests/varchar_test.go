@@ -2,11 +2,12 @@ package tests
 
 import (
 	"fmt"
+	"reflect"
+	"testing"
+
 	"github.com/databrary/databrary/config"
 	. "github.com/databrary/databrary/db/models/custom_types/varchar"
 	"github.com/databrary/databrary/logging"
-	"reflect"
-	"testing"
 )
 
 func TestVarChar(t *testing.T) {
@@ -42,11 +43,11 @@ func TestVarChar(t *testing.T) {
 	testBidirectional := func(v VarChar, charLength int) {
 		rows, err = conn.QueryRow(fmt.Sprintf("SELECT $1::varchar(%d)", charLength), v)
 		if err != nil {
-			t.Fatalf("re-query %s inet failed: %s", err.Error())
+			t.Fatalf("re-query failed: %s", err.Error())
 		}
 		rows.Scan(&n)
 		if !n.Valid() {
-			t.Fatalf("expected non-null value, got null for %s", n)
+			t.Fatalf("expected non-null value, got null for %#v", n)
 		}
 		if !reflect.DeepEqual(n, v) {
 			t.Fatalf("expected strings to match, but did not for\n%#v\n%#v", v, n)

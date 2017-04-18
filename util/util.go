@@ -2,11 +2,12 @@ package util
 
 import (
 	"fmt"
-	log "github.com/databrary/databrary/logging"
 	"math/rand"
 	"runtime/debug"
 	"strings"
 	"time"
+
+	log "github.com/databrary/databrary/logging"
 )
 
 var (

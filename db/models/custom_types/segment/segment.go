@@ -99,10 +99,10 @@ func NewSegment(lower *time.Time, upper *time.Time, bounds string) (*Segment, er
 	// (∞,∞) -> bounds = "()", lower = nil, upper = nil
 	if lower == nil {
 		if bounds[0] != '(' {
-			return nil, log.LogAndError(fmt.Sprintf("nil lower %s with wrong bound %s", lower, bounds[0]))
+			return nil, log.LogAndError(fmt.Sprintf("nil lower %s with wrong bound %b", lower, bounds[0]))
 		}
 		if upper == nil && bounds[1] != ')' {
-			return nil, log.LogAndError(fmt.Sprintf("nil upper %s with wrong bound %s", upper, bounds[1]))
+			return nil, log.LogAndError(fmt.Sprintf("nil upper %s with wrong bound %b", upper, bounds[1]))
 		}
 		return &Segment{bounds: bounds, lower: lower, upper: upper}, nil
 	}
@@ -110,7 +110,7 @@ func NewSegment(lower *time.Time, upper *time.Time, bounds string) (*Segment, er
 	// [a,∞) -> bounds = "[)", lower = a, upper = nil
 	if upper == nil {
 		if bounds[1] != ')' {
-			return nil, log.LogAndError(fmt.Sprintf("nil upper %s with wrong bound %s", upper, bounds[1]))
+			return nil, log.LogAndError(fmt.Sprintf("nil upper %s with wrong bound %b", upper, bounds[1]))
 		}
 		return &Segment{bounds: bounds, lower: lower, upper: upper}, nil
 	}
@@ -409,7 +409,7 @@ func (s *Segment) Scan(value interface{}) error {
 	}
 	begin, end, err := parseSegment(segmentAsString)
 	if err != nil {
-		return log.LogAndError(fmt.Sprintf("Could not parse %v into string. error", value, err))
+		return log.LogAndError(fmt.Sprintf("Could not parse %v into string. error %s", value, err))
 	}
 	s.bounds = string(segmentAsString[0]) + string(segmentAsString[len(segmentAsString)-1])
 	s.lower = begin

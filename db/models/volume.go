@@ -3,17 +3,18 @@ package models
 import (
 	"database/sql"
 	"database/sql/driver"
+
+	"github.com/databrary/databrary/db/models/custom_types/varchar"
 	"github.com/databrary/databrary/logging"
 	"github.com/lib/pq"
-	"github.com/databrary/databrary/db/models/custom_types/varchar"
 )
 
 type (
 	// Basic organizational unit for data.
 	Volume struct {
-		VolumeID int64          `json:"volume_id" db:"id,omitempty"`
-		Name     string         `json:"volume_name" db:"name"`
-		Body     sql.NullString `json:"volume_body" db:"body"`
+		VolumeID int64           `json:"volume_id" db:"id,omitempty"`
+		Name     string          `json:"volume_name" db:"name"`
+		Body     sql.NullString  `json:"volume_body" db:"body"`
 		Alias    varchar.VarChar `json:"volume_alias" db:"alias"` // Short, internal, code name for this volume, for contributors to reference their own data.
 		DOI      varchar.VarChar `json:"volume_doi" db:"doi"`     // DOIs issued for volumes (currently via EZID).
 	}

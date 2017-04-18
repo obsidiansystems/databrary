@@ -1,9 +1,10 @@
 package tests
 
 import (
+	"testing"
+
 	"github.com/databrary/databrary/db/models"
 	"github.com/databrary/databrary/util"
-	"testing"
 )
 
 func TestAuthorize(t *testing.T) {

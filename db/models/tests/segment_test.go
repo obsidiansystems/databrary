@@ -1,11 +1,12 @@
 package tests
 
 import (
+	"testing"
+	"time"
+
 	"github.com/databrary/databrary/config"
 	. "github.com/databrary/databrary/db/models/custom_types/segment"
 	"github.com/databrary/databrary/logging"
-	"testing"
-	"time"
 )
 
 var times = []time.Time{
@@ -550,7 +551,7 @@ func TestSegment_IsSingleton(t *testing.T) {
 func TestSegment_Duration(t *testing.T) {
 	s, _ := NewSegment(&times[0], &times[1], "[]")
 	if d := s.Duration(); d != 7200000000000 {
-		t.Fatalf("wrong duration %s", int(d))
+		t.Fatalf("wrong duration %d", int(d))
 	}
 }
 
@@ -567,7 +568,7 @@ func TestSegment_Minus(t *testing.T) {
 	s, _ := NewSegment(&times[0], &times[1], "[]")
 	ss, _ := NewSegment(&times[1], &times[2], "[]")
 	if m := s.Minus(ss); m != 0 {
-		t.Fatalf("difference %s should be 0")
+		t.Fatalf("difference %s should be 0", m)
 	}
 }
 
