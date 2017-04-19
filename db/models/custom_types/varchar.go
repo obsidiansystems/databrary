@@ -42,7 +42,7 @@ func (ns VarChar) Value() (driver.Value, error) {
 	if !ns.valid {
 		return nil, nil
 	}
-	return ns.String(), nil
+	return strings.Trim(ns.String(), " "), nil
 }
 
 // checking to make sure interface is implemented

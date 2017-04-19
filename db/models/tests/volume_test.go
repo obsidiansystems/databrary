@@ -28,7 +28,7 @@ func TestVolume(t *testing.T) {
 	test(t)
 }
 
-func createInsertVolume() models.Volume {
+func createInsertVolume() (models.Volume, interface{}) {
 	vol := models.Volume{
 		Name:  util.RandStringRunes(10),
 		Body:  sql.NullString{util.RandStringRunes(10), true},
@@ -36,16 +36,16 @@ func createInsertVolume() models.Volume {
 		DOI:   NewVarChar(util.RandStringRunes(10), true),
 	}
 	vols := testConn.Collection("volume")
-	id, err := vols.Insert(vol)
+	pkey, err := vols.Insert(vol)
 	util.CheckErr(err)
-	vol.VolumeID = id.(int64)
-	return vol
+	vol.VolumeID = pkey.(int64)
+	return vol, pkey
 }
 
 func testVolume(t *testing.T) {
-	vol := createInsertVolume()
+	vol, pkey := createInsertVolume()
 	vols := testConn.Collection("volume")
-	res := vols.Find("id", vol.VolumeID)
+	res := vols.Find(pkey)
 	defer res.Close()
 	c, err := res.Count()
 	if c != 1 {
@@ -59,7 +59,7 @@ func testVolume(t *testing.T) {
 	}
 
 	// fetch multiple vols
-	vol2 := createInsertVolume()
+	vol2, _ := createInsertVolume()
 
 	modelVols := map[int64]models.Volume{
 		vol.VolumeID:  vol,
@@ -85,8 +85,8 @@ func createInsertVolumeAccess(volId int64) models.VolumeAccess {
 	volA := models.VolumeAccess{
 		Volume:     volId,
 		Party:      0,
-		Individual: models.PermADMIN,
-		Children:   models.PermADMIN,
+		Individual: PermADMIN,
+		Children:   PermADMIN,
 		Sort:       sql.NullInt64{0, true},
 	}
 	volAs := testConn.Collection("volume_access")
@@ -96,7 +96,7 @@ func createInsertVolumeAccess(volId int64) models.VolumeAccess {
 }
 
 func testVolumeAccess(t *testing.T) {
-	vol := createInsertVolume()
+	vol, _ := createInsertVolume()
 	volA := createInsertVolumeAccess(vol.VolumeID)
 	volAs := testConn.Collection("volume_access")
 	dbVolAs := &models.VolumeAccess{}
@@ -119,7 +119,7 @@ func createInsertVolumeOwners(volId int64, ownersStr []string) (models.VolumeOwn
 
 func testVolumeOwners(t *testing.T) {
 
-	vol := createInsertVolume()
+	vol, _ := createInsertVolume()
 	owners := testConn.Collection("volume_owners")
 	owners_test := []string{"32:Karasik, Lana", "11:Tamis-LeMonda, Catherine", "5:Adolph, Karen"}
 	volOwners, pkey := createInsertVolumeOwners(vol.VolumeID, owners_test)
@@ -150,7 +150,7 @@ func createInsertVolumeLink(volId int64) (models.VolumeLink, interface{}) {
 func testVolumeLink(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		links := testConn.Collection("volume_link")
-		vol := createInsertVolume()
+		vol, _ := createInsertVolume()
 		volL, pkey := createInsertVolumeLink(vol.VolumeID)
 		newVolL := models.VolumeLink{}
 		links.Find(pkey).One(&newVolL)
@@ -175,7 +175,7 @@ func createInsertVolumeCitation(volId int64) (models.VolumeCitation, interface{}
 }
 
 func testVolumeCitatation(t *testing.T) {
-	vol := createInsertVolume()
+	vol, _ := createInsertVolume()
 	volC, pkey := createInsertVolumeCitation(vol.VolumeID)
 	cits := testConn.Collection("volume_citation")
 
@@ -229,7 +229,7 @@ func createInsertVolumeFunding(funderId, volId int64) (models.VolumeFunding, int
 
 func testVolumeFunding(t *testing.T) {
 	fun, _ := createInsertFunder()
-	vol := createInsertVolume()
+	vol, _ := createInsertVolume()
 	volFund := testConn.Collection("volume_funding")
 	volFunder, pkey := createInsertVolumeFunding(fun.FunderReferenceID, vol.VolumeID)
 	dbVolFund := models.VolumeFunding{}

@@ -69,15 +69,15 @@ func (s *Segment) String() string {
 	}
 }
 
-func NewSegment(lower *time.Time, upper *time.Time, bounds string) (*Segment, error) {
+func NewSegment(lower *time.Time, upper *time.Time, bounds string) (Segment, error) {
 	// empty -> bounds = "", lower = nil, upper = nil
 	if bounds == "" {
 		if lower != nil || upper != nil {
 			errF := fmt.Sprintf("empty segment with non-nil lower %s or upper %s", lower, upper)
 
-			return nil, log.LogAndError(errF)
+			return Segment{}, log.LogAndError(errF)
 		}
-		return &Segment{bounds: bounds, lower: lower, upper: upper}, nil
+		return Segment{bounds: bounds, lower: lower, upper: upper}, nil
 	}
 	// [a,b] -> bounds = "[]", lower = a, upper = b
 	// [a,b) -> bounds = "[)", lower = a, upper = b
@@ -85,38 +85,38 @@ func NewSegment(lower *time.Time, upper *time.Time, bounds string) (*Segment, er
 	// (a,b) -> bounds = "()", lower = a, upper = b
 	if lower != nil && upper != nil {
 		if !(upper.Sub(*lower).Nanoseconds() >= 0) {
-			return nil, log.LogAndError(fmt.Sprintf("lower bound %s above upper bound %s", *lower, *upper))
+			return Segment{}, log.LogAndError(fmt.Sprintf("lower bound %s above upper bound %s", *lower, *upper))
 		}
 		// singleton check
 		if upper.Sub(*lower) == 0 && bounds != "[]" {
-			return nil, log.LogAndError(fmt.Sprintf("wrong bounds %s for singleton", bounds))
+			return Segment{}, log.LogAndError(fmt.Sprintf("wrong bounds %s for singleton", bounds))
 		}
 
-		return &Segment{bounds: bounds, lower: lower, upper: upper}, nil
+		return Segment{bounds: bounds, lower: lower, upper: upper}, nil
 	}
 	// (∞,a) -> bounds = "()", lower = nil, upper = a
 	// (∞,a] -> bounds = "(]", lower = nil, upper = a
 	// (∞,∞) -> bounds = "()", lower = nil, upper = nil
 	if lower == nil {
 		if bounds[0] != '(' {
-			return nil, log.LogAndError(fmt.Sprintf("nil lower %s with wrong bound %b", lower, bounds[0]))
+			return Segment{}, log.LogAndError(fmt.Sprintf("nil lower %s with wrong bound %b", lower, bounds[0]))
 		}
 		if upper == nil && bounds[1] != ')' {
-			return nil, log.LogAndError(fmt.Sprintf("nil upper %s with wrong bound %b", upper, bounds[1]))
+			return Segment{}, log.LogAndError(fmt.Sprintf("nil upper %s with wrong bound %b", upper, bounds[1]))
 		}
-		return &Segment{bounds: bounds, lower: lower, upper: upper}, nil
+		return Segment{bounds: bounds, lower: lower, upper: upper}, nil
 	}
 	// (a,∞) -> bounds = "()", lower = a, upper = nil
 	// [a,∞) -> bounds = "[)", lower = a, upper = nil
 	if upper == nil {
 		if bounds[1] != ')' {
-			return nil, log.LogAndError(fmt.Sprintf("nil upper %s with wrong bound %b", upper, bounds[1]))
+			return Segment{}, log.LogAndError(fmt.Sprintf("nil upper %s with wrong bound %b", upper, bounds[1]))
 		}
-		return &Segment{bounds: bounds, lower: lower, upper: upper}, nil
+		return Segment{bounds: bounds, lower: lower, upper: upper}, nil
 	}
 	log.Logger.Panic(fmt.Sprintf("unreachable edge case %s %s %s", lower, upper, bounds))
 	// unreachable
-	return nil, nil
+	return Segment{}, nil
 }
 
 func (s *Segment) Lower() *time.Time {

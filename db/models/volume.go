@@ -2,10 +2,8 @@ package models
 
 import (
 	"database/sql"
-	"database/sql/driver"
 
 	. "github.com/databrary/databrary/db/models/custom_types"
-	"github.com/databrary/databrary/logging"
 	"github.com/lib/pq"
 )
 
@@ -23,8 +21,8 @@ type (
 	VolumeAccess struct {
 		Volume     int64         `json:"volume_access_volume" db:"volume"` // references volume.id
 		Party      int64         `json:"volume_access_party" db:"party"`
-		Individual Perm          `json:"volume_access_individual" db:"individual"` // the parties permission
-		Children   Perm          `json:"volume_access_children" db:"children"`     // children-of-the-party's permission
+		Individual Permission    `json:"volume_access_individual" db:"individual"` // the parties permission
+		Children   Permission    `json:"volume_access_children" db:"children"`     // children-of-the-party's permission
 		Sort       sql.NullInt64 `json:"volume_access_sort" db:"sort"`
 		// Check ("individual" >= "children"),
 		// Primary Key ("volume", "party")
@@ -70,41 +68,3 @@ type (
 		// primary ("volume", "funder")
 	}
 )
-
-// ReleaseLevel enum
-type ReleaseLvl string
-
-// Levels at which participants or researchers may choose to share data.
-// TODO: check if this needs to be a null string
-const (
-	ReleaseLvlNONE     ReleaseLvl = ReleaseLvl("NONE")
-	ReleaseLvlEXCERPTS ReleaseLvl = ReleaseLvl("EXCERPTS")
-	ReleaseLvlPUBLIC   ReleaseLvl = ReleaseLvl("PUBLIC")
-	ReleaseLvlPRIVATE  ReleaseLvl = ReleaseLvl("PRIVATE")
-	ReleaseLvlSHARED   ReleaseLvl = ReleaseLvl("SHARED")
-)
-
-func (rls ReleaseLvl) Value() (driver.Value, error) {
-	// value needs to be a base driver.Value type
-	// such as bool.
-	return string(rls), nil
-}
-
-func (rls *ReleaseLvl) Scan(value interface{}) error {
-	if value == nil {
-		return logging.LogAndError("got nil value from database for ReleaseLevel for volume")
-	}
-	if exposure_val, err := driver.String.ConvertValue(value); err == nil {
-		if v, ok := exposure_val.(ReleaseLvl); ok {
-			*rls = ReleaseLvl(v)
-			return nil
-		}
-	}
-	return logging.LogAndError("failed to scan ReleaseLevel")
-}
-
-// house keeping
-
-// checking to make sure interface is implemented
-var _ sql.Scanner = (*ReleaseLvl)(nil)
-var _ driver.Valuer = ReleaseLvlNONE

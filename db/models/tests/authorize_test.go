@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/databrary/databrary/db/models"
+	. "github.com/databrary/databrary/db/models/custom_types"
 	"github.com/databrary/databrary/util"
 	"github.com/lib/pq"
 )
@@ -19,8 +20,8 @@ func createInsertAuthorize(childPartyId, parentPartyId int64) (models.Authorize,
 	auth := models.Authorize{
 		ChildParty:  childPartyId,
 		ParentParty: parentPartyId,
-		SitePerm:    models.PermADMIN,
-		MemberPerm:  models.PermADMIN,
+		SitePerm:    PermADMIN,
+		MemberPerm:  PermADMIN,
 		// only use util.Now() because it rounds to microsecond (which is the highest precision postgres uses)
 		Expires: pq.NullTime{util.Now(), true},
 	}

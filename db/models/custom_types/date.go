@@ -13,6 +13,8 @@ type Date struct {
 
 func NewDate(date time.Time, valid bool) Date {
 	return Date{
+		// dates are truncated in postgres to nearest day and return
+		// with no timezone
 		date:  date.Truncate(24 * time.Hour).In(time.FixedZone("", 0)),
 		valid: valid,
 	}

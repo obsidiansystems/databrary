@@ -33,7 +33,7 @@ func createInsertContainer(volId int64) (models.Container, interface{}) {
 }
 
 func testContainer(t *testing.T) {
-	vol := createInsertVolume()
+	vol, _ := createInsertVolume()
 	dbCont, pkey := createInsertContainer(vol.VolumeID)
 	newCont := models.Container{}
 	conts := testConn.Collection("container")
