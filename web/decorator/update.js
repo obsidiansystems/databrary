@@ -1,5 +1,5 @@
 'use strict';
-
+/*
 app.factory('updateInterceptor', [
   'constantService', 'messageService', '$sce',
   function (constants, messages, $sce) {
@@ -20,7 +20,7 @@ app.factory('updateInterceptor', [
     };
   }
 ]);
-/*
+
 app.config([
   '$httpProvider', function ($httpProvider) {
     $httpProvider.interceptors.push('updateInterceptor');
