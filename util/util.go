@@ -26,7 +26,7 @@ func RandStringRunes(n int) string {
 	return string(b)
 }
 
-func CheckErr(e error) {
+func CheckOrFatalErr(e error) {
 	if e != nil {
 		// trim the top the 3 lines of the stack because they're inside debug.Stack()
 		stack := strings.Split(string(debug.Stack()), "\n")[3:]

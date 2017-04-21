@@ -36,6 +36,7 @@ import (
 	"time"
 
 	log "github.com/databrary/databrary/logging"
+	"github.com/databrary/databrary/util"
 )
 
 const (
@@ -337,7 +338,7 @@ const EPOCHSHIFT = time.Duration(31622400000000000)
 //	return d
 //}
 
-func parseTimeToString(timeAsString string) (*time.Time, error) {
+func parseStringToTime(timeAsString string) (time.Time, error) {
 
 	// i'm using SEG_FORMAT here and MIL_SEG_FORMAT up there because
 	// for some reason this parses 00:18:34.15 correctly but i want
@@ -345,38 +346,38 @@ func parseTimeToString(timeAsString string) (*time.Time, error) {
 	timeAsTime, err := time.Parse(SEG_FORMAT, timeAsString)
 	timeAsTime = timeAsTime.Add(EPOCHSHIFT)
 	if err != nil {
-		return nil, log.LogAndError(fmt.Sprintf("couldn't parse %s as time. error %s", timeAsString, err))
+		return time.Time{}, log.LogAndError(fmt.Sprintf("couldn't parse %s as time. error %s", timeAsString, err))
 	}
-	return &timeAsTime, nil
+	return timeAsTime, nil
 }
 
 // [18:16:54,18:22:01.008)
 // note that milliseconds are optional
-func parseSegment(segment string) (*time.Time, *time.Time, error) {
+func parseSegment(segment string) (time.Time, time.Time, error) {
 	trimmedSegmentString := segment[1 : len(segment)-1]
 	begin_endAsString := strings.Split(trimmedSegmentString, ",")
 	beginAsString, endAsString := begin_endAsString[0], begin_endAsString[1]
 
 	if len(beginAsString) == 0 && len(endAsString) == 0 {
 		// (,)
-		return nil, nil, nil
+		return time.Time{}, time.Time{}, nil
 	}
 	var (
-		endAsTime   *time.Time
-		beginAsTime *time.Time
+		endAsTime   time.Time
+		beginAsTime time.Time
 		err         error
 	)
 	if len(beginAsString) != 0 {
-		beginAsTime, err = parseTimeToString(beginAsString)
+		beginAsTime, err = parseStringToTime(beginAsString)
 	}
 	if err != nil {
-		return nil, nil, err
+		return time.Time{}, time.Time{}, err
 	}
 	if len(endAsString) != 0 {
-		endAsTime, err = parseTimeToString(endAsString)
+		endAsTime, err = parseStringToTime(endAsString)
 	}
 	if err != nil {
-		return nil, nil, err
+		return time.Time{}, time.Time{}, err
 	}
 
 	return beginAsTime, endAsTime, nil
@@ -394,14 +395,12 @@ func (s *Segment) Scan(value interface{}) error {
 	}
 	segmentAsString := string(segmentAsBytes)
 	if segmentAsString == "empty" {
-		//s = &Segment{bounds: "", lower: nil, upper: nil}
 		s.bounds = ""
 		s.lower = nil
 		s.upper = nil
 		return nil
 	}
 	if segmentAsString == "(,)" {
-		//s = &Segment{bounds: "()", lower: nil, upper: nil}
 		s.bounds = "()"
 		s.lower = nil
 		s.upper = nil
@@ -412,8 +411,8 @@ func (s *Segment) Scan(value interface{}) error {
 		return log.LogAndError(fmt.Sprintf("Could not parse %v into string. error %s", value, err))
 	}
 	s.bounds = string(segmentAsString[0]) + string(segmentAsString[len(segmentAsString)-1])
-	s.lower = begin
-	s.upper = end
+	s.lower = &begin
+	s.upper = &end
 
 	return nil
 }
@@ -422,4 +421,57 @@ func (s Segment) Value() (driver.Value, error) {
 	// [00:18:34.15,00:22:46.909)
 	segAsString := s.String()
 	return []byte(segAsString), nil
+}
+
+type NullSegment struct {
+	Segment Segment
+	Valid   bool
+}
+
+func (ns *NullSegment) Scan(value interface{}) error {
+	if value == nil {
+		ns.Segment, ns.Valid = Segment{}, false
+		return nil
+	}
+
+	err := ns.Segment.Scan(value)
+	util.CheckOrFatalErr(err)
+	ns.Valid = true
+	return nil
+}
+
+func (ns NullSegment) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return ns.Segment.Value()
+}
+
+// this is not time.Duration but an alias for postgres interval hour to sec (3)
+type NullDuration struct {
+	time  time.Time
+	valid bool
+}
+
+func (d *NullDuration) Scan(value interface{}) error {
+	if value == nil {
+		d = &NullDuration{time.Time{}, false}
+		return nil
+	}
+	durationAsBytes, ok := value.([]byte)
+	if !ok {
+		return log.LogAndError(fmt.Sprintf("Could not convert %#v scanned Duration value to bytes", value))
+	}
+	durationAsString := string(durationAsBytes)
+	durationAsTime, err := parseStringToTime(durationAsString)
+	util.CheckOrFatalErr(err)
+	d.time, d.valid = durationAsTime, true
+	return nil
+}
+
+func (d NullDuration) Value() (driver.Value, error) {
+	if !d.valid {
+		return nil, nil
+	}
+	return []byte(d.time.Format(MIL_SEG_FORMAT)), nil
 }

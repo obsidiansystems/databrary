@@ -1,10 +1,11 @@
 package logging
 
 import (
+	"errors"
+	"fmt"
 	"time"
 
-	"errors"
-	logrus "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/lestrrat/go-file-rotatelogs"
 	"github.com/rifflock/lfshook"
 	"github.com/spf13/viper"
@@ -54,5 +55,11 @@ func InitLgr(conf *viper.Viper) *logrus.Logger {
 
 func LogAndError(msg string) error {
 	Logger.Error(msg)
+	return errors.New(msg)
+}
+
+func LogAndErrorf(format string, args ...interface{}) error {
+	Logger.Errorf(format, args...)
+	msg := fmt.Sprintf(format, args...)
 	return errors.New(msg)
 }

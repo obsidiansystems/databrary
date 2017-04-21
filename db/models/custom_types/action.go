@@ -5,43 +5,75 @@ import (
 	"database/sql/driver"
 
 	"github.com/databrary/databrary/logging"
+	set "github.com/deckarep/golang-set"
 )
 
 // Action Enum
-type Action sql.NullString
+type Action string
 
 // The various activities for which we keep audit records (in audit or a derived table).
-var (
-	ActionATTEMPT   Action = Action{"attempt", true}
-	ActionOPEN      Action = Action{"open", true}
-	ActionCLOSE     Action = Action{"close", true}
-	ActionADD       Action = Action{"add", true}
-	ActionCHANGE    Action = Action{"change", true}
-	ActionREMOVE    Action = Action{"remove", true}
-	ActionSUPERUSER Action = Action{"superuser", true}
+// TODO: uppercase in schema
+const (
+	ActionATTEMPT   Action = Action("attempt")
+	ActionOPEN      Action = Action("open")
+	ActionCLOSE     Action = Action("close")
+	ActionADD       Action = Action("add")
+	ActionCHANGE    Action = Action("change")
+	ActionREMOVE    Action = Action("remove")
+	ActionSUPERUSER Action = Action("superuser")
 )
 
+var ALLACTIONS = set.NewSetWith(ActionATTEMPT, ActionOPEN, ActionCLOSE, ActionADD,
+	ActionCHANGE, ActionREMOVE, ActionSUPERUSER)
+
+func (act *Action) Scan(value interface{}) error {
+	*act = ""
+	if value == nil {
+		return logging.LogAndError("scanned NULL action (did you mean to use NullAction)")
+	}
+	if val, err := driver.String.ConvertValue(value); err == nil {
+		*act = val.(Action)
+		if !ALLACTIONS.Contains(*act) {
+			return logging.LogAndErrorf("invalid Action %#v", *act)
+		}
+		return nil
+	} else {
+		return err
+	}
+}
+
 func (act Action) Value() (driver.Value, error) {
+	if !ALLACTIONS.Contains(act) {
+		return nil, logging.LogAndErrorf("invalid Action %#v", act)
+	}
+	return act, nil
+}
+
+type NullAction struct {
+	Action Action
+	Valid  bool
+}
+
+func (act *NullAction) Scan(value interface{}) error {
+	if value == nil {
+		act.Action, act.Valid = "", false
+		return nil
+	}
+	err := act.Action.Scan(value)
+	if err != nil {
+		act.Valid = false
+		return err
+	} else {
+		act.Valid = true
+		return nil
+	}
+}
+
+func (act NullAction) Value() (driver.Value, error) {
 	if !act.Valid {
 		return nil, nil
 	}
-	// value needs to be a base driver.Value type
-	// such as bool.
-	return act.String, nil
-}
-
-func (act *Action) Scan(value interface{}) error {
-	if value == nil {
-		act.String, act.Valid = "", false
-		return nil
-	}
-	if exposure_val, err := driver.String.ConvertValue(value); err == nil {
-		if v, ok := exposure_val.([]byte); ok {
-			*act = Action{string(v), true}
-			return nil
-		}
-	}
-	return logging.LogAndError("failed to scan Action")
+	return act.Action.Value()
 }
 
 // house keeping
@@ -49,3 +81,6 @@ func (act *Action) Scan(value interface{}) error {
 // checking to make sure interface is implemented
 var _ sql.Scanner = (*Action)(nil)
 var _ driver.Valuer = ActionSUPERUSER
+
+var _ sql.Scanner = (*NullAction)(nil)
+var _ driver.Valuer = NullAction{}

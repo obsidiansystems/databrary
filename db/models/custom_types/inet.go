@@ -1,23 +1,22 @@
 package custom_types
 
 import (
+	"database/sql"
 	"database/sql/driver"
 	"errors"
 	"net"
+
+	"github.com/databrary/databrary/logging"
 )
 
 // A wrapper for transferring Inet values back and forth easily.
-type Inet struct {
-	Inet  net.IP
-	Valid bool
-}
+type Inet net.IP
 
 // Scan implements the Scanner interface.
 func (i *Inet) Scan(value interface{}) error {
-	i.Inet = nil
-	i.Valid = false
+	*i = Inet(net.IP{})
 	if value == nil {
-		return nil
+		return logging.LogAndError("scanned NULL Inet (did you mean to use NullInet?)")
 	}
 	ipAsBytes, ok := value.([]byte)
 	if !ok {
@@ -25,18 +24,53 @@ func (i *Inet) Scan(value interface{}) error {
 	}
 	parsedIP := net.ParseIP(string(ipAsBytes))
 	if parsedIP == nil {
-		return nil
+		return logging.LogAndError("parsed NULL ip (did you mean to use NullInet?)")
 	}
-	i.Valid = true
-	i.Inet = parsedIP
+	*i = Inet(parsedIP)
 	return nil
 }
 
 // Value implements the driver Valuer interface. Note if i.Valid is false
 // or i.IP is nil the database column value will be set to NULL.
 func (i Inet) Value() (driver.Value, error) {
-	if i.Valid == false || i.Inet == nil {
+	if i == nil {
+		return nil, logging.LogAndError("value nil Inet (did you mean to use NullInet?)")
+	}
+	return []byte(i), nil
+}
+
+type NullInet struct {
+	Inet  Inet
+	Valid bool
+}
+
+func (ni *NullInet) Scan(value interface{}) error {
+	if value == nil {
+		ni.Inet, ni.Valid = Inet{}, false
+		return nil
+	}
+	err := ni.Inet.Scan(value)
+	if err != nil {
+		ni.Valid = false
+		return err
+	} else {
+		ni.Valid = true
+		return nil
+	}
+}
+
+func (ni NullInet) Value() (driver.Value, error) {
+	if !ni.Valid {
 		return nil, nil
 	}
-	return []byte(i.Inet.String()), nil
+	return ni.Inet.Value()
 }
+
+// house keeping
+
+// checking to make sure interface is implemented
+var _ sql.Scanner = (*Inet)(nil)
+var _ driver.Valuer = Inet{}
+
+var _ sql.Scanner = (*NullInet)(nil)
+var _ driver.Valuer = NullInet{}

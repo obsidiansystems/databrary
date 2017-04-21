@@ -1,10 +1,17 @@
 package main
 
 import (
+	"database/sql"
+	"fmt"
 	"path/filepath"
 
 	"github.com/databrary/databrary/config"
+	models "github.com/databrary/databrary/db/models/sqlboiler_models"
 	log "github.com/databrary/databrary/logging"
+	"github.com/databrary/databrary/util"
+	_ "github.com/lib/pq"
+	"github.com/vattle/sqlboiler/boil"
+	. "github.com/vattle/sqlboiler/queries/qm"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -28,6 +35,12 @@ func init() {
 }
 
 func main() {
-
+	db, _ := sql.Open("postgres", "dbname=databrary port=5433 user=postgres password=mysecretpassword sslmode=disable")
+	boil.SetDB(db)
+	users, err := models.AccountsG(Load("ID")).All()
+	util.CheckOrFatalErr(err)
+	for _, u := range users {
+		fmt.Println(u.R.ID)
+	}
 	log.Logger.WithField("test", "test").Debug("dfadfadf")
 }

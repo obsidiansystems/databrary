@@ -1,0 +1,8 @@
+blacklist = ["slot", "volume_text", "authorize_valid", "authorize_view", "volume_access_view", "volume_owners_view", "asset_replace", "measure", "measures", "notify_view"]
+[postgres]
+dbname = "test_boil"
+user = "postgres"
+pass = "mysecretpassword"
+host = "localhost"
+port = "5432"
+sslmode = "disable"
