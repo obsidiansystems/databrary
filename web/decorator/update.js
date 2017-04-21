@@ -20,9 +20,10 @@ app.factory('updateInterceptor', [
     };
   }
 ]);
-
+/*
 app.config([
   '$httpProvider', function ($httpProvider) {
     $httpProvider.interceptors.push('updateInterceptor');
   }
 ]);
+*/
