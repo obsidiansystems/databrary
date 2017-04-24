@@ -26,8 +26,12 @@ func testTokens(t *testing.T) {
 func testTokensDelete(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	token := &Token{}
 	if err = randomize.Struct(seed, token, tokenDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Token struct: %s", err)
@@ -56,8 +60,12 @@ func testTokensDelete(t *testing.T) {
 func testTokensQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	token := &Token{}
 	if err = randomize.Struct(seed, token, tokenDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Token struct: %s", err)
@@ -86,8 +94,12 @@ func testTokensQueryDeleteAll(t *testing.T) {
 func testTokensSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	token := &Token{}
 	if err = randomize.Struct(seed, token, tokenDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Token struct: %s", err)
@@ -117,8 +129,12 @@ func testTokensSliceDeleteAll(t *testing.T) {
 func testTokensExists(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	token := &Token{}
 	if err = randomize.Struct(seed, token, tokenDBTypes, true, tokenColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Token struct: %s", err)
@@ -141,8 +157,12 @@ func testTokensExists(t *testing.T) {
 func testTokensFind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	token := &Token{}
 	if err = randomize.Struct(seed, token, tokenDBTypes, true, tokenColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Token struct: %s", err)
@@ -166,8 +186,12 @@ func testTokensFind(t *testing.T) {
 func testTokensBind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	token := &Token{}
 	if err = randomize.Struct(seed, token, tokenDBTypes, true, tokenColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Token struct: %s", err)
@@ -187,8 +211,12 @@ func testTokensBind(t *testing.T) {
 func testTokensOne(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	token := &Token{}
 	if err = randomize.Struct(seed, token, tokenDBTypes, true, tokenColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Token struct: %s", err)
@@ -210,8 +238,12 @@ func testTokensOne(t *testing.T) {
 func testTokensAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	tokenOne := &Token{}
 	tokenTwo := &Token{}
 	if err = randomize.Struct(seed, tokenOne, tokenDBTypes, false, tokenColumnsWithDefault...); err != nil {
@@ -245,6 +277,10 @@ func testTokensCount(t *testing.T) {
 
 	var err error
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	tokenOne := &Token{}
 	tokenTwo := &Token{}
 	if err = randomize.Struct(seed, tokenOne, tokenDBTypes, false, tokenColumnsWithDefault...); err != nil {
@@ -323,9 +359,12 @@ func testTokensHooks(t *testing.T) {
 	var err error
 
 	empty := &Token{}
-	o := &Token{}
-
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	o := &Token{}
 	if err = randomize.Struct(seed, o, tokenDBTypes, false); err != nil {
 		t.Errorf("Unable to randomize Token object: %s", err)
 	}
@@ -414,8 +453,12 @@ func testTokensHooks(t *testing.T) {
 func testTokensInsert(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	token := &Token{}
 	if err = randomize.Struct(seed, token, tokenDBTypes, true, tokenColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Token struct: %s", err)
@@ -440,8 +483,12 @@ func testTokensInsert(t *testing.T) {
 func testTokensInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	token := &Token{}
 	if err = randomize.Struct(seed, token, tokenDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Token struct: %s", err)
@@ -466,8 +513,12 @@ func testTokensInsertWhitelist(t *testing.T) {
 func testTokensReload(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	token := &Token{}
 	if err = randomize.Struct(seed, token, tokenDBTypes, true, tokenColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Token struct: %s", err)
@@ -487,8 +538,12 @@ func testTokensReload(t *testing.T) {
 func testTokensReloadAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	token := &Token{}
 	if err = randomize.Struct(seed, token, tokenDBTypes, true, tokenColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Token struct: %s", err)
@@ -509,8 +564,12 @@ func testTokensReloadAll(t *testing.T) {
 func testTokensSelect(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	token := &Token{}
 	if err = randomize.Struct(seed, token, tokenDBTypes, true, tokenColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Token struct: %s", err)
@@ -544,8 +603,12 @@ func testTokensUpdate(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	token := &Token{}
 	if err = randomize.Struct(seed, token, tokenDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Token struct: %s", err)
@@ -582,8 +645,12 @@ func testTokensSliceUpdateAll(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	token := &Token{}
 	if err = randomize.Struct(seed, token, tokenDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Token struct: %s", err)
@@ -637,9 +704,13 @@ func testTokensUpsert(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
 	// Attempt the INSERT side of an UPSERT
+
 	token := Token{}
 	if err = randomize.Struct(seed, &token, tokenDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Token struct: %s", err)
@@ -660,6 +731,7 @@ func testTokensUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
+
 	if err = randomize.Struct(seed, &token, tokenDBTypes, false, tokenPrimaryKeyColumns...); err != nil {
 		t.Errorf("Unable to randomize Token struct: %s", err)
 	}

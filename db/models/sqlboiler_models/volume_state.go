@@ -23,13 +23,13 @@ import (
 
 // VolumeState is an object representing the database table.
 type VolumeState struct {
-	Volume int        `boil:"volume" json:"volume" toml:"volume" yaml:"volume"`
-	Key    string     `boil:"key" json:"key" toml:"key" yaml:"key"`
-	Value  types.JSON `boil:"value" json:"value" toml:"value" yaml:"value"`
-	Public bool       `boil:"public" json:"public" toml:"public" yaml:"public"`
+	Volume int        `boil:"volume" json:"volumeState_volume"`
+	Key    string     `boil:"key" json:"volumeState_key"`
+	Value  types.JSON `boil:"value" json:"volumeState_value"`
+	Public bool       `boil:"public" json:"volumeState_public"`
 
-	R *volumeStateR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L volumeStateL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *volumeStateR `boil:"-" json:"-"`
+	L volumeStateL  `boil:"-" json:"-"`
 }
 
 // volumeStateR is where relationships are stored.
@@ -700,9 +700,6 @@ func (o *VolumeState) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(volumeStateColumns, volumeStatePrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update volume_state, could not build whitelist")
 		}
@@ -803,18 +800,18 @@ func (o VolumeStateSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"volume_state\" SET %s WHERE (\"volume\",\"key\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(volumeStatePrimaryKeyColumns), len(colNames)+1, len(volumeStatePrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in volumeState slice")
 	}
@@ -996,14 +993,14 @@ func (o *VolumeState) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), volumeStatePrimaryKeyMapping)
-	sql := "DELETE FROM \"volume_state\" WHERE \"volume\"=$1 AND \"key\"=$2"
+	query := "DELETE FROM \"volume_state\" WHERE \"volume\"=$1 AND \"key\"=$2"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from volume_state")
 	}
@@ -1084,18 +1081,18 @@ func (o VolumeStateSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"volume_state\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, volumeStatePrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(volumeStatePrimaryKeyColumns), 1, len(volumeStatePrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from volumeState slice")
 	}
@@ -1188,13 +1185,13 @@ func (o *VolumeStateSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"volume_state\".* FROM \"volume_state\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, volumeStatePrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(volumeStatePrimaryKeyColumns), 1, len(volumeStatePrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&volumeStates)
 	if err != nil {
@@ -1210,14 +1207,14 @@ func (o *VolumeStateSlice) ReloadAll(exec boil.Executor) error {
 func VolumeStateExists(exec boil.Executor, volume int, key string) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"volume_state\" where \"volume\"=$1 AND \"key\"=$2 limit 1)"
+	query := "select exists(select 1 from \"volume_state\" where \"volume\"=$1 AND \"key\"=$2 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, volume, key)
 	}
 
-	row := exec.QueryRow(sql, volume, key)
+	row := exec.QueryRow(query, volume, key)
 
 	err := row.Scan(&exists)
 	if err != nil {

@@ -26,12 +26,13 @@ func testAuthorizes(t *testing.T) {
 func testAuthorizesDelete(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	authorize := &Authorize{}
-	if err = randomize.Struct(seed, authorize, authorizeDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Authorize struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	authorize := AuthorizeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -56,12 +57,13 @@ func testAuthorizesDelete(t *testing.T) {
 func testAuthorizesQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	authorize := &Authorize{}
-	if err = randomize.Struct(seed, authorize, authorizeDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Authorize struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	authorize := AuthorizeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -86,12 +88,13 @@ func testAuthorizesQueryDeleteAll(t *testing.T) {
 func testAuthorizesSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	authorize := &Authorize{}
-	if err = randomize.Struct(seed, authorize, authorizeDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Authorize struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	authorize := AuthorizeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -117,12 +120,13 @@ func testAuthorizesSliceDeleteAll(t *testing.T) {
 func testAuthorizesExists(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	authorize := &Authorize{}
-	if err = randomize.Struct(seed, authorize, authorizeDBTypes, true, authorizeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Authorize struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	authorize := AuthorizeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -141,12 +145,13 @@ func testAuthorizesExists(t *testing.T) {
 func testAuthorizesFind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	authorize := &Authorize{}
-	if err = randomize.Struct(seed, authorize, authorizeDBTypes, true, authorizeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Authorize struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	authorize := AuthorizeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -166,12 +171,13 @@ func testAuthorizesFind(t *testing.T) {
 func testAuthorizesBind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	authorize := &Authorize{}
-	if err = randomize.Struct(seed, authorize, authorizeDBTypes, true, authorizeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Authorize struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	authorize := AuthorizeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -187,12 +193,13 @@ func testAuthorizesBind(t *testing.T) {
 func testAuthorizesOne(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	authorize := &Authorize{}
-	if err = randomize.Struct(seed, authorize, authorizeDBTypes, true, authorizeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Authorize struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	authorize := AuthorizeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -210,16 +217,14 @@ func testAuthorizesOne(t *testing.T) {
 func testAuthorizesAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	authorizeOne := &Authorize{}
-	authorizeTwo := &Authorize{}
-	if err = randomize.Struct(seed, authorizeOne, authorizeDBTypes, false, authorizeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Authorize struct: %s", err)
-	}
-	if err = randomize.Struct(seed, authorizeTwo, authorizeDBTypes, false, authorizeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Authorize struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	authorizeOne := AuthorizeRandom()
+	authorizeTwo := AuthorizeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -245,14 +250,12 @@ func testAuthorizesCount(t *testing.T) {
 
 	var err error
 	seed := randomize.NewSeed()
-	authorizeOne := &Authorize{}
-	authorizeTwo := &Authorize{}
-	if err = randomize.Struct(seed, authorizeOne, authorizeDBTypes, false, authorizeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Authorize struct: %s", err)
-	}
-	if err = randomize.Struct(seed, authorizeTwo, authorizeDBTypes, false, authorizeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Authorize struct: %s", err)
-	}
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	authorizeOne := AuthorizeRandom()
+	authorizeTwo := AuthorizeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -323,12 +326,12 @@ func testAuthorizesHooks(t *testing.T) {
 	var err error
 
 	empty := &Authorize{}
-	o := &Authorize{}
-
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, o, authorizeDBTypes, false); err != nil {
-		t.Errorf("Unable to randomize Authorize object: %s", err)
-	}
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	o := AuthorizeRandom()
 
 	AddAuthorizeHook(boil.BeforeInsertHook, authorizeBeforeInsertHook)
 	if err = o.doBeforeInsertHooks(nil); err != nil {
@@ -414,12 +417,13 @@ func testAuthorizesHooks(t *testing.T) {
 func testAuthorizesInsert(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	authorize := &Authorize{}
-	if err = randomize.Struct(seed, authorize, authorizeDBTypes, true, authorizeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Authorize struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	authorize := AuthorizeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -440,12 +444,13 @@ func testAuthorizesInsert(t *testing.T) {
 func testAuthorizesInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	authorize := &Authorize{}
-	if err = randomize.Struct(seed, authorize, authorizeDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Authorize struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	authorize := AuthorizeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -670,12 +675,13 @@ func testAuthorizeToOneSetOpPartyUsingChild(t *testing.T) {
 func testAuthorizesReload(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	authorize := &Authorize{}
-	if err = randomize.Struct(seed, authorize, authorizeDBTypes, true, authorizeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Authorize struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	authorize := AuthorizeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -691,12 +697,13 @@ func testAuthorizesReload(t *testing.T) {
 func testAuthorizesReloadAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	authorize := &Authorize{}
-	if err = randomize.Struct(seed, authorize, authorizeDBTypes, true, authorizeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Authorize struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	authorize := AuthorizeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -713,12 +720,13 @@ func testAuthorizesReloadAll(t *testing.T) {
 func testAuthorizesSelect(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	authorize := &Authorize{}
-	if err = randomize.Struct(seed, authorize, authorizeDBTypes, true, authorizeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Authorize struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	authorize := AuthorizeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -748,12 +756,13 @@ func testAuthorizesUpdate(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
-	authorize := &Authorize{}
-	if err = randomize.Struct(seed, authorize, authorizeDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Authorize struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	authorize := AuthorizeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -770,9 +779,7 @@ func testAuthorizesUpdate(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, authorize, authorizeDBTypes, true, authorizeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Authorize struct: %s", err)
-	}
+	authorize = AuthorizeRandom()
 
 	if err = authorize.Update(tx); err != nil {
 		t.Error(err)
@@ -786,12 +793,13 @@ func testAuthorizesSliceUpdateAll(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
-	authorize := &Authorize{}
-	if err = randomize.Struct(seed, authorize, authorizeDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Authorize struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	authorize := AuthorizeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -808,9 +816,7 @@ func testAuthorizesSliceUpdateAll(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, authorize, authorizeDBTypes, true, authorizePrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize Authorize struct: %s", err)
-	}
+	authorize = AuthorizeRandom()
 
 	// Remove Primary keys and unique columns from what we plan to update
 	var fields []string
@@ -841,13 +847,14 @@ func testAuthorizesUpsert(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
 	// Attempt the INSERT side of an UPSERT
-	authorize := Authorize{}
-	if err = randomize.Struct(seed, &authorize, authorizeDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Authorize struct: %s", err)
-	}
+
+	authorize := AuthorizeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -864,9 +871,8 @@ func testAuthorizesUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
-	if err = randomize.Struct(seed, &authorize, authorizeDBTypes, false, authorizePrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize Authorize struct: %s", err)
-	}
+
+	authorize = AuthorizeRandom()
 
 	if err = authorize.Upsert(tx, true, nil, nil); err != nil {
 		t.Errorf("Unable to upsert Authorize: %s", err)

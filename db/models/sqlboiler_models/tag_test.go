@@ -26,8 +26,12 @@ func testTags(t *testing.T) {
 func testTagsDelete(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	tag := &Tag{}
 	if err = randomize.Struct(seed, tag, tagDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Tag struct: %s", err)
@@ -56,8 +60,12 @@ func testTagsDelete(t *testing.T) {
 func testTagsQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	tag := &Tag{}
 	if err = randomize.Struct(seed, tag, tagDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Tag struct: %s", err)
@@ -86,8 +94,12 @@ func testTagsQueryDeleteAll(t *testing.T) {
 func testTagsSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	tag := &Tag{}
 	if err = randomize.Struct(seed, tag, tagDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Tag struct: %s", err)
@@ -117,8 +129,12 @@ func testTagsSliceDeleteAll(t *testing.T) {
 func testTagsExists(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	tag := &Tag{}
 	if err = randomize.Struct(seed, tag, tagDBTypes, true, tagColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Tag struct: %s", err)
@@ -141,8 +157,12 @@ func testTagsExists(t *testing.T) {
 func testTagsFind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	tag := &Tag{}
 	if err = randomize.Struct(seed, tag, tagDBTypes, true, tagColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Tag struct: %s", err)
@@ -166,8 +186,12 @@ func testTagsFind(t *testing.T) {
 func testTagsBind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	tag := &Tag{}
 	if err = randomize.Struct(seed, tag, tagDBTypes, true, tagColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Tag struct: %s", err)
@@ -187,8 +211,12 @@ func testTagsBind(t *testing.T) {
 func testTagsOne(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	tag := &Tag{}
 	if err = randomize.Struct(seed, tag, tagDBTypes, true, tagColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Tag struct: %s", err)
@@ -210,8 +238,12 @@ func testTagsOne(t *testing.T) {
 func testTagsAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	tagOne := &Tag{}
 	tagTwo := &Tag{}
 	if err = randomize.Struct(seed, tagOne, tagDBTypes, false, tagColumnsWithDefault...); err != nil {
@@ -245,6 +277,10 @@ func testTagsCount(t *testing.T) {
 
 	var err error
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	tagOne := &Tag{}
 	tagTwo := &Tag{}
 	if err = randomize.Struct(seed, tagOne, tagDBTypes, false, tagColumnsWithDefault...); err != nil {
@@ -323,9 +359,12 @@ func testTagsHooks(t *testing.T) {
 	var err error
 
 	empty := &Tag{}
-	o := &Tag{}
-
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	o := &Tag{}
 	if err = randomize.Struct(seed, o, tagDBTypes, false); err != nil {
 		t.Errorf("Unable to randomize Tag object: %s", err)
 	}
@@ -414,8 +453,12 @@ func testTagsHooks(t *testing.T) {
 func testTagsInsert(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	tag := &Tag{}
 	if err = randomize.Struct(seed, tag, tagDBTypes, true, tagColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Tag struct: %s", err)
@@ -440,8 +483,12 @@ func testTagsInsert(t *testing.T) {
 func testTagsInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	tag := &Tag{}
 	if err = randomize.Struct(seed, tag, tagDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Tag struct: %s", err)
@@ -934,8 +981,12 @@ func testTagToManyRemoveOpNotifications(t *testing.T) {
 func testTagsReload(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	tag := &Tag{}
 	if err = randomize.Struct(seed, tag, tagDBTypes, true, tagColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Tag struct: %s", err)
@@ -955,8 +1006,12 @@ func testTagsReload(t *testing.T) {
 func testTagsReloadAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	tag := &Tag{}
 	if err = randomize.Struct(seed, tag, tagDBTypes, true, tagColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Tag struct: %s", err)
@@ -977,8 +1032,12 @@ func testTagsReloadAll(t *testing.T) {
 func testTagsSelect(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	tag := &Tag{}
 	if err = randomize.Struct(seed, tag, tagDBTypes, true, tagColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Tag struct: %s", err)
@@ -1012,8 +1071,12 @@ func testTagsUpdate(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	tag := &Tag{}
 	if err = randomize.Struct(seed, tag, tagDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Tag struct: %s", err)
@@ -1050,8 +1113,12 @@ func testTagsSliceUpdateAll(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	tag := &Tag{}
 	if err = randomize.Struct(seed, tag, tagDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Tag struct: %s", err)
@@ -1105,9 +1172,13 @@ func testTagsUpsert(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
 	// Attempt the INSERT side of an UPSERT
+
 	tag := Tag{}
 	if err = randomize.Struct(seed, &tag, tagDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Tag struct: %s", err)
@@ -1128,6 +1199,7 @@ func testTagsUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
+
 	if err = randomize.Struct(seed, &tag, tagDBTypes, false, tagPrimaryKeyColumns...); err != nil {
 		t.Errorf("Unable to randomize Tag struct: %s", err)
 	}

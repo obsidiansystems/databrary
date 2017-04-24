@@ -26,12 +26,13 @@ func testNotices(t *testing.T) {
 func testNoticesDelete(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	notice := &Notice{}
-	if err = randomize.Struct(seed, notice, noticeDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Notice struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	notice := NoticeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -56,12 +57,13 @@ func testNoticesDelete(t *testing.T) {
 func testNoticesQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	notice := &Notice{}
-	if err = randomize.Struct(seed, notice, noticeDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Notice struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	notice := NoticeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -86,12 +88,13 @@ func testNoticesQueryDeleteAll(t *testing.T) {
 func testNoticesSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	notice := &Notice{}
-	if err = randomize.Struct(seed, notice, noticeDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Notice struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	notice := NoticeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -117,12 +120,13 @@ func testNoticesSliceDeleteAll(t *testing.T) {
 func testNoticesExists(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	notice := &Notice{}
-	if err = randomize.Struct(seed, notice, noticeDBTypes, true, noticeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Notice struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	notice := NoticeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -141,12 +145,13 @@ func testNoticesExists(t *testing.T) {
 func testNoticesFind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	notice := &Notice{}
-	if err = randomize.Struct(seed, notice, noticeDBTypes, true, noticeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Notice struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	notice := NoticeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -166,12 +171,13 @@ func testNoticesFind(t *testing.T) {
 func testNoticesBind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	notice := &Notice{}
-	if err = randomize.Struct(seed, notice, noticeDBTypes, true, noticeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Notice struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	notice := NoticeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -187,12 +193,13 @@ func testNoticesBind(t *testing.T) {
 func testNoticesOne(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	notice := &Notice{}
-	if err = randomize.Struct(seed, notice, noticeDBTypes, true, noticeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Notice struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	notice := NoticeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -210,16 +217,14 @@ func testNoticesOne(t *testing.T) {
 func testNoticesAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	noticeOne := &Notice{}
-	noticeTwo := &Notice{}
-	if err = randomize.Struct(seed, noticeOne, noticeDBTypes, false, noticeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Notice struct: %s", err)
-	}
-	if err = randomize.Struct(seed, noticeTwo, noticeDBTypes, false, noticeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Notice struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	noticeOne := NoticeRandom()
+	noticeTwo := NoticeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -245,14 +250,12 @@ func testNoticesCount(t *testing.T) {
 
 	var err error
 	seed := randomize.NewSeed()
-	noticeOne := &Notice{}
-	noticeTwo := &Notice{}
-	if err = randomize.Struct(seed, noticeOne, noticeDBTypes, false, noticeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Notice struct: %s", err)
-	}
-	if err = randomize.Struct(seed, noticeTwo, noticeDBTypes, false, noticeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Notice struct: %s", err)
-	}
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	noticeOne := NoticeRandom()
+	noticeTwo := NoticeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -323,12 +326,12 @@ func testNoticesHooks(t *testing.T) {
 	var err error
 
 	empty := &Notice{}
-	o := &Notice{}
-
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, o, noticeDBTypes, false); err != nil {
-		t.Errorf("Unable to randomize Notice object: %s", err)
-	}
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	o := NoticeRandom()
 
 	AddNoticeHook(boil.BeforeInsertHook, noticeBeforeInsertHook)
 	if err = o.doBeforeInsertHooks(nil); err != nil {
@@ -414,12 +417,13 @@ func testNoticesHooks(t *testing.T) {
 func testNoticesInsert(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	notice := &Notice{}
-	if err = randomize.Struct(seed, notice, noticeDBTypes, true, noticeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Notice struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	notice := NoticeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -440,12 +444,13 @@ func testNoticesInsert(t *testing.T) {
 func testNoticesInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	notice := &Notice{}
-	if err = randomize.Struct(seed, notice, noticeDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Notice struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	notice := NoticeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -759,12 +764,13 @@ func testNoticeToManyAddOpNotifications(t *testing.T) {
 func testNoticesReload(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	notice := &Notice{}
-	if err = randomize.Struct(seed, notice, noticeDBTypes, true, noticeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Notice struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	notice := NoticeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -780,12 +786,13 @@ func testNoticesReload(t *testing.T) {
 func testNoticesReloadAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	notice := &Notice{}
-	if err = randomize.Struct(seed, notice, noticeDBTypes, true, noticeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Notice struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	notice := NoticeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -802,12 +809,13 @@ func testNoticesReloadAll(t *testing.T) {
 func testNoticesSelect(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	notice := &Notice{}
-	if err = randomize.Struct(seed, notice, noticeDBTypes, true, noticeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Notice struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	notice := NoticeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -837,12 +845,13 @@ func testNoticesUpdate(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
-	notice := &Notice{}
-	if err = randomize.Struct(seed, notice, noticeDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Notice struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	notice := NoticeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -859,9 +868,7 @@ func testNoticesUpdate(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, notice, noticeDBTypes, true, noticeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Notice struct: %s", err)
-	}
+	notice = NoticeRandom()
 
 	if err = notice.Update(tx); err != nil {
 		t.Error(err)
@@ -875,12 +882,13 @@ func testNoticesSliceUpdateAll(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
-	notice := &Notice{}
-	if err = randomize.Struct(seed, notice, noticeDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Notice struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	notice := NoticeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -897,9 +905,7 @@ func testNoticesSliceUpdateAll(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, notice, noticeDBTypes, true, noticePrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize Notice struct: %s", err)
-	}
+	notice = NoticeRandom()
 
 	// Remove Primary keys and unique columns from what we plan to update
 	var fields []string
@@ -930,13 +936,14 @@ func testNoticesUpsert(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
 	// Attempt the INSERT side of an UPSERT
-	notice := Notice{}
-	if err = randomize.Struct(seed, &notice, noticeDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Notice struct: %s", err)
-	}
+
+	notice := NoticeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -953,9 +960,8 @@ func testNoticesUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
-	if err = randomize.Struct(seed, &notice, noticeDBTypes, false, noticePrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize Notice struct: %s", err)
-	}
+
+	notice = NoticeRandom()
 
 	if err = notice.Upsert(tx, true, nil, nil); err != nil {
 		t.Errorf("Unable to upsert Notice: %s", err)

@@ -26,8 +26,12 @@ func testUploads(t *testing.T) {
 func testUploadsDelete(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	upload := &Upload{}
 	if err = randomize.Struct(seed, upload, uploadDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Upload struct: %s", err)
@@ -56,8 +60,12 @@ func testUploadsDelete(t *testing.T) {
 func testUploadsQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	upload := &Upload{}
 	if err = randomize.Struct(seed, upload, uploadDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Upload struct: %s", err)
@@ -86,8 +94,12 @@ func testUploadsQueryDeleteAll(t *testing.T) {
 func testUploadsSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	upload := &Upload{}
 	if err = randomize.Struct(seed, upload, uploadDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Upload struct: %s", err)
@@ -117,8 +129,12 @@ func testUploadsSliceDeleteAll(t *testing.T) {
 func testUploadsExists(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	upload := &Upload{}
 	if err = randomize.Struct(seed, upload, uploadDBTypes, true, uploadColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Upload struct: %s", err)
@@ -141,8 +157,12 @@ func testUploadsExists(t *testing.T) {
 func testUploadsFind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	upload := &Upload{}
 	if err = randomize.Struct(seed, upload, uploadDBTypes, true, uploadColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Upload struct: %s", err)
@@ -166,8 +186,12 @@ func testUploadsFind(t *testing.T) {
 func testUploadsBind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	upload := &Upload{}
 	if err = randomize.Struct(seed, upload, uploadDBTypes, true, uploadColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Upload struct: %s", err)
@@ -187,8 +211,12 @@ func testUploadsBind(t *testing.T) {
 func testUploadsOne(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	upload := &Upload{}
 	if err = randomize.Struct(seed, upload, uploadDBTypes, true, uploadColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Upload struct: %s", err)
@@ -210,8 +238,12 @@ func testUploadsOne(t *testing.T) {
 func testUploadsAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	uploadOne := &Upload{}
 	uploadTwo := &Upload{}
 	if err = randomize.Struct(seed, uploadOne, uploadDBTypes, false, uploadColumnsWithDefault...); err != nil {
@@ -245,6 +277,10 @@ func testUploadsCount(t *testing.T) {
 
 	var err error
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	uploadOne := &Upload{}
 	uploadTwo := &Upload{}
 	if err = randomize.Struct(seed, uploadOne, uploadDBTypes, false, uploadColumnsWithDefault...); err != nil {
@@ -323,9 +359,12 @@ func testUploadsHooks(t *testing.T) {
 	var err error
 
 	empty := &Upload{}
-	o := &Upload{}
-
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	o := &Upload{}
 	if err = randomize.Struct(seed, o, uploadDBTypes, false); err != nil {
 		t.Errorf("Unable to randomize Upload object: %s", err)
 	}
@@ -414,8 +453,12 @@ func testUploadsHooks(t *testing.T) {
 func testUploadsInsert(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	upload := &Upload{}
 	if err = randomize.Struct(seed, upload, uploadDBTypes, true, uploadColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Upload struct: %s", err)
@@ -440,8 +483,12 @@ func testUploadsInsert(t *testing.T) {
 func testUploadsInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	upload := &Upload{}
 	if err = randomize.Struct(seed, upload, uploadDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Upload struct: %s", err)
@@ -678,8 +725,12 @@ func testUploadToOneSetOpAccountUsingAccount(t *testing.T) {
 func testUploadsReload(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	upload := &Upload{}
 	if err = randomize.Struct(seed, upload, uploadDBTypes, true, uploadColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Upload struct: %s", err)
@@ -699,8 +750,12 @@ func testUploadsReload(t *testing.T) {
 func testUploadsReloadAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	upload := &Upload{}
 	if err = randomize.Struct(seed, upload, uploadDBTypes, true, uploadColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Upload struct: %s", err)
@@ -721,8 +776,12 @@ func testUploadsReloadAll(t *testing.T) {
 func testUploadsSelect(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	upload := &Upload{}
 	if err = randomize.Struct(seed, upload, uploadDBTypes, true, uploadColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Upload struct: %s", err)
@@ -756,8 +815,12 @@ func testUploadsUpdate(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	upload := &Upload{}
 	if err = randomize.Struct(seed, upload, uploadDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Upload struct: %s", err)
@@ -794,8 +857,12 @@ func testUploadsSliceUpdateAll(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	upload := &Upload{}
 	if err = randomize.Struct(seed, upload, uploadDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Upload struct: %s", err)
@@ -849,9 +916,13 @@ func testUploadsUpsert(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
 	// Attempt the INSERT side of an UPSERT
+
 	upload := Upload{}
 	if err = randomize.Struct(seed, &upload, uploadDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Upload struct: %s", err)
@@ -872,6 +943,7 @@ func testUploadsUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
+
 	if err = randomize.Struct(seed, &upload, uploadDBTypes, false, uploadPrimaryKeyColumns...); err != nil {
 		t.Errorf("Unable to randomize Upload struct: %s", err)
 	}

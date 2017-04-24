@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/pkg/errors"
 	"github.com/vattle/sqlboiler/boil"
 	"github.com/vattle/sqlboiler/queries"
@@ -22,13 +23,13 @@ import (
 
 // TagUse is an object representing the database table.
 type TagUse struct {
-	Container int    `boil:"container" json:"container" toml:"container" yaml:"container"`
-	Segment   string `boil:"segment" json:"segment" toml:"segment" yaml:"segment"`
-	Tag       int    `boil:"tag" json:"tag" toml:"tag" yaml:"tag"`
-	Who       int    `boil:"who" json:"who" toml:"who" yaml:"who"`
+	Container int                  `boil:"container" json:"tagUse_container"`
+	Segment   custom_types.Segment `boil:"segment" json:"tagUse_segment"`
+	Tag       int                  `boil:"tag" json:"tagUse_tag"`
+	Who       int                  `boil:"who" json:"tagUse_who"`
 
-	R *tagUseR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L tagUseL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *tagUseR `boil:"-" json:"-"`
+	L tagUseL  `boil:"-" json:"-"`
 }
 
 // tagUseR is where relationships are stored.
@@ -855,12 +856,12 @@ func TagUses(exec boil.Executor, mods ...qm.QueryMod) tagUseQuery {
 }
 
 // FindTagUseG retrieves a single record by ID.
-func FindTagUseG(container int, segment string, tag int, who int, selectCols ...string) (*TagUse, error) {
+func FindTagUseG(container int, segment custom_types.Segment, tag int, who int, selectCols ...string) (*TagUse, error) {
 	return FindTagUse(boil.GetDB(), container, segment, tag, who, selectCols...)
 }
 
 // FindTagUseGP retrieves a single record by ID, and panics on error.
-func FindTagUseGP(container int, segment string, tag int, who int, selectCols ...string) *TagUse {
+func FindTagUseGP(container int, segment custom_types.Segment, tag int, who int, selectCols ...string) *TagUse {
 	retobj, err := FindTagUse(boil.GetDB(), container, segment, tag, who, selectCols...)
 	if err != nil {
 		panic(boil.WrapErr(err))
@@ -871,7 +872,7 @@ func FindTagUseGP(container int, segment string, tag int, who int, selectCols ..
 
 // FindTagUse retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindTagUse(exec boil.Executor, container int, segment string, tag int, who int, selectCols ...string) (*TagUse, error) {
+func FindTagUse(exec boil.Executor, container int, segment custom_types.Segment, tag int, who int, selectCols ...string) (*TagUse, error) {
 	tagUseObj := &TagUse{}
 
 	sel := "*"
@@ -896,7 +897,7 @@ func FindTagUse(exec boil.Executor, container int, segment string, tag int, who 
 }
 
 // FindTagUseP retrieves a single record by ID with an executor, and panics on error.
-func FindTagUseP(exec boil.Executor, container int, segment string, tag int, who int, selectCols ...string) *TagUse {
+func FindTagUseP(exec boil.Executor, container int, segment custom_types.Segment, tag int, who int, selectCols ...string) *TagUse {
 	retobj, err := FindTagUse(exec, container, segment, tag, who, selectCols...)
 	if err != nil {
 		panic(boil.WrapErr(err))
@@ -1047,9 +1048,6 @@ func (o *TagUse) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(tagUseColumns, tagUsePrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update tag_use, could not build whitelist")
 		}
@@ -1150,18 +1148,18 @@ func (o TagUseSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"tag_use\" SET %s WHERE (\"container\",\"segment\",\"tag\",\"who\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(tagUsePrimaryKeyColumns), len(colNames)+1, len(tagUsePrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in tagUse slice")
 	}
@@ -1343,14 +1341,14 @@ func (o *TagUse) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), tagUsePrimaryKeyMapping)
-	sql := "DELETE FROM \"tag_use\" WHERE \"container\"=$1 AND \"segment\"=$2 AND \"tag\"=$3 AND \"who\"=$4"
+	query := "DELETE FROM \"tag_use\" WHERE \"container\"=$1 AND \"segment\"=$2 AND \"tag\"=$3 AND \"who\"=$4"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from tag_use")
 	}
@@ -1431,18 +1429,18 @@ func (o TagUseSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"tag_use\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, tagUsePrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(tagUsePrimaryKeyColumns), 1, len(tagUsePrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from tagUse slice")
 	}
@@ -1535,13 +1533,13 @@ func (o *TagUseSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"tag_use\".* FROM \"tag_use\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, tagUsePrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(tagUsePrimaryKeyColumns), 1, len(tagUsePrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&tagUses)
 	if err != nil {
@@ -1554,17 +1552,17 @@ func (o *TagUseSlice) ReloadAll(exec boil.Executor) error {
 }
 
 // TagUseExists checks if the TagUse row exists.
-func TagUseExists(exec boil.Executor, container int, segment string, tag int, who int) (bool, error) {
+func TagUseExists(exec boil.Executor, container int, segment custom_types.Segment, tag int, who int) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"tag_use\" where \"container\"=$1 AND \"segment\"=$2 AND \"tag\"=$3 AND \"who\"=$4 limit 1)"
+	query := "select exists(select 1 from \"tag_use\" where \"container\"=$1 AND \"segment\"=$2 AND \"tag\"=$3 AND \"who\"=$4 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, container, segment, tag, who)
 	}
 
-	row := exec.QueryRow(sql, container, segment, tag, who)
+	row := exec.QueryRow(query, container, segment, tag, who)
 
 	err := row.Scan(&exists)
 	if err != nil {
@@ -1575,12 +1573,12 @@ func TagUseExists(exec boil.Executor, container int, segment string, tag int, wh
 }
 
 // TagUseExistsG checks if the TagUse row exists.
-func TagUseExistsG(container int, segment string, tag int, who int) (bool, error) {
+func TagUseExistsG(container int, segment custom_types.Segment, tag int, who int) (bool, error) {
 	return TagUseExists(boil.GetDB(), container, segment, tag, who)
 }
 
 // TagUseExistsGP checks if the TagUse row exists. Panics on error.
-func TagUseExistsGP(container int, segment string, tag int, who int) bool {
+func TagUseExistsGP(container int, segment custom_types.Segment, tag int, who int) bool {
 	e, err := TagUseExists(boil.GetDB(), container, segment, tag, who)
 	if err != nil {
 		panic(boil.WrapErr(err))
@@ -1590,7 +1588,7 @@ func TagUseExistsGP(container int, segment string, tag int, who int) bool {
 }
 
 // TagUseExistsP checks if the TagUse row exists. Panics on error.
-func TagUseExistsP(exec boil.Executor, container int, segment string, tag int, who int) bool {
+func TagUseExistsP(exec boil.Executor, container int, segment custom_types.Segment, tag int, who int) bool {
 	e, err := TagUseExists(exec, container, segment, tag, who)
 	if err != nil {
 		panic(boil.WrapErr(err))

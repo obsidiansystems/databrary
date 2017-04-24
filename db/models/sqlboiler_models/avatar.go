@@ -22,11 +22,11 @@ import (
 
 // Avatar is an object representing the database table.
 type Avatar struct {
-	Party int `boil:"party" json:"party" toml:"party" yaml:"party"`
-	Asset int `boil:"asset" json:"asset" toml:"asset" yaml:"asset"`
+	Party int `boil:"party" json:"avatar_party"`
+	Asset int `boil:"asset" json:"avatar_asset"`
 
-	R *avatarR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L avatarL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *avatarR `boil:"-" json:"-"`
+	L avatarL  `boil:"-" json:"-"`
 }
 
 // avatarR is where relationships are stored.
@@ -871,9 +871,6 @@ func (o *Avatar) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(avatarColumns, avatarPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update avatar, could not build whitelist")
 		}
@@ -974,18 +971,18 @@ func (o AvatarSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"avatar\" SET %s WHERE (\"party\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(avatarPrimaryKeyColumns), len(colNames)+1, len(avatarPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in avatar slice")
 	}
@@ -1167,14 +1164,14 @@ func (o *Avatar) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), avatarPrimaryKeyMapping)
-	sql := "DELETE FROM \"avatar\" WHERE \"party\"=$1"
+	query := "DELETE FROM \"avatar\" WHERE \"party\"=$1"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from avatar")
 	}
@@ -1255,18 +1252,18 @@ func (o AvatarSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"avatar\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, avatarPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(avatarPrimaryKeyColumns), 1, len(avatarPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from avatar slice")
 	}
@@ -1359,13 +1356,13 @@ func (o *AvatarSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"avatar\".* FROM \"avatar\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, avatarPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(avatarPrimaryKeyColumns), 1, len(avatarPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&avatars)
 	if err != nil {
@@ -1381,14 +1378,14 @@ func (o *AvatarSlice) ReloadAll(exec boil.Executor) error {
 func AvatarExists(exec boil.Executor, party int) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"avatar\" where \"party\"=$1 limit 1)"
+	query := "select exists(select 1 from \"avatar\" where \"party\"=$1 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, party)
 	}
 
-	row := exec.QueryRow(sql, party)
+	row := exec.QueryRow(query, party)
 
 	err := row.Scan(&exists)
 	if err != nil {

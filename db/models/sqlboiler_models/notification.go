@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/pkg/errors"
 	"github.com/vattle/sqlboiler/boil"
 	"github.com/vattle/sqlboiler/queries"
@@ -23,24 +24,24 @@ import (
 
 // Notification is an object representing the database table.
 type Notification struct {
-	ID         int         `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Target     int         `boil:"target" json:"target" toml:"target" yaml:"target"`
-	Notice     int16       `boil:"notice" json:"notice" toml:"notice" yaml:"notice"`
-	Time       time.Time   `boil:"time" json:"time" toml:"time" yaml:"time"`
-	Delivered  string      `boil:"delivered" json:"delivered" toml:"delivered" yaml:"delivered"`
-	Agent      int         `boil:"agent" json:"agent" toml:"agent" yaml:"agent"`
-	Party      null.Int    `boil:"party" json:"party,omitempty" toml:"party" yaml:"party,omitempty"`
-	Volume     null.Int    `boil:"volume" json:"volume,omitempty" toml:"volume" yaml:"volume,omitempty"`
-	Permission null.String `boil:"permission" json:"permission,omitempty" toml:"permission" yaml:"permission,omitempty"`
-	Container  null.Int    `boil:"container" json:"container,omitempty" toml:"container" yaml:"container,omitempty"`
-	Segment    null.String `boil:"segment" json:"segment,omitempty" toml:"segment" yaml:"segment,omitempty"`
-	Asset      null.Int    `boil:"asset" json:"asset,omitempty" toml:"asset" yaml:"asset,omitempty"`
-	Release    null.String `boil:"release" json:"release,omitempty" toml:"release" yaml:"release,omitempty"`
-	Comment    null.Int    `boil:"comment" json:"comment,omitempty" toml:"comment" yaml:"comment,omitempty"`
-	Tag        null.Int    `boil:"tag" json:"tag,omitempty" toml:"tag" yaml:"tag,omitempty"`
+	ID         int                         `boil:"id" json:"notification_id"`
+	Target     int                         `boil:"target" json:"notification_target"`
+	Notice     int16                       `boil:"notice" json:"notification_notice"`
+	Time       time.Time                   `boil:"time" json:"notification_time"`
+	Delivered  custom_types.NoticeDelivery `boil:"delivered" json:"notification_delivered"`
+	Agent      int                         `boil:"agent" json:"notification_agent"`
+	Party      null.Int                    `boil:"party" json:"notification_party,omitempty"`
+	Volume     null.Int                    `boil:"volume" json:"notification_volume,omitempty"`
+	Permission custom_types.NullPermission `boil:"permission" json:"notification_permission,omitempty"`
+	Container  null.Int                    `boil:"container" json:"notification_container,omitempty"`
+	Segment    custom_types.NullSegment    `boil:"segment" json:"notification_segment,omitempty"`
+	Asset      null.Int                    `boil:"asset" json:"notification_asset,omitempty"`
+	Release    custom_types.NullRelease    `boil:"release" json:"notification_release,omitempty"`
+	Comment    null.Int                    `boil:"comment" json:"notification_comment,omitempty"`
+	Tag        null.Int                    `boil:"tag" json:"notification_tag,omitempty"`
 
-	R *notificationR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L notificationL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *notificationR `boil:"-" json:"-"`
+	L notificationL  `boil:"-" json:"-"`
 }
 
 // notificationR is where relationships are stored.
@@ -2469,9 +2470,6 @@ func (o *Notification) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(notificationColumns, notificationPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update notification, could not build whitelist")
 		}
@@ -2572,18 +2570,18 @@ func (o NotificationSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"notification\" SET %s WHERE (\"id\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(notificationPrimaryKeyColumns), len(colNames)+1, len(notificationPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in notification slice")
 	}
@@ -2765,14 +2763,14 @@ func (o *Notification) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), notificationPrimaryKeyMapping)
-	sql := "DELETE FROM \"notification\" WHERE \"id\"=$1"
+	query := "DELETE FROM \"notification\" WHERE \"id\"=$1"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from notification")
 	}
@@ -2853,18 +2851,18 @@ func (o NotificationSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"notification\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, notificationPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(notificationPrimaryKeyColumns), 1, len(notificationPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from notification slice")
 	}
@@ -2957,13 +2955,13 @@ func (o *NotificationSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"notification\".* FROM \"notification\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, notificationPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(notificationPrimaryKeyColumns), 1, len(notificationPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&notifications)
 	if err != nil {
@@ -2979,14 +2977,14 @@ func (o *NotificationSlice) ReloadAll(exec boil.Executor) error {
 func NotificationExists(exec boil.Executor, id int) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"notification\" where \"id\"=$1 limit 1)"
+	query := "select exists(select 1 from \"notification\" where \"id\"=$1 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, id)
 	}
 
-	row := exec.QueryRow(sql, id)
+	row := exec.QueryRow(query, id)
 
 	err := row.Scan(&exists)
 	if err != nil {

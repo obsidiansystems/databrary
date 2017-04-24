@@ -26,8 +26,12 @@ func testParties(t *testing.T) {
 func testPartiesDelete(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	party := &Party{}
 	if err = randomize.Struct(seed, party, partyDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Party struct: %s", err)
@@ -56,8 +60,12 @@ func testPartiesDelete(t *testing.T) {
 func testPartiesQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	party := &Party{}
 	if err = randomize.Struct(seed, party, partyDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Party struct: %s", err)
@@ -86,8 +94,12 @@ func testPartiesQueryDeleteAll(t *testing.T) {
 func testPartiesSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	party := &Party{}
 	if err = randomize.Struct(seed, party, partyDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Party struct: %s", err)
@@ -117,8 +129,12 @@ func testPartiesSliceDeleteAll(t *testing.T) {
 func testPartiesExists(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	party := &Party{}
 	if err = randomize.Struct(seed, party, partyDBTypes, true, partyColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Party struct: %s", err)
@@ -141,8 +157,12 @@ func testPartiesExists(t *testing.T) {
 func testPartiesFind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	party := &Party{}
 	if err = randomize.Struct(seed, party, partyDBTypes, true, partyColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Party struct: %s", err)
@@ -166,8 +186,12 @@ func testPartiesFind(t *testing.T) {
 func testPartiesBind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	party := &Party{}
 	if err = randomize.Struct(seed, party, partyDBTypes, true, partyColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Party struct: %s", err)
@@ -187,8 +211,12 @@ func testPartiesBind(t *testing.T) {
 func testPartiesOne(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	party := &Party{}
 	if err = randomize.Struct(seed, party, partyDBTypes, true, partyColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Party struct: %s", err)
@@ -210,8 +238,12 @@ func testPartiesOne(t *testing.T) {
 func testPartiesAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	partyOne := &Party{}
 	partyTwo := &Party{}
 	if err = randomize.Struct(seed, partyOne, partyDBTypes, false, partyColumnsWithDefault...); err != nil {
@@ -245,6 +277,10 @@ func testPartiesCount(t *testing.T) {
 
 	var err error
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	partyOne := &Party{}
 	partyTwo := &Party{}
 	if err = randomize.Struct(seed, partyOne, partyDBTypes, false, partyColumnsWithDefault...); err != nil {
@@ -323,9 +359,12 @@ func testPartiesHooks(t *testing.T) {
 	var err error
 
 	empty := &Party{}
-	o := &Party{}
-
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	o := &Party{}
 	if err = randomize.Struct(seed, o, partyDBTypes, false); err != nil {
 		t.Errorf("Unable to randomize Party object: %s", err)
 	}
@@ -414,8 +453,12 @@ func testPartiesHooks(t *testing.T) {
 func testPartiesInsert(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	party := &Party{}
 	if err = randomize.Struct(seed, party, partyDBTypes, true, partyColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Party struct: %s", err)
@@ -440,8 +483,12 @@ func testPartiesInsert(t *testing.T) {
 func testPartiesInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	party := &Party{}
 	if err = randomize.Struct(seed, party, partyDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Party struct: %s", err)
@@ -471,6 +518,7 @@ func testPartyOneToOneAvatarUsingAvatar(t *testing.T) {
 	var local Party
 
 	seed := randomize.NewSeed()
+	//[party]
 	if err := randomize.Struct(seed, &foreign, avatarDBTypes, true, avatarColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Avatar struct: %s", err)
 	}
@@ -521,6 +569,7 @@ func testPartyOneToOneAccountUsingIDAccount(t *testing.T) {
 	var local Party
 
 	seed := randomize.NewSeed()
+	//[id]
 	if err := randomize.Struct(seed, &foreign, accountDBTypes, true, accountColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Account struct: %s", err)
 	}
@@ -568,11 +617,9 @@ func testPartyOneToOneSetOpAvatarUsingAvatar(t *testing.T) {
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
-
+	seed := randomize.NewSeed()
 	var a Party
 	var b, c Avatar
-
-	seed := randomize.NewSeed()
 	if err = randomize.Struct(seed, &a, partyDBTypes, false, strmangle.SetComplement(partyPrimaryKeyColumns, partyColumnsWithoutDefault)...); err != nil {
 		t.Fatal(err)
 	}
@@ -627,11 +674,9 @@ func testPartyOneToOneSetOpAccountUsingIDAccount(t *testing.T) {
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
-
+	seed := randomize.NewSeed()
 	var a Party
 	var b, c Account
-
-	seed := randomize.NewSeed()
 	if err = randomize.Struct(seed, &a, partyDBTypes, false, strmangle.SetComplement(partyPrimaryKeyColumns, partyColumnsWithoutDefault)...); err != nil {
 		t.Fatal(err)
 	}
@@ -1591,8 +1636,12 @@ func testPartyToManyAddOpAgentNotifications(t *testing.T) {
 func testPartiesReload(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	party := &Party{}
 	if err = randomize.Struct(seed, party, partyDBTypes, true, partyColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Party struct: %s", err)
@@ -1612,8 +1661,12 @@ func testPartiesReload(t *testing.T) {
 func testPartiesReloadAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	party := &Party{}
 	if err = randomize.Struct(seed, party, partyDBTypes, true, partyColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Party struct: %s", err)
@@ -1634,8 +1687,12 @@ func testPartiesReloadAll(t *testing.T) {
 func testPartiesSelect(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	party := &Party{}
 	if err = randomize.Struct(seed, party, partyDBTypes, true, partyColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Party struct: %s", err)
@@ -1669,8 +1726,12 @@ func testPartiesUpdate(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	party := &Party{}
 	if err = randomize.Struct(seed, party, partyDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Party struct: %s", err)
@@ -1707,8 +1768,12 @@ func testPartiesSliceUpdateAll(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	party := &Party{}
 	if err = randomize.Struct(seed, party, partyDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Party struct: %s", err)
@@ -1762,9 +1827,13 @@ func testPartiesUpsert(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
 	// Attempt the INSERT side of an UPSERT
+
 	party := Party{}
 	if err = randomize.Struct(seed, &party, partyDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Party struct: %s", err)
@@ -1785,6 +1854,7 @@ func testPartiesUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
+
 	if err = randomize.Struct(seed, &party, partyDBTypes, false, partyPrimaryKeyColumns...); err != nil {
 		t.Errorf("Unable to randomize Party struct: %s", err)
 	}

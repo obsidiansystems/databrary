@@ -23,13 +23,13 @@ import (
 
 // RecordMeasure is an object representing the database table.
 type RecordMeasure struct {
-	ID       int               `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Volume   int               `boil:"volume" json:"volume" toml:"volume" yaml:"volume"`
-	Category int16             `boil:"category" json:"category" toml:"category" yaml:"category"`
-	Measures types.StringArray `boil:"measures" json:"measures" toml:"measures" yaml:"measures"`
+	ID       int               `boil:"id" json:"recordMeasure_id"`
+	Volume   int               `boil:"volume" json:"recordMeasure_volume"`
+	Category int16             `boil:"category" json:"recordMeasure_category"`
+	Measures types.StringArray `boil:"measures" json:"recordMeasure_measures"`
 
-	R *recordMeasureR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L recordMeasureL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *recordMeasureR `boil:"-" json:"-"`
+	L recordMeasureL  `boil:"-" json:"-"`
 }
 
 // recordMeasureR is where relationships are stored.
@@ -700,9 +700,6 @@ func (o *RecordMeasure) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(recordMeasureColumns, recordMeasurePrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update record_measures, could not build whitelist")
 		}
@@ -803,18 +800,18 @@ func (o RecordMeasureSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"record_measures\" SET %s WHERE (\"id\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(recordMeasurePrimaryKeyColumns), len(colNames)+1, len(recordMeasurePrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in recordMeasure slice")
 	}
@@ -996,14 +993,14 @@ func (o *RecordMeasure) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), recordMeasurePrimaryKeyMapping)
-	sql := "DELETE FROM \"record_measures\" WHERE \"id\"=$1"
+	query := "DELETE FROM \"record_measures\" WHERE \"id\"=$1"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from record_measures")
 	}
@@ -1084,18 +1081,18 @@ func (o RecordMeasureSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"record_measures\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, recordMeasurePrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(recordMeasurePrimaryKeyColumns), 1, len(recordMeasurePrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from recordMeasure slice")
 	}
@@ -1188,13 +1185,13 @@ func (o *RecordMeasureSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"record_measures\".* FROM \"record_measures\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, recordMeasurePrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(recordMeasurePrimaryKeyColumns), 1, len(recordMeasurePrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&recordMeasures)
 	if err != nil {
@@ -1210,14 +1207,14 @@ func (o *RecordMeasureSlice) ReloadAll(exec boil.Executor) error {
 func RecordMeasureExists(exec boil.Executor, id int) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"record_measures\" where \"id\"=$1 limit 1)"
+	query := "select exists(select 1 from \"record_measures\" where \"id\"=$1 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, id)
 	}
 
-	row := exec.QueryRow(sql, id)
+	row := exec.QueryRow(query, id)
 
 	err := row.Scan(&exists)
 	if err != nil {

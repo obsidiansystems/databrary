@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/pkg/errors"
 	"github.com/vattle/sqlboiler/boil"
 	"github.com/vattle/sqlboiler/queries"
@@ -22,12 +23,12 @@ import (
 
 // SlotAsset is an object representing the database table.
 type SlotAsset struct {
-	Container int    `boil:"container" json:"container" toml:"container" yaml:"container"`
-	Segment   string `boil:"segment" json:"segment" toml:"segment" yaml:"segment"`
-	Asset     int    `boil:"asset" json:"asset" toml:"asset" yaml:"asset"`
+	Container int                  `boil:"container" json:"slotAsset_container"`
+	Segment   custom_types.Segment `boil:"segment" json:"slotAsset_segment"`
+	Asset     int                  `boil:"asset" json:"slotAsset_asset"`
 
-	R *slotAssetR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L slotAssetL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *slotAssetR `boil:"-" json:"-"`
+	L slotAssetL  `boil:"-" json:"-"`
 }
 
 // slotAssetR is where relationships are stored.
@@ -1053,9 +1054,6 @@ func (o *SlotAsset) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(slotAssetColumns, slotAssetPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update slot_asset, could not build whitelist")
 		}
@@ -1156,18 +1154,18 @@ func (o SlotAssetSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"slot_asset\" SET %s WHERE (\"asset\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(slotAssetPrimaryKeyColumns), len(colNames)+1, len(slotAssetPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in slotAsset slice")
 	}
@@ -1349,14 +1347,14 @@ func (o *SlotAsset) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), slotAssetPrimaryKeyMapping)
-	sql := "DELETE FROM \"slot_asset\" WHERE \"asset\"=$1"
+	query := "DELETE FROM \"slot_asset\" WHERE \"asset\"=$1"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from slot_asset")
 	}
@@ -1437,18 +1435,18 @@ func (o SlotAssetSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"slot_asset\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, slotAssetPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(slotAssetPrimaryKeyColumns), 1, len(slotAssetPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from slotAsset slice")
 	}
@@ -1541,13 +1539,13 @@ func (o *SlotAssetSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"slot_asset\".* FROM \"slot_asset\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, slotAssetPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(slotAssetPrimaryKeyColumns), 1, len(slotAssetPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&slotAssets)
 	if err != nil {
@@ -1563,14 +1561,14 @@ func (o *SlotAssetSlice) ReloadAll(exec boil.Executor) error {
 func SlotAssetExists(exec boil.Executor, asset int) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"slot_asset\" where \"asset\"=$1 limit 1)"
+	query := "select exists(select 1 from \"slot_asset\" where \"asset\"=$1 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, asset)
 	}
 
-	row := exec.QueryRow(sql, asset)
+	row := exec.QueryRow(query, asset)
 
 	err := row.Scan(&exists)
 	if err != nil {

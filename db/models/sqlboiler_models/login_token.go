@@ -22,13 +22,13 @@ import (
 
 // LoginToken is an object representing the database table.
 type LoginToken struct {
-	Token    string    `boil:"token" json:"token" toml:"token" yaml:"token"`
-	Expires  time.Time `boil:"expires" json:"expires" toml:"expires" yaml:"expires"`
-	Account  int       `boil:"account" json:"account" toml:"account" yaml:"account"`
-	Password bool      `boil:"password" json:"password" toml:"password" yaml:"password"`
+	Token    string    `boil:"token" json:"loginToken_token"`
+	Expires  time.Time `boil:"expires" json:"loginToken_expires"`
+	Account  int       `boil:"account" json:"loginToken_account"`
+	Password bool      `boil:"password" json:"loginToken_password"`
 
-	R *loginTokenR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L loginTokenL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *loginTokenR `boil:"-" json:"-"`
+	L loginTokenL  `boil:"-" json:"-"`
 }
 
 // loginTokenR is where relationships are stored.
@@ -699,9 +699,6 @@ func (o *LoginToken) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(loginTokenColumns, loginTokenPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update login_token, could not build whitelist")
 		}
@@ -802,18 +799,18 @@ func (o LoginTokenSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"login_token\" SET %s WHERE (\"token\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(loginTokenPrimaryKeyColumns), len(colNames)+1, len(loginTokenPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in loginToken slice")
 	}
@@ -995,14 +992,14 @@ func (o *LoginToken) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), loginTokenPrimaryKeyMapping)
-	sql := "DELETE FROM \"login_token\" WHERE \"token\"=$1"
+	query := "DELETE FROM \"login_token\" WHERE \"token\"=$1"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from login_token")
 	}
@@ -1083,18 +1080,18 @@ func (o LoginTokenSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"login_token\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, loginTokenPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(loginTokenPrimaryKeyColumns), 1, len(loginTokenPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from loginToken slice")
 	}
@@ -1187,13 +1184,13 @@ func (o *LoginTokenSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"login_token\".* FROM \"login_token\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, loginTokenPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(loginTokenPrimaryKeyColumns), 1, len(loginTokenPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&loginTokens)
 	if err != nil {
@@ -1209,14 +1206,14 @@ func (o *LoginTokenSlice) ReloadAll(exec boil.Executor) error {
 func LoginTokenExists(exec boil.Executor, token string) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"login_token\" where \"token\"=$1 limit 1)"
+	query := "select exists(select 1 from \"login_token\" where \"token\"=$1 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, token)
 	}
 
-	row := exec.QueryRow(sql, token)
+	row := exec.QueryRow(query, token)
 
 	err := row.Scan(&exists)
 	if err != nil {

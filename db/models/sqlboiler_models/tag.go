@@ -22,11 +22,11 @@ import (
 
 // Tag is an object representing the database table.
 type Tag struct {
-	ID   int    `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Name string `boil:"name" json:"name" toml:"name" yaml:"name"`
+	ID   int    `boil:"id" json:"tag_id"`
+	Name string `boil:"name" json:"tag_name"`
 
-	R *tagR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L tagL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *tagR `boil:"-" json:"-"`
+	L tagL  `boil:"-" json:"-"`
 }
 
 // tagR is where relationships are stored.
@@ -1022,9 +1022,6 @@ func (o *Tag) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(tagColumns, tagPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update tag, could not build whitelist")
 		}
@@ -1125,18 +1122,18 @@ func (o TagSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"tag\" SET %s WHERE (\"id\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(tagPrimaryKeyColumns), len(colNames)+1, len(tagPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in tag slice")
 	}
@@ -1318,14 +1315,14 @@ func (o *Tag) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), tagPrimaryKeyMapping)
-	sql := "DELETE FROM \"tag\" WHERE \"id\"=$1"
+	query := "DELETE FROM \"tag\" WHERE \"id\"=$1"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from tag")
 	}
@@ -1406,18 +1403,18 @@ func (o TagSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"tag\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, tagPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(tagPrimaryKeyColumns), 1, len(tagPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from tag slice")
 	}
@@ -1510,13 +1507,13 @@ func (o *TagSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"tag\".* FROM \"tag\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, tagPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(tagPrimaryKeyColumns), 1, len(tagPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&tags)
 	if err != nil {
@@ -1532,14 +1529,14 @@ func (o *TagSlice) ReloadAll(exec boil.Executor) error {
 func TagExists(exec boil.Executor, id int) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"tag\" where \"id\"=$1 limit 1)"
+	query := "select exists(select 1 from \"tag\" where \"id\"=$1 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, id)
 	}
 
-	row := exec.QueryRow(sql, id)
+	row := exec.QueryRow(query, id)
 
 	err := row.Scan(&exists)
 	if err != nil {

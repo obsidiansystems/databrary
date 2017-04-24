@@ -26,8 +26,12 @@ func testCategories(t *testing.T) {
 func testCategoriesDelete(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	category := &Category{}
 	if err = randomize.Struct(seed, category, categoryDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Category struct: %s", err)
@@ -56,8 +60,12 @@ func testCategoriesDelete(t *testing.T) {
 func testCategoriesQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	category := &Category{}
 	if err = randomize.Struct(seed, category, categoryDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Category struct: %s", err)
@@ -86,8 +94,12 @@ func testCategoriesQueryDeleteAll(t *testing.T) {
 func testCategoriesSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	category := &Category{}
 	if err = randomize.Struct(seed, category, categoryDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Category struct: %s", err)
@@ -117,8 +129,12 @@ func testCategoriesSliceDeleteAll(t *testing.T) {
 func testCategoriesExists(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	category := &Category{}
 	if err = randomize.Struct(seed, category, categoryDBTypes, true, categoryColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Category struct: %s", err)
@@ -141,8 +157,12 @@ func testCategoriesExists(t *testing.T) {
 func testCategoriesFind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	category := &Category{}
 	if err = randomize.Struct(seed, category, categoryDBTypes, true, categoryColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Category struct: %s", err)
@@ -166,8 +186,12 @@ func testCategoriesFind(t *testing.T) {
 func testCategoriesBind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	category := &Category{}
 	if err = randomize.Struct(seed, category, categoryDBTypes, true, categoryColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Category struct: %s", err)
@@ -187,8 +211,12 @@ func testCategoriesBind(t *testing.T) {
 func testCategoriesOne(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	category := &Category{}
 	if err = randomize.Struct(seed, category, categoryDBTypes, true, categoryColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Category struct: %s", err)
@@ -210,8 +238,12 @@ func testCategoriesOne(t *testing.T) {
 func testCategoriesAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	categoryOne := &Category{}
 	categoryTwo := &Category{}
 	if err = randomize.Struct(seed, categoryOne, categoryDBTypes, false, categoryColumnsWithDefault...); err != nil {
@@ -245,6 +277,10 @@ func testCategoriesCount(t *testing.T) {
 
 	var err error
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	categoryOne := &Category{}
 	categoryTwo := &Category{}
 	if err = randomize.Struct(seed, categoryOne, categoryDBTypes, false, categoryColumnsWithDefault...); err != nil {
@@ -323,9 +359,12 @@ func testCategoriesHooks(t *testing.T) {
 	var err error
 
 	empty := &Category{}
-	o := &Category{}
-
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	o := &Category{}
 	if err = randomize.Struct(seed, o, categoryDBTypes, false); err != nil {
 		t.Errorf("Unable to randomize Category object: %s", err)
 	}
@@ -414,8 +453,12 @@ func testCategoriesHooks(t *testing.T) {
 func testCategoriesInsert(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	category := &Category{}
 	if err = randomize.Struct(seed, category, categoryDBTypes, true, categoryColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Category struct: %s", err)
@@ -440,8 +483,12 @@ func testCategoriesInsert(t *testing.T) {
 func testCategoriesInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	category := &Category{}
 	if err = randomize.Struct(seed, category, categoryDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Category struct: %s", err)
@@ -759,8 +806,12 @@ func testCategoryToManyAddOpRecords(t *testing.T) {
 func testCategoriesReload(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	category := &Category{}
 	if err = randomize.Struct(seed, category, categoryDBTypes, true, categoryColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Category struct: %s", err)
@@ -780,8 +831,12 @@ func testCategoriesReload(t *testing.T) {
 func testCategoriesReloadAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	category := &Category{}
 	if err = randomize.Struct(seed, category, categoryDBTypes, true, categoryColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Category struct: %s", err)
@@ -802,8 +857,12 @@ func testCategoriesReloadAll(t *testing.T) {
 func testCategoriesSelect(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	category := &Category{}
 	if err = randomize.Struct(seed, category, categoryDBTypes, true, categoryColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Category struct: %s", err)
@@ -837,8 +896,12 @@ func testCategoriesUpdate(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	category := &Category{}
 	if err = randomize.Struct(seed, category, categoryDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Category struct: %s", err)
@@ -875,8 +938,12 @@ func testCategoriesSliceUpdateAll(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	category := &Category{}
 	if err = randomize.Struct(seed, category, categoryDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Category struct: %s", err)
@@ -930,9 +997,13 @@ func testCategoriesUpsert(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
 	// Attempt the INSERT side of an UPSERT
+
 	category := Category{}
 	if err = randomize.Struct(seed, &category, categoryDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Category struct: %s", err)
@@ -953,6 +1024,7 @@ func testCategoriesUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
+
 	if err = randomize.Struct(seed, &category, categoryDBTypes, false, categoryPrimaryKeyColumns...); err != nil {
 		t.Errorf("Unable to randomize Category struct: %s", err)
 	}

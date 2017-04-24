@@ -26,8 +26,12 @@ func testMeasureDates(t *testing.T) {
 func testMeasureDatesDelete(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	measureDate := &MeasureDate{}
 	if err = randomize.Struct(seed, measureDate, measureDateDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize MeasureDate struct: %s", err)
@@ -56,8 +60,12 @@ func testMeasureDatesDelete(t *testing.T) {
 func testMeasureDatesQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	measureDate := &MeasureDate{}
 	if err = randomize.Struct(seed, measureDate, measureDateDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize MeasureDate struct: %s", err)
@@ -86,8 +94,12 @@ func testMeasureDatesQueryDeleteAll(t *testing.T) {
 func testMeasureDatesSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	measureDate := &MeasureDate{}
 	if err = randomize.Struct(seed, measureDate, measureDateDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize MeasureDate struct: %s", err)
@@ -117,8 +129,12 @@ func testMeasureDatesSliceDeleteAll(t *testing.T) {
 func testMeasureDatesExists(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	measureDate := &MeasureDate{}
 	if err = randomize.Struct(seed, measureDate, measureDateDBTypes, true, measureDateColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize MeasureDate struct: %s", err)
@@ -141,8 +157,12 @@ func testMeasureDatesExists(t *testing.T) {
 func testMeasureDatesFind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	measureDate := &MeasureDate{}
 	if err = randomize.Struct(seed, measureDate, measureDateDBTypes, true, measureDateColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize MeasureDate struct: %s", err)
@@ -166,8 +186,12 @@ func testMeasureDatesFind(t *testing.T) {
 func testMeasureDatesBind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	measureDate := &MeasureDate{}
 	if err = randomize.Struct(seed, measureDate, measureDateDBTypes, true, measureDateColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize MeasureDate struct: %s", err)
@@ -187,8 +211,12 @@ func testMeasureDatesBind(t *testing.T) {
 func testMeasureDatesOne(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	measureDate := &MeasureDate{}
 	if err = randomize.Struct(seed, measureDate, measureDateDBTypes, true, measureDateColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize MeasureDate struct: %s", err)
@@ -210,8 +238,12 @@ func testMeasureDatesOne(t *testing.T) {
 func testMeasureDatesAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	measureDateOne := &MeasureDate{}
 	measureDateTwo := &MeasureDate{}
 	if err = randomize.Struct(seed, measureDateOne, measureDateDBTypes, false, measureDateColumnsWithDefault...); err != nil {
@@ -245,6 +277,10 @@ func testMeasureDatesCount(t *testing.T) {
 
 	var err error
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	measureDateOne := &MeasureDate{}
 	measureDateTwo := &MeasureDate{}
 	if err = randomize.Struct(seed, measureDateOne, measureDateDBTypes, false, measureDateColumnsWithDefault...); err != nil {
@@ -323,9 +359,12 @@ func testMeasureDatesHooks(t *testing.T) {
 	var err error
 
 	empty := &MeasureDate{}
-	o := &MeasureDate{}
-
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	o := &MeasureDate{}
 	if err = randomize.Struct(seed, o, measureDateDBTypes, false); err != nil {
 		t.Errorf("Unable to randomize MeasureDate object: %s", err)
 	}
@@ -414,8 +453,12 @@ func testMeasureDatesHooks(t *testing.T) {
 func testMeasureDatesInsert(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	measureDate := &MeasureDate{}
 	if err = randomize.Struct(seed, measureDate, measureDateDBTypes, true, measureDateColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize MeasureDate struct: %s", err)
@@ -440,8 +483,12 @@ func testMeasureDatesInsert(t *testing.T) {
 func testMeasureDatesInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	measureDate := &MeasureDate{}
 	if err = randomize.Struct(seed, measureDate, measureDateDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize MeasureDate struct: %s", err)
@@ -670,8 +717,12 @@ func testMeasureDateToOneSetOpRecordUsingRecord(t *testing.T) {
 func testMeasureDatesReload(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	measureDate := &MeasureDate{}
 	if err = randomize.Struct(seed, measureDate, measureDateDBTypes, true, measureDateColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize MeasureDate struct: %s", err)
@@ -691,8 +742,12 @@ func testMeasureDatesReload(t *testing.T) {
 func testMeasureDatesReloadAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	measureDate := &MeasureDate{}
 	if err = randomize.Struct(seed, measureDate, measureDateDBTypes, true, measureDateColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize MeasureDate struct: %s", err)
@@ -713,8 +768,12 @@ func testMeasureDatesReloadAll(t *testing.T) {
 func testMeasureDatesSelect(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	measureDate := &MeasureDate{}
 	if err = randomize.Struct(seed, measureDate, measureDateDBTypes, true, measureDateColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize MeasureDate struct: %s", err)
@@ -748,8 +807,12 @@ func testMeasureDatesUpdate(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	measureDate := &MeasureDate{}
 	if err = randomize.Struct(seed, measureDate, measureDateDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize MeasureDate struct: %s", err)
@@ -786,8 +849,12 @@ func testMeasureDatesSliceUpdateAll(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	measureDate := &MeasureDate{}
 	if err = randomize.Struct(seed, measureDate, measureDateDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize MeasureDate struct: %s", err)
@@ -841,9 +908,13 @@ func testMeasureDatesUpsert(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
 	// Attempt the INSERT side of an UPSERT
+
 	measureDate := MeasureDate{}
 	if err = randomize.Struct(seed, &measureDate, measureDateDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize MeasureDate struct: %s", err)
@@ -864,6 +935,7 @@ func testMeasureDatesUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
+
 	if err = randomize.Struct(seed, &measureDate, measureDateDBTypes, false, measureDatePrimaryKeyColumns...); err != nil {
 		t.Errorf("Unable to randomize MeasureDate struct: %s", err)
 	}

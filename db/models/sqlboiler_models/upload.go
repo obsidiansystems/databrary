@@ -22,15 +22,15 @@ import (
 
 // Upload is an object representing the database table.
 type Upload struct {
-	Token    string    `boil:"token" json:"token" toml:"token" yaml:"token"`
-	Expires  time.Time `boil:"expires" json:"expires" toml:"expires" yaml:"expires"`
-	Account  int       `boil:"account" json:"account" toml:"account" yaml:"account"`
-	Volume   int       `boil:"volume" json:"volume" toml:"volume" yaml:"volume"`
-	Filename string    `boil:"filename" json:"filename" toml:"filename" yaml:"filename"`
-	Size     int64     `boil:"size" json:"size" toml:"size" yaml:"size"`
+	Token    string    `boil:"token" json:"upload_token"`
+	Expires  time.Time `boil:"expires" json:"upload_expires"`
+	Account  int       `boil:"account" json:"upload_account"`
+	Volume   int       `boil:"volume" json:"upload_volume"`
+	Filename string    `boil:"filename" json:"upload_filename"`
+	Size     int64     `boil:"size" json:"upload_size"`
 
-	R *uploadR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L uploadL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *uploadR `boil:"-" json:"-"`
+	L uploadL  `boil:"-" json:"-"`
 }
 
 // uploadR is where relationships are stored.
@@ -875,9 +875,6 @@ func (o *Upload) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(uploadColumns, uploadPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update upload, could not build whitelist")
 		}
@@ -978,18 +975,18 @@ func (o UploadSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"upload\" SET %s WHERE (\"token\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(uploadPrimaryKeyColumns), len(colNames)+1, len(uploadPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in upload slice")
 	}
@@ -1171,14 +1168,14 @@ func (o *Upload) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), uploadPrimaryKeyMapping)
-	sql := "DELETE FROM \"upload\" WHERE \"token\"=$1"
+	query := "DELETE FROM \"upload\" WHERE \"token\"=$1"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from upload")
 	}
@@ -1259,18 +1256,18 @@ func (o UploadSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"upload\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, uploadPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(uploadPrimaryKeyColumns), 1, len(uploadPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from upload slice")
 	}
@@ -1363,13 +1360,13 @@ func (o *UploadSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"upload\".* FROM \"upload\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, uploadPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(uploadPrimaryKeyColumns), 1, len(uploadPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&uploads)
 	if err != nil {
@@ -1385,14 +1382,14 @@ func (o *UploadSlice) ReloadAll(exec boil.Executor) error {
 func UploadExists(exec boil.Executor, token string) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"upload\" where \"token\"=$1 limit 1)"
+	query := "select exists(select 1 from \"upload\" where \"token\"=$1 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, token)
 	}
 
-	row := exec.QueryRow(sql, token)
+	row := exec.QueryRow(query, token)
 
 	err := row.Scan(&exists)
 	if err != nil {

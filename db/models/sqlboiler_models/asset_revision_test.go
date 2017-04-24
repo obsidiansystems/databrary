@@ -6,7 +6,6 @@ package models
 
 import (
 	"bytes"
-	"fmt"
 	"reflect"
 	"testing"
 
@@ -27,13 +26,17 @@ func testAssetRevisions(t *testing.T) {
 func testAssetRevisionsDelete(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	assetRevision := &AssetRevision{}
 	if err = randomize.Struct(seed, assetRevision, assetRevisionDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize AssetRevision struct: %s", err)
 	}
-	fmt.Println(assetRevision)
+
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
 	if err = assetRevision.Insert(tx); err != nil {
@@ -57,8 +60,12 @@ func testAssetRevisionsDelete(t *testing.T) {
 func testAssetRevisionsQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	assetRevision := &AssetRevision{}
 	if err = randomize.Struct(seed, assetRevision, assetRevisionDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize AssetRevision struct: %s", err)
@@ -87,8 +94,12 @@ func testAssetRevisionsQueryDeleteAll(t *testing.T) {
 func testAssetRevisionsSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	assetRevision := &AssetRevision{}
 	if err = randomize.Struct(seed, assetRevision, assetRevisionDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize AssetRevision struct: %s", err)
@@ -118,8 +129,12 @@ func testAssetRevisionsSliceDeleteAll(t *testing.T) {
 func testAssetRevisionsExists(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	assetRevision := &AssetRevision{}
 	if err = randomize.Struct(seed, assetRevision, assetRevisionDBTypes, true, assetRevisionColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize AssetRevision struct: %s", err)
@@ -142,8 +157,12 @@ func testAssetRevisionsExists(t *testing.T) {
 func testAssetRevisionsFind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	assetRevision := &AssetRevision{}
 	if err = randomize.Struct(seed, assetRevision, assetRevisionDBTypes, true, assetRevisionColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize AssetRevision struct: %s", err)
@@ -167,8 +186,12 @@ func testAssetRevisionsFind(t *testing.T) {
 func testAssetRevisionsBind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	assetRevision := &AssetRevision{}
 	if err = randomize.Struct(seed, assetRevision, assetRevisionDBTypes, true, assetRevisionColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize AssetRevision struct: %s", err)
@@ -188,8 +211,12 @@ func testAssetRevisionsBind(t *testing.T) {
 func testAssetRevisionsOne(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	assetRevision := &AssetRevision{}
 	if err = randomize.Struct(seed, assetRevision, assetRevisionDBTypes, true, assetRevisionColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize AssetRevision struct: %s", err)
@@ -211,8 +238,12 @@ func testAssetRevisionsOne(t *testing.T) {
 func testAssetRevisionsAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	assetRevisionOne := &AssetRevision{}
 	assetRevisionTwo := &AssetRevision{}
 	if err = randomize.Struct(seed, assetRevisionOne, assetRevisionDBTypes, false, assetRevisionColumnsWithDefault...); err != nil {
@@ -246,6 +277,10 @@ func testAssetRevisionsCount(t *testing.T) {
 
 	var err error
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	assetRevisionOne := &AssetRevision{}
 	assetRevisionTwo := &AssetRevision{}
 	if err = randomize.Struct(seed, assetRevisionOne, assetRevisionDBTypes, false, assetRevisionColumnsWithDefault...); err != nil {
@@ -324,9 +359,12 @@ func testAssetRevisionsHooks(t *testing.T) {
 	var err error
 
 	empty := &AssetRevision{}
-	o := &AssetRevision{}
-
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	o := &AssetRevision{}
 	if err = randomize.Struct(seed, o, assetRevisionDBTypes, false); err != nil {
 		t.Errorf("Unable to randomize AssetRevision object: %s", err)
 	}
@@ -415,8 +453,12 @@ func testAssetRevisionsHooks(t *testing.T) {
 func testAssetRevisionsInsert(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	assetRevision := &AssetRevision{}
 	if err = randomize.Struct(seed, assetRevision, assetRevisionDBTypes, true, assetRevisionColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize AssetRevision struct: %s", err)
@@ -441,8 +483,12 @@ func testAssetRevisionsInsert(t *testing.T) {
 func testAssetRevisionsInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	assetRevision := &AssetRevision{}
 	if err = randomize.Struct(seed, assetRevision, assetRevisionDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize AssetRevision struct: %s", err)
@@ -675,8 +721,12 @@ func testAssetRevisionToOneSetOpAssetUsingOrig(t *testing.T) {
 func testAssetRevisionsReload(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	assetRevision := &AssetRevision{}
 	if err = randomize.Struct(seed, assetRevision, assetRevisionDBTypes, true, assetRevisionColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize AssetRevision struct: %s", err)
@@ -696,8 +746,12 @@ func testAssetRevisionsReload(t *testing.T) {
 func testAssetRevisionsReloadAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	assetRevision := &AssetRevision{}
 	if err = randomize.Struct(seed, assetRevision, assetRevisionDBTypes, true, assetRevisionColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize AssetRevision struct: %s", err)
@@ -718,8 +772,12 @@ func testAssetRevisionsReloadAll(t *testing.T) {
 func testAssetRevisionsSelect(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	assetRevision := &AssetRevision{}
 	if err = randomize.Struct(seed, assetRevision, assetRevisionDBTypes, true, assetRevisionColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize AssetRevision struct: %s", err)
@@ -753,8 +811,12 @@ func testAssetRevisionsUpdate(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	assetRevision := &AssetRevision{}
 	if err = randomize.Struct(seed, assetRevision, assetRevisionDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize AssetRevision struct: %s", err)
@@ -791,8 +853,12 @@ func testAssetRevisionsSliceUpdateAll(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	assetRevision := &AssetRevision{}
 	if err = randomize.Struct(seed, assetRevision, assetRevisionDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize AssetRevision struct: %s", err)
@@ -846,9 +912,13 @@ func testAssetRevisionsUpsert(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
 	// Attempt the INSERT side of an UPSERT
+
 	assetRevision := AssetRevision{}
 	if err = randomize.Struct(seed, &assetRevision, assetRevisionDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize AssetRevision struct: %s", err)
@@ -869,6 +939,7 @@ func testAssetRevisionsUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
+
 	if err = randomize.Struct(seed, &assetRevision, assetRevisionDBTypes, false, assetRevisionPrimaryKeyColumns...); err != nil {
 		t.Errorf("Unable to randomize AssetRevision struct: %s", err)
 	}

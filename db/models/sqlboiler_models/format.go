@@ -23,13 +23,13 @@ import (
 
 // Format is an object representing the database table.
 type Format struct {
-	ID        int16             `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Mimetype  string            `boil:"mimetype" json:"mimetype" toml:"mimetype" yaml:"mimetype"`
-	Extension types.StringArray `boil:"extension" json:"extension" toml:"extension" yaml:"extension"`
-	Name      string            `boil:"name" json:"name" toml:"name" yaml:"name"`
+	ID        int16             `boil:"id" json:"format_id"`
+	Mimetype  string            `boil:"mimetype" json:"format_mimetype"`
+	Extension types.StringArray `boil:"extension" json:"format_extension"`
+	Name      string            `boil:"name" json:"format_name"`
 
-	R *formatR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L formatL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *formatR `boil:"-" json:"-"`
+	L formatL  `boil:"-" json:"-"`
 }
 
 // formatR is where relationships are stored.
@@ -707,9 +707,6 @@ func (o *Format) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(formatColumns, formatPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update format, could not build whitelist")
 		}
@@ -810,18 +807,18 @@ func (o FormatSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"format\" SET %s WHERE (\"id\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(formatPrimaryKeyColumns), len(colNames)+1, len(formatPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in format slice")
 	}
@@ -1003,14 +1000,14 @@ func (o *Format) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), formatPrimaryKeyMapping)
-	sql := "DELETE FROM \"format\" WHERE \"id\"=$1"
+	query := "DELETE FROM \"format\" WHERE \"id\"=$1"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from format")
 	}
@@ -1091,18 +1088,18 @@ func (o FormatSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"format\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, formatPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(formatPrimaryKeyColumns), 1, len(formatPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from format slice")
 	}
@@ -1195,13 +1192,13 @@ func (o *FormatSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"format\".* FROM \"format\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, formatPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(formatPrimaryKeyColumns), 1, len(formatPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&formats)
 	if err != nil {
@@ -1217,14 +1214,14 @@ func (o *FormatSlice) ReloadAll(exec boil.Executor) error {
 func FormatExists(exec boil.Executor, id int16) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"format\" where \"id\"=$1 limit 1)"
+	query := "select exists(select 1 from \"format\" where \"id\"=$1 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, id)
 	}
 
-	row := exec.QueryRow(sql, id)
+	row := exec.QueryRow(query, id)
 
 	err := row.Scan(&exists)
 	if err != nil {

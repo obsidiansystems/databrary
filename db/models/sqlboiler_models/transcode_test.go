@@ -26,12 +26,13 @@ func testTranscodes(t *testing.T) {
 func testTranscodesDelete(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	transcode := &Transcode{}
-	if err = randomize.Struct(seed, transcode, transcodeDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Transcode struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	transcode := TranscodeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -56,12 +57,13 @@ func testTranscodesDelete(t *testing.T) {
 func testTranscodesQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	transcode := &Transcode{}
-	if err = randomize.Struct(seed, transcode, transcodeDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Transcode struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	transcode := TranscodeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -86,12 +88,13 @@ func testTranscodesQueryDeleteAll(t *testing.T) {
 func testTranscodesSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	transcode := &Transcode{}
-	if err = randomize.Struct(seed, transcode, transcodeDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Transcode struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	transcode := TranscodeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -117,12 +120,13 @@ func testTranscodesSliceDeleteAll(t *testing.T) {
 func testTranscodesExists(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	transcode := &Transcode{}
-	if err = randomize.Struct(seed, transcode, transcodeDBTypes, true, transcodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transcode struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	transcode := TranscodeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -141,12 +145,13 @@ func testTranscodesExists(t *testing.T) {
 func testTranscodesFind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	transcode := &Transcode{}
-	if err = randomize.Struct(seed, transcode, transcodeDBTypes, true, transcodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transcode struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	transcode := TranscodeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -166,12 +171,13 @@ func testTranscodesFind(t *testing.T) {
 func testTranscodesBind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	transcode := &Transcode{}
-	if err = randomize.Struct(seed, transcode, transcodeDBTypes, true, transcodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transcode struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	transcode := TranscodeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -187,12 +193,13 @@ func testTranscodesBind(t *testing.T) {
 func testTranscodesOne(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	transcode := &Transcode{}
-	if err = randomize.Struct(seed, transcode, transcodeDBTypes, true, transcodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transcode struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	transcode := TranscodeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -210,16 +217,14 @@ func testTranscodesOne(t *testing.T) {
 func testTranscodesAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	transcodeOne := &Transcode{}
-	transcodeTwo := &Transcode{}
-	if err = randomize.Struct(seed, transcodeOne, transcodeDBTypes, false, transcodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transcode struct: %s", err)
-	}
-	if err = randomize.Struct(seed, transcodeTwo, transcodeDBTypes, false, transcodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transcode struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	transcodeOne := TranscodeRandom()
+	transcodeTwo := TranscodeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -245,14 +250,12 @@ func testTranscodesCount(t *testing.T) {
 
 	var err error
 	seed := randomize.NewSeed()
-	transcodeOne := &Transcode{}
-	transcodeTwo := &Transcode{}
-	if err = randomize.Struct(seed, transcodeOne, transcodeDBTypes, false, transcodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transcode struct: %s", err)
-	}
-	if err = randomize.Struct(seed, transcodeTwo, transcodeDBTypes, false, transcodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transcode struct: %s", err)
-	}
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	transcodeOne := TranscodeRandom()
+	transcodeTwo := TranscodeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -323,12 +326,12 @@ func testTranscodesHooks(t *testing.T) {
 	var err error
 
 	empty := &Transcode{}
-	o := &Transcode{}
-
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, o, transcodeDBTypes, false); err != nil {
-		t.Errorf("Unable to randomize Transcode object: %s", err)
-	}
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	o := TranscodeRandom()
 
 	AddTranscodeHook(boil.BeforeInsertHook, transcodeBeforeInsertHook)
 	if err = o.doBeforeInsertHooks(nil); err != nil {
@@ -414,12 +417,13 @@ func testTranscodesHooks(t *testing.T) {
 func testTranscodesInsert(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	transcode := &Transcode{}
-	if err = randomize.Struct(seed, transcode, transcodeDBTypes, true, transcodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transcode struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	transcode := TranscodeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -440,12 +444,13 @@ func testTranscodesInsert(t *testing.T) {
 func testTranscodesInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	transcode := &Transcode{}
-	if err = randomize.Struct(seed, transcode, transcodeDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Transcode struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	transcode := TranscodeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -780,12 +785,13 @@ func testTranscodeToOneSetOpAssetUsingAsset(t *testing.T) {
 func testTranscodesReload(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	transcode := &Transcode{}
-	if err = randomize.Struct(seed, transcode, transcodeDBTypes, true, transcodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transcode struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	transcode := TranscodeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -801,12 +807,13 @@ func testTranscodesReload(t *testing.T) {
 func testTranscodesReloadAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	transcode := &Transcode{}
-	if err = randomize.Struct(seed, transcode, transcodeDBTypes, true, transcodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transcode struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	transcode := TranscodeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -823,12 +830,13 @@ func testTranscodesReloadAll(t *testing.T) {
 func testTranscodesSelect(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	transcode := &Transcode{}
-	if err = randomize.Struct(seed, transcode, transcodeDBTypes, true, transcodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transcode struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	transcode := TranscodeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -847,7 +855,7 @@ func testTranscodesSelect(t *testing.T) {
 }
 
 var (
-	transcodeDBTypes = map[string]string{`Asset`: `integer`, `Log`: `text`, `Options`: `ARRAYtext`, `Orig`: `integer`, `Owner`: `integer`, `Process`: `integer`, `Segment`: `segment`, `Start`: `timestamp with time zone`}
+	transcodeDBTypes = map[string]string{`Asset`: `integer`, `Log`: `text`, `Options`: `ARRAYtext`, `Orig`: `integer`, `Owner`: `integer`, `Process`: `integer`, `Segment`: `USER-DEFINED`, `Start`: `timestamp with time zone`}
 	_                = bytes.MinRead
 )
 
@@ -858,12 +866,13 @@ func testTranscodesUpdate(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
-	transcode := &Transcode{}
-	if err = randomize.Struct(seed, transcode, transcodeDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Transcode struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	transcode := TranscodeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -880,9 +889,7 @@ func testTranscodesUpdate(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, transcode, transcodeDBTypes, true, transcodeColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Transcode struct: %s", err)
-	}
+	transcode = TranscodeRandom()
 
 	if err = transcode.Update(tx); err != nil {
 		t.Error(err)
@@ -896,12 +903,13 @@ func testTranscodesSliceUpdateAll(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
-	transcode := &Transcode{}
-	if err = randomize.Struct(seed, transcode, transcodeDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Transcode struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	transcode := TranscodeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -918,9 +926,7 @@ func testTranscodesSliceUpdateAll(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, transcode, transcodeDBTypes, true, transcodePrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize Transcode struct: %s", err)
-	}
+	transcode = TranscodeRandom()
 
 	// Remove Primary keys and unique columns from what we plan to update
 	var fields []string
@@ -951,13 +957,14 @@ func testTranscodesUpsert(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
 	// Attempt the INSERT side of an UPSERT
-	transcode := Transcode{}
-	if err = randomize.Struct(seed, &transcode, transcodeDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Transcode struct: %s", err)
-	}
+
+	transcode := TranscodeRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -974,9 +981,8 @@ func testTranscodesUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
-	if err = randomize.Struct(seed, &transcode, transcodeDBTypes, false, transcodePrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize Transcode struct: %s", err)
-	}
+
+	transcode = TranscodeRandom()
 
 	if err = transcode.Upsert(tx, true, nil, nil); err != nil {
 		t.Errorf("Unable to upsert Transcode: %s", err)

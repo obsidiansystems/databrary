@@ -105,3 +105,31 @@ func (p *Permission) Scan(src interface{}) error {
 
 	return p.UnmarshalText(buf)
 }
+
+
+type NullPermission struct {
+	Permission Permission
+	Valid bool
+}
+
+func (nv *NullPermission) Scan(value interface{}) error {
+	if value == nil {
+		nv.Permission, nv.Valid = Permission(0), false
+		return nil
+	}
+	err := nv.Permission.Scan(value)
+	if err != nil {
+		nv.Valid = false
+		return err
+	} else {
+		nv.Valid = true
+		return nil
+	}
+}
+
+func (nv NullPermission) Value() (driver.Value, error) {
+	if !nv.Valid {
+		return nil, nil
+	}
+	return nv.Permission.Value()
+}

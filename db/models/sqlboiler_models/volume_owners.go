@@ -23,11 +23,11 @@ import (
 
 // VolumeOwner is an object representing the database table.
 type VolumeOwner struct {
-	Volume int               `boil:"volume" json:"volume" toml:"volume" yaml:"volume"`
-	Owners types.StringArray `boil:"owners" json:"owners" toml:"owners" yaml:"owners"`
+	Volume int               `boil:"volume" json:"volumeOwner_volume"`
+	Owners types.StringArray `boil:"owners" json:"volumeOwner_owners"`
 
-	R *volumeOwnerR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L volumeOwnerL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *volumeOwnerR `boil:"-" json:"-"`
+	L volumeOwnerL  `boil:"-" json:"-"`
 }
 
 // volumeOwnerR is where relationships are stored.
@@ -698,9 +698,6 @@ func (o *VolumeOwner) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(volumeOwnerColumns, volumeOwnerPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update volume_owners, could not build whitelist")
 		}
@@ -801,18 +798,18 @@ func (o VolumeOwnerSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"volume_owners\" SET %s WHERE (\"volume\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(volumeOwnerPrimaryKeyColumns), len(colNames)+1, len(volumeOwnerPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in volumeOwner slice")
 	}
@@ -994,14 +991,14 @@ func (o *VolumeOwner) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), volumeOwnerPrimaryKeyMapping)
-	sql := "DELETE FROM \"volume_owners\" WHERE \"volume\"=$1"
+	query := "DELETE FROM \"volume_owners\" WHERE \"volume\"=$1"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from volume_owners")
 	}
@@ -1082,18 +1079,18 @@ func (o VolumeOwnerSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"volume_owners\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, volumeOwnerPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(volumeOwnerPrimaryKeyColumns), 1, len(volumeOwnerPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from volumeOwner slice")
 	}
@@ -1186,13 +1183,13 @@ func (o *VolumeOwnerSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"volume_owners\".* FROM \"volume_owners\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, volumeOwnerPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(volumeOwnerPrimaryKeyColumns), 1, len(volumeOwnerPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&volumeOwners)
 	if err != nil {
@@ -1208,14 +1205,14 @@ func (o *VolumeOwnerSlice) ReloadAll(exec boil.Executor) error {
 func VolumeOwnerExists(exec boil.Executor, volume int) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"volume_owners\" where \"volume\"=$1 limit 1)"
+	query := "select exists(select 1 from \"volume_owners\" where \"volume\"=$1 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, volume)
 	}
 
-	row := exec.QueryRow(sql, volume)
+	row := exec.QueryRow(query, volume)
 
 	err := row.Scan(&exists)
 	if err != nil {

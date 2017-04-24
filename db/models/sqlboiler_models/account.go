@@ -23,12 +23,12 @@ import (
 
 // Account is an object representing the database table.
 type Account struct {
-	ID       int         `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Email    string      `boil:"email" json:"email" toml:"email" yaml:"email"`
-	Password null.String `boil:"password" json:"password,omitempty" toml:"password" yaml:"password,omitempty"`
+	ID       int         `boil:"id" json:"account_id"`
+	Email    string      `boil:"email" json:"account_email"`
+	Password null.String `boil:"password" json:"account_password,omitempty"`
 
-	R *accountR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L accountL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *accountR `boil:"-" json:"-"`
+	L accountL  `boil:"-" json:"-"`
 }
 
 // accountR is where relationships are stored.
@@ -2324,9 +2324,6 @@ func (o *Account) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(accountColumns, accountPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update account, could not build whitelist")
 		}
@@ -2427,18 +2424,18 @@ func (o AccountSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"account\" SET %s WHERE (\"id\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(accountPrimaryKeyColumns), len(colNames)+1, len(accountPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in account slice")
 	}
@@ -2620,14 +2617,14 @@ func (o *Account) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), accountPrimaryKeyMapping)
-	sql := "DELETE FROM \"account\" WHERE \"id\"=$1"
+	query := "DELETE FROM \"account\" WHERE \"id\"=$1"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from account")
 	}
@@ -2708,18 +2705,18 @@ func (o AccountSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"account\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, accountPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(accountPrimaryKeyColumns), 1, len(accountPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from account slice")
 	}
@@ -2812,13 +2809,13 @@ func (o *AccountSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"account\".* FROM \"account\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, accountPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(accountPrimaryKeyColumns), 1, len(accountPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&accounts)
 	if err != nil {
@@ -2834,14 +2831,14 @@ func (o *AccountSlice) ReloadAll(exec boil.Executor) error {
 func AccountExists(exec boil.Executor, id int) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"account\" where \"id\"=$1 limit 1)"
+	query := "select exists(select 1 from \"account\" where \"id\"=$1 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, id)
 	}
 
-	row := exec.QueryRow(sql, id)
+	row := exec.QueryRow(query, id)
 
 	err := row.Scan(&exists)
 	if err != nil {

@@ -26,8 +26,12 @@ func testContainers(t *testing.T) {
 func testContainersDelete(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	container := &Container{}
 	if err = randomize.Struct(seed, container, containerDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Container struct: %s", err)
@@ -56,8 +60,12 @@ func testContainersDelete(t *testing.T) {
 func testContainersQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	container := &Container{}
 	if err = randomize.Struct(seed, container, containerDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Container struct: %s", err)
@@ -86,8 +94,12 @@ func testContainersQueryDeleteAll(t *testing.T) {
 func testContainersSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	container := &Container{}
 	if err = randomize.Struct(seed, container, containerDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Container struct: %s", err)
@@ -117,8 +129,12 @@ func testContainersSliceDeleteAll(t *testing.T) {
 func testContainersExists(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	container := &Container{}
 	if err = randomize.Struct(seed, container, containerDBTypes, true, containerColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Container struct: %s", err)
@@ -141,8 +157,12 @@ func testContainersExists(t *testing.T) {
 func testContainersFind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	container := &Container{}
 	if err = randomize.Struct(seed, container, containerDBTypes, true, containerColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Container struct: %s", err)
@@ -166,8 +186,12 @@ func testContainersFind(t *testing.T) {
 func testContainersBind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	container := &Container{}
 	if err = randomize.Struct(seed, container, containerDBTypes, true, containerColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Container struct: %s", err)
@@ -187,8 +211,12 @@ func testContainersBind(t *testing.T) {
 func testContainersOne(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	container := &Container{}
 	if err = randomize.Struct(seed, container, containerDBTypes, true, containerColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Container struct: %s", err)
@@ -210,8 +238,12 @@ func testContainersOne(t *testing.T) {
 func testContainersAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	containerOne := &Container{}
 	containerTwo := &Container{}
 	if err = randomize.Struct(seed, containerOne, containerDBTypes, false, containerColumnsWithDefault...); err != nil {
@@ -245,6 +277,10 @@ func testContainersCount(t *testing.T) {
 
 	var err error
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	containerOne := &Container{}
 	containerTwo := &Container{}
 	if err = randomize.Struct(seed, containerOne, containerDBTypes, false, containerColumnsWithDefault...); err != nil {
@@ -323,9 +359,12 @@ func testContainersHooks(t *testing.T) {
 	var err error
 
 	empty := &Container{}
-	o := &Container{}
-
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	o := &Container{}
 	if err = randomize.Struct(seed, o, containerDBTypes, false); err != nil {
 		t.Errorf("Unable to randomize Container object: %s", err)
 	}
@@ -414,8 +453,12 @@ func testContainersHooks(t *testing.T) {
 func testContainersInsert(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	container := &Container{}
 	if err = randomize.Struct(seed, container, containerDBTypes, true, containerColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Container struct: %s", err)
@@ -440,8 +483,12 @@ func testContainersInsert(t *testing.T) {
 func testContainersInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	container := &Container{}
 	if err = randomize.Struct(seed, container, containerDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Container struct: %s", err)
@@ -1770,8 +1817,12 @@ func testContainerToOneSetOpVolumeUsingVolume(t *testing.T) {
 func testContainersReload(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	container := &Container{}
 	if err = randomize.Struct(seed, container, containerDBTypes, true, containerColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Container struct: %s", err)
@@ -1791,8 +1842,12 @@ func testContainersReload(t *testing.T) {
 func testContainersReloadAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	container := &Container{}
 	if err = randomize.Struct(seed, container, containerDBTypes, true, containerColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Container struct: %s", err)
@@ -1813,8 +1868,12 @@ func testContainersReloadAll(t *testing.T) {
 func testContainersSelect(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	container := &Container{}
 	if err = randomize.Struct(seed, container, containerDBTypes, true, containerColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Container struct: %s", err)
@@ -1848,8 +1907,12 @@ func testContainersUpdate(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	container := &Container{}
 	if err = randomize.Struct(seed, container, containerDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Container struct: %s", err)
@@ -1886,8 +1949,12 @@ func testContainersSliceUpdateAll(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	container := &Container{}
 	if err = randomize.Struct(seed, container, containerDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Container struct: %s", err)
@@ -1941,9 +2008,13 @@ func testContainersUpsert(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
 	// Attempt the INSERT side of an UPSERT
+
 	container := Container{}
 	if err = randomize.Struct(seed, &container, containerDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Container struct: %s", err)
@@ -1964,6 +2035,7 @@ func testContainersUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
+
 	if err = randomize.Struct(seed, &container, containerDBTypes, false, containerPrimaryKeyColumns...); err != nil {
 		t.Errorf("Unable to randomize Container struct: %s", err)
 	}

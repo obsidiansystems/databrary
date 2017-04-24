@@ -23,14 +23,14 @@ import (
 
 // Container is an object representing the database table.
 type Container struct {
-	ID     int         `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Volume int         `boil:"volume" json:"volume" toml:"volume" yaml:"volume"`
-	Top    bool        `boil:"top" json:"top" toml:"top" yaml:"top"`
-	Name   null.String `boil:"name" json:"name,omitempty" toml:"name" yaml:"name,omitempty"`
-	Date   null.Time   `boil:"date" json:"date,omitempty" toml:"date" yaml:"date,omitempty"`
+	ID     int         `boil:"id" json:"container_id"`
+	Volume int         `boil:"volume" json:"container_volume"`
+	Top    bool        `boil:"top" json:"container_top"`
+	Name   null.String `boil:"name" json:"container_name,omitempty"`
+	Date   null.Time   `boil:"date" json:"container_date,omitempty"`
 
-	R *containerR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L containerL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *containerR `boil:"-" json:"-"`
+	L containerL  `boil:"-" json:"-"`
 }
 
 // containerR is where relationships are stored.
@@ -2105,9 +2105,6 @@ func (o *Container) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(containerColumns, containerPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update container, could not build whitelist")
 		}
@@ -2208,18 +2205,18 @@ func (o ContainerSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"container\" SET %s WHERE (\"id\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(containerPrimaryKeyColumns), len(colNames)+1, len(containerPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in container slice")
 	}
@@ -2401,14 +2398,14 @@ func (o *Container) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), containerPrimaryKeyMapping)
-	sql := "DELETE FROM \"container\" WHERE \"id\"=$1"
+	query := "DELETE FROM \"container\" WHERE \"id\"=$1"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from container")
 	}
@@ -2489,18 +2486,18 @@ func (o ContainerSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"container\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, containerPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(containerPrimaryKeyColumns), 1, len(containerPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from container slice")
 	}
@@ -2593,13 +2590,13 @@ func (o *ContainerSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"container\".* FROM \"container\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, containerPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(containerPrimaryKeyColumns), 1, len(containerPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&containers)
 	if err != nil {
@@ -2615,14 +2612,14 @@ func (o *ContainerSlice) ReloadAll(exec boil.Executor) error {
 func ContainerExists(exec boil.Executor, id int) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"container\" where \"id\"=$1 limit 1)"
+	query := "select exists(select 1 from \"container\" where \"id\"=$1 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, id)
 	}
 
-	row := exec.QueryRow(sql, id)
+	row := exec.QueryRow(query, id)
 
 	err := row.Scan(&exists)
 	if err != nil {

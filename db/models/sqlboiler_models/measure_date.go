@@ -22,12 +22,12 @@ import (
 
 // MeasureDate is an object representing the database table.
 type MeasureDate struct {
-	Record int       `boil:"record" json:"record" toml:"record" yaml:"record"`
-	Metric int       `boil:"metric" json:"metric" toml:"metric" yaml:"metric"`
-	Datum  time.Time `boil:"datum" json:"datum" toml:"datum" yaml:"datum"`
+	Record int       `boil:"record" json:"measureDate_record"`
+	Metric int       `boil:"metric" json:"measureDate_metric"`
+	Datum  time.Time `boil:"datum" json:"measureDate_datum"`
 
-	R *measureDateR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L measureDateL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *measureDateR `boil:"-" json:"-"`
+	L measureDateL  `boil:"-" json:"-"`
 }
 
 // measureDateR is where relationships are stored.
@@ -872,9 +872,6 @@ func (o *MeasureDate) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(measureDateColumns, measureDatePrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update measure_date, could not build whitelist")
 		}
@@ -975,18 +972,18 @@ func (o MeasureDateSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"measure_date\" SET %s WHERE (\"record\",\"metric\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(measureDatePrimaryKeyColumns), len(colNames)+1, len(measureDatePrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in measureDate slice")
 	}
@@ -1168,14 +1165,14 @@ func (o *MeasureDate) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), measureDatePrimaryKeyMapping)
-	sql := "DELETE FROM \"measure_date\" WHERE \"record\"=$1 AND \"metric\"=$2"
+	query := "DELETE FROM \"measure_date\" WHERE \"record\"=$1 AND \"metric\"=$2"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from measure_date")
 	}
@@ -1256,18 +1253,18 @@ func (o MeasureDateSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"measure_date\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, measureDatePrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(measureDatePrimaryKeyColumns), 1, len(measureDatePrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from measureDate slice")
 	}
@@ -1360,13 +1357,13 @@ func (o *MeasureDateSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"measure_date\".* FROM \"measure_date\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, measureDatePrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(measureDatePrimaryKeyColumns), 1, len(measureDatePrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&measureDates)
 	if err != nil {
@@ -1382,14 +1379,14 @@ func (o *MeasureDateSlice) ReloadAll(exec boil.Executor) error {
 func MeasureDateExists(exec boil.Executor, record int, metric int) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"measure_date\" where \"record\"=$1 AND \"metric\"=$2 limit 1)"
+	query := "select exists(select 1 from \"measure_date\" where \"record\"=$1 AND \"metric\"=$2 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, record, metric)
 	}
 
-	row := exec.QueryRow(sql, record, metric)
+	row := exec.QueryRow(query, record, metric)
 
 	err := row.Scan(&exists)
 	if err != nil {

@@ -26,12 +26,13 @@ func testVolumeAccesses(t *testing.T) {
 func testVolumeAccessesDelete(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeAccess := &VolumeAccess{}
-	if err = randomize.Struct(seed, volumeAccess, volumeAccessDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize VolumeAccess struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeAccess := VolumeAccessRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -56,12 +57,13 @@ func testVolumeAccessesDelete(t *testing.T) {
 func testVolumeAccessesQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeAccess := &VolumeAccess{}
-	if err = randomize.Struct(seed, volumeAccess, volumeAccessDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize VolumeAccess struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeAccess := VolumeAccessRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -86,12 +88,13 @@ func testVolumeAccessesQueryDeleteAll(t *testing.T) {
 func testVolumeAccessesSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeAccess := &VolumeAccess{}
-	if err = randomize.Struct(seed, volumeAccess, volumeAccessDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize VolumeAccess struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeAccess := VolumeAccessRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -117,12 +120,13 @@ func testVolumeAccessesSliceDeleteAll(t *testing.T) {
 func testVolumeAccessesExists(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeAccess := &VolumeAccess{}
-	if err = randomize.Struct(seed, volumeAccess, volumeAccessDBTypes, true, volumeAccessColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize VolumeAccess struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeAccess := VolumeAccessRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -141,12 +145,13 @@ func testVolumeAccessesExists(t *testing.T) {
 func testVolumeAccessesFind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeAccess := &VolumeAccess{}
-	if err = randomize.Struct(seed, volumeAccess, volumeAccessDBTypes, true, volumeAccessColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize VolumeAccess struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeAccess := VolumeAccessRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -166,12 +171,13 @@ func testVolumeAccessesFind(t *testing.T) {
 func testVolumeAccessesBind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeAccess := &VolumeAccess{}
-	if err = randomize.Struct(seed, volumeAccess, volumeAccessDBTypes, true, volumeAccessColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize VolumeAccess struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeAccess := VolumeAccessRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -187,12 +193,13 @@ func testVolumeAccessesBind(t *testing.T) {
 func testVolumeAccessesOne(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeAccess := &VolumeAccess{}
-	if err = randomize.Struct(seed, volumeAccess, volumeAccessDBTypes, true, volumeAccessColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize VolumeAccess struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeAccess := VolumeAccessRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -210,16 +217,14 @@ func testVolumeAccessesOne(t *testing.T) {
 func testVolumeAccessesAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeAccessOne := &VolumeAccess{}
-	volumeAccessTwo := &VolumeAccess{}
-	if err = randomize.Struct(seed, volumeAccessOne, volumeAccessDBTypes, false, volumeAccessColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize VolumeAccess struct: %s", err)
-	}
-	if err = randomize.Struct(seed, volumeAccessTwo, volumeAccessDBTypes, false, volumeAccessColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize VolumeAccess struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeAccessOne := VolumeAccessRandom()
+	volumeAccessTwo := VolumeAccessRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -245,14 +250,12 @@ func testVolumeAccessesCount(t *testing.T) {
 
 	var err error
 	seed := randomize.NewSeed()
-	volumeAccessOne := &VolumeAccess{}
-	volumeAccessTwo := &VolumeAccess{}
-	if err = randomize.Struct(seed, volumeAccessOne, volumeAccessDBTypes, false, volumeAccessColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize VolumeAccess struct: %s", err)
-	}
-	if err = randomize.Struct(seed, volumeAccessTwo, volumeAccessDBTypes, false, volumeAccessColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize VolumeAccess struct: %s", err)
-	}
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeAccessOne := VolumeAccessRandom()
+	volumeAccessTwo := VolumeAccessRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -323,12 +326,12 @@ func testVolumeAccessesHooks(t *testing.T) {
 	var err error
 
 	empty := &VolumeAccess{}
-	o := &VolumeAccess{}
-
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, o, volumeAccessDBTypes, false); err != nil {
-		t.Errorf("Unable to randomize VolumeAccess object: %s", err)
-	}
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	o := VolumeAccessRandom()
 
 	AddVolumeAccessHook(boil.BeforeInsertHook, volumeAccessBeforeInsertHook)
 	if err = o.doBeforeInsertHooks(nil); err != nil {
@@ -414,12 +417,13 @@ func testVolumeAccessesHooks(t *testing.T) {
 func testVolumeAccessesInsert(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeAccess := &VolumeAccess{}
-	if err = randomize.Struct(seed, volumeAccess, volumeAccessDBTypes, true, volumeAccessColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize VolumeAccess struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeAccess := VolumeAccessRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -440,12 +444,13 @@ func testVolumeAccessesInsert(t *testing.T) {
 func testVolumeAccessesInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeAccess := &VolumeAccess{}
-	if err = randomize.Struct(seed, volumeAccess, volumeAccessDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize VolumeAccess struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeAccess := VolumeAccessRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -670,12 +675,13 @@ func testVolumeAccessToOneSetOpVolumeUsingVolume(t *testing.T) {
 func testVolumeAccessesReload(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeAccess := &VolumeAccess{}
-	if err = randomize.Struct(seed, volumeAccess, volumeAccessDBTypes, true, volumeAccessColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize VolumeAccess struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeAccess := VolumeAccessRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -691,12 +697,13 @@ func testVolumeAccessesReload(t *testing.T) {
 func testVolumeAccessesReloadAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeAccess := &VolumeAccess{}
-	if err = randomize.Struct(seed, volumeAccess, volumeAccessDBTypes, true, volumeAccessColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize VolumeAccess struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeAccess := VolumeAccessRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -713,12 +720,13 @@ func testVolumeAccessesReloadAll(t *testing.T) {
 func testVolumeAccessesSelect(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeAccess := &VolumeAccess{}
-	if err = randomize.Struct(seed, volumeAccess, volumeAccessDBTypes, true, volumeAccessColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize VolumeAccess struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeAccess := VolumeAccessRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -748,12 +756,13 @@ func testVolumeAccessesUpdate(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeAccess := &VolumeAccess{}
-	if err = randomize.Struct(seed, volumeAccess, volumeAccessDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize VolumeAccess struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeAccess := VolumeAccessRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -770,9 +779,7 @@ func testVolumeAccessesUpdate(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, volumeAccess, volumeAccessDBTypes, true, volumeAccessColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize VolumeAccess struct: %s", err)
-	}
+	volumeAccess = VolumeAccessRandom()
 
 	if err = volumeAccess.Update(tx); err != nil {
 		t.Error(err)
@@ -786,12 +793,13 @@ func testVolumeAccessesSliceUpdateAll(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeAccess := &VolumeAccess{}
-	if err = randomize.Struct(seed, volumeAccess, volumeAccessDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize VolumeAccess struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeAccess := VolumeAccessRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -808,9 +816,7 @@ func testVolumeAccessesSliceUpdateAll(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, volumeAccess, volumeAccessDBTypes, true, volumeAccessPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize VolumeAccess struct: %s", err)
-	}
+	volumeAccess = VolumeAccessRandom()
 
 	// Remove Primary keys and unique columns from what we plan to update
 	var fields []string
@@ -841,13 +847,14 @@ func testVolumeAccessesUpsert(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
 	// Attempt the INSERT side of an UPSERT
-	volumeAccess := VolumeAccess{}
-	if err = randomize.Struct(seed, &volumeAccess, volumeAccessDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize VolumeAccess struct: %s", err)
-	}
+
+	volumeAccess := VolumeAccessRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -864,9 +871,8 @@ func testVolumeAccessesUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
-	if err = randomize.Struct(seed, &volumeAccess, volumeAccessDBTypes, false, volumeAccessPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize VolumeAccess struct: %s", err)
-	}
+
+	volumeAccess = VolumeAccessRandom()
 
 	if err = volumeAccess.Upsert(tx, true, nil, nil); err != nil {
 		t.Errorf("Unable to upsert VolumeAccess: %s", err)

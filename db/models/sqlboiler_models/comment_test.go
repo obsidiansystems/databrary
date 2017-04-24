@@ -26,12 +26,13 @@ func testComments(t *testing.T) {
 func testCommentsDelete(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	comment := &Comment{}
-	if err = randomize.Struct(seed, comment, commentDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	comment := CommentRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -56,12 +57,13 @@ func testCommentsDelete(t *testing.T) {
 func testCommentsQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	comment := &Comment{}
-	if err = randomize.Struct(seed, comment, commentDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	comment := CommentRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -86,12 +88,13 @@ func testCommentsQueryDeleteAll(t *testing.T) {
 func testCommentsSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	comment := &Comment{}
-	if err = randomize.Struct(seed, comment, commentDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	comment := CommentRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -117,12 +120,13 @@ func testCommentsSliceDeleteAll(t *testing.T) {
 func testCommentsExists(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	comment := &Comment{}
-	if err = randomize.Struct(seed, comment, commentDBTypes, true, commentColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	comment := CommentRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -141,12 +145,13 @@ func testCommentsExists(t *testing.T) {
 func testCommentsFind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	comment := &Comment{}
-	if err = randomize.Struct(seed, comment, commentDBTypes, true, commentColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	comment := CommentRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -166,12 +171,13 @@ func testCommentsFind(t *testing.T) {
 func testCommentsBind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	comment := &Comment{}
-	if err = randomize.Struct(seed, comment, commentDBTypes, true, commentColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	comment := CommentRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -187,12 +193,13 @@ func testCommentsBind(t *testing.T) {
 func testCommentsOne(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	comment := &Comment{}
-	if err = randomize.Struct(seed, comment, commentDBTypes, true, commentColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	comment := CommentRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -210,16 +217,14 @@ func testCommentsOne(t *testing.T) {
 func testCommentsAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	commentOne := &Comment{}
-	commentTwo := &Comment{}
-	if err = randomize.Struct(seed, commentOne, commentDBTypes, false, commentColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
-	if err = randomize.Struct(seed, commentTwo, commentDBTypes, false, commentColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	commentOne := CommentRandom()
+	commentTwo := CommentRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -245,14 +250,12 @@ func testCommentsCount(t *testing.T) {
 
 	var err error
 	seed := randomize.NewSeed()
-	commentOne := &Comment{}
-	commentTwo := &Comment{}
-	if err = randomize.Struct(seed, commentOne, commentDBTypes, false, commentColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
-	if err = randomize.Struct(seed, commentTwo, commentDBTypes, false, commentColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	commentOne := CommentRandom()
+	commentTwo := CommentRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -323,12 +326,12 @@ func testCommentsHooks(t *testing.T) {
 	var err error
 
 	empty := &Comment{}
-	o := &Comment{}
-
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, o, commentDBTypes, false); err != nil {
-		t.Errorf("Unable to randomize Comment object: %s", err)
-	}
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	o := CommentRandom()
 
 	AddCommentHook(boil.BeforeInsertHook, commentBeforeInsertHook)
 	if err = o.doBeforeInsertHooks(nil); err != nil {
@@ -414,12 +417,13 @@ func testCommentsHooks(t *testing.T) {
 func testCommentsInsert(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	comment := &Comment{}
-	if err = randomize.Struct(seed, comment, commentDBTypes, true, commentColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	comment := CommentRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -440,12 +444,13 @@ func testCommentsInsert(t *testing.T) {
 func testCommentsInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	comment := &Comment{}
-	if err = randomize.Struct(seed, comment, commentDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	comment := CommentRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -1481,12 +1486,13 @@ func testCommentToOneSetOpAccountUsingWho(t *testing.T) {
 func testCommentsReload(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	comment := &Comment{}
-	if err = randomize.Struct(seed, comment, commentDBTypes, true, commentColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	comment := CommentRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -1502,12 +1508,13 @@ func testCommentsReload(t *testing.T) {
 func testCommentsReloadAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	comment := &Comment{}
-	if err = randomize.Struct(seed, comment, commentDBTypes, true, commentColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	comment := CommentRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -1524,12 +1531,13 @@ func testCommentsReloadAll(t *testing.T) {
 func testCommentsSelect(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	comment := &Comment{}
-	if err = randomize.Struct(seed, comment, commentDBTypes, true, commentColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	comment := CommentRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -1548,7 +1556,7 @@ func testCommentsSelect(t *testing.T) {
 }
 
 var (
-	commentDBTypes = map[string]string{`Container`: `integer`, `ID`: `integer`, `Parent`: `integer`, `Segment`: `segment`, `Text`: `text`, `Time`: `timestamp with time zone`, `Who`: `integer`}
+	commentDBTypes = map[string]string{`Container`: `integer`, `ID`: `integer`, `Parent`: `integer`, `Segment`: `USER-DEFINED`, `Text`: `text`, `Time`: `timestamp with time zone`, `Who`: `integer`}
 	_              = bytes.MinRead
 )
 
@@ -1559,12 +1567,13 @@ func testCommentsUpdate(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
-	comment := &Comment{}
-	if err = randomize.Struct(seed, comment, commentDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	comment := CommentRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -1581,9 +1590,7 @@ func testCommentsUpdate(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, comment, commentDBTypes, true, commentColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
+	comment = CommentRandom()
 
 	if err = comment.Update(tx); err != nil {
 		t.Error(err)
@@ -1597,12 +1604,13 @@ func testCommentsSliceUpdateAll(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
-	comment := &Comment{}
-	if err = randomize.Struct(seed, comment, commentDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	comment := CommentRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -1619,9 +1627,7 @@ func testCommentsSliceUpdateAll(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, comment, commentDBTypes, true, commentPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
+	comment = CommentRandom()
 
 	// Remove Primary keys and unique columns from what we plan to update
 	var fields []string
@@ -1652,13 +1658,14 @@ func testCommentsUpsert(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
 	// Attempt the INSERT side of an UPSERT
-	comment := Comment{}
-	if err = randomize.Struct(seed, &comment, commentDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
+
+	comment := CommentRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -1675,9 +1682,8 @@ func testCommentsUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
-	if err = randomize.Struct(seed, &comment, commentDBTypes, false, commentPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
+
+	comment = CommentRandom()
 
 	if err = comment.Upsert(tx, true, nil, nil); err != nil {
 		t.Errorf("Unable to upsert Comment: %s", err)

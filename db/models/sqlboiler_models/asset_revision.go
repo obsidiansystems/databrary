@@ -22,11 +22,11 @@ import (
 
 // AssetRevision is an object representing the database table.
 type AssetRevision struct {
-	Orig  int `boil:"orig" json:"orig" toml:"orig" yaml:"orig"`
-	Asset int `boil:"asset" json:"asset" toml:"asset" yaml:"asset"`
+	Orig  int `boil:"orig" json:"assetRevision_orig"`
+	Asset int `boil:"asset" json:"assetRevision_asset"`
 
-	R *assetRevisionR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L assetRevisionL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *assetRevisionR `boil:"-" json:"-"`
+	L assetRevisionL  `boil:"-" json:"-"`
 }
 
 // assetRevisionR is where relationships are stored.
@@ -871,9 +871,6 @@ func (o *AssetRevision) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(assetRevisionColumns, assetRevisionPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update asset_revision, could not build whitelist")
 		}
@@ -974,18 +971,18 @@ func (o AssetRevisionSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"asset_revision\" SET %s WHERE (\"asset\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(assetRevisionPrimaryKeyColumns), len(colNames)+1, len(assetRevisionPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in assetRevision slice")
 	}
@@ -1167,14 +1164,14 @@ func (o *AssetRevision) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), assetRevisionPrimaryKeyMapping)
-	sql := "DELETE FROM \"asset_revision\" WHERE \"asset\"=$1"
+	query := "DELETE FROM \"asset_revision\" WHERE \"asset\"=$1"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from asset_revision")
 	}
@@ -1255,18 +1252,18 @@ func (o AssetRevisionSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"asset_revision\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, assetRevisionPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(assetRevisionPrimaryKeyColumns), 1, len(assetRevisionPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from assetRevision slice")
 	}
@@ -1359,13 +1356,13 @@ func (o *AssetRevisionSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"asset_revision\".* FROM \"asset_revision\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, assetRevisionPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(assetRevisionPrimaryKeyColumns), 1, len(assetRevisionPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&assetRevisions)
 	if err != nil {
@@ -1381,14 +1378,14 @@ func (o *AssetRevisionSlice) ReloadAll(exec boil.Executor) error {
 func AssetRevisionExists(exec boil.Executor, asset int) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"asset_revision\" where \"asset\"=$1 limit 1)"
+	query := "select exists(select 1 from \"asset_revision\" where \"asset\"=$1 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, asset)
 	}
 
-	row := exec.QueryRow(sql, asset)
+	row := exec.QueryRow(query, asset)
 
 	err := row.Scan(&exists)
 	if err != nil {

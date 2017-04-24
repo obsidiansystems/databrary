@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/pkg/errors"
 	"github.com/vattle/sqlboiler/boil"
 	"github.com/vattle/sqlboiler/queries"
@@ -23,14 +24,14 @@ import (
 
 // VolumeAccess is an object representing the database table.
 type VolumeAccess struct {
-	Volume     int        `boil:"volume" json:"volume" toml:"volume" yaml:"volume"`
-	Party      int        `boil:"party" json:"party" toml:"party" yaml:"party"`
-	Individual string     `boil:"individual" json:"individual" toml:"individual" yaml:"individual"`
-	Children   string     `boil:"children" json:"children" toml:"children" yaml:"children"`
-	Sort       null.Int16 `boil:"sort" json:"sort,omitempty" toml:"sort" yaml:"sort,omitempty"`
+	Volume     int                     `boil:"volume" json:"volumeAccess_volume"`
+	Party      int                     `boil:"party" json:"volumeAccess_party"`
+	Individual custom_types.Permission `boil:"individual" json:"volumeAccess_individual"`
+	Children   custom_types.Permission `boil:"children" json:"volumeAccess_children"`
+	Sort       null.Int16              `boil:"sort" json:"volumeAccess_sort,omitempty"`
 
-	R *volumeAccessR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L volumeAccessL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *volumeAccessR `boil:"-" json:"-"`
+	L volumeAccessL  `boil:"-" json:"-"`
 }
 
 // volumeAccessR is where relationships are stored.
@@ -875,9 +876,6 @@ func (o *VolumeAccess) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(volumeAccessColumns, volumeAccessPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update volume_access, could not build whitelist")
 		}
@@ -978,18 +976,18 @@ func (o VolumeAccessSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"volume_access\" SET %s WHERE (\"volume\",\"party\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(volumeAccessPrimaryKeyColumns), len(colNames)+1, len(volumeAccessPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in volumeAccess slice")
 	}
@@ -1171,14 +1169,14 @@ func (o *VolumeAccess) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), volumeAccessPrimaryKeyMapping)
-	sql := "DELETE FROM \"volume_access\" WHERE \"volume\"=$1 AND \"party\"=$2"
+	query := "DELETE FROM \"volume_access\" WHERE \"volume\"=$1 AND \"party\"=$2"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from volume_access")
 	}
@@ -1259,18 +1257,18 @@ func (o VolumeAccessSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"volume_access\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, volumeAccessPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(volumeAccessPrimaryKeyColumns), 1, len(volumeAccessPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from volumeAccess slice")
 	}
@@ -1363,13 +1361,13 @@ func (o *VolumeAccessSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"volume_access\".* FROM \"volume_access\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, volumeAccessPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(volumeAccessPrimaryKeyColumns), 1, len(volumeAccessPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&volumeAccesses)
 	if err != nil {
@@ -1385,14 +1383,14 @@ func (o *VolumeAccessSlice) ReloadAll(exec boil.Executor) error {
 func VolumeAccessExists(exec boil.Executor, volume int, party int) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"volume_access\" where \"volume\"=$1 AND \"party\"=$2 limit 1)"
+	query := "select exists(select 1 from \"volume_access\" where \"volume\"=$1 AND \"party\"=$2 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, volume, party)
 	}
 
-	row := exec.QueryRow(sql, volume, party)
+	row := exec.QueryRow(query, volume, party)
 
 	err := row.Scan(&exists)
 	if err != nil {

@@ -26,8 +26,12 @@ func testVolumeCitations(t *testing.T) {
 func testVolumeCitationsDelete(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeCitation := &VolumeCitation{}
 	if err = randomize.Struct(seed, volumeCitation, volumeCitationDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize VolumeCitation struct: %s", err)
@@ -56,8 +60,12 @@ func testVolumeCitationsDelete(t *testing.T) {
 func testVolumeCitationsQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeCitation := &VolumeCitation{}
 	if err = randomize.Struct(seed, volumeCitation, volumeCitationDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize VolumeCitation struct: %s", err)
@@ -86,8 +94,12 @@ func testVolumeCitationsQueryDeleteAll(t *testing.T) {
 func testVolumeCitationsSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeCitation := &VolumeCitation{}
 	if err = randomize.Struct(seed, volumeCitation, volumeCitationDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize VolumeCitation struct: %s", err)
@@ -117,8 +129,12 @@ func testVolumeCitationsSliceDeleteAll(t *testing.T) {
 func testVolumeCitationsExists(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeCitation := &VolumeCitation{}
 	if err = randomize.Struct(seed, volumeCitation, volumeCitationDBTypes, true, volumeCitationColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize VolumeCitation struct: %s", err)
@@ -141,8 +157,12 @@ func testVolumeCitationsExists(t *testing.T) {
 func testVolumeCitationsFind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeCitation := &VolumeCitation{}
 	if err = randomize.Struct(seed, volumeCitation, volumeCitationDBTypes, true, volumeCitationColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize VolumeCitation struct: %s", err)
@@ -166,8 +186,12 @@ func testVolumeCitationsFind(t *testing.T) {
 func testVolumeCitationsBind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeCitation := &VolumeCitation{}
 	if err = randomize.Struct(seed, volumeCitation, volumeCitationDBTypes, true, volumeCitationColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize VolumeCitation struct: %s", err)
@@ -187,8 +211,12 @@ func testVolumeCitationsBind(t *testing.T) {
 func testVolumeCitationsOne(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeCitation := &VolumeCitation{}
 	if err = randomize.Struct(seed, volumeCitation, volumeCitationDBTypes, true, volumeCitationColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize VolumeCitation struct: %s", err)
@@ -210,8 +238,12 @@ func testVolumeCitationsOne(t *testing.T) {
 func testVolumeCitationsAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeCitationOne := &VolumeCitation{}
 	volumeCitationTwo := &VolumeCitation{}
 	if err = randomize.Struct(seed, volumeCitationOne, volumeCitationDBTypes, false, volumeCitationColumnsWithDefault...); err != nil {
@@ -245,6 +277,10 @@ func testVolumeCitationsCount(t *testing.T) {
 
 	var err error
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeCitationOne := &VolumeCitation{}
 	volumeCitationTwo := &VolumeCitation{}
 	if err = randomize.Struct(seed, volumeCitationOne, volumeCitationDBTypes, false, volumeCitationColumnsWithDefault...); err != nil {
@@ -323,9 +359,12 @@ func testVolumeCitationsHooks(t *testing.T) {
 	var err error
 
 	empty := &VolumeCitation{}
-	o := &VolumeCitation{}
-
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	o := &VolumeCitation{}
 	if err = randomize.Struct(seed, o, volumeCitationDBTypes, false); err != nil {
 		t.Errorf("Unable to randomize VolumeCitation object: %s", err)
 	}
@@ -414,8 +453,12 @@ func testVolumeCitationsHooks(t *testing.T) {
 func testVolumeCitationsInsert(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeCitation := &VolumeCitation{}
 	if err = randomize.Struct(seed, volumeCitation, volumeCitationDBTypes, true, volumeCitationColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize VolumeCitation struct: %s", err)
@@ -440,8 +483,12 @@ func testVolumeCitationsInsert(t *testing.T) {
 func testVolumeCitationsInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeCitation := &VolumeCitation{}
 	if err = randomize.Struct(seed, volumeCitation, volumeCitationDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize VolumeCitation struct: %s", err)
@@ -568,8 +615,12 @@ func testVolumeCitationToOneSetOpVolumeUsingVolume(t *testing.T) {
 func testVolumeCitationsReload(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeCitation := &VolumeCitation{}
 	if err = randomize.Struct(seed, volumeCitation, volumeCitationDBTypes, true, volumeCitationColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize VolumeCitation struct: %s", err)
@@ -589,8 +640,12 @@ func testVolumeCitationsReload(t *testing.T) {
 func testVolumeCitationsReloadAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeCitation := &VolumeCitation{}
 	if err = randomize.Struct(seed, volumeCitation, volumeCitationDBTypes, true, volumeCitationColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize VolumeCitation struct: %s", err)
@@ -611,8 +666,12 @@ func testVolumeCitationsReloadAll(t *testing.T) {
 func testVolumeCitationsSelect(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeCitation := &VolumeCitation{}
 	if err = randomize.Struct(seed, volumeCitation, volumeCitationDBTypes, true, volumeCitationColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize VolumeCitation struct: %s", err)
@@ -646,8 +705,12 @@ func testVolumeCitationsUpdate(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeCitation := &VolumeCitation{}
 	if err = randomize.Struct(seed, volumeCitation, volumeCitationDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize VolumeCitation struct: %s", err)
@@ -684,8 +747,12 @@ func testVolumeCitationsSliceUpdateAll(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeCitation := &VolumeCitation{}
 	if err = randomize.Struct(seed, volumeCitation, volumeCitationDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize VolumeCitation struct: %s", err)
@@ -739,9 +806,13 @@ func testVolumeCitationsUpsert(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
 	// Attempt the INSERT side of an UPSERT
+
 	volumeCitation := VolumeCitation{}
 	if err = randomize.Struct(seed, &volumeCitation, volumeCitationDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize VolumeCitation struct: %s", err)
@@ -762,6 +833,7 @@ func testVolumeCitationsUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
+
 	if err = randomize.Struct(seed, &volumeCitation, volumeCitationDBTypes, false, volumeCitationPrimaryKeyColumns...); err != nil {
 		t.Errorf("Unable to randomize VolumeCitation struct: %s", err)
 	}

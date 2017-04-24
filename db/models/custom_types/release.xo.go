@@ -87,3 +87,30 @@ func (r *Release) Scan(src interface{}) error {
 
 	return r.UnmarshalText(buf)
 }
+
+type NullRelease struct {
+	Release Release
+	Valid bool
+}
+
+func (nv *NullRelease) Scan(value interface{}) error {
+	if value == nil {
+		nv.Release, nv.Valid = Release(0), false
+		return nil
+	}
+	err := nv.Release.Scan(value)
+	if err != nil {
+		nv.Valid = false
+		return err
+	} else {
+		nv.Valid = true
+		return nil
+	}
+}
+
+func (nv NullRelease) Value() (driver.Value, error) {
+	if !nv.Valid {
+		return nil, nil
+	}
+	return nv.Release.Value()
+}

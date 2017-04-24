@@ -26,8 +26,12 @@ func testAvatars(t *testing.T) {
 func testAvatarsDelete(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	avatar := &Avatar{}
 	if err = randomize.Struct(seed, avatar, avatarDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Avatar struct: %s", err)
@@ -56,8 +60,12 @@ func testAvatarsDelete(t *testing.T) {
 func testAvatarsQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	avatar := &Avatar{}
 	if err = randomize.Struct(seed, avatar, avatarDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Avatar struct: %s", err)
@@ -86,8 +94,12 @@ func testAvatarsQueryDeleteAll(t *testing.T) {
 func testAvatarsSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	avatar := &Avatar{}
 	if err = randomize.Struct(seed, avatar, avatarDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Avatar struct: %s", err)
@@ -117,8 +129,12 @@ func testAvatarsSliceDeleteAll(t *testing.T) {
 func testAvatarsExists(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	avatar := &Avatar{}
 	if err = randomize.Struct(seed, avatar, avatarDBTypes, true, avatarColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Avatar struct: %s", err)
@@ -141,8 +157,12 @@ func testAvatarsExists(t *testing.T) {
 func testAvatarsFind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	avatar := &Avatar{}
 	if err = randomize.Struct(seed, avatar, avatarDBTypes, true, avatarColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Avatar struct: %s", err)
@@ -166,8 +186,12 @@ func testAvatarsFind(t *testing.T) {
 func testAvatarsBind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	avatar := &Avatar{}
 	if err = randomize.Struct(seed, avatar, avatarDBTypes, true, avatarColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Avatar struct: %s", err)
@@ -187,8 +211,12 @@ func testAvatarsBind(t *testing.T) {
 func testAvatarsOne(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	avatar := &Avatar{}
 	if err = randomize.Struct(seed, avatar, avatarDBTypes, true, avatarColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Avatar struct: %s", err)
@@ -210,8 +238,12 @@ func testAvatarsOne(t *testing.T) {
 func testAvatarsAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	avatarOne := &Avatar{}
 	avatarTwo := &Avatar{}
 	if err = randomize.Struct(seed, avatarOne, avatarDBTypes, false, avatarColumnsWithDefault...); err != nil {
@@ -245,6 +277,10 @@ func testAvatarsCount(t *testing.T) {
 
 	var err error
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	avatarOne := &Avatar{}
 	avatarTwo := &Avatar{}
 	if err = randomize.Struct(seed, avatarOne, avatarDBTypes, false, avatarColumnsWithDefault...); err != nil {
@@ -323,9 +359,12 @@ func testAvatarsHooks(t *testing.T) {
 	var err error
 
 	empty := &Avatar{}
-	o := &Avatar{}
-
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	o := &Avatar{}
 	if err = randomize.Struct(seed, o, avatarDBTypes, false); err != nil {
 		t.Errorf("Unable to randomize Avatar object: %s", err)
 	}
@@ -414,8 +453,12 @@ func testAvatarsHooks(t *testing.T) {
 func testAvatarsInsert(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	avatar := &Avatar{}
 	if err = randomize.Struct(seed, avatar, avatarDBTypes, true, avatarColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Avatar struct: %s", err)
@@ -440,8 +483,12 @@ func testAvatarsInsert(t *testing.T) {
 func testAvatarsInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	avatar := &Avatar{}
 	if err = randomize.Struct(seed, avatar, avatarDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Avatar struct: %s", err)
@@ -674,8 +721,12 @@ func testAvatarToOneSetOpPartyUsingParty(t *testing.T) {
 func testAvatarsReload(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	avatar := &Avatar{}
 	if err = randomize.Struct(seed, avatar, avatarDBTypes, true, avatarColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Avatar struct: %s", err)
@@ -695,8 +746,12 @@ func testAvatarsReload(t *testing.T) {
 func testAvatarsReloadAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	avatar := &Avatar{}
 	if err = randomize.Struct(seed, avatar, avatarDBTypes, true, avatarColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Avatar struct: %s", err)
@@ -717,8 +772,12 @@ func testAvatarsReloadAll(t *testing.T) {
 func testAvatarsSelect(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	avatar := &Avatar{}
 	if err = randomize.Struct(seed, avatar, avatarDBTypes, true, avatarColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Avatar struct: %s", err)
@@ -752,8 +811,12 @@ func testAvatarsUpdate(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	avatar := &Avatar{}
 	if err = randomize.Struct(seed, avatar, avatarDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Avatar struct: %s", err)
@@ -790,8 +853,12 @@ func testAvatarsSliceUpdateAll(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	avatar := &Avatar{}
 	if err = randomize.Struct(seed, avatar, avatarDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Avatar struct: %s", err)
@@ -845,9 +912,13 @@ func testAvatarsUpsert(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
 	// Attempt the INSERT side of an UPSERT
+
 	avatar := Avatar{}
 	if err = randomize.Struct(seed, &avatar, avatarDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Avatar struct: %s", err)
@@ -868,6 +939,7 @@ func testAvatarsUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
+
 	if err = randomize.Struct(seed, &avatar, avatarDBTypes, false, avatarPrimaryKeyColumns...); err != nil {
 		t.Errorf("Unable to randomize Avatar struct: %s", err)
 	}

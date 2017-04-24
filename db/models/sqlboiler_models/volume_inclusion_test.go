@@ -26,12 +26,13 @@ func testVolumeInclusions(t *testing.T) {
 func testVolumeInclusionsDelete(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeInclusion := &VolumeInclusion{}
-	if err = randomize.Struct(seed, volumeInclusion, volumeInclusionDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize VolumeInclusion struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeInclusion := VolumeInclusionRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -56,12 +57,13 @@ func testVolumeInclusionsDelete(t *testing.T) {
 func testVolumeInclusionsQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeInclusion := &VolumeInclusion{}
-	if err = randomize.Struct(seed, volumeInclusion, volumeInclusionDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize VolumeInclusion struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeInclusion := VolumeInclusionRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -86,12 +88,13 @@ func testVolumeInclusionsQueryDeleteAll(t *testing.T) {
 func testVolumeInclusionsSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeInclusion := &VolumeInclusion{}
-	if err = randomize.Struct(seed, volumeInclusion, volumeInclusionDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize VolumeInclusion struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeInclusion := VolumeInclusionRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -117,12 +120,13 @@ func testVolumeInclusionsSliceDeleteAll(t *testing.T) {
 func testVolumeInclusionsExists(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeInclusion := &VolumeInclusion{}
-	if err = randomize.Struct(seed, volumeInclusion, volumeInclusionDBTypes, true, volumeInclusionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize VolumeInclusion struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeInclusion := VolumeInclusionRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -141,12 +145,13 @@ func testVolumeInclusionsExists(t *testing.T) {
 func testVolumeInclusionsFind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeInclusion := &VolumeInclusion{}
-	if err = randomize.Struct(seed, volumeInclusion, volumeInclusionDBTypes, true, volumeInclusionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize VolumeInclusion struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeInclusion := VolumeInclusionRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -166,12 +171,13 @@ func testVolumeInclusionsFind(t *testing.T) {
 func testVolumeInclusionsBind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeInclusion := &VolumeInclusion{}
-	if err = randomize.Struct(seed, volumeInclusion, volumeInclusionDBTypes, true, volumeInclusionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize VolumeInclusion struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeInclusion := VolumeInclusionRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -187,12 +193,13 @@ func testVolumeInclusionsBind(t *testing.T) {
 func testVolumeInclusionsOne(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeInclusion := &VolumeInclusion{}
-	if err = randomize.Struct(seed, volumeInclusion, volumeInclusionDBTypes, true, volumeInclusionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize VolumeInclusion struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeInclusion := VolumeInclusionRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -210,16 +217,14 @@ func testVolumeInclusionsOne(t *testing.T) {
 func testVolumeInclusionsAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeInclusionOne := &VolumeInclusion{}
-	volumeInclusionTwo := &VolumeInclusion{}
-	if err = randomize.Struct(seed, volumeInclusionOne, volumeInclusionDBTypes, false, volumeInclusionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize VolumeInclusion struct: %s", err)
-	}
-	if err = randomize.Struct(seed, volumeInclusionTwo, volumeInclusionDBTypes, false, volumeInclusionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize VolumeInclusion struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeInclusionOne := VolumeInclusionRandom()
+	volumeInclusionTwo := VolumeInclusionRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -245,14 +250,12 @@ func testVolumeInclusionsCount(t *testing.T) {
 
 	var err error
 	seed := randomize.NewSeed()
-	volumeInclusionOne := &VolumeInclusion{}
-	volumeInclusionTwo := &VolumeInclusion{}
-	if err = randomize.Struct(seed, volumeInclusionOne, volumeInclusionDBTypes, false, volumeInclusionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize VolumeInclusion struct: %s", err)
-	}
-	if err = randomize.Struct(seed, volumeInclusionTwo, volumeInclusionDBTypes, false, volumeInclusionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize VolumeInclusion struct: %s", err)
-	}
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeInclusionOne := VolumeInclusionRandom()
+	volumeInclusionTwo := VolumeInclusionRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -323,12 +326,12 @@ func testVolumeInclusionsHooks(t *testing.T) {
 	var err error
 
 	empty := &VolumeInclusion{}
-	o := &VolumeInclusion{}
-
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, o, volumeInclusionDBTypes, false); err != nil {
-		t.Errorf("Unable to randomize VolumeInclusion object: %s", err)
-	}
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	o := VolumeInclusionRandom()
 
 	AddVolumeInclusionHook(boil.BeforeInsertHook, volumeInclusionBeforeInsertHook)
 	if err = o.doBeforeInsertHooks(nil); err != nil {
@@ -414,12 +417,13 @@ func testVolumeInclusionsHooks(t *testing.T) {
 func testVolumeInclusionsInsert(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeInclusion := &VolumeInclusion{}
-	if err = randomize.Struct(seed, volumeInclusion, volumeInclusionDBTypes, true, volumeInclusionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize VolumeInclusion struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeInclusion := VolumeInclusionRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -440,12 +444,13 @@ func testVolumeInclusionsInsert(t *testing.T) {
 func testVolumeInclusionsInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeInclusion := &VolumeInclusion{}
-	if err = randomize.Struct(seed, volumeInclusion, volumeInclusionDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize VolumeInclusion struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeInclusion := VolumeInclusionRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -670,12 +675,13 @@ func testVolumeInclusionToOneSetOpVolumeUsingVolume(t *testing.T) {
 func testVolumeInclusionsReload(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeInclusion := &VolumeInclusion{}
-	if err = randomize.Struct(seed, volumeInclusion, volumeInclusionDBTypes, true, volumeInclusionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize VolumeInclusion struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeInclusion := VolumeInclusionRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -691,12 +697,13 @@ func testVolumeInclusionsReload(t *testing.T) {
 func testVolumeInclusionsReloadAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeInclusion := &VolumeInclusion{}
-	if err = randomize.Struct(seed, volumeInclusion, volumeInclusionDBTypes, true, volumeInclusionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize VolumeInclusion struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeInclusion := VolumeInclusionRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -713,12 +720,13 @@ func testVolumeInclusionsReloadAll(t *testing.T) {
 func testVolumeInclusionsSelect(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeInclusion := &VolumeInclusion{}
-	if err = randomize.Struct(seed, volumeInclusion, volumeInclusionDBTypes, true, volumeInclusionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize VolumeInclusion struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeInclusion := VolumeInclusionRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -737,7 +745,7 @@ func testVolumeInclusionsSelect(t *testing.T) {
 }
 
 var (
-	volumeInclusionDBTypes = map[string]string{`Container`: `integer`, `Segment`: `segment`, `Volume`: `integer`}
+	volumeInclusionDBTypes = map[string]string{`Container`: `integer`, `Segment`: `USER-DEFINED`, `Volume`: `integer`}
 	_                      = bytes.MinRead
 )
 
@@ -748,12 +756,13 @@ func testVolumeInclusionsUpdate(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeInclusion := &VolumeInclusion{}
-	if err = randomize.Struct(seed, volumeInclusion, volumeInclusionDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize VolumeInclusion struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeInclusion := VolumeInclusionRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -770,9 +779,7 @@ func testVolumeInclusionsUpdate(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, volumeInclusion, volumeInclusionDBTypes, true, volumeInclusionColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize VolumeInclusion struct: %s", err)
-	}
+	volumeInclusion = VolumeInclusionRandom()
 
 	if err = volumeInclusion.Update(tx); err != nil {
 		t.Error(err)
@@ -786,12 +793,13 @@ func testVolumeInclusionsSliceUpdateAll(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
-	volumeInclusion := &VolumeInclusion{}
-	if err = randomize.Struct(seed, volumeInclusion, volumeInclusionDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize VolumeInclusion struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	volumeInclusion := VolumeInclusionRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -808,9 +816,7 @@ func testVolumeInclusionsSliceUpdateAll(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, volumeInclusion, volumeInclusionDBTypes, true, volumeInclusionPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize VolumeInclusion struct: %s", err)
-	}
+	volumeInclusion = VolumeInclusionRandom()
 
 	// Remove Primary keys and unique columns from what we plan to update
 	var fields []string
@@ -841,13 +847,14 @@ func testVolumeInclusionsUpsert(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
 	// Attempt the INSERT side of an UPSERT
-	volumeInclusion := VolumeInclusion{}
-	if err = randomize.Struct(seed, &volumeInclusion, volumeInclusionDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize VolumeInclusion struct: %s", err)
-	}
+
+	volumeInclusion := VolumeInclusionRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -864,9 +871,8 @@ func testVolumeInclusionsUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
-	if err = randomize.Struct(seed, &volumeInclusion, volumeInclusionDBTypes, false, volumeInclusionPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize VolumeInclusion struct: %s", err)
-	}
+
+	volumeInclusion = VolumeInclusionRandom()
 
 	if err = volumeInclusion.Upsert(tx, true, nil, nil); err != nil {
 		t.Errorf("Unable to upsert VolumeInclusion: %s", err)

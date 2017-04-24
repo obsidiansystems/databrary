@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/pkg/errors"
 	"github.com/vattle/sqlboiler/boil"
 	"github.com/vattle/sqlboiler/queries"
@@ -22,12 +23,12 @@ import (
 
 // SlotRecord is an object representing the database table.
 type SlotRecord struct {
-	Container int    `boil:"container" json:"container" toml:"container" yaml:"container"`
-	Segment   string `boil:"segment" json:"segment" toml:"segment" yaml:"segment"`
-	Record    int    `boil:"record" json:"record" toml:"record" yaml:"record"`
+	Container int                  `boil:"container" json:"slotRecord_container"`
+	Segment   custom_types.Segment `boil:"segment" json:"slotRecord_segment"`
+	Record    int                  `boil:"record" json:"slotRecord_record"`
 
-	R *slotRecordR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L slotRecordL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *slotRecordR `boil:"-" json:"-"`
+	L slotRecordL  `boil:"-" json:"-"`
 }
 
 // slotRecordR is where relationships are stored.
@@ -680,12 +681,12 @@ func SlotRecords(exec boil.Executor, mods ...qm.QueryMod) slotRecordQuery {
 }
 
 // FindSlotRecordG retrieves a single record by ID.
-func FindSlotRecordG(container int, segment string, record int, selectCols ...string) (*SlotRecord, error) {
+func FindSlotRecordG(container int, segment custom_types.Segment, record int, selectCols ...string) (*SlotRecord, error) {
 	return FindSlotRecord(boil.GetDB(), container, segment, record, selectCols...)
 }
 
 // FindSlotRecordGP retrieves a single record by ID, and panics on error.
-func FindSlotRecordGP(container int, segment string, record int, selectCols ...string) *SlotRecord {
+func FindSlotRecordGP(container int, segment custom_types.Segment, record int, selectCols ...string) *SlotRecord {
 	retobj, err := FindSlotRecord(boil.GetDB(), container, segment, record, selectCols...)
 	if err != nil {
 		panic(boil.WrapErr(err))
@@ -696,7 +697,7 @@ func FindSlotRecordGP(container int, segment string, record int, selectCols ...s
 
 // FindSlotRecord retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindSlotRecord(exec boil.Executor, container int, segment string, record int, selectCols ...string) (*SlotRecord, error) {
+func FindSlotRecord(exec boil.Executor, container int, segment custom_types.Segment, record int, selectCols ...string) (*SlotRecord, error) {
 	slotRecordObj := &SlotRecord{}
 
 	sel := "*"
@@ -721,7 +722,7 @@ func FindSlotRecord(exec boil.Executor, container int, segment string, record in
 }
 
 // FindSlotRecordP retrieves a single record by ID with an executor, and panics on error.
-func FindSlotRecordP(exec boil.Executor, container int, segment string, record int, selectCols ...string) *SlotRecord {
+func FindSlotRecordP(exec boil.Executor, container int, segment custom_types.Segment, record int, selectCols ...string) *SlotRecord {
 	retobj, err := FindSlotRecord(exec, container, segment, record, selectCols...)
 	if err != nil {
 		panic(boil.WrapErr(err))
@@ -872,9 +873,6 @@ func (o *SlotRecord) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(slotRecordColumns, slotRecordPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update slot_record, could not build whitelist")
 		}
@@ -975,18 +973,18 @@ func (o SlotRecordSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"slot_record\" SET %s WHERE (\"container\",\"segment\",\"record\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(slotRecordPrimaryKeyColumns), len(colNames)+1, len(slotRecordPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in slotRecord slice")
 	}
@@ -1168,14 +1166,14 @@ func (o *SlotRecord) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), slotRecordPrimaryKeyMapping)
-	sql := "DELETE FROM \"slot_record\" WHERE \"container\"=$1 AND \"segment\"=$2 AND \"record\"=$3"
+	query := "DELETE FROM \"slot_record\" WHERE \"container\"=$1 AND \"segment\"=$2 AND \"record\"=$3"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from slot_record")
 	}
@@ -1256,18 +1254,18 @@ func (o SlotRecordSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"slot_record\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, slotRecordPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(slotRecordPrimaryKeyColumns), 1, len(slotRecordPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from slotRecord slice")
 	}
@@ -1360,13 +1358,13 @@ func (o *SlotRecordSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"slot_record\".* FROM \"slot_record\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, slotRecordPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(slotRecordPrimaryKeyColumns), 1, len(slotRecordPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&slotRecords)
 	if err != nil {
@@ -1379,17 +1377,17 @@ func (o *SlotRecordSlice) ReloadAll(exec boil.Executor) error {
 }
 
 // SlotRecordExists checks if the SlotRecord row exists.
-func SlotRecordExists(exec boil.Executor, container int, segment string, record int) (bool, error) {
+func SlotRecordExists(exec boil.Executor, container int, segment custom_types.Segment, record int) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"slot_record\" where \"container\"=$1 AND \"segment\"=$2 AND \"record\"=$3 limit 1)"
+	query := "select exists(select 1 from \"slot_record\" where \"container\"=$1 AND \"segment\"=$2 AND \"record\"=$3 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, container, segment, record)
 	}
 
-	row := exec.QueryRow(sql, container, segment, record)
+	row := exec.QueryRow(query, container, segment, record)
 
 	err := row.Scan(&exists)
 	if err != nil {
@@ -1400,12 +1398,12 @@ func SlotRecordExists(exec boil.Executor, container int, segment string, record 
 }
 
 // SlotRecordExistsG checks if the SlotRecord row exists.
-func SlotRecordExistsG(container int, segment string, record int) (bool, error) {
+func SlotRecordExistsG(container int, segment custom_types.Segment, record int) (bool, error) {
 	return SlotRecordExists(boil.GetDB(), container, segment, record)
 }
 
 // SlotRecordExistsGP checks if the SlotRecord row exists. Panics on error.
-func SlotRecordExistsGP(container int, segment string, record int) bool {
+func SlotRecordExistsGP(container int, segment custom_types.Segment, record int) bool {
 	e, err := SlotRecordExists(boil.GetDB(), container, segment, record)
 	if err != nil {
 		panic(boil.WrapErr(err))
@@ -1415,7 +1413,7 @@ func SlotRecordExistsGP(container int, segment string, record int) bool {
 }
 
 // SlotRecordExistsP checks if the SlotRecord row exists. Panics on error.
-func SlotRecordExistsP(exec boil.Executor, container int, segment string, record int) bool {
+func SlotRecordExistsP(exec boil.Executor, container int, segment custom_types.Segment, record int) bool {
 	e, err := SlotRecordExists(exec, container, segment, record)
 	if err != nil {
 		panic(boil.WrapErr(err))

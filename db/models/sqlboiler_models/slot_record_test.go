@@ -26,12 +26,13 @@ func testSlotRecords(t *testing.T) {
 func testSlotRecordsDelete(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	slotRecord := &SlotRecord{}
-	if err = randomize.Struct(seed, slotRecord, slotRecordDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	slotRecord := SlotRecordRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -56,12 +57,13 @@ func testSlotRecordsDelete(t *testing.T) {
 func testSlotRecordsQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	slotRecord := &SlotRecord{}
-	if err = randomize.Struct(seed, slotRecord, slotRecordDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	slotRecord := SlotRecordRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -86,12 +88,13 @@ func testSlotRecordsQueryDeleteAll(t *testing.T) {
 func testSlotRecordsSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	slotRecord := &SlotRecord{}
-	if err = randomize.Struct(seed, slotRecord, slotRecordDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	slotRecord := SlotRecordRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -117,12 +120,13 @@ func testSlotRecordsSliceDeleteAll(t *testing.T) {
 func testSlotRecordsExists(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	slotRecord := &SlotRecord{}
-	if err = randomize.Struct(seed, slotRecord, slotRecordDBTypes, true, slotRecordColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	slotRecord := SlotRecordRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -141,12 +145,13 @@ func testSlotRecordsExists(t *testing.T) {
 func testSlotRecordsFind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	slotRecord := &SlotRecord{}
-	if err = randomize.Struct(seed, slotRecord, slotRecordDBTypes, true, slotRecordColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	slotRecord := SlotRecordRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -166,12 +171,13 @@ func testSlotRecordsFind(t *testing.T) {
 func testSlotRecordsBind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	slotRecord := &SlotRecord{}
-	if err = randomize.Struct(seed, slotRecord, slotRecordDBTypes, true, slotRecordColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	slotRecord := SlotRecordRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -187,12 +193,13 @@ func testSlotRecordsBind(t *testing.T) {
 func testSlotRecordsOne(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	slotRecord := &SlotRecord{}
-	if err = randomize.Struct(seed, slotRecord, slotRecordDBTypes, true, slotRecordColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	slotRecord := SlotRecordRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -210,16 +217,14 @@ func testSlotRecordsOne(t *testing.T) {
 func testSlotRecordsAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	slotRecordOne := &SlotRecord{}
-	slotRecordTwo := &SlotRecord{}
-	if err = randomize.Struct(seed, slotRecordOne, slotRecordDBTypes, false, slotRecordColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
-	}
-	if err = randomize.Struct(seed, slotRecordTwo, slotRecordDBTypes, false, slotRecordColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	slotRecordOne := SlotRecordRandom()
+	slotRecordTwo := SlotRecordRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -245,14 +250,12 @@ func testSlotRecordsCount(t *testing.T) {
 
 	var err error
 	seed := randomize.NewSeed()
-	slotRecordOne := &SlotRecord{}
-	slotRecordTwo := &SlotRecord{}
-	if err = randomize.Struct(seed, slotRecordOne, slotRecordDBTypes, false, slotRecordColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
-	}
-	if err = randomize.Struct(seed, slotRecordTwo, slotRecordDBTypes, false, slotRecordColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
-	}
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	slotRecordOne := SlotRecordRandom()
+	slotRecordTwo := SlotRecordRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -323,12 +326,12 @@ func testSlotRecordsHooks(t *testing.T) {
 	var err error
 
 	empty := &SlotRecord{}
-	o := &SlotRecord{}
-
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, o, slotRecordDBTypes, false); err != nil {
-		t.Errorf("Unable to randomize SlotRecord object: %s", err)
-	}
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	o := SlotRecordRandom()
 
 	AddSlotRecordHook(boil.BeforeInsertHook, slotRecordBeforeInsertHook)
 	if err = o.doBeforeInsertHooks(nil); err != nil {
@@ -414,12 +417,13 @@ func testSlotRecordsHooks(t *testing.T) {
 func testSlotRecordsInsert(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	slotRecord := &SlotRecord{}
-	if err = randomize.Struct(seed, slotRecord, slotRecordDBTypes, true, slotRecordColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	slotRecord := SlotRecordRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -440,12 +444,13 @@ func testSlotRecordsInsert(t *testing.T) {
 func testSlotRecordsInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	slotRecord := &SlotRecord{}
-	if err = randomize.Struct(seed, slotRecord, slotRecordDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	slotRecord := SlotRecordRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -670,12 +675,13 @@ func testSlotRecordToOneSetOpRecordUsingRecord(t *testing.T) {
 func testSlotRecordsReload(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	slotRecord := &SlotRecord{}
-	if err = randomize.Struct(seed, slotRecord, slotRecordDBTypes, true, slotRecordColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	slotRecord := SlotRecordRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -691,12 +697,13 @@ func testSlotRecordsReload(t *testing.T) {
 func testSlotRecordsReloadAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	slotRecord := &SlotRecord{}
-	if err = randomize.Struct(seed, slotRecord, slotRecordDBTypes, true, slotRecordColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	slotRecord := SlotRecordRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -713,12 +720,13 @@ func testSlotRecordsReloadAll(t *testing.T) {
 func testSlotRecordsSelect(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	slotRecord := &SlotRecord{}
-	if err = randomize.Struct(seed, slotRecord, slotRecordDBTypes, true, slotRecordColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	slotRecord := SlotRecordRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -737,7 +745,7 @@ func testSlotRecordsSelect(t *testing.T) {
 }
 
 var (
-	slotRecordDBTypes = map[string]string{`Container`: `integer`, `Record`: `integer`, `Segment`: `segment`}
+	slotRecordDBTypes = map[string]string{`Container`: `integer`, `Record`: `integer`, `Segment`: `USER-DEFINED`}
 	_                 = bytes.MinRead
 )
 
@@ -748,12 +756,13 @@ func testSlotRecordsUpdate(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
-	slotRecord := &SlotRecord{}
-	if err = randomize.Struct(seed, slotRecord, slotRecordDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	slotRecord := SlotRecordRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -770,9 +779,7 @@ func testSlotRecordsUpdate(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, slotRecord, slotRecordDBTypes, true, slotRecordColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
-	}
+	slotRecord = SlotRecordRandom()
 
 	if err = slotRecord.Update(tx); err != nil {
 		t.Error(err)
@@ -786,12 +793,13 @@ func testSlotRecordsSliceUpdateAll(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
-	slotRecord := &SlotRecord{}
-	if err = randomize.Struct(seed, slotRecord, slotRecordDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	slotRecord := SlotRecordRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -808,9 +816,7 @@ func testSlotRecordsSliceUpdateAll(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, slotRecord, slotRecordDBTypes, true, slotRecordPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
-	}
+	slotRecord = SlotRecordRandom()
 
 	// Remove Primary keys and unique columns from what we plan to update
 	var fields []string
@@ -841,13 +847,14 @@ func testSlotRecordsUpsert(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
 	// Attempt the INSERT side of an UPSERT
-	slotRecord := SlotRecord{}
-	if err = randomize.Struct(seed, &slotRecord, slotRecordDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
-	}
+
+	slotRecord := SlotRecordRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -864,9 +871,8 @@ func testSlotRecordsUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
-	if err = randomize.Struct(seed, &slotRecord, slotRecordDBTypes, false, slotRecordPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
-	}
+
+	slotRecord = SlotRecordRandom()
 
 	if err = slotRecord.Upsert(tx, true, nil, nil); err != nil {
 		t.Errorf("Unable to upsert SlotRecord: %s", err)

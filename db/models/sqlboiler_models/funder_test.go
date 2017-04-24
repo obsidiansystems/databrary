@@ -26,8 +26,12 @@ func testFunders(t *testing.T) {
 func testFundersDelete(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	funder := &Funder{}
 	if err = randomize.Struct(seed, funder, funderDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Funder struct: %s", err)
@@ -56,8 +60,12 @@ func testFundersDelete(t *testing.T) {
 func testFundersQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	funder := &Funder{}
 	if err = randomize.Struct(seed, funder, funderDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Funder struct: %s", err)
@@ -86,8 +94,12 @@ func testFundersQueryDeleteAll(t *testing.T) {
 func testFundersSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	funder := &Funder{}
 	if err = randomize.Struct(seed, funder, funderDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Funder struct: %s", err)
@@ -117,8 +129,12 @@ func testFundersSliceDeleteAll(t *testing.T) {
 func testFundersExists(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	funder := &Funder{}
 	if err = randomize.Struct(seed, funder, funderDBTypes, true, funderColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Funder struct: %s", err)
@@ -141,8 +157,12 @@ func testFundersExists(t *testing.T) {
 func testFundersFind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	funder := &Funder{}
 	if err = randomize.Struct(seed, funder, funderDBTypes, true, funderColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Funder struct: %s", err)
@@ -166,8 +186,12 @@ func testFundersFind(t *testing.T) {
 func testFundersBind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	funder := &Funder{}
 	if err = randomize.Struct(seed, funder, funderDBTypes, true, funderColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Funder struct: %s", err)
@@ -187,8 +211,12 @@ func testFundersBind(t *testing.T) {
 func testFundersOne(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	funder := &Funder{}
 	if err = randomize.Struct(seed, funder, funderDBTypes, true, funderColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Funder struct: %s", err)
@@ -210,8 +238,12 @@ func testFundersOne(t *testing.T) {
 func testFundersAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	funderOne := &Funder{}
 	funderTwo := &Funder{}
 	if err = randomize.Struct(seed, funderOne, funderDBTypes, false, funderColumnsWithDefault...); err != nil {
@@ -245,6 +277,10 @@ func testFundersCount(t *testing.T) {
 
 	var err error
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	funderOne := &Funder{}
 	funderTwo := &Funder{}
 	if err = randomize.Struct(seed, funderOne, funderDBTypes, false, funderColumnsWithDefault...); err != nil {
@@ -323,9 +359,12 @@ func testFundersHooks(t *testing.T) {
 	var err error
 
 	empty := &Funder{}
-	o := &Funder{}
-
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	o := &Funder{}
 	if err = randomize.Struct(seed, o, funderDBTypes, false); err != nil {
 		t.Errorf("Unable to randomize Funder object: %s", err)
 	}
@@ -414,8 +453,12 @@ func testFundersHooks(t *testing.T) {
 func testFundersInsert(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	funder := &Funder{}
 	if err = randomize.Struct(seed, funder, funderDBTypes, true, funderColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Funder struct: %s", err)
@@ -440,8 +483,12 @@ func testFundersInsert(t *testing.T) {
 func testFundersInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	funder := &Funder{}
 	if err = randomize.Struct(seed, funder, funderDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Funder struct: %s", err)
@@ -613,8 +660,12 @@ func testFunderToManyAddOpVolumeFundings(t *testing.T) {
 func testFundersReload(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	funder := &Funder{}
 	if err = randomize.Struct(seed, funder, funderDBTypes, true, funderColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Funder struct: %s", err)
@@ -634,8 +685,12 @@ func testFundersReload(t *testing.T) {
 func testFundersReloadAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	funder := &Funder{}
 	if err = randomize.Struct(seed, funder, funderDBTypes, true, funderColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Funder struct: %s", err)
@@ -656,8 +711,12 @@ func testFundersReloadAll(t *testing.T) {
 func testFundersSelect(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	funder := &Funder{}
 	if err = randomize.Struct(seed, funder, funderDBTypes, true, funderColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Funder struct: %s", err)
@@ -691,8 +750,12 @@ func testFundersUpdate(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	funder := &Funder{}
 	if err = randomize.Struct(seed, funder, funderDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Funder struct: %s", err)
@@ -729,8 +792,12 @@ func testFundersSliceUpdateAll(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	funder := &Funder{}
 	if err = randomize.Struct(seed, funder, funderDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Funder struct: %s", err)
@@ -784,9 +851,13 @@ func testFundersUpsert(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
 	// Attempt the INSERT side of an UPSERT
+
 	funder := Funder{}
 	if err = randomize.Struct(seed, &funder, funderDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Funder struct: %s", err)
@@ -807,6 +878,7 @@ func testFundersUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
+
 	if err = randomize.Struct(seed, &funder, funderDBTypes, false, funderPrimaryKeyColumns...); err != nil {
 		t.Errorf("Unable to randomize Funder struct: %s", err)
 	}

@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/pkg/errors"
 	"github.com/vattle/sqlboiler/boil"
 	"github.com/vattle/sqlboiler/queries"
@@ -22,12 +23,12 @@ import (
 
 // SlotRelease is an object representing the database table.
 type SlotRelease struct {
-	Container int    `boil:"container" json:"container" toml:"container" yaml:"container"`
-	Segment   string `boil:"segment" json:"segment" toml:"segment" yaml:"segment"`
-	Release   string `boil:"release" json:"release" toml:"release" yaml:"release"`
+	Container int                  `boil:"container" json:"slotRelease_container"`
+	Segment   custom_types.Segment `boil:"segment" json:"slotRelease_segment"`
+	Release   custom_types.Release `boil:"release" json:"slotRelease_release"`
 
-	R *slotReleaseR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L slotReleaseL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *slotReleaseR `boil:"-" json:"-"`
+	L slotReleaseL  `boil:"-" json:"-"`
 }
 
 // slotReleaseR is where relationships are stored.
@@ -506,12 +507,12 @@ func SlotReleases(exec boil.Executor, mods ...qm.QueryMod) slotReleaseQuery {
 }
 
 // FindSlotReleaseG retrieves a single record by ID.
-func FindSlotReleaseG(container int, segment string, selectCols ...string) (*SlotRelease, error) {
+func FindSlotReleaseG(container int, segment custom_types.Segment, selectCols ...string) (*SlotRelease, error) {
 	return FindSlotRelease(boil.GetDB(), container, segment, selectCols...)
 }
 
 // FindSlotReleaseGP retrieves a single record by ID, and panics on error.
-func FindSlotReleaseGP(container int, segment string, selectCols ...string) *SlotRelease {
+func FindSlotReleaseGP(container int, segment custom_types.Segment, selectCols ...string) *SlotRelease {
 	retobj, err := FindSlotRelease(boil.GetDB(), container, segment, selectCols...)
 	if err != nil {
 		panic(boil.WrapErr(err))
@@ -522,7 +523,7 @@ func FindSlotReleaseGP(container int, segment string, selectCols ...string) *Slo
 
 // FindSlotRelease retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindSlotRelease(exec boil.Executor, container int, segment string, selectCols ...string) (*SlotRelease, error) {
+func FindSlotRelease(exec boil.Executor, container int, segment custom_types.Segment, selectCols ...string) (*SlotRelease, error) {
 	slotReleaseObj := &SlotRelease{}
 
 	sel := "*"
@@ -547,7 +548,7 @@ func FindSlotRelease(exec boil.Executor, container int, segment string, selectCo
 }
 
 // FindSlotReleaseP retrieves a single record by ID with an executor, and panics on error.
-func FindSlotReleaseP(exec boil.Executor, container int, segment string, selectCols ...string) *SlotRelease {
+func FindSlotReleaseP(exec boil.Executor, container int, segment custom_types.Segment, selectCols ...string) *SlotRelease {
 	retobj, err := FindSlotRelease(exec, container, segment, selectCols...)
 	if err != nil {
 		panic(boil.WrapErr(err))
@@ -698,9 +699,6 @@ func (o *SlotRelease) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(slotReleaseColumns, slotReleasePrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update slot_release, could not build whitelist")
 		}
@@ -801,18 +799,18 @@ func (o SlotReleaseSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"slot_release\" SET %s WHERE (\"container\",\"segment\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(slotReleasePrimaryKeyColumns), len(colNames)+1, len(slotReleasePrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in slotRelease slice")
 	}
@@ -994,14 +992,14 @@ func (o *SlotRelease) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), slotReleasePrimaryKeyMapping)
-	sql := "DELETE FROM \"slot_release\" WHERE \"container\"=$1 AND \"segment\"=$2"
+	query := "DELETE FROM \"slot_release\" WHERE \"container\"=$1 AND \"segment\"=$2"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from slot_release")
 	}
@@ -1082,18 +1080,18 @@ func (o SlotReleaseSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"slot_release\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, slotReleasePrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(slotReleasePrimaryKeyColumns), 1, len(slotReleasePrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from slotRelease slice")
 	}
@@ -1186,13 +1184,13 @@ func (o *SlotReleaseSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"slot_release\".* FROM \"slot_release\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, slotReleasePrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(slotReleasePrimaryKeyColumns), 1, len(slotReleasePrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&slotReleases)
 	if err != nil {
@@ -1205,17 +1203,17 @@ func (o *SlotReleaseSlice) ReloadAll(exec boil.Executor) error {
 }
 
 // SlotReleaseExists checks if the SlotRelease row exists.
-func SlotReleaseExists(exec boil.Executor, container int, segment string) (bool, error) {
+func SlotReleaseExists(exec boil.Executor, container int, segment custom_types.Segment) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"slot_release\" where \"container\"=$1 AND \"segment\"=$2 limit 1)"
+	query := "select exists(select 1 from \"slot_release\" where \"container\"=$1 AND \"segment\"=$2 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, container, segment)
 	}
 
-	row := exec.QueryRow(sql, container, segment)
+	row := exec.QueryRow(query, container, segment)
 
 	err := row.Scan(&exists)
 	if err != nil {
@@ -1226,12 +1224,12 @@ func SlotReleaseExists(exec boil.Executor, container int, segment string) (bool,
 }
 
 // SlotReleaseExistsG checks if the SlotRelease row exists.
-func SlotReleaseExistsG(container int, segment string) (bool, error) {
+func SlotReleaseExistsG(container int, segment custom_types.Segment) (bool, error) {
 	return SlotReleaseExists(boil.GetDB(), container, segment)
 }
 
 // SlotReleaseExistsGP checks if the SlotRelease row exists. Panics on error.
-func SlotReleaseExistsGP(container int, segment string) bool {
+func SlotReleaseExistsGP(container int, segment custom_types.Segment) bool {
 	e, err := SlotReleaseExists(boil.GetDB(), container, segment)
 	if err != nil {
 		panic(boil.WrapErr(err))
@@ -1241,7 +1239,7 @@ func SlotReleaseExistsGP(container int, segment string) bool {
 }
 
 // SlotReleaseExistsP checks if the SlotRelease row exists. Panics on error.
-func SlotReleaseExistsP(exec boil.Executor, container int, segment string) bool {
+func SlotReleaseExistsP(exec boil.Executor, container int, segment custom_types.Segment) bool {
 	e, err := SlotReleaseExists(exec, container, segment)
 	if err != nil {
 		panic(boil.WrapErr(err))

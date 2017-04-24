@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/pkg/errors"
 	"github.com/vattle/sqlboiler/boil"
 	"github.com/vattle/sqlboiler/queries"
@@ -23,17 +24,17 @@ import (
 
 // Asset is an object representing the database table.
 type Asset struct {
-	ID       int         `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Volume   int         `boil:"volume" json:"volume" toml:"volume" yaml:"volume"`
-	Format   int16       `boil:"format" json:"format" toml:"format" yaml:"format"`
-	Release  null.String `boil:"release" json:"release,omitempty" toml:"release" yaml:"release,omitempty"`
-	Duration null.String `boil:"duration" json:"duration,omitempty" toml:"duration" yaml:"duration,omitempty"`
-	Name     null.String `boil:"name" json:"name,omitempty" toml:"name" yaml:"name,omitempty"`
-	Sha1     null.Bytes  `boil:"sha1" json:"sha1,omitempty" toml:"sha1" yaml:"sha1,omitempty"`
-	Size     null.Int64  `boil:"size" json:"size,omitempty" toml:"size" yaml:"size,omitempty"`
+	ID       int                      `boil:"id" json:"asset_id"`
+	Volume   int                      `boil:"volume" json:"asset_volume"`
+	Format   int16                    `boil:"format" json:"asset_format"`
+	Release  custom_types.NullRelease `boil:"release" json:"asset_release,omitempty"`
+	Duration null.String              `boil:"duration" json:"asset_duration,omitempty"`
+	Name     null.String              `boil:"name" json:"asset_name,omitempty"`
+	Sha1     null.Bytes               `boil:"sha1" json:"asset_sha1,omitempty"`
+	Size     null.Int64               `boil:"size" json:"asset_size,omitempty"`
 
-	R *assetR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L assetL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *assetR `boil:"-" json:"-"`
+	L assetL  `boil:"-" json:"-"`
 }
 
 // assetR is where relationships are stored.
@@ -2270,9 +2271,6 @@ func (o *Asset) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(assetColumns, assetPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update asset, could not build whitelist")
 		}
@@ -2373,18 +2371,18 @@ func (o AssetSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"asset\" SET %s WHERE (\"id\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(assetPrimaryKeyColumns), len(colNames)+1, len(assetPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in asset slice")
 	}
@@ -2566,14 +2564,14 @@ func (o *Asset) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), assetPrimaryKeyMapping)
-	sql := "DELETE FROM \"asset\" WHERE \"id\"=$1"
+	query := "DELETE FROM \"asset\" WHERE \"id\"=$1"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from asset")
 	}
@@ -2654,18 +2652,18 @@ func (o AssetSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"asset\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, assetPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(assetPrimaryKeyColumns), 1, len(assetPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from asset slice")
 	}
@@ -2758,13 +2756,13 @@ func (o *AssetSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"asset\".* FROM \"asset\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, assetPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(assetPrimaryKeyColumns), 1, len(assetPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&assets)
 	if err != nil {
@@ -2780,14 +2778,14 @@ func (o *AssetSlice) ReloadAll(exec boil.Executor) error {
 func AssetExists(exec boil.Executor, id int) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"asset\" where \"id\"=$1 limit 1)"
+	query := "select exists(select 1 from \"asset\" where \"id\"=$1 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, id)
 	}
 
-	row := exec.QueryRow(sql, id)
+	row := exec.QueryRow(query, id)
 
 	err := row.Scan(&exists)
 	if err != nil {

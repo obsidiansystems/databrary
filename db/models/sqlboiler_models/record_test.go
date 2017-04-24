@@ -26,8 +26,12 @@ func testRecords(t *testing.T) {
 func testRecordsDelete(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	record := &Record{}
 	if err = randomize.Struct(seed, record, recordDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Record struct: %s", err)
@@ -56,8 +60,12 @@ func testRecordsDelete(t *testing.T) {
 func testRecordsQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	record := &Record{}
 	if err = randomize.Struct(seed, record, recordDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Record struct: %s", err)
@@ -86,8 +94,12 @@ func testRecordsQueryDeleteAll(t *testing.T) {
 func testRecordsSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	record := &Record{}
 	if err = randomize.Struct(seed, record, recordDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Record struct: %s", err)
@@ -117,8 +129,12 @@ func testRecordsSliceDeleteAll(t *testing.T) {
 func testRecordsExists(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	record := &Record{}
 	if err = randomize.Struct(seed, record, recordDBTypes, true, recordColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Record struct: %s", err)
@@ -141,8 +157,12 @@ func testRecordsExists(t *testing.T) {
 func testRecordsFind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	record := &Record{}
 	if err = randomize.Struct(seed, record, recordDBTypes, true, recordColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Record struct: %s", err)
@@ -166,8 +186,12 @@ func testRecordsFind(t *testing.T) {
 func testRecordsBind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	record := &Record{}
 	if err = randomize.Struct(seed, record, recordDBTypes, true, recordColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Record struct: %s", err)
@@ -187,8 +211,12 @@ func testRecordsBind(t *testing.T) {
 func testRecordsOne(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	record := &Record{}
 	if err = randomize.Struct(seed, record, recordDBTypes, true, recordColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Record struct: %s", err)
@@ -210,8 +238,12 @@ func testRecordsOne(t *testing.T) {
 func testRecordsAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	recordOne := &Record{}
 	recordTwo := &Record{}
 	if err = randomize.Struct(seed, recordOne, recordDBTypes, false, recordColumnsWithDefault...); err != nil {
@@ -245,6 +277,10 @@ func testRecordsCount(t *testing.T) {
 
 	var err error
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	recordOne := &Record{}
 	recordTwo := &Record{}
 	if err = randomize.Struct(seed, recordOne, recordDBTypes, false, recordColumnsWithDefault...); err != nil {
@@ -323,9 +359,12 @@ func testRecordsHooks(t *testing.T) {
 	var err error
 
 	empty := &Record{}
-	o := &Record{}
-
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	o := &Record{}
 	if err = randomize.Struct(seed, o, recordDBTypes, false); err != nil {
 		t.Errorf("Unable to randomize Record object: %s", err)
 	}
@@ -414,8 +453,12 @@ func testRecordsHooks(t *testing.T) {
 func testRecordsInsert(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	record := &Record{}
 	if err = randomize.Struct(seed, record, recordDBTypes, true, recordColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Record struct: %s", err)
@@ -440,8 +483,12 @@ func testRecordsInsert(t *testing.T) {
 func testRecordsInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	record := &Record{}
 	if err = randomize.Struct(seed, record, recordDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Record struct: %s", err)
@@ -471,6 +518,7 @@ func testRecordOneToOneRecordMeasureUsingIDRecordMeasure(t *testing.T) {
 	var local Record
 
 	seed := randomize.NewSeed()
+	//[id]
 	if err := randomize.Struct(seed, &foreign, recordMeasureDBTypes, true, recordMeasureColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize RecordMeasure struct: %s", err)
 	}
@@ -518,11 +566,9 @@ func testRecordOneToOneSetOpRecordMeasureUsingIDRecordMeasure(t *testing.T) {
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
-
+	seed := randomize.NewSeed()
 	var a Record
 	var b, c RecordMeasure
-
-	seed := randomize.NewSeed()
 	if err = randomize.Struct(seed, &a, recordDBTypes, false, strmangle.SetComplement(recordPrimaryKeyColumns, recordColumnsWithoutDefault)...); err != nil {
 		t.Fatal(err)
 	}
@@ -1675,8 +1721,12 @@ func testRecordToOneSetOpVolumeUsingVolume(t *testing.T) {
 func testRecordsReload(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	record := &Record{}
 	if err = randomize.Struct(seed, record, recordDBTypes, true, recordColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Record struct: %s", err)
@@ -1696,8 +1746,12 @@ func testRecordsReload(t *testing.T) {
 func testRecordsReloadAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	record := &Record{}
 	if err = randomize.Struct(seed, record, recordDBTypes, true, recordColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Record struct: %s", err)
@@ -1718,8 +1772,12 @@ func testRecordsReloadAll(t *testing.T) {
 func testRecordsSelect(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	record := &Record{}
 	if err = randomize.Struct(seed, record, recordDBTypes, true, recordColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Record struct: %s", err)
@@ -1753,8 +1811,12 @@ func testRecordsUpdate(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	record := &Record{}
 	if err = randomize.Struct(seed, record, recordDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Record struct: %s", err)
@@ -1791,8 +1853,12 @@ func testRecordsSliceUpdateAll(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	record := &Record{}
 	if err = randomize.Struct(seed, record, recordDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Record struct: %s", err)
@@ -1846,9 +1912,13 @@ func testRecordsUpsert(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
 	// Attempt the INSERT side of an UPSERT
+
 	record := Record{}
 	if err = randomize.Struct(seed, &record, recordDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Record struct: %s", err)
@@ -1869,6 +1939,7 @@ func testRecordsUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
+
 	if err = randomize.Struct(seed, &record, recordDBTypes, false, recordPrimaryKeyColumns...); err != nil {
 		t.Errorf("Unable to randomize Record struct: %s", err)
 	}

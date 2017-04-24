@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/pkg/errors"
 	"github.com/vattle/sqlboiler/boil"
 	"github.com/vattle/sqlboiler/queries"
@@ -22,12 +23,12 @@ import (
 
 // Notify is an object representing the database table.
 type Notify struct {
-	Target   int    `boil:"target" json:"target" toml:"target" yaml:"target"`
-	Notice   int16  `boil:"notice" json:"notice" toml:"notice" yaml:"notice"`
-	Delivery string `boil:"delivery" json:"delivery" toml:"delivery" yaml:"delivery"`
+	Target   int                         `boil:"target" json:"notify_target"`
+	Notice   int16                       `boil:"notice" json:"notify_notice"`
+	Delivery custom_types.NoticeDelivery `boil:"delivery" json:"notify_delivery"`
 
-	R *notifyR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L notifyL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *notifyR `boil:"-" json:"-"`
+	L notifyL  `boil:"-" json:"-"`
 }
 
 // notifyR is where relationships are stored.
@@ -872,9 +873,6 @@ func (o *Notify) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(notifyColumns, notifyPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update notify, could not build whitelist")
 		}
@@ -975,18 +973,18 @@ func (o NotifySlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"notify\" SET %s WHERE (\"target\",\"notice\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(notifyPrimaryKeyColumns), len(colNames)+1, len(notifyPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in notify slice")
 	}
@@ -1168,14 +1166,14 @@ func (o *Notify) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), notifyPrimaryKeyMapping)
-	sql := "DELETE FROM \"notify\" WHERE \"target\"=$1 AND \"notice\"=$2"
+	query := "DELETE FROM \"notify\" WHERE \"target\"=$1 AND \"notice\"=$2"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from notify")
 	}
@@ -1256,18 +1254,18 @@ func (o NotifySlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"notify\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, notifyPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(notifyPrimaryKeyColumns), 1, len(notifyPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from notify slice")
 	}
@@ -1360,13 +1358,13 @@ func (o *NotifySlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"notify\".* FROM \"notify\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, notifyPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(notifyPrimaryKeyColumns), 1, len(notifyPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&notifies)
 	if err != nil {
@@ -1382,14 +1380,14 @@ func (o *NotifySlice) ReloadAll(exec boil.Executor) error {
 func NotifyExists(exec boil.Executor, target int, notice int16) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"notify\" where \"target\"=$1 AND \"notice\"=$2 limit 1)"
+	query := "select exists(select 1 from \"notify\" where \"target\"=$1 AND \"notice\"=$2 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, target, notice)
 	}
 
-	row := exec.QueryRow(sql, target, notice)
+	row := exec.QueryRow(query, target, notice)
 
 	err := row.Scan(&exists)
 	if err != nil {

@@ -23,20 +23,19 @@ import (
 
 // Volume is an object representing the database table.
 type Volume struct {
-	ID    int         `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Name  string      `boil:"name" json:"name" toml:"name" yaml:"name"`
-	Body  null.String `boil:"body" json:"body,omitempty" toml:"body" yaml:"body,omitempty"`
-	Alias null.String `boil:"alias" json:"alias,omitempty" toml:"alias" yaml:"alias,omitempty"`
-	Doi   null.String `boil:"doi" json:"doi,omitempty" toml:"doi" yaml:"doi,omitempty"`
+	ID    int         `boil:"id" json:"volume_id"`
+	Name  string      `boil:"name" json:"volume_name"`
+	Body  null.String `boil:"body" json:"volume_body,omitempty"`
+	Alias null.String `boil:"alias" json:"volume_alias,omitempty"`
+	Doi   null.String `boil:"doi" json:"volume_doi,omitempty"`
 
-	R *volumeR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L volumeL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *volumeR `boil:"-" json:"-"`
+	L volumeL  `boil:"-" json:"-"`
 }
 
 // volumeR is where relationships are stored.
 type volumeR struct {
 	VolumeOwner      *VolumeOwner
-	VolumeTextIdx    *VolumeTextIdx
 	VolumeCitation   *VolumeCitation
 	VolumeAccesses   VolumeAccessSlice
 	VolumeLinks      VolumeLinkSlice
@@ -352,25 +351,6 @@ func (o *Volume) VolumeOwnerByFk(exec boil.Executor, mods ...qm.QueryMod) volume
 
 	query := VolumeOwners(exec, queryMods...)
 	queries.SetFrom(query.Query, "\"volume_owners\"")
-
-	return query
-}
-
-// VolumeTextIdxG pointed to by the foreign key.
-func (o *Volume) VolumeTextIdxG(mods ...qm.QueryMod) volumeTextIdxQuery {
-	return o.VolumeTextIdxByFk(boil.GetDB(), mods...)
-}
-
-// VolumeTextIdx pointed to by the foreign key.
-func (o *Volume) VolumeTextIdxByFk(exec boil.Executor, mods ...qm.QueryMod) volumeTextIdxQuery {
-	queryMods := []qm.QueryMod{
-		qm.Where("volume=?", o.ID),
-	}
-
-	queryMods = append(queryMods, mods...)
-
-	query := VolumeTextIdxes(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"volume_text_idx\"")
 
 	return query
 }
@@ -729,84 +709,6 @@ func (volumeL) LoadVolumeOwner(e boil.Executor, singular bool, maybeVolume inter
 		for _, foreign := range resultSlice {
 			if local.ID == foreign.Volume {
 				local.R.VolumeOwner = foreign
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
-// LoadVolumeTextIdx allows an eager lookup of values, cached into the
-// loaded structs of the objects.
-func (volumeL) LoadVolumeTextIdx(e boil.Executor, singular bool, maybeVolume interface{}) error {
-	var slice []*Volume
-	var object *Volume
-
-	count := 1
-	if singular {
-		object = maybeVolume.(*Volume)
-	} else {
-		slice = *maybeVolume.(*VolumeSlice)
-		count = len(slice)
-	}
-
-	args := make([]interface{}, count)
-	if singular {
-		if object.R == nil {
-			object.R = &volumeR{}
-		}
-		args[0] = object.ID
-	} else {
-		for i, obj := range slice {
-			if obj.R == nil {
-				obj.R = &volumeR{}
-			}
-			args[i] = obj.ID
-		}
-	}
-
-	query := fmt.Sprintf(
-		"select * from \"volume_text_idx\" where \"volume\" in (%s)",
-		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
-	)
-
-	if boil.DebugMode {
-		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
-	}
-
-	results, err := e.Query(query, args...)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load VolumeTextIdx")
-	}
-	defer results.Close()
-
-	var resultSlice []*VolumeTextIdx
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice VolumeTextIdx")
-	}
-
-	if len(volumeAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(e); err != nil {
-				return err
-			}
-		}
-	}
-
-	if len(resultSlice) == 0 {
-		return nil
-	}
-
-	if singular {
-		object.R.VolumeTextIdx = resultSlice[0]
-		return nil
-	}
-
-	for _, local := range slice {
-		for _, foreign := range resultSlice {
-			if local.ID == foreign.Volume {
-				local.R.VolumeTextIdx = foreign
 				break
 			}
 		}
@@ -1772,85 +1674,6 @@ func (o *Volume) SetVolumeOwner(exec boil.Executor, insert bool, related *Volume
 
 	if related.R == nil {
 		related.R = &volumeOwnerR{
-			Volume: o,
-		}
-	} else {
-		related.R.Volume = o
-	}
-	return nil
-}
-
-// SetVolumeTextIdxG of the volume to the related item.
-// Sets o.R.VolumeTextIdx to related.
-// Adds o to related.R.Volume.
-// Uses the global database handle.
-func (o *Volume) SetVolumeTextIdxG(insert bool, related *VolumeTextIdx) error {
-	return o.SetVolumeTextIdx(boil.GetDB(), insert, related)
-}
-
-// SetVolumeTextIdxP of the volume to the related item.
-// Sets o.R.VolumeTextIdx to related.
-// Adds o to related.R.Volume.
-// Panics on error.
-func (o *Volume) SetVolumeTextIdxP(exec boil.Executor, insert bool, related *VolumeTextIdx) {
-	if err := o.SetVolumeTextIdx(exec, insert, related); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// SetVolumeTextIdxGP of the volume to the related item.
-// Sets o.R.VolumeTextIdx to related.
-// Adds o to related.R.Volume.
-// Uses the global database handle and panics on error.
-func (o *Volume) SetVolumeTextIdxGP(insert bool, related *VolumeTextIdx) {
-	if err := o.SetVolumeTextIdx(boil.GetDB(), insert, related); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// SetVolumeTextIdx of the volume to the related item.
-// Sets o.R.VolumeTextIdx to related.
-// Adds o to related.R.Volume.
-func (o *Volume) SetVolumeTextIdx(exec boil.Executor, insert bool, related *VolumeTextIdx) error {
-	var err error
-
-	if insert {
-		related.Volume = o.ID
-
-		if err = related.Insert(exec); err != nil {
-			return errors.Wrap(err, "failed to insert into foreign table")
-		}
-	} else {
-		updateQuery := fmt.Sprintf(
-			"UPDATE \"volume_text_idx\" SET %s WHERE %s",
-			strmangle.SetParamNames("\"", "\"", 1, []string{"volume"}),
-			strmangle.WhereClause("\"", "\"", 2, volumeTextIdxPrimaryKeyColumns),
-		)
-		values := []interface{}{o.ID, related.Volume}
-
-		if boil.DebugMode {
-			fmt.Fprintln(boil.DebugWriter, updateQuery)
-			fmt.Fprintln(boil.DebugWriter, values)
-		}
-
-		if _, err = exec.Exec(updateQuery, values...); err != nil {
-			return errors.Wrap(err, "failed to update foreign table")
-		}
-
-		related.Volume = o.ID
-
-	}
-
-	if o.R == nil {
-		o.R = &volumeR{
-			VolumeTextIdx: related,
-		}
-	} else {
-		o.R.VolumeTextIdx = related
-	}
-
-	if related.R == nil {
-		related.R = &volumeTextIdxR{
 			Volume: o,
 		}
 	} else {
@@ -3355,9 +3178,6 @@ func (o *Volume) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(volumeColumns, volumePrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update volume, could not build whitelist")
 		}
@@ -3458,18 +3278,18 @@ func (o VolumeSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"volume\" SET %s WHERE (\"id\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(volumePrimaryKeyColumns), len(colNames)+1, len(volumePrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in volume slice")
 	}
@@ -3651,14 +3471,14 @@ func (o *Volume) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), volumePrimaryKeyMapping)
-	sql := "DELETE FROM \"volume\" WHERE \"id\"=$1"
+	query := "DELETE FROM \"volume\" WHERE \"id\"=$1"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from volume")
 	}
@@ -3739,18 +3559,18 @@ func (o VolumeSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"volume\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, volumePrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(volumePrimaryKeyColumns), 1, len(volumePrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from volume slice")
 	}
@@ -3843,13 +3663,13 @@ func (o *VolumeSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"volume\".* FROM \"volume\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, volumePrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(volumePrimaryKeyColumns), 1, len(volumePrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&volumes)
 	if err != nil {
@@ -3865,14 +3685,14 @@ func (o *VolumeSlice) ReloadAll(exec boil.Executor) error {
 func VolumeExists(exec boil.Executor, id int) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"volume\" where \"id\"=$1 limit 1)"
+	query := "select exists(select 1 from \"volume\" where \"id\"=$1 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, id)
 	}
 
-	row := exec.QueryRow(sql, id)
+	row := exec.QueryRow(query, id)
 
 	err := row.Scan(&exists)
 	if err != nil {

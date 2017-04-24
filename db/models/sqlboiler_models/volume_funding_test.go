@@ -26,8 +26,12 @@ func testVolumeFundings(t *testing.T) {
 func testVolumeFundingsDelete(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeFunding := &VolumeFunding{}
 	if err = randomize.Struct(seed, volumeFunding, volumeFundingDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize VolumeFunding struct: %s", err)
@@ -56,8 +60,12 @@ func testVolumeFundingsDelete(t *testing.T) {
 func testVolumeFundingsQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeFunding := &VolumeFunding{}
 	if err = randomize.Struct(seed, volumeFunding, volumeFundingDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize VolumeFunding struct: %s", err)
@@ -86,8 +94,12 @@ func testVolumeFundingsQueryDeleteAll(t *testing.T) {
 func testVolumeFundingsSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeFunding := &VolumeFunding{}
 	if err = randomize.Struct(seed, volumeFunding, volumeFundingDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize VolumeFunding struct: %s", err)
@@ -117,8 +129,12 @@ func testVolumeFundingsSliceDeleteAll(t *testing.T) {
 func testVolumeFundingsExists(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeFunding := &VolumeFunding{}
 	if err = randomize.Struct(seed, volumeFunding, volumeFundingDBTypes, true, volumeFundingColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize VolumeFunding struct: %s", err)
@@ -141,8 +157,12 @@ func testVolumeFundingsExists(t *testing.T) {
 func testVolumeFundingsFind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeFunding := &VolumeFunding{}
 	if err = randomize.Struct(seed, volumeFunding, volumeFundingDBTypes, true, volumeFundingColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize VolumeFunding struct: %s", err)
@@ -166,8 +186,12 @@ func testVolumeFundingsFind(t *testing.T) {
 func testVolumeFundingsBind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeFunding := &VolumeFunding{}
 	if err = randomize.Struct(seed, volumeFunding, volumeFundingDBTypes, true, volumeFundingColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize VolumeFunding struct: %s", err)
@@ -187,8 +211,12 @@ func testVolumeFundingsBind(t *testing.T) {
 func testVolumeFundingsOne(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeFunding := &VolumeFunding{}
 	if err = randomize.Struct(seed, volumeFunding, volumeFundingDBTypes, true, volumeFundingColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize VolumeFunding struct: %s", err)
@@ -210,8 +238,12 @@ func testVolumeFundingsOne(t *testing.T) {
 func testVolumeFundingsAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeFundingOne := &VolumeFunding{}
 	volumeFundingTwo := &VolumeFunding{}
 	if err = randomize.Struct(seed, volumeFundingOne, volumeFundingDBTypes, false, volumeFundingColumnsWithDefault...); err != nil {
@@ -245,6 +277,10 @@ func testVolumeFundingsCount(t *testing.T) {
 
 	var err error
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeFundingOne := &VolumeFunding{}
 	volumeFundingTwo := &VolumeFunding{}
 	if err = randomize.Struct(seed, volumeFundingOne, volumeFundingDBTypes, false, volumeFundingColumnsWithDefault...); err != nil {
@@ -323,9 +359,12 @@ func testVolumeFundingsHooks(t *testing.T) {
 	var err error
 
 	empty := &VolumeFunding{}
-	o := &VolumeFunding{}
-
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	o := &VolumeFunding{}
 	if err = randomize.Struct(seed, o, volumeFundingDBTypes, false); err != nil {
 		t.Errorf("Unable to randomize VolumeFunding object: %s", err)
 	}
@@ -414,8 +453,12 @@ func testVolumeFundingsHooks(t *testing.T) {
 func testVolumeFundingsInsert(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeFunding := &VolumeFunding{}
 	if err = randomize.Struct(seed, volumeFunding, volumeFundingDBTypes, true, volumeFundingColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize VolumeFunding struct: %s", err)
@@ -440,8 +483,12 @@ func testVolumeFundingsInsert(t *testing.T) {
 func testVolumeFundingsInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeFunding := &VolumeFunding{}
 	if err = randomize.Struct(seed, volumeFunding, volumeFundingDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize VolumeFunding struct: %s", err)
@@ -670,8 +717,12 @@ func testVolumeFundingToOneSetOpVolumeUsingVolume(t *testing.T) {
 func testVolumeFundingsReload(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeFunding := &VolumeFunding{}
 	if err = randomize.Struct(seed, volumeFunding, volumeFundingDBTypes, true, volumeFundingColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize VolumeFunding struct: %s", err)
@@ -691,8 +742,12 @@ func testVolumeFundingsReload(t *testing.T) {
 func testVolumeFundingsReloadAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeFunding := &VolumeFunding{}
 	if err = randomize.Struct(seed, volumeFunding, volumeFundingDBTypes, true, volumeFundingColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize VolumeFunding struct: %s", err)
@@ -713,8 +768,12 @@ func testVolumeFundingsReloadAll(t *testing.T) {
 func testVolumeFundingsSelect(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeFunding := &VolumeFunding{}
 	if err = randomize.Struct(seed, volumeFunding, volumeFundingDBTypes, true, volumeFundingColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize VolumeFunding struct: %s", err)
@@ -748,8 +807,12 @@ func testVolumeFundingsUpdate(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeFunding := &VolumeFunding{}
 	if err = randomize.Struct(seed, volumeFunding, volumeFundingDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize VolumeFunding struct: %s", err)
@@ -786,8 +849,12 @@ func testVolumeFundingsSliceUpdateAll(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeFunding := &VolumeFunding{}
 	if err = randomize.Struct(seed, volumeFunding, volumeFundingDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize VolumeFunding struct: %s", err)
@@ -841,9 +908,13 @@ func testVolumeFundingsUpsert(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
 	// Attempt the INSERT side of an UPSERT
+
 	volumeFunding := VolumeFunding{}
 	if err = randomize.Struct(seed, &volumeFunding, volumeFundingDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize VolumeFunding struct: %s", err)
@@ -864,6 +935,7 @@ func testVolumeFundingsUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
+
 	if err = randomize.Struct(seed, &volumeFunding, volumeFundingDBTypes, false, volumeFundingPrimaryKeyColumns...); err != nil {
 		t.Errorf("Unable to randomize VolumeFunding struct: %s", err)
 	}

@@ -22,12 +22,12 @@ import (
 
 // AccountToken is an object representing the database table.
 type AccountToken struct {
-	Token   string    `boil:"token" json:"token" toml:"token" yaml:"token"`
-	Expires time.Time `boil:"expires" json:"expires" toml:"expires" yaml:"expires"`
-	Account int       `boil:"account" json:"account" toml:"account" yaml:"account"`
+	Token   string    `boil:"token" json:"accountToken_token"`
+	Expires time.Time `boil:"expires" json:"accountToken_expires"`
+	Account int       `boil:"account" json:"accountToken_account"`
 
-	R *accountTokenR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L accountTokenL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *accountTokenR `boil:"-" json:"-"`
+	L accountTokenL  `boil:"-" json:"-"`
 }
 
 // accountTokenR is where relationships are stored.
@@ -698,9 +698,6 @@ func (o *AccountToken) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(accountTokenColumns, accountTokenPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update account_token, could not build whitelist")
 		}
@@ -801,18 +798,18 @@ func (o AccountTokenSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"account_token\" SET %s WHERE (\"token\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(accountTokenPrimaryKeyColumns), len(colNames)+1, len(accountTokenPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in accountToken slice")
 	}
@@ -994,14 +991,14 @@ func (o *AccountToken) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), accountTokenPrimaryKeyMapping)
-	sql := "DELETE FROM \"account_token\" WHERE \"token\"=$1"
+	query := "DELETE FROM \"account_token\" WHERE \"token\"=$1"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from account_token")
 	}
@@ -1082,18 +1079,18 @@ func (o AccountTokenSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"account_token\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, accountTokenPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(accountTokenPrimaryKeyColumns), 1, len(accountTokenPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from accountToken slice")
 	}
@@ -1186,13 +1183,13 @@ func (o *AccountTokenSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"account_token\".* FROM \"account_token\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, accountTokenPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(accountTokenPrimaryKeyColumns), 1, len(accountTokenPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&accountTokens)
 	if err != nil {
@@ -1208,14 +1205,14 @@ func (o *AccountTokenSlice) ReloadAll(exec boil.Executor) error {
 func AccountTokenExists(exec boil.Executor, token string) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"account_token\" where \"token\"=$1 limit 1)"
+	query := "select exists(select 1 from \"account_token\" where \"token\"=$1 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, token)
 	}
 
-	row := exec.QueryRow(sql, token)
+	row := exec.QueryRow(query, token)
 
 	err := row.Scan(&exists)
 	if err != nil {

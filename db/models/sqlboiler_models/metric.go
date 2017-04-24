@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/pkg/errors"
 	"github.com/vattle/sqlboiler/boil"
 	"github.com/vattle/sqlboiler/queries"
@@ -24,18 +25,18 @@ import (
 
 // Metric is an object representing the database table.
 type Metric struct {
-	ID          int               `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Category    int16             `boil:"category" json:"category" toml:"category" yaml:"category"`
-	Name        string            `boil:"name" json:"name" toml:"name" yaml:"name"`
-	Release     null.String       `boil:"release" json:"release,omitempty" toml:"release" yaml:"release,omitempty"`
-	Type        string            `boil:"type" json:"type" toml:"type" yaml:"type"`
-	Options     types.StringArray `boil:"options" json:"options,omitempty" toml:"options" yaml:"options,omitempty"`
-	Assumed     null.String       `boil:"assumed" json:"assumed,omitempty" toml:"assumed" yaml:"assumed,omitempty"`
-	Description null.String       `boil:"description" json:"description,omitempty" toml:"description" yaml:"description,omitempty"`
-	Required    null.Bool         `boil:"required" json:"required,omitempty" toml:"required" yaml:"required,omitempty"`
+	ID          int                      `boil:"id" json:"metric_id"`
+	Category    int16                    `boil:"category" json:"metric_category"`
+	Name        string                   `boil:"name" json:"metric_name"`
+	Release     custom_types.NullRelease `boil:"release" json:"metric_release,omitempty"`
+	Type        custom_types.DataType    `boil:"type" json:"metric_type"`
+	Options     types.StringArray        `boil:"options" json:"metric_options,omitempty"`
+	Assumed     null.String              `boil:"assumed" json:"metric_assumed,omitempty"`
+	Description null.String              `boil:"description" json:"metric_description,omitempty"`
+	Required    null.Bool                `boil:"required" json:"metric_required,omitempty"`
 
-	R *metricR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L metricL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *metricR `boil:"-" json:"-"`
+	L metricL  `boil:"-" json:"-"`
 }
 
 // metricR is where relationships are stored.
@@ -1949,9 +1950,6 @@ func (o *Metric) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(metricColumns, metricPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update metric, could not build whitelist")
 		}
@@ -2052,18 +2050,18 @@ func (o MetricSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"metric\" SET %s WHERE (\"id\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(metricPrimaryKeyColumns), len(colNames)+1, len(metricPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in metric slice")
 	}
@@ -2245,14 +2243,14 @@ func (o *Metric) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), metricPrimaryKeyMapping)
-	sql := "DELETE FROM \"metric\" WHERE \"id\"=$1"
+	query := "DELETE FROM \"metric\" WHERE \"id\"=$1"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from metric")
 	}
@@ -2333,18 +2331,18 @@ func (o MetricSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"metric\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, metricPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(metricPrimaryKeyColumns), 1, len(metricPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from metric slice")
 	}
@@ -2437,13 +2435,13 @@ func (o *MetricSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"metric\".* FROM \"metric\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, metricPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(metricPrimaryKeyColumns), 1, len(metricPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&metrics)
 	if err != nil {
@@ -2459,14 +2457,14 @@ func (o *MetricSlice) ReloadAll(exec boil.Executor) error {
 func MetricExists(exec boil.Executor, id int) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"metric\" where \"id\"=$1 limit 1)"
+	query := "select exists(select 1 from \"metric\" where \"id\"=$1 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, id)
 	}
 
-	row := exec.QueryRow(sql, id)
+	row := exec.QueryRow(query, id)
 
 	err := row.Scan(&exists)
 	if err != nil {

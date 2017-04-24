@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/pkg/errors"
 	"github.com/vattle/sqlboiler/boil"
 	"github.com/vattle/sqlboiler/queries"
@@ -23,16 +24,16 @@ import (
 
 // Comment is an object representing the database table.
 type Comment struct {
-	Container int       `boil:"container" json:"container" toml:"container" yaml:"container"`
-	Segment   string    `boil:"segment" json:"segment" toml:"segment" yaml:"segment"`
-	ID        int       `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Who       int       `boil:"who" json:"who" toml:"who" yaml:"who"`
-	Time      time.Time `boil:"time" json:"time" toml:"time" yaml:"time"`
-	Text      string    `boil:"text" json:"text" toml:"text" yaml:"text"`
-	Parent    null.Int  `boil:"parent" json:"parent,omitempty" toml:"parent" yaml:"parent,omitempty"`
+	Container int                  `boil:"container" json:"comment_container"`
+	Segment   custom_types.Segment `boil:"segment" json:"comment_segment"`
+	ID        int                  `boil:"id" json:"comment_id"`
+	Who       int                  `boil:"who" json:"comment_who"`
+	Time      time.Time            `boil:"time" json:"comment_time"`
+	Text      string               `boil:"text" json:"comment_text"`
+	Parent    null.Int             `boil:"parent" json:"comment_parent,omitempty"`
 
-	R *commentR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L commentL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *commentR `boil:"-" json:"-"`
+	L commentL  `boil:"-" json:"-"`
 }
 
 // commentR is where relationships are stored.
@@ -1748,9 +1749,6 @@ func (o *Comment) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(commentColumns, commentPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update comment, could not build whitelist")
 		}
@@ -1851,18 +1849,18 @@ func (o CommentSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"comment\" SET %s WHERE (\"id\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(commentPrimaryKeyColumns), len(colNames)+1, len(commentPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in comment slice")
 	}
@@ -2044,14 +2042,14 @@ func (o *Comment) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), commentPrimaryKeyMapping)
-	sql := "DELETE FROM \"comment\" WHERE \"id\"=$1"
+	query := "DELETE FROM \"comment\" WHERE \"id\"=$1"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from comment")
 	}
@@ -2132,18 +2130,18 @@ func (o CommentSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"comment\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, commentPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(commentPrimaryKeyColumns), 1, len(commentPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from comment slice")
 	}
@@ -2236,13 +2234,13 @@ func (o *CommentSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"comment\".* FROM \"comment\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, commentPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(commentPrimaryKeyColumns), 1, len(commentPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&comments)
 	if err != nil {
@@ -2258,14 +2256,14 @@ func (o *CommentSlice) ReloadAll(exec boil.Executor) error {
 func CommentExists(exec boil.Executor, id int) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"comment\" where \"id\"=$1 limit 1)"
+	query := "select exists(select 1 from \"comment\" where \"id\"=$1 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, id)
 	}
 
-	row := exec.QueryRow(sql, id)
+	row := exec.QueryRow(query, id)
 
 	err := row.Scan(&exists)
 	if err != nil {

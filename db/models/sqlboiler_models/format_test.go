@@ -26,8 +26,12 @@ func testFormats(t *testing.T) {
 func testFormatsDelete(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	format := &Format{}
 	if err = randomize.Struct(seed, format, formatDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Format struct: %s", err)
@@ -56,8 +60,12 @@ func testFormatsDelete(t *testing.T) {
 func testFormatsQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	format := &Format{}
 	if err = randomize.Struct(seed, format, formatDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Format struct: %s", err)
@@ -86,8 +94,12 @@ func testFormatsQueryDeleteAll(t *testing.T) {
 func testFormatsSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	format := &Format{}
 	if err = randomize.Struct(seed, format, formatDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Format struct: %s", err)
@@ -117,8 +129,12 @@ func testFormatsSliceDeleteAll(t *testing.T) {
 func testFormatsExists(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	format := &Format{}
 	if err = randomize.Struct(seed, format, formatDBTypes, true, formatColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Format struct: %s", err)
@@ -141,8 +157,12 @@ func testFormatsExists(t *testing.T) {
 func testFormatsFind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	format := &Format{}
 	if err = randomize.Struct(seed, format, formatDBTypes, true, formatColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Format struct: %s", err)
@@ -166,8 +186,12 @@ func testFormatsFind(t *testing.T) {
 func testFormatsBind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	format := &Format{}
 	if err = randomize.Struct(seed, format, formatDBTypes, true, formatColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Format struct: %s", err)
@@ -187,8 +211,12 @@ func testFormatsBind(t *testing.T) {
 func testFormatsOne(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	format := &Format{}
 	if err = randomize.Struct(seed, format, formatDBTypes, true, formatColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Format struct: %s", err)
@@ -210,8 +238,12 @@ func testFormatsOne(t *testing.T) {
 func testFormatsAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	formatOne := &Format{}
 	formatTwo := &Format{}
 	if err = randomize.Struct(seed, formatOne, formatDBTypes, false, formatColumnsWithDefault...); err != nil {
@@ -245,6 +277,10 @@ func testFormatsCount(t *testing.T) {
 
 	var err error
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	formatOne := &Format{}
 	formatTwo := &Format{}
 	if err = randomize.Struct(seed, formatOne, formatDBTypes, false, formatColumnsWithDefault...); err != nil {
@@ -323,9 +359,12 @@ func testFormatsHooks(t *testing.T) {
 	var err error
 
 	empty := &Format{}
-	o := &Format{}
-
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	o := &Format{}
 	if err = randomize.Struct(seed, o, formatDBTypes, false); err != nil {
 		t.Errorf("Unable to randomize Format object: %s", err)
 	}
@@ -414,8 +453,12 @@ func testFormatsHooks(t *testing.T) {
 func testFormatsInsert(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	format := &Format{}
 	if err = randomize.Struct(seed, format, formatDBTypes, true, formatColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Format struct: %s", err)
@@ -440,8 +483,12 @@ func testFormatsInsert(t *testing.T) {
 func testFormatsInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	format := &Format{}
 	if err = randomize.Struct(seed, format, formatDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Format struct: %s", err)
@@ -613,8 +660,12 @@ func testFormatToManyAddOpAssets(t *testing.T) {
 func testFormatsReload(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	format := &Format{}
 	if err = randomize.Struct(seed, format, formatDBTypes, true, formatColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Format struct: %s", err)
@@ -634,8 +685,12 @@ func testFormatsReload(t *testing.T) {
 func testFormatsReloadAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	format := &Format{}
 	if err = randomize.Struct(seed, format, formatDBTypes, true, formatColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Format struct: %s", err)
@@ -656,8 +711,12 @@ func testFormatsReloadAll(t *testing.T) {
 func testFormatsSelect(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	format := &Format{}
 	if err = randomize.Struct(seed, format, formatDBTypes, true, formatColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Format struct: %s", err)
@@ -691,8 +750,12 @@ func testFormatsUpdate(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	format := &Format{}
 	if err = randomize.Struct(seed, format, formatDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Format struct: %s", err)
@@ -729,8 +792,12 @@ func testFormatsSliceUpdateAll(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	format := &Format{}
 	if err = randomize.Struct(seed, format, formatDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Format struct: %s", err)
@@ -784,9 +851,13 @@ func testFormatsUpsert(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
 	// Attempt the INSERT side of an UPSERT
+
 	format := Format{}
 	if err = randomize.Struct(seed, &format, formatDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Format struct: %s", err)
@@ -807,6 +878,7 @@ func testFormatsUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
+
 	if err = randomize.Struct(seed, &format, formatDBTypes, false, formatPrimaryKeyColumns...); err != nil {
 		t.Errorf("Unable to randomize Format struct: %s", err)
 	}

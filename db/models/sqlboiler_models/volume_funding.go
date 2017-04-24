@@ -23,12 +23,12 @@ import (
 
 // VolumeFunding is an object representing the database table.
 type VolumeFunding struct {
-	Volume int               `boil:"volume" json:"volume" toml:"volume" yaml:"volume"`
-	Funder int64             `boil:"funder" json:"funder" toml:"funder" yaml:"funder"`
-	Awards types.StringArray `boil:"awards" json:"awards" toml:"awards" yaml:"awards"`
+	Volume int               `boil:"volume" json:"volumeFunding_volume"`
+	Funder int64             `boil:"funder" json:"volumeFunding_funder"`
+	Awards types.StringArray `boil:"awards" json:"volumeFunding_awards"`
 
-	R *volumeFundingR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L volumeFundingL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *volumeFundingR `boil:"-" json:"-"`
+	L volumeFundingL  `boil:"-" json:"-"`
 }
 
 // volumeFundingR is where relationships are stored.
@@ -873,9 +873,6 @@ func (o *VolumeFunding) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(volumeFundingColumns, volumeFundingPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update volume_funding, could not build whitelist")
 		}
@@ -976,18 +973,18 @@ func (o VolumeFundingSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"volume_funding\" SET %s WHERE (\"volume\",\"funder\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(volumeFundingPrimaryKeyColumns), len(colNames)+1, len(volumeFundingPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in volumeFunding slice")
 	}
@@ -1169,14 +1166,14 @@ func (o *VolumeFunding) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), volumeFundingPrimaryKeyMapping)
-	sql := "DELETE FROM \"volume_funding\" WHERE \"volume\"=$1 AND \"funder\"=$2"
+	query := "DELETE FROM \"volume_funding\" WHERE \"volume\"=$1 AND \"funder\"=$2"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from volume_funding")
 	}
@@ -1257,18 +1254,18 @@ func (o VolumeFundingSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"volume_funding\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, volumeFundingPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(volumeFundingPrimaryKeyColumns), 1, len(volumeFundingPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from volumeFunding slice")
 	}
@@ -1361,13 +1358,13 @@ func (o *VolumeFundingSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"volume_funding\".* FROM \"volume_funding\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, volumeFundingPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(volumeFundingPrimaryKeyColumns), 1, len(volumeFundingPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&volumeFundings)
 	if err != nil {
@@ -1383,14 +1380,14 @@ func (o *VolumeFundingSlice) ReloadAll(exec boil.Executor) error {
 func VolumeFundingExists(exec boil.Executor, volume int, funder int64) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"volume_funding\" where \"volume\"=$1 AND \"funder\"=$2 limit 1)"
+	query := "select exists(select 1 from \"volume_funding\" where \"volume\"=$1 AND \"funder\"=$2 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, volume, funder)
 	}
 
-	row := exec.QueryRow(sql, volume, funder)
+	row := exec.QueryRow(query, volume, funder)
 
 	err := row.Scan(&exists)
 	if err != nil {

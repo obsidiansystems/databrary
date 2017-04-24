@@ -22,11 +22,11 @@ import (
 
 // Token is an object representing the database table.
 type Token struct {
-	Token   string    `boil:"token" json:"token" toml:"token" yaml:"token"`
-	Expires time.Time `boil:"expires" json:"expires" toml:"expires" yaml:"expires"`
+	Token   string    `boil:"token" json:"token_token"`
+	Expires time.Time `boil:"expires" json:"token_expires"`
 
-	R *tokenR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L tokenL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *tokenR `boil:"-" json:"-"`
+	L tokenL  `boil:"-" json:"-"`
 }
 
 // tokenR is where relationships are stored.
@@ -523,9 +523,6 @@ func (o *Token) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(tokenColumns, tokenPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update token, could not build whitelist")
 		}
@@ -626,18 +623,18 @@ func (o TokenSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"token\" SET %s WHERE (\"token\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(tokenPrimaryKeyColumns), len(colNames)+1, len(tokenPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in token slice")
 	}
@@ -819,14 +816,14 @@ func (o *Token) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), tokenPrimaryKeyMapping)
-	sql := "DELETE FROM \"token\" WHERE \"token\"=$1"
+	query := "DELETE FROM \"token\" WHERE \"token\"=$1"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from token")
 	}
@@ -907,18 +904,18 @@ func (o TokenSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"token\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, tokenPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(tokenPrimaryKeyColumns), 1, len(tokenPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from token slice")
 	}
@@ -1011,13 +1008,13 @@ func (o *TokenSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"token\".* FROM \"token\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, tokenPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(tokenPrimaryKeyColumns), 1, len(tokenPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&tokens)
 	if err != nil {
@@ -1033,14 +1030,14 @@ func (o *TokenSlice) ReloadAll(exec boil.Executor) error {
 func TokenExists(exec boil.Executor, token string) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"token\" where \"token\"=$1 limit 1)"
+	query := "select exists(select 1 from \"token\" where \"token\"=$1 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, token)
 	}
 
-	row := exec.QueryRow(sql, token)
+	row := exec.QueryRow(query, token)
 
 	err := row.Scan(&exists)
 	if err != nil {

@@ -22,12 +22,12 @@ import (
 
 // MeasureNumeric is an object representing the database table.
 type MeasureNumeric struct {
-	Record int     `boil:"record" json:"record" toml:"record" yaml:"record"`
-	Metric int     `boil:"metric" json:"metric" toml:"metric" yaml:"metric"`
-	Datum  float64 `boil:"datum" json:"datum" toml:"datum" yaml:"datum"`
+	Record int     `boil:"record" json:"measureNumeric_record"`
+	Metric int     `boil:"metric" json:"measureNumeric_metric"`
+	Datum  float64 `boil:"datum" json:"measureNumeric_datum"`
 
-	R *measureNumericR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L measureNumericL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *measureNumericR `boil:"-" json:"-"`
+	L measureNumericL  `boil:"-" json:"-"`
 }
 
 // measureNumericR is where relationships are stored.
@@ -872,9 +872,6 @@ func (o *MeasureNumeric) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(measureNumericColumns, measureNumericPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update measure_numeric, could not build whitelist")
 		}
@@ -975,18 +972,18 @@ func (o MeasureNumericSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"measure_numeric\" SET %s WHERE (\"record\",\"metric\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(measureNumericPrimaryKeyColumns), len(colNames)+1, len(measureNumericPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in measureNumeric slice")
 	}
@@ -1168,14 +1165,14 @@ func (o *MeasureNumeric) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), measureNumericPrimaryKeyMapping)
-	sql := "DELETE FROM \"measure_numeric\" WHERE \"record\"=$1 AND \"metric\"=$2"
+	query := "DELETE FROM \"measure_numeric\" WHERE \"record\"=$1 AND \"metric\"=$2"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from measure_numeric")
 	}
@@ -1256,18 +1253,18 @@ func (o MeasureNumericSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"measure_numeric\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, measureNumericPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(measureNumericPrimaryKeyColumns), 1, len(measureNumericPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from measureNumeric slice")
 	}
@@ -1360,13 +1357,13 @@ func (o *MeasureNumericSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"measure_numeric\".* FROM \"measure_numeric\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, measureNumericPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(measureNumericPrimaryKeyColumns), 1, len(measureNumericPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&measureNumerics)
 	if err != nil {
@@ -1382,14 +1379,14 @@ func (o *MeasureNumericSlice) ReloadAll(exec boil.Executor) error {
 func MeasureNumericExists(exec boil.Executor, record int, metric int) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"measure_numeric\" where \"record\"=$1 AND \"metric\"=$2 limit 1)"
+	query := "select exists(select 1 from \"measure_numeric\" where \"record\"=$1 AND \"metric\"=$2 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, record, metric)
 	}
 
-	row := exec.QueryRow(sql, record, metric)
+	row := exec.QueryRow(query, record, metric)
 
 	err := row.Scan(&exists)
 	if err != nil {

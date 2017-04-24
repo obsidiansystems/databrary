@@ -13,22 +13,22 @@ import (
 	"sync"
 	"time"
 
+	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/pkg/errors"
 	"github.com/vattle/sqlboiler/boil"
 	"github.com/vattle/sqlboiler/queries"
 	"github.com/vattle/sqlboiler/queries/qm"
 	"github.com/vattle/sqlboiler/strmangle"
-	"gopkg.in/nullbio/null.v6"
 )
 
 // Excerpt is an object representing the database table.
 type Excerpt struct {
-	Asset   int         `boil:"asset" json:"asset" toml:"asset" yaml:"asset"`
-	Segment string      `boil:"segment" json:"segment" toml:"segment" yaml:"segment"`
-	Release null.String `boil:"release" json:"release,omitempty" toml:"release" yaml:"release,omitempty"`
+	Asset   int                      `boil:"asset" json:"excerpt_asset"`
+	Segment custom_types.Segment     `boil:"segment" json:"excerpt_segment"`
+	Release custom_types.NullRelease `boil:"release" json:"excerpt_release,omitempty"`
 
-	R *excerptR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L excerptL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *excerptR `boil:"-" json:"-"`
+	L excerptL  `boil:"-" json:"-"`
 }
 
 // excerptR is where relationships are stored.
@@ -507,12 +507,12 @@ func Excerpts(exec boil.Executor, mods ...qm.QueryMod) excerptQuery {
 }
 
 // FindExcerptG retrieves a single record by ID.
-func FindExcerptG(asset int, segment string, selectCols ...string) (*Excerpt, error) {
+func FindExcerptG(asset int, segment custom_types.Segment, selectCols ...string) (*Excerpt, error) {
 	return FindExcerpt(boil.GetDB(), asset, segment, selectCols...)
 }
 
 // FindExcerptGP retrieves a single record by ID, and panics on error.
-func FindExcerptGP(asset int, segment string, selectCols ...string) *Excerpt {
+func FindExcerptGP(asset int, segment custom_types.Segment, selectCols ...string) *Excerpt {
 	retobj, err := FindExcerpt(boil.GetDB(), asset, segment, selectCols...)
 	if err != nil {
 		panic(boil.WrapErr(err))
@@ -523,7 +523,7 @@ func FindExcerptGP(asset int, segment string, selectCols ...string) *Excerpt {
 
 // FindExcerpt retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindExcerpt(exec boil.Executor, asset int, segment string, selectCols ...string) (*Excerpt, error) {
+func FindExcerpt(exec boil.Executor, asset int, segment custom_types.Segment, selectCols ...string) (*Excerpt, error) {
 	excerptObj := &Excerpt{}
 
 	sel := "*"
@@ -548,7 +548,7 @@ func FindExcerpt(exec boil.Executor, asset int, segment string, selectCols ...st
 }
 
 // FindExcerptP retrieves a single record by ID with an executor, and panics on error.
-func FindExcerptP(exec boil.Executor, asset int, segment string, selectCols ...string) *Excerpt {
+func FindExcerptP(exec boil.Executor, asset int, segment custom_types.Segment, selectCols ...string) *Excerpt {
 	retobj, err := FindExcerpt(exec, asset, segment, selectCols...)
 	if err != nil {
 		panic(boil.WrapErr(err))
@@ -699,9 +699,6 @@ func (o *Excerpt) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(excerptColumns, excerptPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update excerpt, could not build whitelist")
 		}
@@ -802,18 +799,18 @@ func (o ExcerptSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"excerpt\" SET %s WHERE (\"asset\",\"segment\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(excerptPrimaryKeyColumns), len(colNames)+1, len(excerptPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in excerpt slice")
 	}
@@ -995,14 +992,14 @@ func (o *Excerpt) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), excerptPrimaryKeyMapping)
-	sql := "DELETE FROM \"excerpt\" WHERE \"asset\"=$1 AND \"segment\"=$2"
+	query := "DELETE FROM \"excerpt\" WHERE \"asset\"=$1 AND \"segment\"=$2"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from excerpt")
 	}
@@ -1083,18 +1080,18 @@ func (o ExcerptSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"excerpt\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, excerptPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(excerptPrimaryKeyColumns), 1, len(excerptPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from excerpt slice")
 	}
@@ -1187,13 +1184,13 @@ func (o *ExcerptSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"excerpt\".* FROM \"excerpt\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, excerptPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(excerptPrimaryKeyColumns), 1, len(excerptPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&excerpts)
 	if err != nil {
@@ -1206,17 +1203,17 @@ func (o *ExcerptSlice) ReloadAll(exec boil.Executor) error {
 }
 
 // ExcerptExists checks if the Excerpt row exists.
-func ExcerptExists(exec boil.Executor, asset int, segment string) (bool, error) {
+func ExcerptExists(exec boil.Executor, asset int, segment custom_types.Segment) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"excerpt\" where \"asset\"=$1 AND \"segment\"=$2 limit 1)"
+	query := "select exists(select 1 from \"excerpt\" where \"asset\"=$1 AND \"segment\"=$2 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, asset, segment)
 	}
 
-	row := exec.QueryRow(sql, asset, segment)
+	row := exec.QueryRow(query, asset, segment)
 
 	err := row.Scan(&exists)
 	if err != nil {
@@ -1227,12 +1224,12 @@ func ExcerptExists(exec boil.Executor, asset int, segment string) (bool, error) 
 }
 
 // ExcerptExistsG checks if the Excerpt row exists.
-func ExcerptExistsG(asset int, segment string) (bool, error) {
+func ExcerptExistsG(asset int, segment custom_types.Segment) (bool, error) {
 	return ExcerptExists(boil.GetDB(), asset, segment)
 }
 
 // ExcerptExistsGP checks if the Excerpt row exists. Panics on error.
-func ExcerptExistsGP(asset int, segment string) bool {
+func ExcerptExistsGP(asset int, segment custom_types.Segment) bool {
 	e, err := ExcerptExists(boil.GetDB(), asset, segment)
 	if err != nil {
 		panic(boil.WrapErr(err))
@@ -1242,7 +1239,7 @@ func ExcerptExistsGP(asset int, segment string) bool {
 }
 
 // ExcerptExistsP checks if the Excerpt row exists. Panics on error.
-func ExcerptExistsP(exec boil.Executor, asset int, segment string) bool {
+func ExcerptExistsP(exec boil.Executor, asset int, segment custom_types.Segment) bool {
 	e, err := ExcerptExists(exec, asset, segment)
 	if err != nil {
 		panic(boil.WrapErr(err))

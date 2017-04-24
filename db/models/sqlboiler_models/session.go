@@ -22,14 +22,14 @@ import (
 
 // Session is an object representing the database table.
 type Session struct {
-	Token     string    `boil:"token" json:"token" toml:"token" yaml:"token"`
-	Expires   time.Time `boil:"expires" json:"expires" toml:"expires" yaml:"expires"`
-	Account   int       `boil:"account" json:"account" toml:"account" yaml:"account"`
-	Verf      string    `boil:"verf" json:"verf" toml:"verf" yaml:"verf"`
-	Superuser bool      `boil:"superuser" json:"superuser" toml:"superuser" yaml:"superuser"`
+	Token     string    `boil:"token" json:"session_token"`
+	Expires   time.Time `boil:"expires" json:"session_expires"`
+	Account   int       `boil:"account" json:"session_account"`
+	Verf      string    `boil:"verf" json:"session_verf"`
+	Superuser bool      `boil:"superuser" json:"session_superuser"`
 
-	R *sessionR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L sessionL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *sessionR `boil:"-" json:"-"`
+	L sessionL  `boil:"-" json:"-"`
 }
 
 // sessionR is where relationships are stored.
@@ -700,9 +700,6 @@ func (o *Session) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(sessionColumns, sessionPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update session, could not build whitelist")
 		}
@@ -803,18 +800,18 @@ func (o SessionSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"session\" SET %s WHERE (\"token\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(sessionPrimaryKeyColumns), len(colNames)+1, len(sessionPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in session slice")
 	}
@@ -996,14 +993,14 @@ func (o *Session) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), sessionPrimaryKeyMapping)
-	sql := "DELETE FROM \"session\" WHERE \"token\"=$1"
+	query := "DELETE FROM \"session\" WHERE \"token\"=$1"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from session")
 	}
@@ -1084,18 +1081,18 @@ func (o SessionSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"session\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, sessionPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(sessionPrimaryKeyColumns), 1, len(sessionPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from session slice")
 	}
@@ -1188,13 +1185,13 @@ func (o *SessionSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"session\".* FROM \"session\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, sessionPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(sessionPrimaryKeyColumns), 1, len(sessionPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&sessions)
 	if err != nil {
@@ -1210,14 +1207,14 @@ func (o *SessionSlice) ReloadAll(exec boil.Executor) error {
 func SessionExists(exec boil.Executor, token string) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"session\" where \"token\"=$1 limit 1)"
+	query := "select exists(select 1 from \"session\" where \"token\"=$1 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, token)
 	}
 
-	row := exec.QueryRow(sql, token)
+	row := exec.QueryRow(query, token)
 
 	err := row.Scan(&exists)
 	if err != nil {

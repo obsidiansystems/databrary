@@ -26,12 +26,13 @@ func testExcerpts(t *testing.T) {
 func testExcerptsDelete(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	excerpt := &Excerpt{}
-	if err = randomize.Struct(seed, excerpt, excerptDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Excerpt struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	excerpt := ExcerptRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -56,12 +57,13 @@ func testExcerptsDelete(t *testing.T) {
 func testExcerptsQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	excerpt := &Excerpt{}
-	if err = randomize.Struct(seed, excerpt, excerptDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Excerpt struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	excerpt := ExcerptRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -86,12 +88,13 @@ func testExcerptsQueryDeleteAll(t *testing.T) {
 func testExcerptsSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	excerpt := &Excerpt{}
-	if err = randomize.Struct(seed, excerpt, excerptDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Excerpt struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	excerpt := ExcerptRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -117,12 +120,13 @@ func testExcerptsSliceDeleteAll(t *testing.T) {
 func testExcerptsExists(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	excerpt := &Excerpt{}
-	if err = randomize.Struct(seed, excerpt, excerptDBTypes, true, excerptColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Excerpt struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	excerpt := ExcerptRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -141,12 +145,13 @@ func testExcerptsExists(t *testing.T) {
 func testExcerptsFind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	excerpt := &Excerpt{}
-	if err = randomize.Struct(seed, excerpt, excerptDBTypes, true, excerptColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Excerpt struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	excerpt := ExcerptRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -166,12 +171,13 @@ func testExcerptsFind(t *testing.T) {
 func testExcerptsBind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	excerpt := &Excerpt{}
-	if err = randomize.Struct(seed, excerpt, excerptDBTypes, true, excerptColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Excerpt struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	excerpt := ExcerptRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -187,12 +193,13 @@ func testExcerptsBind(t *testing.T) {
 func testExcerptsOne(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	excerpt := &Excerpt{}
-	if err = randomize.Struct(seed, excerpt, excerptDBTypes, true, excerptColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Excerpt struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	excerpt := ExcerptRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -210,16 +217,14 @@ func testExcerptsOne(t *testing.T) {
 func testExcerptsAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	excerptOne := &Excerpt{}
-	excerptTwo := &Excerpt{}
-	if err = randomize.Struct(seed, excerptOne, excerptDBTypes, false, excerptColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Excerpt struct: %s", err)
-	}
-	if err = randomize.Struct(seed, excerptTwo, excerptDBTypes, false, excerptColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Excerpt struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	excerptOne := ExcerptRandom()
+	excerptTwo := ExcerptRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -245,14 +250,12 @@ func testExcerptsCount(t *testing.T) {
 
 	var err error
 	seed := randomize.NewSeed()
-	excerptOne := &Excerpt{}
-	excerptTwo := &Excerpt{}
-	if err = randomize.Struct(seed, excerptOne, excerptDBTypes, false, excerptColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Excerpt struct: %s", err)
-	}
-	if err = randomize.Struct(seed, excerptTwo, excerptDBTypes, false, excerptColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Excerpt struct: %s", err)
-	}
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	excerptOne := ExcerptRandom()
+	excerptTwo := ExcerptRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -323,12 +326,12 @@ func testExcerptsHooks(t *testing.T) {
 	var err error
 
 	empty := &Excerpt{}
-	o := &Excerpt{}
-
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, o, excerptDBTypes, false); err != nil {
-		t.Errorf("Unable to randomize Excerpt object: %s", err)
-	}
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	o := ExcerptRandom()
 
 	AddExcerptHook(boil.BeforeInsertHook, excerptBeforeInsertHook)
 	if err = o.doBeforeInsertHooks(nil); err != nil {
@@ -414,12 +417,13 @@ func testExcerptsHooks(t *testing.T) {
 func testExcerptsInsert(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	excerpt := &Excerpt{}
-	if err = randomize.Struct(seed, excerpt, excerptDBTypes, true, excerptColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Excerpt struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	excerpt := ExcerptRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -440,12 +444,13 @@ func testExcerptsInsert(t *testing.T) {
 func testExcerptsInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	excerpt := &Excerpt{}
-	if err = randomize.Struct(seed, excerpt, excerptDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Excerpt struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	excerpt := ExcerptRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -568,12 +573,13 @@ func testExcerptToOneSetOpSlotAssetUsingAsset(t *testing.T) {
 func testExcerptsReload(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	excerpt := &Excerpt{}
-	if err = randomize.Struct(seed, excerpt, excerptDBTypes, true, excerptColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Excerpt struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	excerpt := ExcerptRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -589,12 +595,13 @@ func testExcerptsReload(t *testing.T) {
 func testExcerptsReloadAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	excerpt := &Excerpt{}
-	if err = randomize.Struct(seed, excerpt, excerptDBTypes, true, excerptColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Excerpt struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	excerpt := ExcerptRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -611,12 +618,13 @@ func testExcerptsReloadAll(t *testing.T) {
 func testExcerptsSelect(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	excerpt := &Excerpt{}
-	if err = randomize.Struct(seed, excerpt, excerptDBTypes, true, excerptColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Excerpt struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	excerpt := ExcerptRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -635,7 +643,7 @@ func testExcerptsSelect(t *testing.T) {
 }
 
 var (
-	excerptDBTypes = map[string]string{`Asset`: `integer`, `Release`: `enum.release('PRIVATE','SHARED','EXCERPTS','PUBLIC')`, `Segment`: `segment`}
+	excerptDBTypes = map[string]string{`Asset`: `integer`, `Release`: `enum.release('PRIVATE','SHARED','EXCERPTS','PUBLIC')`, `Segment`: `USER-DEFINED`}
 	_              = bytes.MinRead
 )
 
@@ -646,12 +654,13 @@ func testExcerptsUpdate(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
-	excerpt := &Excerpt{}
-	if err = randomize.Struct(seed, excerpt, excerptDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Excerpt struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	excerpt := ExcerptRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -668,9 +677,7 @@ func testExcerptsUpdate(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, excerpt, excerptDBTypes, true, excerptColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Excerpt struct: %s", err)
-	}
+	excerpt = ExcerptRandom()
 
 	if err = excerpt.Update(tx); err != nil {
 		t.Error(err)
@@ -684,12 +691,13 @@ func testExcerptsSliceUpdateAll(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
-	excerpt := &Excerpt{}
-	if err = randomize.Struct(seed, excerpt, excerptDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Excerpt struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	excerpt := ExcerptRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -706,9 +714,7 @@ func testExcerptsSliceUpdateAll(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, excerpt, excerptDBTypes, true, excerptPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize Excerpt struct: %s", err)
-	}
+	excerpt = ExcerptRandom()
 
 	// Remove Primary keys and unique columns from what we plan to update
 	var fields []string
@@ -739,13 +745,14 @@ func testExcerptsUpsert(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
 	// Attempt the INSERT side of an UPSERT
-	excerpt := Excerpt{}
-	if err = randomize.Struct(seed, &excerpt, excerptDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Excerpt struct: %s", err)
-	}
+
+	excerpt := ExcerptRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -762,9 +769,8 @@ func testExcerptsUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
-	if err = randomize.Struct(seed, &excerpt, excerptDBTypes, false, excerptPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize Excerpt struct: %s", err)
-	}
+
+	excerpt = ExcerptRandom()
 
 	if err = excerpt.Upsert(tx, true, nil, nil); err != nil {
 		t.Errorf("Unable to upsert Excerpt: %s", err)

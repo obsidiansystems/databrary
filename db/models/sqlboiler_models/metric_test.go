@@ -26,12 +26,13 @@ func testMetrics(t *testing.T) {
 func testMetricsDelete(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	metric := &Metric{}
-	if err = randomize.Struct(seed, metric, metricDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Metric struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	metric := MetricRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -56,12 +57,13 @@ func testMetricsDelete(t *testing.T) {
 func testMetricsQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	metric := &Metric{}
-	if err = randomize.Struct(seed, metric, metricDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Metric struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	metric := MetricRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -86,12 +88,13 @@ func testMetricsQueryDeleteAll(t *testing.T) {
 func testMetricsSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	metric := &Metric{}
-	if err = randomize.Struct(seed, metric, metricDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Metric struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	metric := MetricRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -117,12 +120,13 @@ func testMetricsSliceDeleteAll(t *testing.T) {
 func testMetricsExists(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	metric := &Metric{}
-	if err = randomize.Struct(seed, metric, metricDBTypes, true, metricColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Metric struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	metric := MetricRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -141,12 +145,13 @@ func testMetricsExists(t *testing.T) {
 func testMetricsFind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	metric := &Metric{}
-	if err = randomize.Struct(seed, metric, metricDBTypes, true, metricColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Metric struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	metric := MetricRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -166,12 +171,13 @@ func testMetricsFind(t *testing.T) {
 func testMetricsBind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	metric := &Metric{}
-	if err = randomize.Struct(seed, metric, metricDBTypes, true, metricColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Metric struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	metric := MetricRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -187,12 +193,13 @@ func testMetricsBind(t *testing.T) {
 func testMetricsOne(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	metric := &Metric{}
-	if err = randomize.Struct(seed, metric, metricDBTypes, true, metricColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Metric struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	metric := MetricRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -210,16 +217,14 @@ func testMetricsOne(t *testing.T) {
 func testMetricsAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	metricOne := &Metric{}
-	metricTwo := &Metric{}
-	if err = randomize.Struct(seed, metricOne, metricDBTypes, false, metricColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Metric struct: %s", err)
-	}
-	if err = randomize.Struct(seed, metricTwo, metricDBTypes, false, metricColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Metric struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	metricOne := MetricRandom()
+	metricTwo := MetricRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -245,14 +250,12 @@ func testMetricsCount(t *testing.T) {
 
 	var err error
 	seed := randomize.NewSeed()
-	metricOne := &Metric{}
-	metricTwo := &Metric{}
-	if err = randomize.Struct(seed, metricOne, metricDBTypes, false, metricColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Metric struct: %s", err)
-	}
-	if err = randomize.Struct(seed, metricTwo, metricDBTypes, false, metricColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Metric struct: %s", err)
-	}
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	metricOne := MetricRandom()
+	metricTwo := MetricRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -323,12 +326,12 @@ func testMetricsHooks(t *testing.T) {
 	var err error
 
 	empty := &Metric{}
-	o := &Metric{}
-
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, o, metricDBTypes, false); err != nil {
-		t.Errorf("Unable to randomize Metric object: %s", err)
-	}
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	o := MetricRandom()
 
 	AddMetricHook(boil.BeforeInsertHook, metricBeforeInsertHook)
 	if err = o.doBeforeInsertHooks(nil); err != nil {
@@ -414,12 +417,13 @@ func testMetricsHooks(t *testing.T) {
 func testMetricsInsert(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	metric := &Metric{}
-	if err = randomize.Struct(seed, metric, metricDBTypes, true, metricColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Metric struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	metric := MetricRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -440,12 +444,13 @@ func testMetricsInsert(t *testing.T) {
 func testMetricsInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	metric := &Metric{}
-	if err = randomize.Struct(seed, metric, metricDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Metric struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	metric := MetricRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -1618,12 +1623,13 @@ func testMetricToOneSetOpCategoryUsingCategory(t *testing.T) {
 func testMetricsReload(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	metric := &Metric{}
-	if err = randomize.Struct(seed, metric, metricDBTypes, true, metricColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Metric struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	metric := MetricRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -1639,12 +1645,13 @@ func testMetricsReload(t *testing.T) {
 func testMetricsReloadAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	metric := &Metric{}
-	if err = randomize.Struct(seed, metric, metricDBTypes, true, metricColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Metric struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	metric := MetricRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -1661,12 +1668,13 @@ func testMetricsReloadAll(t *testing.T) {
 func testMetricsSelect(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	metric := &Metric{}
-	if err = randomize.Struct(seed, metric, metricDBTypes, true, metricColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Metric struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	metric := MetricRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -1696,12 +1704,13 @@ func testMetricsUpdate(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
-	metric := &Metric{}
-	if err = randomize.Struct(seed, metric, metricDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Metric struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	metric := MetricRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -1718,9 +1727,7 @@ func testMetricsUpdate(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, metric, metricDBTypes, true, metricColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Metric struct: %s", err)
-	}
+	metric = MetricRandom()
 
 	if err = metric.Update(tx); err != nil {
 		t.Error(err)
@@ -1734,12 +1741,13 @@ func testMetricsSliceUpdateAll(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
-	metric := &Metric{}
-	if err = randomize.Struct(seed, metric, metricDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Metric struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	metric := MetricRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -1756,9 +1764,7 @@ func testMetricsSliceUpdateAll(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, metric, metricDBTypes, true, metricPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize Metric struct: %s", err)
-	}
+	metric = MetricRandom()
 
 	// Remove Primary keys and unique columns from what we plan to update
 	var fields []string
@@ -1789,13 +1795,14 @@ func testMetricsUpsert(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
 	// Attempt the INSERT side of an UPSERT
-	metric := Metric{}
-	if err = randomize.Struct(seed, &metric, metricDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize Metric struct: %s", err)
-	}
+
+	metric := MetricRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -1812,9 +1819,8 @@ func testMetricsUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
-	if err = randomize.Struct(seed, &metric, metricDBTypes, false, metricPrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize Metric struct: %s", err)
-	}
+
+	metric = MetricRandom()
 
 	if err = metric.Upsert(tx, true, nil, nil); err != nil {
 		t.Errorf("Unable to upsert Metric: %s", err)

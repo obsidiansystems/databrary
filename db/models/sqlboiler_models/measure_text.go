@@ -22,12 +22,12 @@ import (
 
 // MeasureText is an object representing the database table.
 type MeasureText struct {
-	Record int    `boil:"record" json:"record" toml:"record" yaml:"record"`
-	Metric int    `boil:"metric" json:"metric" toml:"metric" yaml:"metric"`
-	Datum  string `boil:"datum" json:"datum" toml:"datum" yaml:"datum"`
+	Record int    `boil:"record" json:"measureText_record"`
+	Metric int    `boil:"metric" json:"measureText_metric"`
+	Datum  string `boil:"datum" json:"measureText_datum"`
 
-	R *measureTextR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L measureTextL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *measureTextR `boil:"-" json:"-"`
+	L measureTextL  `boil:"-" json:"-"`
 }
 
 // measureTextR is where relationships are stored.
@@ -872,9 +872,6 @@ func (o *MeasureText) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(measureTextColumns, measureTextPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update measure_text, could not build whitelist")
 		}
@@ -975,18 +972,18 @@ func (o MeasureTextSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"measure_text\" SET %s WHERE (\"record\",\"metric\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(measureTextPrimaryKeyColumns), len(colNames)+1, len(measureTextPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in measureText slice")
 	}
@@ -1168,14 +1165,14 @@ func (o *MeasureText) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), measureTextPrimaryKeyMapping)
-	sql := "DELETE FROM \"measure_text\" WHERE \"record\"=$1 AND \"metric\"=$2"
+	query := "DELETE FROM \"measure_text\" WHERE \"record\"=$1 AND \"metric\"=$2"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from measure_text")
 	}
@@ -1256,18 +1253,18 @@ func (o MeasureTextSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"measure_text\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, measureTextPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(measureTextPrimaryKeyColumns), 1, len(measureTextPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from measureText slice")
 	}
@@ -1360,13 +1357,13 @@ func (o *MeasureTextSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"measure_text\".* FROM \"measure_text\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, measureTextPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(measureTextPrimaryKeyColumns), 1, len(measureTextPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&measureTexts)
 	if err != nil {
@@ -1382,14 +1379,14 @@ func (o *MeasureTextSlice) ReloadAll(exec boil.Executor) error {
 func MeasureTextExists(exec boil.Executor, record int, metric int) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"measure_text\" where \"record\"=$1 AND \"metric\"=$2 limit 1)"
+	query := "select exists(select 1 from \"measure_text\" where \"record\"=$1 AND \"metric\"=$2 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, record, metric)
 	}
 
-	row := exec.QueryRow(sql, record, metric)
+	row := exec.QueryRow(query, record, metric)
 
 	err := row.Scan(&exists)
 	if err != nil {

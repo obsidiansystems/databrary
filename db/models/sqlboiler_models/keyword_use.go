@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/pkg/errors"
 	"github.com/vattle/sqlboiler/boil"
 	"github.com/vattle/sqlboiler/queries"
@@ -22,13 +23,13 @@ import (
 
 // KeywordUse is an object representing the database table.
 type KeywordUse struct {
-	Container int    `boil:"container" json:"container" toml:"container" yaml:"container"`
-	Segment   string `boil:"segment" json:"segment" toml:"segment" yaml:"segment"`
-	Tag       int    `boil:"tag" json:"tag" toml:"tag" yaml:"tag"`
-	Who       int    `boil:"who" json:"who" toml:"who" yaml:"who"`
+	Container int                  `boil:"container" json:"keywordUse_container"`
+	Segment   custom_types.Segment `boil:"segment" json:"keywordUse_segment"`
+	Tag       int                  `boil:"tag" json:"keywordUse_tag"`
+	Who       int                  `boil:"who" json:"keywordUse_who"`
 
-	R *keywordUseR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L keywordUseL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *keywordUseR `boil:"-" json:"-"`
+	L keywordUseL  `boil:"-" json:"-"`
 }
 
 // keywordUseR is where relationships are stored.
@@ -333,12 +334,12 @@ func KeywordUses(exec boil.Executor, mods ...qm.QueryMod) keywordUseQuery {
 }
 
 // FindKeywordUseG retrieves a single record by ID.
-func FindKeywordUseG(container int, segment string, tag int, selectCols ...string) (*KeywordUse, error) {
+func FindKeywordUseG(container int, segment custom_types.Segment, tag int, selectCols ...string) (*KeywordUse, error) {
 	return FindKeywordUse(boil.GetDB(), container, segment, tag, selectCols...)
 }
 
 // FindKeywordUseGP retrieves a single record by ID, and panics on error.
-func FindKeywordUseGP(container int, segment string, tag int, selectCols ...string) *KeywordUse {
+func FindKeywordUseGP(container int, segment custom_types.Segment, tag int, selectCols ...string) *KeywordUse {
 	retobj, err := FindKeywordUse(boil.GetDB(), container, segment, tag, selectCols...)
 	if err != nil {
 		panic(boil.WrapErr(err))
@@ -349,7 +350,7 @@ func FindKeywordUseGP(container int, segment string, tag int, selectCols ...stri
 
 // FindKeywordUse retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindKeywordUse(exec boil.Executor, container int, segment string, tag int, selectCols ...string) (*KeywordUse, error) {
+func FindKeywordUse(exec boil.Executor, container int, segment custom_types.Segment, tag int, selectCols ...string) (*KeywordUse, error) {
 	keywordUseObj := &KeywordUse{}
 
 	sel := "*"
@@ -374,7 +375,7 @@ func FindKeywordUse(exec boil.Executor, container int, segment string, tag int, 
 }
 
 // FindKeywordUseP retrieves a single record by ID with an executor, and panics on error.
-func FindKeywordUseP(exec boil.Executor, container int, segment string, tag int, selectCols ...string) *KeywordUse {
+func FindKeywordUseP(exec boil.Executor, container int, segment custom_types.Segment, tag int, selectCols ...string) *KeywordUse {
 	retobj, err := FindKeywordUse(exec, container, segment, tag, selectCols...)
 	if err != nil {
 		panic(boil.WrapErr(err))
@@ -525,9 +526,6 @@ func (o *KeywordUse) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(keywordUseColumns, keywordUsePrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update keyword_use, could not build whitelist")
 		}
@@ -628,18 +626,18 @@ func (o KeywordUseSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"keyword_use\" SET %s WHERE (\"container\",\"segment\",\"tag\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(keywordUsePrimaryKeyColumns), len(colNames)+1, len(keywordUsePrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in keywordUse slice")
 	}
@@ -821,14 +819,14 @@ func (o *KeywordUse) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), keywordUsePrimaryKeyMapping)
-	sql := "DELETE FROM \"keyword_use\" WHERE \"container\"=$1 AND \"segment\"=$2 AND \"tag\"=$3"
+	query := "DELETE FROM \"keyword_use\" WHERE \"container\"=$1 AND \"segment\"=$2 AND \"tag\"=$3"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from keyword_use")
 	}
@@ -909,18 +907,18 @@ func (o KeywordUseSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"keyword_use\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, keywordUsePrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(keywordUsePrimaryKeyColumns), 1, len(keywordUsePrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from keywordUse slice")
 	}
@@ -1013,13 +1011,13 @@ func (o *KeywordUseSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"keyword_use\".* FROM \"keyword_use\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, keywordUsePrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(keywordUsePrimaryKeyColumns), 1, len(keywordUsePrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&keywordUses)
 	if err != nil {
@@ -1032,17 +1030,17 @@ func (o *KeywordUseSlice) ReloadAll(exec boil.Executor) error {
 }
 
 // KeywordUseExists checks if the KeywordUse row exists.
-func KeywordUseExists(exec boil.Executor, container int, segment string, tag int) (bool, error) {
+func KeywordUseExists(exec boil.Executor, container int, segment custom_types.Segment, tag int) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"keyword_use\" where \"container\"=$1 AND \"segment\"=$2 AND \"tag\"=$3 limit 1)"
+	query := "select exists(select 1 from \"keyword_use\" where \"container\"=$1 AND \"segment\"=$2 AND \"tag\"=$3 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, container, segment, tag)
 	}
 
-	row := exec.QueryRow(sql, container, segment, tag)
+	row := exec.QueryRow(query, container, segment, tag)
 
 	err := row.Scan(&exists)
 	if err != nil {
@@ -1053,12 +1051,12 @@ func KeywordUseExists(exec boil.Executor, container int, segment string, tag int
 }
 
 // KeywordUseExistsG checks if the KeywordUse row exists.
-func KeywordUseExistsG(container int, segment string, tag int) (bool, error) {
+func KeywordUseExistsG(container int, segment custom_types.Segment, tag int) (bool, error) {
 	return KeywordUseExists(boil.GetDB(), container, segment, tag)
 }
 
 // KeywordUseExistsGP checks if the KeywordUse row exists. Panics on error.
-func KeywordUseExistsGP(container int, segment string, tag int) bool {
+func KeywordUseExistsGP(container int, segment custom_types.Segment, tag int) bool {
 	e, err := KeywordUseExists(boil.GetDB(), container, segment, tag)
 	if err != nil {
 		panic(boil.WrapErr(err))
@@ -1068,7 +1066,7 @@ func KeywordUseExistsGP(container int, segment string, tag int) bool {
 }
 
 // KeywordUseExistsP checks if the KeywordUse row exists. Panics on error.
-func KeywordUseExistsP(exec boil.Executor, container int, segment string, tag int) bool {
+func KeywordUseExistsP(exec boil.Executor, container int, segment custom_types.Segment, tag int) bool {
 	e, err := KeywordUseExists(exec, container, segment, tag)
 	if err != nil {
 		panic(boil.WrapErr(err))

@@ -9,3 +9,4 @@ port = "5432"
 user = "postgres"
 pw = "mysecretpassword"
 schema = "/home/maksim/dev_projects/go/src/github.com/databrary/databrary/db/schema/master_sql"
+

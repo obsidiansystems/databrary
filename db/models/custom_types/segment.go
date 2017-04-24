@@ -37,6 +37,7 @@ import (
 
 	log "github.com/databrary/databrary/logging"
 	"github.com/databrary/databrary/util"
+	//set "github.com/deckarep/golang-set"
 )
 
 const (
@@ -71,11 +72,15 @@ func (s *Segment) String() string {
 }
 
 func NewSegment(lower *time.Time, upper *time.Time, bounds string) (Segment, error) {
+
+	//if !set.NewSetFromSlice([]interface{}(strings.Split(bounds,""))).IsSubset(set.NewSet("[","]","(",")")) {
+	//	errF := fmt.Sprintf("malformed bounds %s", bounds)
+	//	return Segment{}, log.LogAndError(errF)
+	//}
 	// empty -> bounds = "", lower = nil, upper = nil
 	if bounds == "" {
 		if lower != nil || upper != nil {
 			errF := fmt.Sprintf("empty segment with non-nil lower %s or upper %s", lower, upper)
-
 			return Segment{}, log.LogAndError(errF)
 		}
 		return Segment{bounds: bounds, lower: lower, upper: upper}, nil
@@ -475,3 +480,5 @@ func (d NullDuration) Value() (driver.Value, error) {
 	}
 	return []byte(d.time.Format(MIL_SEG_FORMAT)), nil
 }
+
+

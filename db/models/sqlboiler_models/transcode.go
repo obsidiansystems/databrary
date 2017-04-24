@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/pkg/errors"
 	"github.com/vattle/sqlboiler/boil"
 	"github.com/vattle/sqlboiler/queries"
@@ -24,17 +25,17 @@ import (
 
 // Transcode is an object representing the database table.
 type Transcode struct {
-	Orig    int               `boil:"orig" json:"orig" toml:"orig" yaml:"orig"`
-	Asset   int               `boil:"asset" json:"asset" toml:"asset" yaml:"asset"`
-	Owner   int               `boil:"owner" json:"owner" toml:"owner" yaml:"owner"`
-	Segment string            `boil:"segment" json:"segment" toml:"segment" yaml:"segment"`
-	Options types.StringArray `boil:"options" json:"options" toml:"options" yaml:"options"`
-	Start   null.Time         `boil:"start" json:"start,omitempty" toml:"start" yaml:"start,omitempty"`
-	Process null.Int          `boil:"process" json:"process,omitempty" toml:"process" yaml:"process,omitempty"`
-	Log     null.String       `boil:"log" json:"log,omitempty" toml:"log" yaml:"log,omitempty"`
+	Orig    int                  `boil:"orig" json:"transcode_orig"`
+	Asset   int                  `boil:"asset" json:"transcode_asset"`
+	Owner   int                  `boil:"owner" json:"transcode_owner"`
+	Segment custom_types.Segment `boil:"segment" json:"transcode_segment"`
+	Options types.StringArray    `boil:"options" json:"transcode_options"`
+	Start   null.Time            `boil:"start" json:"transcode_start,omitempty"`
+	Process null.Int             `boil:"process" json:"transcode_process,omitempty"`
+	Log     null.String          `boil:"log" json:"transcode_log,omitempty"`
 
-	R *transcodeR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L transcodeL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *transcodeR `boil:"-" json:"-"`
+	L transcodeL  `boil:"-" json:"-"`
 }
 
 // transcodeR is where relationships are stored.
@@ -1053,9 +1054,6 @@ func (o *Transcode) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(transcodeColumns, transcodePrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update transcode, could not build whitelist")
 		}
@@ -1156,18 +1154,18 @@ func (o TranscodeSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"transcode\" SET %s WHERE (\"asset\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(transcodePrimaryKeyColumns), len(colNames)+1, len(transcodePrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in transcode slice")
 	}
@@ -1349,14 +1347,14 @@ func (o *Transcode) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), transcodePrimaryKeyMapping)
-	sql := "DELETE FROM \"transcode\" WHERE \"asset\"=$1"
+	query := "DELETE FROM \"transcode\" WHERE \"asset\"=$1"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from transcode")
 	}
@@ -1437,18 +1435,18 @@ func (o TranscodeSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"transcode\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, transcodePrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(transcodePrimaryKeyColumns), 1, len(transcodePrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from transcode slice")
 	}
@@ -1541,13 +1539,13 @@ func (o *TranscodeSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"transcode\".* FROM \"transcode\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, transcodePrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(transcodePrimaryKeyColumns), 1, len(transcodePrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&transcodes)
 	if err != nil {
@@ -1563,14 +1561,14 @@ func (o *TranscodeSlice) ReloadAll(exec boil.Executor) error {
 func TranscodeExists(exec boil.Executor, asset int) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"transcode\" where \"asset\"=$1 limit 1)"
+	query := "select exists(select 1 from \"transcode\" where \"asset\"=$1 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, asset)
 	}
 
-	row := exec.QueryRow(sql, asset)
+	row := exec.QueryRow(query, asset)
 
 	err := row.Scan(&exists)
 	if err != nil {

@@ -26,8 +26,12 @@ func testSessions(t *testing.T) {
 func testSessionsDelete(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	session := &Session{}
 	if err = randomize.Struct(seed, session, sessionDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Session struct: %s", err)
@@ -56,8 +60,12 @@ func testSessionsDelete(t *testing.T) {
 func testSessionsQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	session := &Session{}
 	if err = randomize.Struct(seed, session, sessionDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Session struct: %s", err)
@@ -86,8 +94,12 @@ func testSessionsQueryDeleteAll(t *testing.T) {
 func testSessionsSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	session := &Session{}
 	if err = randomize.Struct(seed, session, sessionDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Session struct: %s", err)
@@ -117,8 +129,12 @@ func testSessionsSliceDeleteAll(t *testing.T) {
 func testSessionsExists(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	session := &Session{}
 	if err = randomize.Struct(seed, session, sessionDBTypes, true, sessionColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Session struct: %s", err)
@@ -141,8 +157,12 @@ func testSessionsExists(t *testing.T) {
 func testSessionsFind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	session := &Session{}
 	if err = randomize.Struct(seed, session, sessionDBTypes, true, sessionColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Session struct: %s", err)
@@ -166,8 +186,12 @@ func testSessionsFind(t *testing.T) {
 func testSessionsBind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	session := &Session{}
 	if err = randomize.Struct(seed, session, sessionDBTypes, true, sessionColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Session struct: %s", err)
@@ -187,8 +211,12 @@ func testSessionsBind(t *testing.T) {
 func testSessionsOne(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	session := &Session{}
 	if err = randomize.Struct(seed, session, sessionDBTypes, true, sessionColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Session struct: %s", err)
@@ -210,8 +238,12 @@ func testSessionsOne(t *testing.T) {
 func testSessionsAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	sessionOne := &Session{}
 	sessionTwo := &Session{}
 	if err = randomize.Struct(seed, sessionOne, sessionDBTypes, false, sessionColumnsWithDefault...); err != nil {
@@ -245,6 +277,10 @@ func testSessionsCount(t *testing.T) {
 
 	var err error
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	sessionOne := &Session{}
 	sessionTwo := &Session{}
 	if err = randomize.Struct(seed, sessionOne, sessionDBTypes, false, sessionColumnsWithDefault...); err != nil {
@@ -323,9 +359,12 @@ func testSessionsHooks(t *testing.T) {
 	var err error
 
 	empty := &Session{}
-	o := &Session{}
-
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	o := &Session{}
 	if err = randomize.Struct(seed, o, sessionDBTypes, false); err != nil {
 		t.Errorf("Unable to randomize Session object: %s", err)
 	}
@@ -414,8 +453,12 @@ func testSessionsHooks(t *testing.T) {
 func testSessionsInsert(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	session := &Session{}
 	if err = randomize.Struct(seed, session, sessionDBTypes, true, sessionColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Session struct: %s", err)
@@ -440,8 +483,12 @@ func testSessionsInsert(t *testing.T) {
 func testSessionsInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	session := &Session{}
 	if err = randomize.Struct(seed, session, sessionDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Session struct: %s", err)
@@ -572,8 +619,12 @@ func testSessionToOneSetOpAccountUsingAccount(t *testing.T) {
 func testSessionsReload(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	session := &Session{}
 	if err = randomize.Struct(seed, session, sessionDBTypes, true, sessionColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Session struct: %s", err)
@@ -593,8 +644,12 @@ func testSessionsReload(t *testing.T) {
 func testSessionsReloadAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	session := &Session{}
 	if err = randomize.Struct(seed, session, sessionDBTypes, true, sessionColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Session struct: %s", err)
@@ -615,8 +670,12 @@ func testSessionsReloadAll(t *testing.T) {
 func testSessionsSelect(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	session := &Session{}
 	if err = randomize.Struct(seed, session, sessionDBTypes, true, sessionColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Session struct: %s", err)
@@ -650,8 +709,12 @@ func testSessionsUpdate(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	session := &Session{}
 	if err = randomize.Struct(seed, session, sessionDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Session struct: %s", err)
@@ -688,8 +751,12 @@ func testSessionsSliceUpdateAll(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	session := &Session{}
 	if err = randomize.Struct(seed, session, sessionDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Session struct: %s", err)
@@ -743,9 +810,13 @@ func testSessionsUpsert(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
 	// Attempt the INSERT side of an UPSERT
+
 	session := Session{}
 	if err = randomize.Struct(seed, &session, sessionDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize Session struct: %s", err)
@@ -766,6 +837,7 @@ func testSessionsUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
+
 	if err = randomize.Struct(seed, &session, sessionDBTypes, false, sessionPrimaryKeyColumns...); err != nil {
 		t.Errorf("Unable to randomize Session struct: %s", err)
 	}

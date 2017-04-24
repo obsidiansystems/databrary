@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/pkg/errors"
 	"github.com/vattle/sqlboiler/boil"
 	"github.com/vattle/sqlboiler/queries"
@@ -23,14 +24,14 @@ import (
 
 // Authorize is an object representing the database table.
 type Authorize struct {
-	Child   int       `boil:"child" json:"child" toml:"child" yaml:"child"`
-	Parent  int       `boil:"parent" json:"parent" toml:"parent" yaml:"parent"`
-	Site    string    `boil:"site" json:"site" toml:"site" yaml:"site"`
-	Member  string    `boil:"member" json:"member" toml:"member" yaml:"member"`
-	Expires null.Time `boil:"expires" json:"expires,omitempty" toml:"expires" yaml:"expires,omitempty"`
+	Child   int                     `boil:"child" json:"authorize_child"`
+	Parent  int                     `boil:"parent" json:"authorize_parent"`
+	Site    custom_types.Permission `boil:"site" json:"authorize_site"`
+	Member  custom_types.Permission `boil:"member" json:"authorize_member"`
+	Expires null.Time               `boil:"expires" json:"authorize_expires,omitempty"`
 
-	R *authorizeR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L authorizeL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *authorizeR `boil:"-" json:"-"`
+	L authorizeL  `boil:"-" json:"-"`
 }
 
 // authorizeR is where relationships are stored.
@@ -875,9 +876,6 @@ func (o *Authorize) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(authorizeColumns, authorizePrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update authorize, could not build whitelist")
 		}
@@ -978,18 +976,18 @@ func (o AuthorizeSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"authorize\" SET %s WHERE (\"child\",\"parent\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(authorizePrimaryKeyColumns), len(colNames)+1, len(authorizePrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in authorize slice")
 	}
@@ -1171,14 +1169,14 @@ func (o *Authorize) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), authorizePrimaryKeyMapping)
-	sql := "DELETE FROM \"authorize\" WHERE \"child\"=$1 AND \"parent\"=$2"
+	query := "DELETE FROM \"authorize\" WHERE \"child\"=$1 AND \"parent\"=$2"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from authorize")
 	}
@@ -1259,18 +1257,18 @@ func (o AuthorizeSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"authorize\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, authorizePrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(authorizePrimaryKeyColumns), 1, len(authorizePrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from authorize slice")
 	}
@@ -1363,13 +1361,13 @@ func (o *AuthorizeSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"authorize\".* FROM \"authorize\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, authorizePrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(authorizePrimaryKeyColumns), 1, len(authorizePrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&authorizes)
 	if err != nil {
@@ -1385,14 +1383,14 @@ func (o *AuthorizeSlice) ReloadAll(exec boil.Executor) error {
 func AuthorizeExists(exec boil.Executor, child int, parent int) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"authorize\" where \"child\"=$1 AND \"parent\"=$2 limit 1)"
+	query := "select exists(select 1 from \"authorize\" where \"child\"=$1 AND \"parent\"=$2 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, child, parent)
 	}
 
-	row := exec.QueryRow(sql, child, parent)
+	row := exec.QueryRow(query, child, parent)
 
 	err := row.Scan(&exists)
 	if err != nil {

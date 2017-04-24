@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/pkg/errors"
 	"github.com/vattle/sqlboiler/boil"
 	"github.com/vattle/sqlboiler/queries"
@@ -22,12 +23,12 @@ import (
 
 // VolumeInclusion is an object representing the database table.
 type VolumeInclusion struct {
-	Container int    `boil:"container" json:"container" toml:"container" yaml:"container"`
-	Segment   string `boil:"segment" json:"segment" toml:"segment" yaml:"segment"`
-	Volume    int    `boil:"volume" json:"volume" toml:"volume" yaml:"volume"`
+	Container int                  `boil:"container" json:"volumeInclusion_container"`
+	Segment   custom_types.Segment `boil:"segment" json:"volumeInclusion_segment"`
+	Volume    int                  `boil:"volume" json:"volumeInclusion_volume"`
 
-	R *volumeInclusionR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L volumeInclusionL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *volumeInclusionR `boil:"-" json:"-"`
+	L volumeInclusionL  `boil:"-" json:"-"`
 }
 
 // volumeInclusionR is where relationships are stored.
@@ -872,9 +873,6 @@ func (o *VolumeInclusion) Update(exec boil.Executor, whitelist ...string) error 
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(volumeInclusionColumns, volumeInclusionPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update volume_inclusion, could not build whitelist")
 		}
@@ -975,18 +973,18 @@ func (o VolumeInclusionSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"volume_inclusion\" SET %s WHERE (\"container\",\"volume\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(volumeInclusionPrimaryKeyColumns), len(colNames)+1, len(volumeInclusionPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in volumeInclusion slice")
 	}
@@ -1168,14 +1166,14 @@ func (o *VolumeInclusion) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), volumeInclusionPrimaryKeyMapping)
-	sql := "DELETE FROM \"volume_inclusion\" WHERE \"container\"=$1 AND \"volume\"=$2"
+	query := "DELETE FROM \"volume_inclusion\" WHERE \"container\"=$1 AND \"volume\"=$2"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from volume_inclusion")
 	}
@@ -1256,18 +1254,18 @@ func (o VolumeInclusionSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"volume_inclusion\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, volumeInclusionPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(volumeInclusionPrimaryKeyColumns), 1, len(volumeInclusionPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from volumeInclusion slice")
 	}
@@ -1360,13 +1358,13 @@ func (o *VolumeInclusionSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"volume_inclusion\".* FROM \"volume_inclusion\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, volumeInclusionPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(volumeInclusionPrimaryKeyColumns), 1, len(volumeInclusionPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&volumeInclusions)
 	if err != nil {
@@ -1382,14 +1380,14 @@ func (o *VolumeInclusionSlice) ReloadAll(exec boil.Executor) error {
 func VolumeInclusionExists(exec boil.Executor, container int, volume int) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"volume_inclusion\" where \"container\"=$1 AND \"volume\"=$2 limit 1)"
+	query := "select exists(select 1 from \"volume_inclusion\" where \"container\"=$1 AND \"volume\"=$2 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, container, volume)
 	}
 
-	row := exec.QueryRow(sql, container, volume)
+	row := exec.QueryRow(query, container, volume)
 
 	err := row.Scan(&exists)
 	if err != nil {

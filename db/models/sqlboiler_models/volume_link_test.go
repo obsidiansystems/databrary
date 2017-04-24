@@ -26,8 +26,12 @@ func testVolumeLinks(t *testing.T) {
 func testVolumeLinksDelete(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeLink := &VolumeLink{}
 	if err = randomize.Struct(seed, volumeLink, volumeLinkDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize VolumeLink struct: %s", err)
@@ -56,8 +60,12 @@ func testVolumeLinksDelete(t *testing.T) {
 func testVolumeLinksQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeLink := &VolumeLink{}
 	if err = randomize.Struct(seed, volumeLink, volumeLinkDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize VolumeLink struct: %s", err)
@@ -86,8 +94,12 @@ func testVolumeLinksQueryDeleteAll(t *testing.T) {
 func testVolumeLinksSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeLink := &VolumeLink{}
 	if err = randomize.Struct(seed, volumeLink, volumeLinkDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize VolumeLink struct: %s", err)
@@ -117,8 +129,12 @@ func testVolumeLinksSliceDeleteAll(t *testing.T) {
 func testVolumeLinksExists(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeLink := &VolumeLink{}
 	if err = randomize.Struct(seed, volumeLink, volumeLinkDBTypes, true, volumeLinkColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize VolumeLink struct: %s", err)
@@ -141,8 +157,12 @@ func testVolumeLinksExists(t *testing.T) {
 func testVolumeLinksFind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeLink := &VolumeLink{}
 	if err = randomize.Struct(seed, volumeLink, volumeLinkDBTypes, true, volumeLinkColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize VolumeLink struct: %s", err)
@@ -166,8 +186,12 @@ func testVolumeLinksFind(t *testing.T) {
 func testVolumeLinksBind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeLink := &VolumeLink{}
 	if err = randomize.Struct(seed, volumeLink, volumeLinkDBTypes, true, volumeLinkColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize VolumeLink struct: %s", err)
@@ -187,8 +211,12 @@ func testVolumeLinksBind(t *testing.T) {
 func testVolumeLinksOne(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeLink := &VolumeLink{}
 	if err = randomize.Struct(seed, volumeLink, volumeLinkDBTypes, true, volumeLinkColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize VolumeLink struct: %s", err)
@@ -210,8 +238,12 @@ func testVolumeLinksOne(t *testing.T) {
 func testVolumeLinksAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeLinkOne := &VolumeLink{}
 	volumeLinkTwo := &VolumeLink{}
 	if err = randomize.Struct(seed, volumeLinkOne, volumeLinkDBTypes, false, volumeLinkColumnsWithDefault...); err != nil {
@@ -245,6 +277,10 @@ func testVolumeLinksCount(t *testing.T) {
 
 	var err error
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeLinkOne := &VolumeLink{}
 	volumeLinkTwo := &VolumeLink{}
 	if err = randomize.Struct(seed, volumeLinkOne, volumeLinkDBTypes, false, volumeLinkColumnsWithDefault...); err != nil {
@@ -323,9 +359,12 @@ func testVolumeLinksHooks(t *testing.T) {
 	var err error
 
 	empty := &VolumeLink{}
-	o := &VolumeLink{}
-
 	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	o := &VolumeLink{}
 	if err = randomize.Struct(seed, o, volumeLinkDBTypes, false); err != nil {
 		t.Errorf("Unable to randomize VolumeLink object: %s", err)
 	}
@@ -414,8 +453,12 @@ func testVolumeLinksHooks(t *testing.T) {
 func testVolumeLinksInsert(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeLink := &VolumeLink{}
 	if err = randomize.Struct(seed, volumeLink, volumeLinkDBTypes, true, volumeLinkColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize VolumeLink struct: %s", err)
@@ -440,8 +483,12 @@ func testVolumeLinksInsert(t *testing.T) {
 func testVolumeLinksInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeLink := &VolumeLink{}
 	if err = randomize.Struct(seed, volumeLink, volumeLinkDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize VolumeLink struct: %s", err)
@@ -568,8 +615,12 @@ func testVolumeLinkToOneSetOpVolumeUsingVolume(t *testing.T) {
 func testVolumeLinksReload(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeLink := &VolumeLink{}
 	if err = randomize.Struct(seed, volumeLink, volumeLinkDBTypes, true, volumeLinkColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize VolumeLink struct: %s", err)
@@ -589,8 +640,12 @@ func testVolumeLinksReload(t *testing.T) {
 func testVolumeLinksReloadAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeLink := &VolumeLink{}
 	if err = randomize.Struct(seed, volumeLink, volumeLinkDBTypes, true, volumeLinkColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize VolumeLink struct: %s", err)
@@ -611,8 +666,12 @@ func testVolumeLinksReloadAll(t *testing.T) {
 func testVolumeLinksSelect(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeLink := &VolumeLink{}
 	if err = randomize.Struct(seed, volumeLink, volumeLinkDBTypes, true, volumeLinkColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize VolumeLink struct: %s", err)
@@ -646,8 +705,12 @@ func testVolumeLinksUpdate(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeLink := &VolumeLink{}
 	if err = randomize.Struct(seed, volumeLink, volumeLinkDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize VolumeLink struct: %s", err)
@@ -684,8 +747,12 @@ func testVolumeLinksSliceUpdateAll(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
 	volumeLink := &VolumeLink{}
 	if err = randomize.Struct(seed, volumeLink, volumeLinkDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize VolumeLink struct: %s", err)
@@ -739,9 +806,13 @@ func testVolumeLinksUpsert(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
 	// Attempt the INSERT side of an UPSERT
+
 	volumeLink := VolumeLink{}
 	if err = randomize.Struct(seed, &volumeLink, volumeLinkDBTypes, true); err != nil {
 		t.Errorf("Unable to randomize VolumeLink struct: %s", err)
@@ -762,6 +833,7 @@ func testVolumeLinksUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
+
 	if err = randomize.Struct(seed, &volumeLink, volumeLinkDBTypes, false, volumeLinkPrimaryKeyColumns...); err != nil {
 		t.Errorf("Unable to randomize VolumeLink struct: %s", err)
 	}

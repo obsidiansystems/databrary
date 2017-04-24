@@ -23,13 +23,13 @@ import (
 
 // VolumeCitation is an object representing the database table.
 type VolumeCitation struct {
-	Volume int         `boil:"volume" json:"volume" toml:"volume" yaml:"volume"`
-	Head   string      `boil:"head" json:"head" toml:"head" yaml:"head"`
-	URL    null.String `boil:"url" json:"url,omitempty" toml:"url" yaml:"url,omitempty"`
-	Year   null.Int16  `boil:"year" json:"year,omitempty" toml:"year" yaml:"year,omitempty"`
+	Volume int         `boil:"volume" json:"volumeCitation_volume"`
+	Head   string      `boil:"head" json:"volumeCitation_head"`
+	URL    null.String `boil:"url" json:"volumeCitation_url,omitempty"`
+	Year   null.Int16  `boil:"year" json:"volumeCitation_year,omitempty"`
 
-	R *volumeCitationR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L volumeCitationL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *volumeCitationR `boil:"-" json:"-"`
+	L volumeCitationL  `boil:"-" json:"-"`
 }
 
 // volumeCitationR is where relationships are stored.
@@ -700,9 +700,6 @@ func (o *VolumeCitation) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(volumeCitationColumns, volumeCitationPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update volume_citation, could not build whitelist")
 		}
@@ -803,18 +800,18 @@ func (o VolumeCitationSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"volume_citation\" SET %s WHERE (\"volume\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(volumeCitationPrimaryKeyColumns), len(colNames)+1, len(volumeCitationPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in volumeCitation slice")
 	}
@@ -996,14 +993,14 @@ func (o *VolumeCitation) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), volumeCitationPrimaryKeyMapping)
-	sql := "DELETE FROM \"volume_citation\" WHERE \"volume\"=$1"
+	query := "DELETE FROM \"volume_citation\" WHERE \"volume\"=$1"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from volume_citation")
 	}
@@ -1084,18 +1081,18 @@ func (o VolumeCitationSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"volume_citation\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, volumeCitationPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(volumeCitationPrimaryKeyColumns), 1, len(volumeCitationPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from volumeCitation slice")
 	}
@@ -1188,13 +1185,13 @@ func (o *VolumeCitationSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"volume_citation\".* FROM \"volume_citation\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, volumeCitationPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(volumeCitationPrimaryKeyColumns), 1, len(volumeCitationPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&volumeCitations)
 	if err != nil {
@@ -1210,14 +1207,14 @@ func (o *VolumeCitationSlice) ReloadAll(exec boil.Executor) error {
 func VolumeCitationExists(exec boil.Executor, volume int) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"volume_citation\" where \"volume\"=$1 limit 1)"
+	query := "select exists(select 1 from \"volume_citation\" where \"volume\"=$1 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, volume)
 	}
 
-	row := exec.QueryRow(sql, volume)
+	row := exec.QueryRow(query, volume)
 
 	err := row.Scan(&exists)
 	if err != nil {

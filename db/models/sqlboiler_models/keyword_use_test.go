@@ -26,12 +26,13 @@ func testKeywordUses(t *testing.T) {
 func testKeywordUsesDelete(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	keywordUse := &KeywordUse{}
-	if err = randomize.Struct(seed, keywordUse, keywordUseDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize KeywordUse struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	keywordUse := KeywordUseRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -56,12 +57,13 @@ func testKeywordUsesDelete(t *testing.T) {
 func testKeywordUsesQueryDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	keywordUse := &KeywordUse{}
-	if err = randomize.Struct(seed, keywordUse, keywordUseDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize KeywordUse struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	keywordUse := KeywordUseRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -86,12 +88,13 @@ func testKeywordUsesQueryDeleteAll(t *testing.T) {
 func testKeywordUsesSliceDeleteAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	keywordUse := &KeywordUse{}
-	if err = randomize.Struct(seed, keywordUse, keywordUseDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize KeywordUse struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	keywordUse := KeywordUseRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -117,12 +120,13 @@ func testKeywordUsesSliceDeleteAll(t *testing.T) {
 func testKeywordUsesExists(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	keywordUse := &KeywordUse{}
-	if err = randomize.Struct(seed, keywordUse, keywordUseDBTypes, true, keywordUseColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize KeywordUse struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	keywordUse := KeywordUseRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -141,12 +145,13 @@ func testKeywordUsesExists(t *testing.T) {
 func testKeywordUsesFind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	keywordUse := &KeywordUse{}
-	if err = randomize.Struct(seed, keywordUse, keywordUseDBTypes, true, keywordUseColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize KeywordUse struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	keywordUse := KeywordUseRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -166,12 +171,13 @@ func testKeywordUsesFind(t *testing.T) {
 func testKeywordUsesBind(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	keywordUse := &KeywordUse{}
-	if err = randomize.Struct(seed, keywordUse, keywordUseDBTypes, true, keywordUseColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize KeywordUse struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	keywordUse := KeywordUseRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -187,12 +193,13 @@ func testKeywordUsesBind(t *testing.T) {
 func testKeywordUsesOne(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	keywordUse := &KeywordUse{}
-	if err = randomize.Struct(seed, keywordUse, keywordUseDBTypes, true, keywordUseColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize KeywordUse struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	keywordUse := KeywordUseRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -210,16 +217,14 @@ func testKeywordUsesOne(t *testing.T) {
 func testKeywordUsesAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	keywordUseOne := &KeywordUse{}
-	keywordUseTwo := &KeywordUse{}
-	if err = randomize.Struct(seed, keywordUseOne, keywordUseDBTypes, false, keywordUseColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize KeywordUse struct: %s", err)
-	}
-	if err = randomize.Struct(seed, keywordUseTwo, keywordUseDBTypes, false, keywordUseColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize KeywordUse struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	keywordUseOne := KeywordUseRandom()
+	keywordUseTwo := KeywordUseRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -245,14 +250,12 @@ func testKeywordUsesCount(t *testing.T) {
 
 	var err error
 	seed := randomize.NewSeed()
-	keywordUseOne := &KeywordUse{}
-	keywordUseTwo := &KeywordUse{}
-	if err = randomize.Struct(seed, keywordUseOne, keywordUseDBTypes, false, keywordUseColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize KeywordUse struct: %s", err)
-	}
-	if err = randomize.Struct(seed, keywordUseTwo, keywordUseDBTypes, false, keywordUseColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize KeywordUse struct: %s", err)
-	}
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	keywordUseOne := KeywordUseRandom()
+	keywordUseTwo := KeywordUseRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -323,12 +326,12 @@ func testKeywordUsesHooks(t *testing.T) {
 	var err error
 
 	empty := &KeywordUse{}
-	o := &KeywordUse{}
-
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, o, keywordUseDBTypes, false); err != nil {
-		t.Errorf("Unable to randomize KeywordUse object: %s", err)
-	}
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	o := KeywordUseRandom()
 
 	AddKeywordUseHook(boil.BeforeInsertHook, keywordUseBeforeInsertHook)
 	if err = o.doBeforeInsertHooks(nil); err != nil {
@@ -414,12 +417,13 @@ func testKeywordUsesHooks(t *testing.T) {
 func testKeywordUsesInsert(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	keywordUse := &KeywordUse{}
-	if err = randomize.Struct(seed, keywordUse, keywordUseDBTypes, true, keywordUseColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize KeywordUse struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	keywordUse := KeywordUseRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -440,12 +444,13 @@ func testKeywordUsesInsert(t *testing.T) {
 func testKeywordUsesInsertWhitelist(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	keywordUse := &KeywordUse{}
-	if err = randomize.Struct(seed, keywordUse, keywordUseDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize KeywordUse struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	keywordUse := KeywordUseRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -466,12 +471,13 @@ func testKeywordUsesInsertWhitelist(t *testing.T) {
 func testKeywordUsesReload(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	keywordUse := &KeywordUse{}
-	if err = randomize.Struct(seed, keywordUse, keywordUseDBTypes, true, keywordUseColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize KeywordUse struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	keywordUse := KeywordUseRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -487,12 +493,13 @@ func testKeywordUsesReload(t *testing.T) {
 func testKeywordUsesReloadAll(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	keywordUse := &KeywordUse{}
-	if err = randomize.Struct(seed, keywordUse, keywordUseDBTypes, true, keywordUseColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize KeywordUse struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	keywordUse := KeywordUseRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -509,12 +516,13 @@ func testKeywordUsesReloadAll(t *testing.T) {
 func testKeywordUsesSelect(t *testing.T) {
 	t.Parallel()
 
-	seed := randomize.NewSeed()
 	var err error
-	keywordUse := &KeywordUse{}
-	if err = randomize.Struct(seed, keywordUse, keywordUseDBTypes, true, keywordUseColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize KeywordUse struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	keywordUse := KeywordUseRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -533,7 +541,7 @@ func testKeywordUsesSelect(t *testing.T) {
 }
 
 var (
-	keywordUseDBTypes = map[string]string{`Container`: `integer`, `Segment`: `segment`, `Tag`: `integer`, `Who`: `integer`}
+	keywordUseDBTypes = map[string]string{`Container`: `integer`, `Segment`: `USER-DEFINED`, `Tag`: `integer`, `Who`: `integer`}
 	_                 = bytes.MinRead
 )
 
@@ -544,12 +552,13 @@ func testKeywordUsesUpdate(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
-	keywordUse := &KeywordUse{}
-	if err = randomize.Struct(seed, keywordUse, keywordUseDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize KeywordUse struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	keywordUse := KeywordUseRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -566,9 +575,7 @@ func testKeywordUsesUpdate(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, keywordUse, keywordUseDBTypes, true, keywordUseColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize KeywordUse struct: %s", err)
-	}
+	keywordUse = KeywordUseRandom()
 
 	if err = keywordUse.Update(tx); err != nil {
 		t.Error(err)
@@ -582,12 +589,13 @@ func testKeywordUsesSliceUpdateAll(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
-	keywordUse := &KeywordUse{}
-	if err = randomize.Struct(seed, keywordUse, keywordUseDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize KeywordUse struct: %s", err)
-	}
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
+
+	keywordUse := KeywordUseRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -604,9 +612,7 @@ func testKeywordUsesSliceUpdateAll(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-	if err = randomize.Struct(seed, keywordUse, keywordUseDBTypes, true, keywordUsePrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize KeywordUse struct: %s", err)
-	}
+	keywordUse = KeywordUseRandom()
 
 	// Remove Primary keys and unique columns from what we plan to update
 	var fields []string
@@ -637,13 +643,14 @@ func testKeywordUsesUpsert(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	seed := randomize.NewSeed()
 	var err error
+	seed := randomize.NewSeed()
+	// this is a hack because if randomize isn't used compiler will complain
+	// but if seed isn't then compiler will complain too
+	_ = seed
 	// Attempt the INSERT side of an UPSERT
-	keywordUse := KeywordUse{}
-	if err = randomize.Struct(seed, &keywordUse, keywordUseDBTypes, true); err != nil {
-		t.Errorf("Unable to randomize KeywordUse struct: %s", err)
-	}
+
+	keywordUse := KeywordUseRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -660,9 +667,8 @@ func testKeywordUsesUpsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
-	if err = randomize.Struct(seed, &keywordUse, keywordUseDBTypes, false, keywordUsePrimaryKeyColumns...); err != nil {
-		t.Errorf("Unable to randomize KeywordUse struct: %s", err)
-	}
+
+	keywordUse = KeywordUseRandom()
 
 	if err = keywordUse.Upsert(tx, true, nil, nil); err != nil {
 		t.Errorf("Unable to upsert KeywordUse: %s", err)

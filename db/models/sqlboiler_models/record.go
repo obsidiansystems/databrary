@@ -22,12 +22,12 @@ import (
 
 // Record is an object representing the database table.
 type Record struct {
-	ID       int   `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Volume   int   `boil:"volume" json:"volume" toml:"volume" yaml:"volume"`
-	Category int16 `boil:"category" json:"category" toml:"category" yaml:"category"`
+	ID       int   `boil:"id" json:"record_id"`
+	Volume   int   `boil:"volume" json:"record_volume"`
+	Category int16 `boil:"category" json:"record_category"`
 
-	R *recordR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L recordL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *recordR `boil:"-" json:"-"`
+	L recordL  `boil:"-" json:"-"`
 }
 
 // recordR is where relationships are stored.
@@ -2123,9 +2123,6 @@ func (o *Record) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(recordColumns, recordPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update record, could not build whitelist")
 		}
@@ -2226,18 +2223,18 @@ func (o RecordSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"record\" SET %s WHERE (\"id\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(recordPrimaryKeyColumns), len(colNames)+1, len(recordPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in record slice")
 	}
@@ -2419,14 +2416,14 @@ func (o *Record) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), recordPrimaryKeyMapping)
-	sql := "DELETE FROM \"record\" WHERE \"id\"=$1"
+	query := "DELETE FROM \"record\" WHERE \"id\"=$1"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from record")
 	}
@@ -2507,18 +2504,18 @@ func (o RecordSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"record\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, recordPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(recordPrimaryKeyColumns), 1, len(recordPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from record slice")
 	}
@@ -2611,13 +2608,13 @@ func (o *RecordSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"record\".* FROM \"record\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, recordPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(recordPrimaryKeyColumns), 1, len(recordPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&records)
 	if err != nil {
@@ -2633,14 +2630,14 @@ func (o *RecordSlice) ReloadAll(exec boil.Executor) error {
 func RecordExists(exec boil.Executor, id int) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"record\" where \"id\"=$1 limit 1)"
+	query := "select exists(select 1 from \"record\" where \"id\"=$1 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, id)
 	}
 
-	row := exec.QueryRow(sql, id)
+	row := exec.QueryRow(query, id)
 
 	err := row.Scan(&exists)
 	if err != nil {

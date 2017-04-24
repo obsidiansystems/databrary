@@ -87,3 +87,30 @@ func (dt *DataType) Scan(src interface{}) error {
 
 	return dt.UnmarshalText(buf)
 }
+
+type NullDataType struct {
+	DataType DataType
+	Valid bool
+}
+
+func (nv *NullDataType) Scan(value interface{}) error {
+	if value == nil {
+		nv.DataType, nv.Valid = DataType(0), false
+		return nil
+	}
+	err := nv.DataType.Scan(value)
+	if err != nil {
+		nv.Valid = false
+		return err
+	} else {
+		nv.Valid = true
+		return nil
+	}
+}
+
+func (nv NullDataType) Value() (driver.Value, error) {
+	if !nv.Valid {
+		return nil, nil
+	}
+	return nv.DataType.Value()
+}

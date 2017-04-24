@@ -23,15 +23,15 @@ import (
 
 // Party is an object representing the database table.
 type Party struct {
-	ID          int         `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Name        string      `boil:"name" json:"name" toml:"name" yaml:"name"`
-	Prename     null.String `boil:"prename" json:"prename,omitempty" toml:"prename" yaml:"prename,omitempty"`
-	Orcid       null.String `boil:"orcid" json:"orcid,omitempty" toml:"orcid" yaml:"orcid,omitempty"`
-	Affiliation null.String `boil:"affiliation" json:"affiliation,omitempty" toml:"affiliation" yaml:"affiliation,omitempty"`
-	URL         null.String `boil:"url" json:"url,omitempty" toml:"url" yaml:"url,omitempty"`
+	ID          int         `boil:"id" json:"party_id"`
+	Name        string      `boil:"name" json:"party_name"`
+	Prename     null.String `boil:"prename" json:"party_prename,omitempty"`
+	Orcid       null.String `boil:"orcid" json:"party_orcid,omitempty"`
+	Affiliation null.String `boil:"affiliation" json:"party_affiliation,omitempty"`
+	URL         null.String `boil:"url" json:"party_url,omitempty"`
 
-	R *partyR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L partyL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *partyR `boil:"-" json:"-"`
+	L partyL  `boil:"-" json:"-"`
 }
 
 // partyR is where relationships are stored.
@@ -1924,9 +1924,6 @@ func (o *Party) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(partyColumns, partyPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update party, could not build whitelist")
 		}
@@ -2027,18 +2024,18 @@ func (o PartySlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"party\" SET %s WHERE (\"id\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(partyPrimaryKeyColumns), len(colNames)+1, len(partyPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in party slice")
 	}
@@ -2220,14 +2217,14 @@ func (o *Party) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), partyPrimaryKeyMapping)
-	sql := "DELETE FROM \"party\" WHERE \"id\"=$1"
+	query := "DELETE FROM \"party\" WHERE \"id\"=$1"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from party")
 	}
@@ -2308,18 +2305,18 @@ func (o PartySlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"party\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, partyPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(partyPrimaryKeyColumns), 1, len(partyPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from party slice")
 	}
@@ -2412,13 +2409,13 @@ func (o *PartySlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"party\".* FROM \"party\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, partyPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(partyPrimaryKeyColumns), 1, len(partyPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&parties)
 	if err != nil {
@@ -2434,14 +2431,14 @@ func (o *PartySlice) ReloadAll(exec boil.Executor) error {
 func PartyExists(exec boil.Executor, id int) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"party\" where \"id\"=$1 limit 1)"
+	query := "select exists(select 1 from \"party\" where \"id\"=$1 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, id)
 	}
 
-	row := exec.QueryRow(sql, id)
+	row := exec.QueryRow(query, id)
 
 	err := row.Scan(&exists)
 	if err != nil {

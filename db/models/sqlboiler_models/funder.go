@@ -22,11 +22,11 @@ import (
 
 // Funder is an object representing the database table.
 type Funder struct {
-	FundrefID int64  `boil:"fundref_id" json:"fundref_id" toml:"fundref_id" yaml:"fundref_id"`
-	Name      string `boil:"name" json:"name" toml:"name" yaml:"name"`
+	FundrefID int64  `boil:"fundref_id" json:"funder_fundref_id"`
+	Name      string `boil:"name" json:"funder_name"`
 
-	R *funderR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L funderL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *funderR `boil:"-" json:"-"`
+	L funderL  `boil:"-" json:"-"`
 }
 
 // funderR is where relationships are stored.
@@ -704,9 +704,6 @@ func (o *Funder) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(funderColumns, funderPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update funder, could not build whitelist")
 		}
@@ -807,18 +804,18 @@ func (o FunderSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"funder\" SET %s WHERE (\"fundref_id\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(funderPrimaryKeyColumns), len(colNames)+1, len(funderPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in funder slice")
 	}
@@ -1000,14 +997,14 @@ func (o *Funder) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), funderPrimaryKeyMapping)
-	sql := "DELETE FROM \"funder\" WHERE \"fundref_id\"=$1"
+	query := "DELETE FROM \"funder\" WHERE \"fundref_id\"=$1"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from funder")
 	}
@@ -1088,18 +1085,18 @@ func (o FunderSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"funder\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, funderPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(funderPrimaryKeyColumns), 1, len(funderPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from funder slice")
 	}
@@ -1192,13 +1189,13 @@ func (o *FunderSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"funder\".* FROM \"funder\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, funderPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(funderPrimaryKeyColumns), 1, len(funderPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&funders)
 	if err != nil {
@@ -1214,14 +1211,14 @@ func (o *FunderSlice) ReloadAll(exec boil.Executor) error {
 func FunderExists(exec boil.Executor, fundrefID int64) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"funder\" where \"fundref_id\"=$1 limit 1)"
+	query := "select exists(select 1 from \"funder\" where \"fundref_id\"=$1 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, fundrefID)
 	}
 
-	row := exec.QueryRow(sql, fundrefID)
+	row := exec.QueryRow(query, fundrefID)
 
 	err := row.Scan(&exists)
 	if err != nil {

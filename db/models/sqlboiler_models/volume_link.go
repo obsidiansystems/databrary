@@ -22,12 +22,12 @@ import (
 
 // VolumeLink is an object representing the database table.
 type VolumeLink struct {
-	Volume int    `boil:"volume" json:"volume" toml:"volume" yaml:"volume"`
-	Head   string `boil:"head" json:"head" toml:"head" yaml:"head"`
-	URL    string `boil:"url" json:"url" toml:"url" yaml:"url"`
+	Volume int    `boil:"volume" json:"volumeLink_volume"`
+	Head   string `boil:"head" json:"volumeLink_head"`
+	URL    string `boil:"url" json:"volumeLink_url"`
 
-	R *volumeLinkR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L volumeLinkL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *volumeLinkR `boil:"-" json:"-"`
+	L volumeLinkL  `boil:"-" json:"-"`
 }
 
 // volumeLinkR is where relationships are stored.
@@ -698,9 +698,6 @@ func (o *VolumeLink) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(volumeLinkColumns, volumeLinkPrimaryKeyColumns, whitelist)
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update volume_link, could not build whitelist")
 		}
@@ -801,18 +798,18 @@ func (o VolumeLinkSlice) UpdateAll(exec boil.Executor, cols M) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"UPDATE \"volume_link\" SET %s WHERE (\"volume\",\"url\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(volumeLinkPrimaryKeyColumns), len(colNames)+1, len(volumeLinkPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to update all in volumeLink slice")
 	}
@@ -994,14 +991,14 @@ func (o *VolumeLink) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), volumeLinkPrimaryKeyMapping)
-	sql := "DELETE FROM \"volume_link\" WHERE \"volume\"=$1 AND \"url\"=$2"
+	query := "DELETE FROM \"volume_link\" WHERE \"volume\"=$1 AND \"url\"=$2"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args...)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete from volume_link")
 	}
@@ -1082,18 +1079,18 @@ func (o VolumeLinkSlice) DeleteAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"DELETE FROM \"volume_link\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, volumeLinkPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(volumeLinkPrimaryKeyColumns), 1, len(volumeLinkPrimaryKeyColumns)),
 	)
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, args)
 	}
 
-	_, err := exec.Exec(sql, args...)
+	_, err := exec.Exec(query, args...)
 	if err != nil {
 		return errors.Wrap(err, "models: unable to delete all from volumeLink slice")
 	}
@@ -1186,13 +1183,13 @@ func (o *VolumeLinkSlice) ReloadAll(exec boil.Executor) error {
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf(
+	query := fmt.Sprintf(
 		"SELECT \"volume_link\".* FROM \"volume_link\" WHERE (%s) IN (%s)",
 		strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, volumeLinkPrimaryKeyColumns), ","),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(*o)*len(volumeLinkPrimaryKeyColumns), 1, len(volumeLinkPrimaryKeyColumns)),
 	)
 
-	q := queries.Raw(exec, sql, args...)
+	q := queries.Raw(exec, query, args...)
 
 	err := q.Bind(&volumeLinks)
 	if err != nil {
@@ -1208,14 +1205,14 @@ func (o *VolumeLinkSlice) ReloadAll(exec boil.Executor) error {
 func VolumeLinkExists(exec boil.Executor, volume int, url string) (bool, error) {
 	var exists bool
 
-	sql := "select exists(select 1 from \"volume_link\" where \"volume\"=$1 AND \"url\"=$2 limit 1)"
+	query := "select exists(select 1 from \"volume_link\" where \"volume\"=$1 AND \"url\"=$2 limit 1)"
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, sql)
+		fmt.Fprintln(boil.DebugWriter, query)
 		fmt.Fprintln(boil.DebugWriter, volume, url)
 	}
 
-	row := exec.QueryRow(sql, volume, url)
+	row := exec.QueryRow(query, volume, url)
 
 	err := row.Scan(&exists)
 	if err != nil {

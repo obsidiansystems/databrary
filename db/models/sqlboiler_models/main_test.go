@@ -83,7 +83,6 @@ func (p *pgTester) setup() error {
 	}
 
 	if err = dumpCmd.Wait(); err != nil {
-		fmt.Println(dumpCmd.Env)
 		fmt.Println(err)
 		return errors.Wrap(err, "failed to wait for pg_dump command")
 	}

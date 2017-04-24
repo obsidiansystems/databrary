@@ -96,3 +96,30 @@ func (nd *NoticeDelivery) Scan(src interface{}) error {
 
 	return nd.UnmarshalText(buf)
 }
+
+type NullNoticeDelivery struct {
+	NoticeDelivery NoticeDelivery
+	Valid bool
+}
+
+func (nv *NullNoticeDelivery) Scan(value interface{}) error {
+	if value == nil {
+		nv.NoticeDelivery, nv.Valid = NoticeDelivery(0), false
+		return nil
+	}
+	err := nv.NoticeDelivery.Scan(value)
+	if err != nil {
+		nv.Valid = false
+		return err
+	} else {
+		nv.Valid = true
+		return nil
+	}
+}
+
+func (nv NullNoticeDelivery) Value() (driver.Value, error) {
+	if !nv.Valid {
+		return nil, nil
+	}
+	return nv.NoticeDelivery.Value()
+}

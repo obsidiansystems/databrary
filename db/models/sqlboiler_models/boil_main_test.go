@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
-	//"path/filepath"
 	"testing"
 	"time"
 
@@ -105,7 +104,7 @@ func initViper() error {
 	//for _, p := range configPaths {
 	//	viper.AddConfigPath(p)
 	//}
-	viper.SetConfigFile("/home/maksim/dev_projects/go/src/github.com/databrary/databrary/sqlboiler.toml")
+	viper.SetConfigFile("/home/maksim/dev_projects/go/src/github.com/databrary/databrary/sqlboiler/sqlboiler.toml")
 	//viper.AddConfigPath("/home/maksim/dev_projects/go/src/github.com/databrary/databrary/sqlboiler.toml")
 	// Ignore errors here, fall back to defaults and validation to provide errs
 	_ = viper.ReadInConfig()
