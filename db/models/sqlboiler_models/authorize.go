@@ -20,6 +20,7 @@ import (
 	"github.com/vattle/sqlboiler/queries/qm"
 	"github.com/vattle/sqlboiler/strmangle"
 	"gopkg.in/nullbio/null.v6"
+	"github.com/vattle/sqlboiler/randomize"
 )
 
 // Authorize is an object representing the database table.
@@ -33,6 +34,22 @@ type Authorize struct {
 	R *authorizeR `boil:"-" json:"-"`
 	L authorizeL  `boil:"-" json:"-"`
 }
+
+var (
+	// this is duplicated from authorize_test
+	authorizeDBTyps = map[string]string{`Child`: `integer`, `Expires`: `timestamp with time zone`, `Member`: `enum.permission('NONE','PUBLIC','SHARED','READ','EDIT','ADMIN')`, `Parent`: `integer`, `Site`: `enum.permission('NONE','PUBLIC','SHARED','READ','EDIT','ADMIN')`}
+	_                = bytes.MinRead
+)
+
+func AuthorizeRandom() *Authorize {
+	seed := randomize.NewSeed()
+	ass := Authorize{}
+	randomize.Struct(seed, ass, assetDBTyps, true, "Site", "Member")
+	ass.Site = custom_types.PermissionAdmin
+	ass.Member = custom_types.PermissionEdit
+	return &ass
+}
+
 
 // authorizeR is where relationships are stored.
 type authorizeR struct {

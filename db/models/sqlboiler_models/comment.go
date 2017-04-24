@@ -20,6 +20,7 @@ import (
 	"github.com/vattle/sqlboiler/queries/qm"
 	"github.com/vattle/sqlboiler/strmangle"
 	"gopkg.in/nullbio/null.v6"
+	"github.com/vattle/sqlboiler/randomize"
 )
 
 // Comment is an object representing the database table.
@@ -34,6 +35,23 @@ type Comment struct {
 
 	R *commentR `boil:"-" json:"-"`
 	L commentL  `boil:"-" json:"-"`
+}
+
+var (
+	// this is duplicated from comment_test
+	commentDBTyps = map[string]string{`Container`: `integer`, `ID`: `integer`, `Parent`: `integer`, `Segment`: `USER-DEFINED`, `Text`: `text`, `Time`: `timestamp with time zone`, `Who`: `integer`}
+	_              = bytes.MinRead
+)
+
+func CommentRandom() *Comment {
+	seed := randomize.NewSeed()
+	ass := Comment{}
+	randomize.Struct(seed, ass, commentDBTyps, true, "Segment")
+	// not very random huh
+	time1 := time.Date(2014, time.February, 3, 2, 0, 0, 0, time.UTC)
+	time2 := time.Date(2014, time.February, 3, 4, 0, 0, 0, time.UTC)
+	ass.Segment, _ = custom_types.NewSegment(&time1, &time2, "[]")
+	return &ass
 }
 
 // commentR is where relationships are stored.

@@ -20,6 +20,7 @@ import (
 	"github.com/vattle/sqlboiler/queries/qm"
 	"github.com/vattle/sqlboiler/strmangle"
 	"gopkg.in/nullbio/null.v6"
+	"github.com/vattle/sqlboiler/randomize"
 )
 
 // Asset is an object representing the database table.
@@ -35,6 +36,20 @@ type Asset struct {
 
 	R *assetR `boil:"-" json:"-"`
 	L assetL  `boil:"-" json:"-"`
+}
+
+var (
+	// this is duplicated from asset_test
+	assetDBTyps = map[string]string{`Duration`: `interval`, `Format`: `smallint`, `ID`: `integer`, `Name`: `text`, `Release`: `enum.release('PRIVATE','SHARED','EXCERPTS','PUBLIC')`, `Sha1`: `bytea`, `Size`: `bigint`, `Volume`: `integer`}
+	_            = bytes.MinRead
+)
+
+func AssetRandom() *Asset {
+	seed := randomize.NewSeed()
+	ass := Asset{}
+	randomize.Struct(seed, ass, assetDBTyps, true, "Release")
+	ass.Release = custom_types.NullRelease{custom_types.ReleasePrivate, true}
+	return &ass
 }
 
 // assetR is where relationships are stored.
