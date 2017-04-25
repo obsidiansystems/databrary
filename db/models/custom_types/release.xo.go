@@ -114,3 +114,11 @@ func (nv NullRelease) Value() (driver.Value, error) {
 	}
 	return nv.Release.Value()
 }
+
+func NullReleaseRandom() NullRelease {
+	return NullRelease{ReleasePrivate, true}
+}
+
+func ReleaseRandom() Release {
+	return ReleasePrivate
+}

@@ -3,26 +3,15 @@
 {{- $varNamePlural := .Table.Name | plural | camelCase -}}
 {{- $varNameSingular := .Table.Name | singular | camelCase -}}
 {{- $hasCustom := .Table.HasCustom -}}
-func test{{$tableNamePlural}}Update(t *testing.T) {
+    func test{{$tableNamePlural}}Update(t *testing.T) {
 	t.Parallel()
 
 	if len({{$varNameSingular}}Columns) == len({{$varNameSingular}}PrimaryKeyColumns) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	var err error
-	seed := randomize.NewSeed()
-    // this is a hack because if randomize isn't used compiler will complain
-    // but if seed isn't then compiler will complain too
-    _ = seed
-	{{if not $hasCustom}}
-	{{$varNameSingular}} := &{{$tableNameSingular}}{}
-	if err = randomize.Struct(seed, {{$varNameSingular}}, {{$varNameSingular}}DBTypes, true); err != nil {
-		t.Errorf("Unable to randomize {{$tableNameSingular}} struct: %s", err)
-	}
-    {{else}}
-    {{$varNameSingular}} := {{$tableNameSingular}}Random()
-    {{end}}
+    {{template "isCustomSimple" .}}
+
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
 	if err = {{$varNameSingular}}.Insert(tx); err != nil {
@@ -38,12 +27,17 @@ func test{{$tableNamePlural}}Update(t *testing.T) {
 		t.Error("want one record, got:", count)
 	}
 
-    {{if not $hasCustom}}
-	if err = randomize.Struct(seed, {{$varNameSingular}}, {{$varNameSingular}}DBTypes, true, {{$varNameSingular}}ColumnsWithDefault...); err != nil {
+    blacklist := {{$varNameSingular}}ColumnsWithDefault
+    {{- if $hasCustom}}
+    blacklist = append(blacklist, {{$varNameSingular}}ColumnsWithCustom...)
+    {{end}}
+
+	if err = randomize.Struct(seed, {{$varNameSingular}}, {{$varNameSingular}}DBTypes, true, blacklist...); err != nil {
 		t.Errorf("Unable to randomize {{$tableNameSingular}} struct: %s", err)
 	}
-	{{else}}
-    {{$varNameSingular}} = {{$tableNameSingular}}Random()
+
+    {{if $hasCustom}}
+    {{template "customRandomRangeOne" .}}
     {{end}}
 
 	if err = {{$varNameSingular}}.Update(tx); err != nil {
@@ -58,19 +52,7 @@ func test{{$tableNamePlural}}SliceUpdateAll(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	var err error
-	seed := randomize.NewSeed()
-    // this is a hack because if randomize isn't used compiler will complain
-    // but if seed isn't then compiler will complain too
-    _ = seed
-	{{if not $hasCustom}}
-	{{$varNameSingular}} := &{{$tableNameSingular}}{}
-	if err = randomize.Struct(seed, {{$varNameSingular}}, {{$varNameSingular}}DBTypes, true); err != nil {
-		t.Errorf("Unable to randomize {{$tableNameSingular}} struct: %s", err)
-	}
-    {{else}}
-    {{$varNameSingular}} := {{$tableNameSingular}}Random()
-    {{end}}
+    {{template "isCustomSimple" .}}
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -86,12 +68,18 @@ func test{{$tableNamePlural}}SliceUpdateAll(t *testing.T) {
 	if count != 1 {
 		t.Error("want one record, got:", count)
 	}
-    {{if not $hasCustom}}
-	if err = randomize.Struct(seed, {{$varNameSingular}}, {{$varNameSingular}}DBTypes, true, {{$varNameSingular}}PrimaryKeyColumns...); err != nil {
+
+    blacklist := {{$varNameSingular}}PrimaryKeyColumns
+    {{- if $hasCustom}}
+    blacklist = append(blacklist, {{$varNameSingular}}ColumnsWithCustom...)
+    {{end}}
+
+	if err = randomize.Struct(seed, {{$varNameSingular}}, {{$varNameSingular}}DBTypes, true, blacklist...); err != nil {
 		t.Errorf("Unable to randomize {{$tableNameSingular}} struct: %s", err)
 	}
-	{{else}}
-    {{$varNameSingular}} = {{$tableNameSingular}}Random()
+
+    {{if $hasCustom}}
+    {{template "customRandomRangeOne" .}}
     {{end}}
 
 	// Remove Primary keys and unique columns from what we plan to update

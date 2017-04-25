@@ -9,12 +9,6 @@ import (
 	"github.com/databrary/databrary/logging"
 )
 
-var times = []time.Time{
-	time.Date(2014, time.February, 3, 2, 0, 0, 0, time.UTC),
-	time.Date(2014, time.February, 3, 4, 0, 0, 0, time.UTC),
-	time.Date(2014, time.February, 3, 6, 0, 0, 0, time.UTC),
-	time.Date(2014, time.February, 3, 8, 0, 0, 0, time.UTC),
-}
 
 func TestSegment(t *testing.T) {
 	config.InitConf("../../../config/databrary_test.toml")

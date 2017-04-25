@@ -123,3 +123,8 @@ func (nv NullNoticeDelivery) Value() (driver.Value, error) {
 	}
 	return nv.NoticeDelivery.Value()
 }
+
+func NoticeDeliveryRandom() NoticeDelivery {
+	return NoticeDeliveryAsync
+
+}

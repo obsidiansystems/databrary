@@ -114,3 +114,7 @@ func (nv NullDataType) Value() (driver.Value, error) {
 	}
 	return nv.DataType.Value()
 }
+
+func DataTypeRandom() DataType {
+	return DataTypeDate
+}

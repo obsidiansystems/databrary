@@ -6,6 +6,9 @@
 	{{- $varNameSingular := .Table | singular | camelCase -}}
 	{{- $foreignVarNameSingular := .ForeignTable | singular | camelCase -}}
 	{{- $txt := txtsFromToMany $dot.Tables $table .}}
+    {{- $foreignTable := getTable $dot.Tables .ForeignTable -}}
+    {{- $foreignHasCustom := $foreignTable.HasCustom -}}
+    {{- $hasCustom := $dot.Table.HasCustom}}
 func test{{$txt.LocalTable.NameGo}}ToManyAddOp{{$txt.Function.Name}}(t *testing.T) {
 	var err error
 
@@ -16,14 +19,34 @@ func test{{$txt.LocalTable.NameGo}}ToManyAddOp{{$txt.Function.Name}}(t *testing.
 	var b, c, d, e {{$txt.ForeignTable.NameGo}}
 
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, {{$varNameSingular}}DBTypes, false, strmangle.SetComplement({{$varNameSingular}}PrimaryKeyColumns, {{$varNameSingular}}ColumnsWithoutDefault)...); err != nil {
+    localComplelementList := strmangle.SetComplement({{$varNameSingular}}PrimaryKeyColumns, {{$varNameSingular}}ColumnsWithoutDefault)
+    {{- if $hasCustom}}
+    localComplelementList = append(localComplelementList, {{$varNameSingular}}ColumnsWithCustom...)
+    {{end}}
+	if err = randomize.Struct(seed, &a, {{$varNameSingular}}DBTypes, false, localComplelementList...); err != nil {
 		t.Fatal(err)
 	}
+    {{- if $hasCustom}}
+    {{range $i, $v := $.Table.GetCustomColumns -}}
+    a.{{$v.Name | titleCase}} = {{$v.Type}}Random()
+    {{end}}
+    {{end}}
+
+    foreignComplementList := strmangle.SetComplement({{$foreignVarNameSingular}}PrimaryKeyColumns, {{$foreignVarNameSingular}}ColumnsWithoutDefault)
+    {{- if $foreignHasCustom}}
+    foreignComplementList = append(foreignComplementList, {{$foreignVarNameSingular}}ColumnsWithCustom...)
+    {{end}}
+
 	foreigners := []*{{$txt.ForeignTable.NameGo}}{&b, &c, &d, &e}
 	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, {{$foreignVarNameSingular}}DBTypes, false, strmangle.SetComplement({{$foreignVarNameSingular}}PrimaryKeyColumns, {{$foreignVarNameSingular}}ColumnsWithoutDefault)...); err != nil {
+		if err = randomize.Struct(seed, x, {{$foreignVarNameSingular}}DBTypes, false, foreignComplementList...); err != nil {
 			t.Fatal(err)
 		}
+        {{- if $foreignHasCustom}}
+        {{range $i, $v := $foreignTable.GetCustomColumns -}}
+        x.{{$v.Name | titleCase}} = {{$v.Type}}Random()
+        {{end -}}
+        {{end}}
 	}
 
 	if err := a.Insert(tx); err != nil {
@@ -111,14 +134,34 @@ func test{{$txt.LocalTable.NameGo}}ToManySetOp{{$txt.Function.Name}}(t *testing.
 	var b, c, d, e {{$txt.ForeignTable.NameGo}}
 
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, {{$varNameSingular}}DBTypes, false, strmangle.SetComplement({{$varNameSingular}}PrimaryKeyColumns, {{$varNameSingular}}ColumnsWithoutDefault)...); err != nil {
+    localComplelementList := strmangle.SetComplement({{$varNameSingular}}PrimaryKeyColumns, {{$varNameSingular}}ColumnsWithoutDefault)
+    {{- if $hasCustom}}
+    localComplelementList = append(localComplelementList, {{$varNameSingular}}ColumnsWithCustom...)
+    {{end}}
+	if err = randomize.Struct(seed, &a, {{$varNameSingular}}DBTypes, false, localComplelementList...); err != nil {
 		t.Fatal(err)
 	}
+    {{- if $hasCustom}}
+    {{range $i, $v := $.Table.GetCustomColumns -}}
+    a.{{$v.Name | titleCase}} = {{$v.Type}}Random()
+    {{end}}
+    {{end}}
+
+    foreignComplementList := strmangle.SetComplement({{$foreignVarNameSingular}}PrimaryKeyColumns, {{$foreignVarNameSingular}}ColumnsWithoutDefault)
+    {{- if $foreignHasCustom}}
+    foreignComplementList = append(foreignComplementList, {{$foreignVarNameSingular}}ColumnsWithCustom...)
+    {{end}}
+
 	foreigners := []*{{$txt.ForeignTable.NameGo}}{&b, &c, &d, &e}
 	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, {{$foreignVarNameSingular}}DBTypes, false, strmangle.SetComplement({{$foreignVarNameSingular}}PrimaryKeyColumns, {{$foreignVarNameSingular}}ColumnsWithoutDefault)...); err != nil {
+		if err = randomize.Struct(seed, x, {{$foreignVarNameSingular}}DBTypes, false, foreignComplementList...); err != nil {
 			t.Fatal(err)
 		}
+        {{- if $foreignHasCustom}}
+        {{range $i, $v := $foreignTable.GetCustomColumns -}}
+        x.{{$v.Name | titleCase}} = {{$v.Type}}Random()
+        {{end -}}
+        {{end}}
 	}
 
 	if err = a.Insert(tx); err != nil {
@@ -231,14 +274,34 @@ func test{{$txt.LocalTable.NameGo}}ToManyRemoveOp{{$txt.Function.Name}}(t *testi
 	var b, c, d, e {{$txt.ForeignTable.NameGo}}
 
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, {{$varNameSingular}}DBTypes, false, strmangle.SetComplement({{$varNameSingular}}PrimaryKeyColumns, {{$varNameSingular}}ColumnsWithoutDefault)...); err != nil {
+    localComplelementList := strmangle.SetComplement({{$varNameSingular}}PrimaryKeyColumns, {{$varNameSingular}}ColumnsWithoutDefault)
+    {{- if $hasCustom}}
+    localComplelementList = append(localComplelementList, {{$varNameSingular}}ColumnsWithCustom...)
+    {{end}}
+	if err = randomize.Struct(seed, &a, {{$varNameSingular}}DBTypes, false, localComplelementList...); err != nil {
 		t.Fatal(err)
 	}
+    {{- if $hasCustom}}
+    {{range $i, $v := $.Table.GetCustomColumns -}}
+    a.{{$v.Name | titleCase}} = {{$v.Type}}Random()
+    {{end}}
+    {{end}}
+
+    foreignComplementList := strmangle.SetComplement({{$foreignVarNameSingular}}PrimaryKeyColumns, {{$foreignVarNameSingular}}ColumnsWithoutDefault)
+    {{- if $foreignHasCustom}}
+    foreignComplementList = append(foreignComplementList, {{$foreignVarNameSingular}}ColumnsWithCustom...)
+    {{end}}
+
 	foreigners := []*{{$txt.ForeignTable.NameGo}}{&b, &c, &d, &e}
 	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, {{$foreignVarNameSingular}}DBTypes, false, strmangle.SetComplement({{$foreignVarNameSingular}}PrimaryKeyColumns, {{$foreignVarNameSingular}}ColumnsWithoutDefault)...); err != nil {
+		if err = randomize.Struct(seed, x, {{$foreignVarNameSingular}}DBTypes, false, foreignComplementList...); err != nil {
 			t.Fatal(err)
 		}
+        {{- if $foreignHasCustom}}
+        {{range $i, $v := $foreignTable.GetCustomColumns -}}
+        x.{{$v.Name | titleCase}} = {{$v.Type}}Random()
+        {{end -}}
+        {{end}}
 	}
 
 	if err := a.Insert(tx); err != nil {

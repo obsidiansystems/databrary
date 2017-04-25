@@ -6,25 +6,48 @@
 	{{- $txt := txtsFromToMany $dot.Tables $table .}}
 	{{- $varNameSingular := .Table | singular | camelCase -}}
 	{{- $foreignVarNameSingular := .ForeignTable | singular | camelCase -}}
+    {{- $foreignTable := getTable $dot.Tables .ForeignTable -}}
+    {{- $foreignHasCustom := $foreignTable.HasCustom -}}
+    {{- $hasCustom := $dot.Table.HasCustom}}
 func test{{$txt.LocalTable.NameGo}}ToMany{{$txt.Function.Name}}(t *testing.T) {
 	var err error
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
 
+    seed := randomize.NewSeed()
+
 	var a {{$txt.LocalTable.NameGo}}
 	var b, c {{$txt.ForeignTable.NameGo}}
 
-	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, {{$varNameSingular}}DBTypes, true, {{$varNameSingular}}ColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize {{$txt.LocalTable.NameGo}} struct: %s", err)
-	}
+    foreignBlacklist := {{$foreignVarNameSingular}}ColumnsWithDefault
+    {{- if $foreignHasCustom}}
+    foreignBlacklist = append(foreignBlacklist, {{$foreignVarNameSingular}}ColumnsWithCustom...)
+    {{end}}
+    if err := randomize.Struct(seed, &b, {{$foreignVarNameSingular}}DBTypes, false, foreignBlacklist...); err != nil {
+        t.Errorf("Unable to randomize {{$txt.ForeignTable.NameGo}} struct: %s", err)
+    }
+    if err := randomize.Struct(seed, &c, {{$foreignVarNameSingular}}DBTypes, false, foreignBlacklist...); err != nil {
+        t.Errorf("Unable to randomize {{$txt.ForeignTable.NameGo}} struct: %s", err)
+    }
+    {{- if $foreignHasCustom}}
+    {{range $i, $v := $foreignTable.GetCustomColumns -}}
+    b.{{$v.Name | titleCase}} = {{$v.Type}}Random()
+    c.{{$v.Name | titleCase}} = {{$v.Type}}Random()
+    {{end -}}
+    {{end}}
+    localBlacklist := {{$varNameSingular}}ColumnsWithDefault
+    {{- if $hasCustom}}
+    localBlacklist = append(localBlacklist, {{$varNameSingular}}ColumnsWithCustom...)
+    {{end}}
+    if err := randomize.Struct(seed, &a, {{$varNameSingular}}DBTypes, false, localBlacklist...); err != nil {
+        t.Errorf("Unable to randomize {{$txt.LocalTable.NameGo}} struct: %s", err)
+    }
+    {{- if $hasCustom}}
+    {{range $i, $v := $.Table.GetCustomColumns -}}
+    a.{{$v.Name | titleCase}} = {{$v.Type}}Random()
+    {{end}}
+    {{end}}
 
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	randomize.Struct(seed, &b, {{$foreignVarNameSingular}}DBTypes, false, {{$foreignVarNameSingular}}ColumnsWithDefault...)
-	randomize.Struct(seed, &c, {{$foreignVarNameSingular}}DBTypes, false, {{$foreignVarNameSingular}}ColumnsWithDefault...)
 	{{if .Nullable -}}
 	a.{{.Column | titleCase}}.Valid = true
 	{{- end}}

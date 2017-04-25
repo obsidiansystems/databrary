@@ -482,3 +482,19 @@ func (d NullDuration) Value() (driver.Value, error) {
 }
 
 
+var times = []time.Time{
+	time.Date(2014, time.February, 3, 2, 0, 0, 0, time.UTC),
+	time.Date(2014, time.February, 3, 4, 0, 0, 0, time.UTC),
+	time.Date(2014, time.February, 3, 6, 0, 0, 0, time.UTC),
+	time.Date(2014, time.February, 3, 8, 0, 0, 0, time.UTC),
+}
+
+func SegmentRandom() Segment {
+	seg, _ := NewSegment(&times[0], &times[1], "[]")
+	return seg
+}
+
+func NullSegmentRandom() NullSegment {
+	seg := SegmentRandom()
+	return NullSegment{seg, true}
+}

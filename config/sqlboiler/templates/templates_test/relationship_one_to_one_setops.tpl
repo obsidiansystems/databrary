@@ -7,6 +7,9 @@
 {{- $varNameSingular := .Table | singular | camelCase -}}
 {{- $foreignVarNameSingular := .ForeignTable | singular | camelCase -}}
 {{- $foreignPKeyCols := (getTable $dot.Tables .ForeignTable).PKey.Columns}}
+{{- $foreignTable := getTable $dot.Tables .ForeignTable -}}
+{{- $foreignHasCustom := $foreignTable.HasCustom -}}
+{{- $hasCustom := $dot.Table.HasCustom}}
 func test{{$txt.LocalTable.NameGo}}OneToOneSetOp{{$txt.ForeignTable.NameGo}}Using{{$txt.Function.Name}}(t *testing.T) {
 	var err error
 
@@ -15,15 +18,37 @@ func test{{$txt.LocalTable.NameGo}}OneToOneSetOp{{$txt.ForeignTable.NameGo}}Usin
 	seed := randomize.NewSeed()
 	var a {{$txt.LocalTable.NameGo}}
 	var b, c {{$txt.ForeignTable.NameGo}}
-	if err = randomize.Struct(seed, &a, {{$varNameSingular}}DBTypes, false, strmangle.SetComplement({{$varNameSingular}}PrimaryKeyColumns, {{$varNameSingular}}ColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	if err = randomize.Struct(seed, &b, {{$foreignVarNameSingular}}DBTypes, false, strmangle.SetComplement({{$foreignVarNameSingular}}PrimaryKeyColumns, {{$foreignVarNameSingular}}ColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	if err = randomize.Struct(seed, &c, {{$foreignVarNameSingular}}DBTypes, false, strmangle.SetComplement({{$foreignVarNameSingular}}PrimaryKeyColumns, {{$foreignVarNameSingular}}ColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
+
+    foreignBlacklist := strmangle.SetComplement({{$foreignVarNameSingular}}PrimaryKeyColumns, {{$foreignVarNameSingular}}ColumnsWithoutDefault)
+    {{- if $foreignHasCustom}}
+    foreignBlacklist = append(foreignBlacklist, {{$foreignVarNameSingular}}ColumnsWithCustom...)
+    {{end}}
+    if err := randomize.Struct(seed, &b, {{$foreignVarNameSingular}}DBTypes, false, foreignBlacklist...); err != nil {
+        t.Errorf("Unable to randomize {{$txt.ForeignTable.NameGo}} struct: %s", err)
+    }
+    if err := randomize.Struct(seed, &c, {{$foreignVarNameSingular}}DBTypes, false, foreignBlacklist...); err != nil {
+        t.Errorf("Unable to randomize {{$txt.ForeignTable.NameGo}} struct: %s", err)
+    }
+    {{- if $foreignHasCustom}}
+    {{range $i, $v := $foreignTable.GetCustomColumns -}}
+    b.{{$v.Name | titleCase}} = {{$v.Type}}Random()
+    c.{{$v.Name | titleCase}} = {{$v.Type}}Random()
+    {{end -}}
+    {{end}}
+    localBlacklist := strmangle.SetComplement({{$varNameSingular}}PrimaryKeyColumns, {{$varNameSingular}}ColumnsWithoutDefault)
+    {{- if $hasCustom}}
+    localBlacklist = append(localBlacklist, {{$varNameSingular}}ColumnsWithCustom...)
+    {{end}}
+    if err := randomize.Struct(seed, &a, {{$varNameSingular}}DBTypes, false, localBlacklist...); err != nil {
+        t.Errorf("Unable to randomize {{$txt.LocalTable.NameGo}} struct: %s", err)
+    }
+    {{- if $hasCustom}}
+    {{range $i, $v := $.Table.GetCustomColumns -}}
+    a.{{$v.Name | titleCase}} = {{$v.Type}}Random()
+    {{end}}
+    {{end}}
+
+
 
 	if err := a.Insert(tx); err != nil {
 		t.Fatal(err)
@@ -91,14 +116,32 @@ func test{{$txt.LocalTable.NameGo}}OneToOneRemoveOp{{$txt.ForeignTable.NameGo}}U
 
 	var a {{$txt.LocalTable.NameGo}}
 	var b {{$txt.ForeignTable.NameGo}}
-
 	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, {{$varNameSingular}}DBTypes, false, strmangle.SetComplement({{$varNameSingular}}PrimaryKeyColumns, {{$varNameSingular}}ColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	if err = randomize.Struct(seed, &b, {{$foreignVarNameSingular}}DBTypes, false, strmangle.SetComplement({{$foreignVarNameSingular}}PrimaryKeyColumns, {{$foreignVarNameSingular}}ColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
+
+    foreignBlacklist := strmangle.SetComplement({{$foreignVarNameSingular}}PrimaryKeyColumns, {{$foreignVarNameSingular}}ColumnsWithoutDefault)...)
+    {{- if $foreignHasCustom}}
+    foreignBlacklist = append(foreignBlacklist, {{$foreignVarNameSingular}}ColumnsWithCustom...)
+    {{end}}
+    if err := randomize.Struct(seed, &b, {{$foreignVarNameSingular}}DBTypes, false, foreignBlacklist...); err != nil {
+        t.Errorf("Unable to randomize {{$txt.ForeignTable.NameGo}} struct: %s", err)
+    }
+    {{- if $foreignHasCustom}}
+    {{range $i, $v := $foreignTable.GetCustomColumns -}}
+    b.{{$v.Name | titleCase}} = {{$v.Type}}Random()
+    {{end -}}
+    {{end}}
+    localBlacklist := strmangle.SetComplement({{$varNameSingular}}PrimaryKeyColumns, {{$varNameSingular}}ColumnsWithoutDefault)...)
+    {{- if $hasCustom}}
+    localBlacklist = append(localBlacklist, {{$varNameSingular}}ColumnsWithCustom...)
+    {{end}}
+    if err := randomize.Struct(seed, &a, {{$varNameSingular}}DBTypes, false, localBlacklist...); err != nil {
+        t.Errorf("Unable to randomize {{$txt.LocalTable.NameGo}} struct: %s", err)
+    }
+    {{- if $hasCustom}}
+    {{range $i, $v := $.Table.GetCustomColumns -}}
+    a.{{$v.Name | titleCase}} = {{$v.Type}}Random()
+    {{end}}
+    {{end}}
 
 	if err = a.Insert(tx); err != nil {
 		t.Fatal(err)

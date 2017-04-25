@@ -133,3 +133,11 @@ func (nv NullPermission) Value() (driver.Value, error) {
 	}
 	return nv.Permission.Value()
 }
+
+func NullPermissionRandom() NullPermission {
+	return NullPermission{PermissionAdmin, true}
+}
+
+func PermissionRandom() Permission {
+	return PermissionAdmin
+}

@@ -52,100 +52,87 @@ func {{$varNameSingular}}AfterUpsertHook(e boil.Executor, o *{{$tableNameSingula
 func test{{$tableNamePlural}}Hooks(t *testing.T) {
 	t.Parallel()
 
-	var err error
-
-	empty := &{{$tableNameSingular}}{}
-	seed := randomize.NewSeed()
-    // this is a hack because if randomize isn't used compiler will complain
-    // but if seed isn't then compiler will complain too
-    _ = seed
-    {{if not $hasCustom}}
-	o := &{{$tableNameSingular}}{}
-	if err = randomize.Struct(seed, o, {{$varNameSingular}}DBTypes, false); err != nil {
-		t.Errorf("Unable to randomize {{$tableNameSingular}} object: %s", err)
-	}
-	{{else}}
-    o := {{$tableNameSingular}}Random()
-    {{end}}
+    {{template "isCustomSimple" .}}
+    empty := &{{$tableNameSingular}}{}
 
 	Add{{$tableNameSingular}}Hook(boil.BeforeInsertHook, {{$varNameSingular}}BeforeInsertHook)
-	if err = o.doBeforeInsertHooks(nil); err != nil {
+	if err = {{$varNameSingular}}.doBeforeInsertHooks(nil); err != nil {
 		t.Errorf("Unable to execute doBeforeInsertHooks: %s", err)
 	}
-	if !reflect.DeepEqual(o, empty) {
-		t.Errorf("Expected BeforeInsertHook function to empty object, but got: %#v", o)
+	if !reflect.DeepEqual({{$varNameSingular}}, empty) {
+		t.Errorf("Expected BeforeInsertHook function to empty object, but got: %#v", {{$varNameSingular}})
 	}
 	{{$varNameSingular}}BeforeInsertHooks = []{{$tableNameSingular}}Hook{}
 
 	Add{{$tableNameSingular}}Hook(boil.AfterInsertHook, {{$varNameSingular}}AfterInsertHook)
-	if err = o.doAfterInsertHooks(nil); err != nil {
+	if err = {{$varNameSingular}}.doAfterInsertHooks(nil); err != nil {
 		t.Errorf("Unable to execute doAfterInsertHooks: %s", err)
 	}
-	if !reflect.DeepEqual(o, empty) {
-		t.Errorf("Expected AfterInsertHook function to empty object, but got: %#v", o)
+	if !reflect.DeepEqual({{$varNameSingular}}, empty) {
+		t.Errorf("Expected AfterInsertHook function to empty object, but got: %#v", {{$varNameSingular}})
 	}
 	{{$varNameSingular}}AfterInsertHooks = []{{$tableNameSingular}}Hook{}
 
 	Add{{$tableNameSingular}}Hook(boil.AfterSelectHook, {{$varNameSingular}}AfterSelectHook)
-	if err = o.doAfterSelectHooks(nil); err != nil {
+	if err = {{$varNameSingular}}.doAfterSelectHooks(nil); err != nil {
 		t.Errorf("Unable to execute doAfterSelectHooks: %s", err)
 	}
-	if !reflect.DeepEqual(o, empty) {
-		t.Errorf("Expected AfterSelectHook function to empty object, but got: %#v", o)
+	if !reflect.DeepEqual({{$varNameSingular}}, empty) {
+		t.Errorf("Expected AfterSelectHook function to empty object, but got: %#v", {{$varNameSingular}})
 	}
 	{{$varNameSingular}}AfterSelectHooks = []{{$tableNameSingular}}Hook{}
 
 	Add{{$tableNameSingular}}Hook(boil.BeforeUpdateHook, {{$varNameSingular}}BeforeUpdateHook)
-	if err = o.doBeforeUpdateHooks(nil); err != nil {
+	if err = {{$varNameSingular}}.doBeforeUpdateHooks(nil); err != nil {
 		t.Errorf("Unable to execute doBeforeUpdateHooks: %s", err)
 	}
-	if !reflect.DeepEqual(o, empty) {
-		t.Errorf("Expected BeforeUpdateHook function to empty object, but got: %#v", o)
+	if !reflect.DeepEqual({{$varNameSingular}}, empty) {
+		t.Errorf("Expected BeforeUpdateHook function to empty object, but got: %#v", {{$varNameSingular}})
 	}
 	{{$varNameSingular}}BeforeUpdateHooks = []{{$tableNameSingular}}Hook{}
 
 	Add{{$tableNameSingular}}Hook(boil.AfterUpdateHook, {{$varNameSingular}}AfterUpdateHook)
-	if err = o.doAfterUpdateHooks(nil); err != nil {
+	if err = {{$varNameSingular}}.doAfterUpdateHooks(nil); err != nil {
 		t.Errorf("Unable to execute doAfterUpdateHooks: %s", err)
 	}
-	if !reflect.DeepEqual(o, empty) {
-		t.Errorf("Expected AfterUpdateHook function to empty object, but got: %#v", o)
+	if !reflect.DeepEqual({{$varNameSingular}}, empty) {
+		t.Errorf("Expected AfterUpdateHook function to empty object, but got: %#v", {{$varNameSingular}})
 	}
 	{{$varNameSingular}}AfterUpdateHooks = []{{$tableNameSingular}}Hook{}
 
 	Add{{$tableNameSingular}}Hook(boil.BeforeDeleteHook, {{$varNameSingular}}BeforeDeleteHook)
-	if err = o.doBeforeDeleteHooks(nil); err != nil {
+	if err = {{$varNameSingular}}.doBeforeDeleteHooks(nil); err != nil {
 		t.Errorf("Unable to execute doBeforeDeleteHooks: %s", err)
 	}
-	if !reflect.DeepEqual(o, empty) {
-		t.Errorf("Expected BeforeDeleteHook function to empty object, but got: %#v", o)
+	if !reflect.DeepEqual({{$varNameSingular}}, empty) {
+		t.Errorf("Expected BeforeDeleteHook function to empty object, but got: %#v", {{$varNameSingular}})
 	}
 	{{$varNameSingular}}BeforeDeleteHooks = []{{$tableNameSingular}}Hook{}
 
 	Add{{$tableNameSingular}}Hook(boil.AfterDeleteHook, {{$varNameSingular}}AfterDeleteHook)
-	if err = o.doAfterDeleteHooks(nil); err != nil {
+	if err = {{$varNameSingular}}.doAfterDeleteHooks(nil); err != nil {
 		t.Errorf("Unable to execute doAfterDeleteHooks: %s", err)
 	}
-	if !reflect.DeepEqual(o, empty) {
-		t.Errorf("Expected AfterDeleteHook function to empty object, but got: %#v", o)
+	if !reflect.DeepEqual({{$varNameSingular}}, empty) {
+		t.Errorf("Expected AfterDeleteHook function to empty object, but got: %#v", {{$varNameSingular}})
 	}
 	{{$varNameSingular}}AfterDeleteHooks = []{{$tableNameSingular}}Hook{}
 
 	Add{{$tableNameSingular}}Hook(boil.BeforeUpsertHook, {{$varNameSingular}}BeforeUpsertHook)
-	if err = o.doBeforeUpsertHooks(nil); err != nil {
+	if err = {{$varNameSingular}}.doBeforeUpsertHooks(nil); err != nil {
 		t.Errorf("Unable to execute doBeforeUpsertHooks: %s", err)
 	}
-	if !reflect.DeepEqual(o, empty) {
-		t.Errorf("Expected BeforeUpsertHook function to empty object, but got: %#v", o)
+	if !reflect.DeepEqual({{$varNameSingular}}, empty) {
+		t.Errorf("Expected BeforeUpsertHook function to empty object, but got: %#v", {{$varNameSingular}})
 	}
 	{{$varNameSingular}}BeforeUpsertHooks = []{{$tableNameSingular}}Hook{}
 
 	Add{{$tableNameSingular}}Hook(boil.AfterUpsertHook, {{$varNameSingular}}AfterUpsertHook)
-	if err = o.doAfterUpsertHooks(nil); err != nil {
+	if err = {{$varNameSingular}}.doAfterUpsertHooks(nil); err != nil {
 		t.Errorf("Unable to execute doAfterUpsertHooks: %s", err)
 	}
-	if !reflect.DeepEqual(o, empty) {
-		t.Errorf("Expected AfterUpsertHook function to empty object, but got: %#v", o)
+	if !reflect.DeepEqual({{$varNameSingular}}, empty) {
+		t.Errorf("Expected AfterUpsertHook function to empty object, but got: %#v", {{$varNameSingular}})
 	}
 	{{$varNameSingular}}AfterUpsertHooks = []{{$tableNameSingular}}Hook{}
 }

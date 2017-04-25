@@ -10,20 +10,7 @@ func test{{$tableNamePlural}}Upsert(t *testing.T) {
 		t.Skip("Skipping table with only primary key columns")
 	}
 
-	var err error
-	seed := randomize.NewSeed()
-    // this is a hack because if randomize isn't used compiler will complain
-    // but if seed isn't then compiler will complain too
-    _ = seed
-	// Attempt the INSERT side of an UPSERT
-	{{if not $hasCustom}}
-	{{$varNameSingular}} := {{$tableNameSingular}}{}
-	if err = randomize.Struct(seed, &{{$varNameSingular}}, {{$varNameSingular}}DBTypes, true); err != nil {
-		t.Errorf("Unable to randomize {{$tableNameSingular}} struct: %s", err)
-	}
-	{{else}}
-    {{$varNameSingular}} := {{$tableNameSingular}}Random()
-    {{end}}
+    {{template "isCustomSimple" .}}
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -40,14 +27,16 @@ func test{{$tableNamePlural}}Upsert(t *testing.T) {
 	}
 
 	// Attempt the UPDATE side of an UPSERT
-	{{if not $hasCustom}}
-	if err = randomize.Struct(seed, &{{$varNameSingular}}, {{$varNameSingular}}DBTypes, false, {{$varNameSingular}}PrimaryKeyColumns...); err != nil {
+	blacklist := {{$varNameSingular}}PrimaryKeyColumns
+	{{if $hasCustom}}
+	blacklist = append(blacklist, {{$varNameSingular}}ColumnsWithCustom...)
+	{{end}}
+	if err = randomize.Struct(seed, {{$varNameSingular}}, {{$varNameSingular}}DBTypes, false, blacklist...); err != nil {
 		t.Errorf("Unable to randomize {{$tableNameSingular}} struct: %s", err)
 	}
-	{{else}}
-    {{$varNameSingular}} = {{$tableNameSingular}}Random()
+	{{if $hasCustom}}
+    {{template "customRandomRangeOne" .}}
     {{end}}
-
 	if err = {{$varNameSingular}}.Upsert(tx, {{if eq .DriverName "postgres"}}true, nil, {{end}}nil); err != nil {
 		t.Errorf("Unable to upsert {{$tableNameSingular}}: %s", err)
 	}
