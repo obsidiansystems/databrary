@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -80,37 +81,13 @@ func TestMain(m *testing.M) {
 }
 
 func initViper() error {
-	//var err error
-
-	viper.SetConfigName("sqlboiler")
-
-	//configHome := os.Getenv("XDG_CONFIG_HOME")
-	//homePath := os.Getenv("HOME")
-	//configHome := "/home/maksim/dev_projects/go/src/github.com/databrary/databrary/"
-	//wd, err := os.Getwd()
-	//if err != nil {
-	//	wd = "../"
-	//} else {
-	//	wd = wd + "/.."
-	//}
-
-	//configPaths := []string{wd}
-	//if len(configHome) > 0 {
-	//	configPaths = append(configPaths, filepath.Join(configHome, "sqlboiler.toml"))
-	//} else {
-	//	configPaths = append(configPaths, filepath.Join(homePath, ".config/sqlboiler"))
-	//}
-	//
-	//for _, p := range configPaths {
-	//	viper.AddConfigPath(p)
-	//}
-	viper.SetConfigFile("/home/maksim/dev_projects/go/src/github.com/databrary/databrary/config/sqlboiler/sqlboiler.toml")
-	//viper.AddConfigPath("/home/maksim/dev_projects/go/src/github.com/databrary/databrary/sqlboiler.toml")
-	// Ignore errors here, fall back to defaults and validation to provide errs
-	_ = viper.ReadInConfig()
-	viper.AutomaticEnv()
-
-	return nil
+	GOPATH := os.Getenv("GOPATH")
+	// don't get smart and change sqlboiler.toml to config.toml or something because you won't be able
+	// to regen models using sqlboiler executable
+	configPath := filepath.Join(GOPATH, "src/github.com/databrary/databrary/config/sqlboiler/sqlboiler.toml")
+	viper.SetConfigFile(configPath)
+	err := viper.ReadInConfig()
+	return err
 }
 
 // setConfigDefaults is only necessary because of bugs in viper, noted in main

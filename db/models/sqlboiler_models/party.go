@@ -38,11 +38,11 @@ type Party struct {
 type partyR struct {
 	Avatar             *Avatar
 	IDAccount          *Account
-	ParentAuthorizes   AuthorizeSlice
 	ChildAuthorizes    AuthorizeSlice
-	VolumeAccesses     VolumeAccessSlice
-	Notifications      NotificationSlice
+	ParentAuthorizes   AuthorizeSlice
 	AgentNotifications NotificationSlice
+	Notifications      NotificationSlice
+	VolumeAccesses     VolumeAccessSlice
 }
 
 // partyL is where Load methods for each relationship are stored.
@@ -371,30 +371,6 @@ func (o *Party) IDAccountByFk(exec boil.Executor, mods ...qm.QueryMod) accountQu
 	return query
 }
 
-// ParentAuthorizesG retrieves all the authorize's authorize via parent column.
-func (o *Party) ParentAuthorizesG(mods ...qm.QueryMod) authorizeQuery {
-	return o.ParentAuthorizesByFk(boil.GetDB(), mods...)
-}
-
-// ParentAuthorizes retrieves all the authorize's authorize with an executor via parent column.
-func (o *Party) ParentAuthorizesByFk(exec boil.Executor, mods ...qm.QueryMod) authorizeQuery {
-	queryMods := []qm.QueryMod{
-		qm.Select("\"a\".*"),
-	}
-
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"a\".\"parent\"=?", o.ID),
-	)
-
-	query := Authorizes(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"authorize\" as \"a\"")
-	return query
-}
-
 // ChildAuthorizesG retrieves all the authorize's authorize via child column.
 func (o *Party) ChildAuthorizesG(mods ...qm.QueryMod) authorizeQuery {
 	return o.ChildAuthorizesByFk(boil.GetDB(), mods...)
@@ -419,13 +395,13 @@ func (o *Party) ChildAuthorizesByFk(exec boil.Executor, mods ...qm.QueryMod) aut
 	return query
 }
 
-// VolumeAccessesG retrieves all the volume_access's volume access.
-func (o *Party) VolumeAccessesG(mods ...qm.QueryMod) volumeAccessQuery {
-	return o.VolumeAccessesByFk(boil.GetDB(), mods...)
+// ParentAuthorizesG retrieves all the authorize's authorize via parent column.
+func (o *Party) ParentAuthorizesG(mods ...qm.QueryMod) authorizeQuery {
+	return o.ParentAuthorizesByFk(boil.GetDB(), mods...)
 }
 
-// VolumeAccesses retrieves all the volume_access's volume access with an executor.
-func (o *Party) VolumeAccessesByFk(exec boil.Executor, mods ...qm.QueryMod) volumeAccessQuery {
+// ParentAuthorizes retrieves all the authorize's authorize with an executor via parent column.
+func (o *Party) ParentAuthorizesByFk(exec boil.Executor, mods ...qm.QueryMod) authorizeQuery {
 	queryMods := []qm.QueryMod{
 		qm.Select("\"a\".*"),
 	}
@@ -435,11 +411,35 @@ func (o *Party) VolumeAccessesByFk(exec boil.Executor, mods ...qm.QueryMod) volu
 	}
 
 	queryMods = append(queryMods,
-		qm.Where("\"a\".\"party\"=?", o.ID),
+		qm.Where("\"a\".\"parent\"=?", o.ID),
 	)
 
-	query := VolumeAccesses(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"volume_access\" as \"a\"")
+	query := Authorizes(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"authorize\" as \"a\"")
+	return query
+}
+
+// AgentNotificationsG retrieves all the notification's notification via agent column.
+func (o *Party) AgentNotificationsG(mods ...qm.QueryMod) notificationQuery {
+	return o.AgentNotificationsByFk(boil.GetDB(), mods...)
+}
+
+// AgentNotifications retrieves all the notification's notification with an executor via agent column.
+func (o *Party) AgentNotificationsByFk(exec boil.Executor, mods ...qm.QueryMod) notificationQuery {
+	queryMods := []qm.QueryMod{
+		qm.Select("\"a\".*"),
+	}
+
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"a\".\"agent\"=?", o.ID),
+	)
+
+	query := Notifications(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"notification\" as \"a\"")
 	return query
 }
 
@@ -467,13 +467,13 @@ func (o *Party) NotificationsByFk(exec boil.Executor, mods ...qm.QueryMod) notif
 	return query
 }
 
-// AgentNotificationsG retrieves all the notification's notification via agent column.
-func (o *Party) AgentNotificationsG(mods ...qm.QueryMod) notificationQuery {
-	return o.AgentNotificationsByFk(boil.GetDB(), mods...)
+// VolumeAccessesG retrieves all the volume_access's volume access.
+func (o *Party) VolumeAccessesG(mods ...qm.QueryMod) volumeAccessQuery {
+	return o.VolumeAccessesByFk(boil.GetDB(), mods...)
 }
 
-// AgentNotifications retrieves all the notification's notification with an executor via agent column.
-func (o *Party) AgentNotificationsByFk(exec boil.Executor, mods ...qm.QueryMod) notificationQuery {
+// VolumeAccesses retrieves all the volume_access's volume access with an executor.
+func (o *Party) VolumeAccessesByFk(exec boil.Executor, mods ...qm.QueryMod) volumeAccessQuery {
 	queryMods := []qm.QueryMod{
 		qm.Select("\"a\".*"),
 	}
@@ -483,11 +483,11 @@ func (o *Party) AgentNotificationsByFk(exec boil.Executor, mods ...qm.QueryMod) 
 	}
 
 	queryMods = append(queryMods,
-		qm.Where("\"a\".\"agent\"=?", o.ID),
+		qm.Where("\"a\".\"party\"=?", o.ID),
 	)
 
-	query := Notifications(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"notification\" as \"a\"")
+	query := VolumeAccesses(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"volume_access\" as \"a\"")
 	return query
 }
 
@@ -647,78 +647,6 @@ func (partyL) LoadIDAccount(e boil.Executor, singular bool, maybeParty interface
 	return nil
 }
 
-// LoadParentAuthorizes allows an eager lookup of values, cached into the
-// loaded structs of the objects.
-func (partyL) LoadParentAuthorizes(e boil.Executor, singular bool, maybeParty interface{}) error {
-	var slice []*Party
-	var object *Party
-
-	count := 1
-	if singular {
-		object = maybeParty.(*Party)
-	} else {
-		slice = *maybeParty.(*PartySlice)
-		count = len(slice)
-	}
-
-	args := make([]interface{}, count)
-	if singular {
-		if object.R == nil {
-			object.R = &partyR{}
-		}
-		args[0] = object.ID
-	} else {
-		for i, obj := range slice {
-			if obj.R == nil {
-				obj.R = &partyR{}
-			}
-			args[i] = obj.ID
-		}
-	}
-
-	query := fmt.Sprintf(
-		"select * from \"authorize\" where \"parent\" in (%s)",
-		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
-	)
-	if boil.DebugMode {
-		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
-	}
-
-	results, err := e.Query(query, args...)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load authorize")
-	}
-	defer results.Close()
-
-	var resultSlice []*Authorize
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice authorize")
-	}
-
-	if len(authorizeAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(e); err != nil {
-				return err
-			}
-		}
-	}
-	if singular {
-		object.R.ParentAuthorizes = resultSlice
-		return nil
-	}
-
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if local.ID == foreign.Parent {
-				local.R.ParentAuthorizes = append(local.R.ParentAuthorizes, foreign)
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
 // LoadChildAuthorizes allows an eager lookup of values, cached into the
 // loaded structs of the objects.
 func (partyL) LoadChildAuthorizes(e boil.Executor, singular bool, maybeParty interface{}) error {
@@ -791,9 +719,9 @@ func (partyL) LoadChildAuthorizes(e boil.Executor, singular bool, maybeParty int
 	return nil
 }
 
-// LoadVolumeAccesses allows an eager lookup of values, cached into the
+// LoadParentAuthorizes allows an eager lookup of values, cached into the
 // loaded structs of the objects.
-func (partyL) LoadVolumeAccesses(e boil.Executor, singular bool, maybeParty interface{}) error {
+func (partyL) LoadParentAuthorizes(e boil.Executor, singular bool, maybeParty interface{}) error {
 	var slice []*Party
 	var object *Party
 
@@ -821,7 +749,7 @@ func (partyL) LoadVolumeAccesses(e boil.Executor, singular bool, maybeParty inte
 	}
 
 	query := fmt.Sprintf(
-		"select * from \"volume_access\" where \"party\" in (%s)",
+		"select * from \"authorize\" where \"parent\" in (%s)",
 		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
 	)
 	if boil.DebugMode {
@@ -830,16 +758,16 @@ func (partyL) LoadVolumeAccesses(e boil.Executor, singular bool, maybeParty inte
 
 	results, err := e.Query(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "failed to eager load volume_access")
+		return errors.Wrap(err, "failed to eager load authorize")
 	}
 	defer results.Close()
 
-	var resultSlice []*VolumeAccess
+	var resultSlice []*Authorize
 	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice volume_access")
+		return errors.Wrap(err, "failed to bind eager loaded slice authorize")
 	}
 
-	if len(volumeAccessAfterSelectHooks) != 0 {
+	if len(authorizeAfterSelectHooks) != 0 {
 		for _, obj := range resultSlice {
 			if err := obj.doAfterSelectHooks(e); err != nil {
 				return err
@@ -847,14 +775,86 @@ func (partyL) LoadVolumeAccesses(e boil.Executor, singular bool, maybeParty inte
 		}
 	}
 	if singular {
-		object.R.VolumeAccesses = resultSlice
+		object.R.ParentAuthorizes = resultSlice
 		return nil
 	}
 
 	for _, foreign := range resultSlice {
 		for _, local := range slice {
-			if local.ID == foreign.Party {
-				local.R.VolumeAccesses = append(local.R.VolumeAccesses, foreign)
+			if local.ID == foreign.Parent {
+				local.R.ParentAuthorizes = append(local.R.ParentAuthorizes, foreign)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadAgentNotifications allows an eager lookup of values, cached into the
+// loaded structs of the objects.
+func (partyL) LoadAgentNotifications(e boil.Executor, singular bool, maybeParty interface{}) error {
+	var slice []*Party
+	var object *Party
+
+	count := 1
+	if singular {
+		object = maybeParty.(*Party)
+	} else {
+		slice = *maybeParty.(*PartySlice)
+		count = len(slice)
+	}
+
+	args := make([]interface{}, count)
+	if singular {
+		if object.R == nil {
+			object.R = &partyR{}
+		}
+		args[0] = object.ID
+	} else {
+		for i, obj := range slice {
+			if obj.R == nil {
+				obj.R = &partyR{}
+			}
+			args[i] = obj.ID
+		}
+	}
+
+	query := fmt.Sprintf(
+		"select * from \"notification\" where \"agent\" in (%s)",
+		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
+	)
+	if boil.DebugMode {
+		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
+	}
+
+	results, err := e.Query(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load notification")
+	}
+	defer results.Close()
+
+	var resultSlice []*Notification
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice notification")
+	}
+
+	if len(notificationAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.AgentNotifications = resultSlice
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.Agent {
+				local.R.AgentNotifications = append(local.R.AgentNotifications, foreign)
 				break
 			}
 		}
@@ -935,9 +935,9 @@ func (partyL) LoadNotifications(e boil.Executor, singular bool, maybeParty inter
 	return nil
 }
 
-// LoadAgentNotifications allows an eager lookup of values, cached into the
+// LoadVolumeAccesses allows an eager lookup of values, cached into the
 // loaded structs of the objects.
-func (partyL) LoadAgentNotifications(e boil.Executor, singular bool, maybeParty interface{}) error {
+func (partyL) LoadVolumeAccesses(e boil.Executor, singular bool, maybeParty interface{}) error {
 	var slice []*Party
 	var object *Party
 
@@ -965,7 +965,7 @@ func (partyL) LoadAgentNotifications(e boil.Executor, singular bool, maybeParty 
 	}
 
 	query := fmt.Sprintf(
-		"select * from \"notification\" where \"agent\" in (%s)",
+		"select * from \"volume_access\" where \"party\" in (%s)",
 		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
 	)
 	if boil.DebugMode {
@@ -974,16 +974,16 @@ func (partyL) LoadAgentNotifications(e boil.Executor, singular bool, maybeParty 
 
 	results, err := e.Query(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "failed to eager load notification")
+		return errors.Wrap(err, "failed to eager load volume_access")
 	}
 	defer results.Close()
 
-	var resultSlice []*Notification
+	var resultSlice []*VolumeAccess
 	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice notification")
+		return errors.Wrap(err, "failed to bind eager loaded slice volume_access")
 	}
 
-	if len(notificationAfterSelectHooks) != 0 {
+	if len(volumeAccessAfterSelectHooks) != 0 {
 		for _, obj := range resultSlice {
 			if err := obj.doAfterSelectHooks(e); err != nil {
 				return err
@@ -991,14 +991,14 @@ func (partyL) LoadAgentNotifications(e boil.Executor, singular bool, maybeParty 
 		}
 	}
 	if singular {
-		object.R.AgentNotifications = resultSlice
+		object.R.VolumeAccesses = resultSlice
 		return nil
 	}
 
 	for _, foreign := range resultSlice {
 		for _, local := range slice {
-			if local.ID == foreign.Agent {
-				local.R.AgentNotifications = append(local.R.AgentNotifications, foreign)
+			if local.ID == foreign.Party {
+				local.R.VolumeAccesses = append(local.R.VolumeAccesses, foreign)
 				break
 			}
 		}
@@ -1165,90 +1165,6 @@ func (o *Party) SetIDAccount(exec boil.Executor, insert bool, related *Account) 
 	return nil
 }
 
-// AddParentAuthorizesG adds the given related objects to the existing relationships
-// of the party, optionally inserting them as new records.
-// Appends related to o.R.ParentAuthorizes.
-// Sets related.R.Parent appropriately.
-// Uses the global database handle.
-func (o *Party) AddParentAuthorizesG(insert bool, related ...*Authorize) error {
-	return o.AddParentAuthorizes(boil.GetDB(), insert, related...)
-}
-
-// AddParentAuthorizesP adds the given related objects to the existing relationships
-// of the party, optionally inserting them as new records.
-// Appends related to o.R.ParentAuthorizes.
-// Sets related.R.Parent appropriately.
-// Panics on error.
-func (o *Party) AddParentAuthorizesP(exec boil.Executor, insert bool, related ...*Authorize) {
-	if err := o.AddParentAuthorizes(exec, insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddParentAuthorizesGP adds the given related objects to the existing relationships
-// of the party, optionally inserting them as new records.
-// Appends related to o.R.ParentAuthorizes.
-// Sets related.R.Parent appropriately.
-// Uses the global database handle and panics on error.
-func (o *Party) AddParentAuthorizesGP(insert bool, related ...*Authorize) {
-	if err := o.AddParentAuthorizes(boil.GetDB(), insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddParentAuthorizes adds the given related objects to the existing relationships
-// of the party, optionally inserting them as new records.
-// Appends related to o.R.ParentAuthorizes.
-// Sets related.R.Parent appropriately.
-func (o *Party) AddParentAuthorizes(exec boil.Executor, insert bool, related ...*Authorize) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.Parent = o.ID
-			if err = rel.Insert(exec); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"authorize\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"parent"}),
-				strmangle.WhereClause("\"", "\"", 2, authorizePrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.Child, rel.Parent}
-
-			if boil.DebugMode {
-				fmt.Fprintln(boil.DebugWriter, updateQuery)
-				fmt.Fprintln(boil.DebugWriter, values)
-			}
-
-			if _, err = exec.Exec(updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.Parent = o.ID
-		}
-	}
-
-	if o.R == nil {
-		o.R = &partyR{
-			ParentAuthorizes: related,
-		}
-	} else {
-		o.R.ParentAuthorizes = append(o.R.ParentAuthorizes, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &authorizeR{
-				Parent: o,
-			}
-		} else {
-			rel.R.Parent = o
-		}
-	}
-	return nil
-}
-
 // AddChildAuthorizesG adds the given related objects to the existing relationships
 // of the party, optionally inserting them as new records.
 // Appends related to o.R.ChildAuthorizes.
@@ -1333,56 +1249,56 @@ func (o *Party) AddChildAuthorizes(exec boil.Executor, insert bool, related ...*
 	return nil
 }
 
-// AddVolumeAccessesG adds the given related objects to the existing relationships
+// AddParentAuthorizesG adds the given related objects to the existing relationships
 // of the party, optionally inserting them as new records.
-// Appends related to o.R.VolumeAccesses.
-// Sets related.R.Party appropriately.
+// Appends related to o.R.ParentAuthorizes.
+// Sets related.R.Parent appropriately.
 // Uses the global database handle.
-func (o *Party) AddVolumeAccessesG(insert bool, related ...*VolumeAccess) error {
-	return o.AddVolumeAccesses(boil.GetDB(), insert, related...)
+func (o *Party) AddParentAuthorizesG(insert bool, related ...*Authorize) error {
+	return o.AddParentAuthorizes(boil.GetDB(), insert, related...)
 }
 
-// AddVolumeAccessesP adds the given related objects to the existing relationships
+// AddParentAuthorizesP adds the given related objects to the existing relationships
 // of the party, optionally inserting them as new records.
-// Appends related to o.R.VolumeAccesses.
-// Sets related.R.Party appropriately.
+// Appends related to o.R.ParentAuthorizes.
+// Sets related.R.Parent appropriately.
 // Panics on error.
-func (o *Party) AddVolumeAccessesP(exec boil.Executor, insert bool, related ...*VolumeAccess) {
-	if err := o.AddVolumeAccesses(exec, insert, related...); err != nil {
+func (o *Party) AddParentAuthorizesP(exec boil.Executor, insert bool, related ...*Authorize) {
+	if err := o.AddParentAuthorizes(exec, insert, related...); err != nil {
 		panic(boil.WrapErr(err))
 	}
 }
 
-// AddVolumeAccessesGP adds the given related objects to the existing relationships
+// AddParentAuthorizesGP adds the given related objects to the existing relationships
 // of the party, optionally inserting them as new records.
-// Appends related to o.R.VolumeAccesses.
-// Sets related.R.Party appropriately.
+// Appends related to o.R.ParentAuthorizes.
+// Sets related.R.Parent appropriately.
 // Uses the global database handle and panics on error.
-func (o *Party) AddVolumeAccessesGP(insert bool, related ...*VolumeAccess) {
-	if err := o.AddVolumeAccesses(boil.GetDB(), insert, related...); err != nil {
+func (o *Party) AddParentAuthorizesGP(insert bool, related ...*Authorize) {
+	if err := o.AddParentAuthorizes(boil.GetDB(), insert, related...); err != nil {
 		panic(boil.WrapErr(err))
 	}
 }
 
-// AddVolumeAccesses adds the given related objects to the existing relationships
+// AddParentAuthorizes adds the given related objects to the existing relationships
 // of the party, optionally inserting them as new records.
-// Appends related to o.R.VolumeAccesses.
-// Sets related.R.Party appropriately.
-func (o *Party) AddVolumeAccesses(exec boil.Executor, insert bool, related ...*VolumeAccess) error {
+// Appends related to o.R.ParentAuthorizes.
+// Sets related.R.Parent appropriately.
+func (o *Party) AddParentAuthorizes(exec boil.Executor, insert bool, related ...*Authorize) error {
 	var err error
 	for _, rel := range related {
 		if insert {
-			rel.Party = o.ID
+			rel.Parent = o.ID
 			if err = rel.Insert(exec); err != nil {
 				return errors.Wrap(err, "failed to insert into foreign table")
 			}
 		} else {
 			updateQuery := fmt.Sprintf(
-				"UPDATE \"volume_access\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"party"}),
-				strmangle.WhereClause("\"", "\"", 2, volumeAccessPrimaryKeyColumns),
+				"UPDATE \"authorize\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"parent"}),
+				strmangle.WhereClause("\"", "\"", 2, authorizePrimaryKeyColumns),
 			)
-			values := []interface{}{o.ID, rel.Volume, rel.Party}
+			values := []interface{}{o.ID, rel.Child, rel.Parent}
 
 			if boil.DebugMode {
 				fmt.Fprintln(boil.DebugWriter, updateQuery)
@@ -1393,25 +1309,109 @@ func (o *Party) AddVolumeAccesses(exec boil.Executor, insert bool, related ...*V
 				return errors.Wrap(err, "failed to update foreign table")
 			}
 
-			rel.Party = o.ID
+			rel.Parent = o.ID
 		}
 	}
 
 	if o.R == nil {
 		o.R = &partyR{
-			VolumeAccesses: related,
+			ParentAuthorizes: related,
 		}
 	} else {
-		o.R.VolumeAccesses = append(o.R.VolumeAccesses, related...)
+		o.R.ParentAuthorizes = append(o.R.ParentAuthorizes, related...)
 	}
 
 	for _, rel := range related {
 		if rel.R == nil {
-			rel.R = &volumeAccessR{
-				Party: o,
+			rel.R = &authorizeR{
+				Parent: o,
 			}
 		} else {
-			rel.R.Party = o
+			rel.R.Parent = o
+		}
+	}
+	return nil
+}
+
+// AddAgentNotificationsG adds the given related objects to the existing relationships
+// of the party, optionally inserting them as new records.
+// Appends related to o.R.AgentNotifications.
+// Sets related.R.Agent appropriately.
+// Uses the global database handle.
+func (o *Party) AddAgentNotificationsG(insert bool, related ...*Notification) error {
+	return o.AddAgentNotifications(boil.GetDB(), insert, related...)
+}
+
+// AddAgentNotificationsP adds the given related objects to the existing relationships
+// of the party, optionally inserting them as new records.
+// Appends related to o.R.AgentNotifications.
+// Sets related.R.Agent appropriately.
+// Panics on error.
+func (o *Party) AddAgentNotificationsP(exec boil.Executor, insert bool, related ...*Notification) {
+	if err := o.AddAgentNotifications(exec, insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddAgentNotificationsGP adds the given related objects to the existing relationships
+// of the party, optionally inserting them as new records.
+// Appends related to o.R.AgentNotifications.
+// Sets related.R.Agent appropriately.
+// Uses the global database handle and panics on error.
+func (o *Party) AddAgentNotificationsGP(insert bool, related ...*Notification) {
+	if err := o.AddAgentNotifications(boil.GetDB(), insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddAgentNotifications adds the given related objects to the existing relationships
+// of the party, optionally inserting them as new records.
+// Appends related to o.R.AgentNotifications.
+// Sets related.R.Agent appropriately.
+func (o *Party) AddAgentNotifications(exec boil.Executor, insert bool, related ...*Notification) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.Agent = o.ID
+			if err = rel.Insert(exec); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"notification\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"agent"}),
+				strmangle.WhereClause("\"", "\"", 2, notificationPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.DebugMode {
+				fmt.Fprintln(boil.DebugWriter, updateQuery)
+				fmt.Fprintln(boil.DebugWriter, values)
+			}
+
+			if _, err = exec.Exec(updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.Agent = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &partyR{
+			AgentNotifications: related,
+		}
+	} else {
+		o.R.AgentNotifications = append(o.R.AgentNotifications, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &notificationR{
+				Agent: o,
+			}
+		} else {
+			rel.R.Agent = o
 		}
 	}
 	return nil
@@ -1638,56 +1638,56 @@ func (o *Party) RemoveNotifications(exec boil.Executor, related ...*Notification
 	return nil
 }
 
-// AddAgentNotificationsG adds the given related objects to the existing relationships
+// AddVolumeAccessesG adds the given related objects to the existing relationships
 // of the party, optionally inserting them as new records.
-// Appends related to o.R.AgentNotifications.
-// Sets related.R.Agent appropriately.
+// Appends related to o.R.VolumeAccesses.
+// Sets related.R.Party appropriately.
 // Uses the global database handle.
-func (o *Party) AddAgentNotificationsG(insert bool, related ...*Notification) error {
-	return o.AddAgentNotifications(boil.GetDB(), insert, related...)
+func (o *Party) AddVolumeAccessesG(insert bool, related ...*VolumeAccess) error {
+	return o.AddVolumeAccesses(boil.GetDB(), insert, related...)
 }
 
-// AddAgentNotificationsP adds the given related objects to the existing relationships
+// AddVolumeAccessesP adds the given related objects to the existing relationships
 // of the party, optionally inserting them as new records.
-// Appends related to o.R.AgentNotifications.
-// Sets related.R.Agent appropriately.
+// Appends related to o.R.VolumeAccesses.
+// Sets related.R.Party appropriately.
 // Panics on error.
-func (o *Party) AddAgentNotificationsP(exec boil.Executor, insert bool, related ...*Notification) {
-	if err := o.AddAgentNotifications(exec, insert, related...); err != nil {
+func (o *Party) AddVolumeAccessesP(exec boil.Executor, insert bool, related ...*VolumeAccess) {
+	if err := o.AddVolumeAccesses(exec, insert, related...); err != nil {
 		panic(boil.WrapErr(err))
 	}
 }
 
-// AddAgentNotificationsGP adds the given related objects to the existing relationships
+// AddVolumeAccessesGP adds the given related objects to the existing relationships
 // of the party, optionally inserting them as new records.
-// Appends related to o.R.AgentNotifications.
-// Sets related.R.Agent appropriately.
+// Appends related to o.R.VolumeAccesses.
+// Sets related.R.Party appropriately.
 // Uses the global database handle and panics on error.
-func (o *Party) AddAgentNotificationsGP(insert bool, related ...*Notification) {
-	if err := o.AddAgentNotifications(boil.GetDB(), insert, related...); err != nil {
+func (o *Party) AddVolumeAccessesGP(insert bool, related ...*VolumeAccess) {
+	if err := o.AddVolumeAccesses(boil.GetDB(), insert, related...); err != nil {
 		panic(boil.WrapErr(err))
 	}
 }
 
-// AddAgentNotifications adds the given related objects to the existing relationships
+// AddVolumeAccesses adds the given related objects to the existing relationships
 // of the party, optionally inserting them as new records.
-// Appends related to o.R.AgentNotifications.
-// Sets related.R.Agent appropriately.
-func (o *Party) AddAgentNotifications(exec boil.Executor, insert bool, related ...*Notification) error {
+// Appends related to o.R.VolumeAccesses.
+// Sets related.R.Party appropriately.
+func (o *Party) AddVolumeAccesses(exec boil.Executor, insert bool, related ...*VolumeAccess) error {
 	var err error
 	for _, rel := range related {
 		if insert {
-			rel.Agent = o.ID
+			rel.Party = o.ID
 			if err = rel.Insert(exec); err != nil {
 				return errors.Wrap(err, "failed to insert into foreign table")
 			}
 		} else {
 			updateQuery := fmt.Sprintf(
-				"UPDATE \"notification\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"agent"}),
-				strmangle.WhereClause("\"", "\"", 2, notificationPrimaryKeyColumns),
+				"UPDATE \"volume_access\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"party"}),
+				strmangle.WhereClause("\"", "\"", 2, volumeAccessPrimaryKeyColumns),
 			)
-			values := []interface{}{o.ID, rel.ID}
+			values := []interface{}{o.ID, rel.Volume, rel.Party}
 
 			if boil.DebugMode {
 				fmt.Fprintln(boil.DebugWriter, updateQuery)
@@ -1698,25 +1698,25 @@ func (o *Party) AddAgentNotifications(exec boil.Executor, insert bool, related .
 				return errors.Wrap(err, "failed to update foreign table")
 			}
 
-			rel.Agent = o.ID
+			rel.Party = o.ID
 		}
 	}
 
 	if o.R == nil {
 		o.R = &partyR{
-			AgentNotifications: related,
+			VolumeAccesses: related,
 		}
 	} else {
-		o.R.AgentNotifications = append(o.R.AgentNotifications, related...)
+		o.R.VolumeAccesses = append(o.R.VolumeAccesses, related...)
 	}
 
 	for _, rel := range related {
 		if rel.R == nil {
-			rel.R = &notificationR{
-				Agent: o,
+			rel.R = &volumeAccessR{
+				Party: o,
 			}
 		} else {
-			rel.R.Agent = o
+			rel.R.Party = o
 		}
 	}
 	return nil

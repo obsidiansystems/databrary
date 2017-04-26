@@ -465,59 +465,6 @@ func testUploadsInsertWhitelist(t *testing.T) {
 	}
 }
 
-func testUploadToOneVolumeUsingVolume(t *testing.T) {
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var foreign Volume
-	var local Upload
-
-	foreignBlacklist := volumeColumnsWithDefault
-	if err := randomize.Struct(seed, &foreign, volumeDBTypes, true, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Volume struct: %s", err)
-	}
-	localBlacklist := uploadColumnsWithDefault
-	if err := randomize.Struct(seed, &local, uploadDBTypes, true, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Upload struct: %s", err)
-	}
-
-	if err := foreign.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	local.Volume = foreign.ID
-	if err := local.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	check, err := local.VolumeByFk(tx).One()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if check.ID != foreign.ID {
-		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
-	}
-
-	slice := UploadSlice{&local}
-	if err = local.L.LoadVolume(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.Volume == nil {
-		t.Error("struct should have been eager loaded")
-	}
-
-	local.R.Volume = nil
-	if err = local.L.LoadVolume(tx, true, &local); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.Volume == nil {
-		t.Error("struct should have been eager loaded")
-	}
-}
-
 func testUploadToOneAccountUsingAccount(t *testing.T) {
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -571,65 +518,59 @@ func testUploadToOneAccountUsingAccount(t *testing.T) {
 	}
 }
 
-func testUploadToOneSetOpVolumeUsingVolume(t *testing.T) {
-	var err error
-
+func testUploadToOneVolumeUsingVolume(t *testing.T) {
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
 
 	seed := randomize.NewSeed()
 
-	var a Upload
-	var b, c Volume
+	var foreign Volume
+	var local Upload
 
-	foreignBlacklist := strmangle.SetComplement(volumePrimaryKeyColumns, volumeColumnsWithoutDefault)
-	if err := randomize.Struct(seed, &b, volumeDBTypes, false, foreignBlacklist...); err != nil {
+	foreignBlacklist := volumeColumnsWithDefault
+	if err := randomize.Struct(seed, &foreign, volumeDBTypes, true, foreignBlacklist...); err != nil {
 		t.Errorf("Unable to randomize Volume struct: %s", err)
 	}
-	if err := randomize.Struct(seed, &c, volumeDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Volume struct: %s", err)
-	}
-	localBlacklist := strmangle.SetComplement(uploadPrimaryKeyColumns, uploadColumnsWithoutDefault)
-	if err := randomize.Struct(seed, &a, uploadDBTypes, false, localBlacklist...); err != nil {
+	localBlacklist := uploadColumnsWithDefault
+	if err := randomize.Struct(seed, &local, uploadDBTypes, true, localBlacklist...); err != nil {
 		t.Errorf("Unable to randomize Upload struct: %s", err)
 	}
 
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(tx); err != nil {
+	if err := foreign.Insert(tx); err != nil {
 		t.Fatal(err)
 	}
 
-	for i, x := range []*Volume{&b, &c} {
-		err = a.SetVolume(tx, i != 0, x)
-		if err != nil {
-			t.Fatal(err)
-		}
+	local.Volume = foreign.ID
+	if err := local.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
 
-		if a.R.Volume != x {
-			t.Error("relationship struct not set to correct value")
-		}
+	check, err := local.VolumeByFk(tx).One()
+	if err != nil {
+		t.Fatal(err)
+	}
 
-		if x.R.Uploads[0] != &a {
-			t.Error("failed to append to foreign relationship struct")
-		}
-		if a.Volume != x.ID {
-			t.Error("foreign key was wrong value", a.Volume)
-		}
+	if check.ID != foreign.ID {
+		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
+	}
 
-		zero := reflect.Zero(reflect.TypeOf(a.Volume))
-		reflect.Indirect(reflect.ValueOf(&a.Volume)).Set(zero)
+	slice := UploadSlice{&local}
+	if err = local.L.LoadVolume(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Volume == nil {
+		t.Error("struct should have been eager loaded")
+	}
 
-		if err = a.Reload(tx); err != nil {
-			t.Fatal("failed to reload", err)
-		}
-
-		if a.Volume != x.ID {
-			t.Error("foreign key was wrong value", a.Volume, x.ID)
-		}
+	local.R.Volume = nil
+	if err = local.L.LoadVolume(tx, true, &local); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Volume == nil {
+		t.Error("struct should have been eager loaded")
 	}
 }
+
 func testUploadToOneSetOpAccountUsingAccount(t *testing.T) {
 	var err error
 
@@ -686,6 +627,65 @@ func testUploadToOneSetOpAccountUsingAccount(t *testing.T) {
 
 		if a.Account != x.ID {
 			t.Error("foreign key was wrong value", a.Account, x.ID)
+		}
+	}
+}
+func testUploadToOneSetOpVolumeUsingVolume(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var a Upload
+	var b, c Volume
+
+	foreignBlacklist := strmangle.SetComplement(volumePrimaryKeyColumns, volumeColumnsWithoutDefault)
+	if err := randomize.Struct(seed, &b, volumeDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Volume struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, volumeDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Volume struct: %s", err)
+	}
+	localBlacklist := strmangle.SetComplement(uploadPrimaryKeyColumns, uploadColumnsWithoutDefault)
+	if err := randomize.Struct(seed, &a, uploadDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Upload struct: %s", err)
+	}
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	for i, x := range []*Volume{&b, &c} {
+		err = a.SetVolume(tx, i != 0, x)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if a.R.Volume != x {
+			t.Error("relationship struct not set to correct value")
+		}
+
+		if x.R.Uploads[0] != &a {
+			t.Error("failed to append to foreign relationship struct")
+		}
+		if a.Volume != x.ID {
+			t.Error("foreign key was wrong value", a.Volume)
+		}
+
+		zero := reflect.Zero(reflect.TypeOf(a.Volume))
+		reflect.Indirect(reflect.ValueOf(&a.Volume)).Set(zero)
+
+		if err = a.Reload(tx); err != nil {
+			t.Fatal("failed to reload", err)
+		}
+
+		if a.Volume != x.ID {
+			t.Error("foreign key was wrong value", a.Volume, x.ID)
 		}
 	}
 }

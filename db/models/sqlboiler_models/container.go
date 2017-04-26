@@ -36,13 +36,13 @@ type Container struct {
 // containerR is where relationships are stored.
 type containerR struct {
 	Volume           *Volume
-	SlotReleases     SlotReleaseSlice
-	VolumeInclusions VolumeInclusionSlice
-	SlotAssets       SlotAssetSlice
 	TagUses          TagUseSlice
-	SlotRecords      SlotRecordSlice
-	Comments         CommentSlice
 	Notifications    NotificationSlice
+	SlotReleases     SlotReleaseSlice
+	SlotAssets       SlotAssetSlice
+	SlotRecords      SlotRecordSlice
+	VolumeInclusions VolumeInclusionSlice
+	Comments         CommentSlice
 }
 
 // containerL is where Load methods for each relationship are stored.
@@ -352,6 +352,54 @@ func (o *Container) VolumeByFk(exec boil.Executor, mods ...qm.QueryMod) volumeQu
 	return query
 }
 
+// TagUsesG retrieves all the tag_use's tag use.
+func (o *Container) TagUsesG(mods ...qm.QueryMod) tagUseQuery {
+	return o.TagUsesByFk(boil.GetDB(), mods...)
+}
+
+// TagUses retrieves all the tag_use's tag use with an executor.
+func (o *Container) TagUsesByFk(exec boil.Executor, mods ...qm.QueryMod) tagUseQuery {
+	queryMods := []qm.QueryMod{
+		qm.Select("\"a\".*"),
+	}
+
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"a\".\"container\"=?", o.ID),
+	)
+
+	query := TagUses(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"tag_use\" as \"a\"")
+	return query
+}
+
+// NotificationsG retrieves all the notification's notification.
+func (o *Container) NotificationsG(mods ...qm.QueryMod) notificationQuery {
+	return o.NotificationsByFk(boil.GetDB(), mods...)
+}
+
+// Notifications retrieves all the notification's notification with an executor.
+func (o *Container) NotificationsByFk(exec boil.Executor, mods ...qm.QueryMod) notificationQuery {
+	queryMods := []qm.QueryMod{
+		qm.Select("\"a\".*"),
+	}
+
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"a\".\"container\"=?", o.ID),
+	)
+
+	query := Notifications(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"notification\" as \"a\"")
+	return query
+}
+
 // SlotReleasesG retrieves all the slot_release's slot release.
 func (o *Container) SlotReleasesG(mods ...qm.QueryMod) slotReleaseQuery {
 	return o.SlotReleasesByFk(boil.GetDB(), mods...)
@@ -373,30 +421,6 @@ func (o *Container) SlotReleasesByFk(exec boil.Executor, mods ...qm.QueryMod) sl
 
 	query := SlotReleases(exec, queryMods...)
 	queries.SetFrom(query.Query, "\"slot_release\" as \"a\"")
-	return query
-}
-
-// VolumeInclusionsG retrieves all the volume_inclusion's volume inclusion.
-func (o *Container) VolumeInclusionsG(mods ...qm.QueryMod) volumeInclusionQuery {
-	return o.VolumeInclusionsByFk(boil.GetDB(), mods...)
-}
-
-// VolumeInclusions retrieves all the volume_inclusion's volume inclusion with an executor.
-func (o *Container) VolumeInclusionsByFk(exec boil.Executor, mods ...qm.QueryMod) volumeInclusionQuery {
-	queryMods := []qm.QueryMod{
-		qm.Select("\"a\".*"),
-	}
-
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"a\".\"container\"=?", o.ID),
-	)
-
-	query := VolumeInclusions(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"volume_inclusion\" as \"a\"")
 	return query
 }
 
@@ -424,30 +448,6 @@ func (o *Container) SlotAssetsByFk(exec boil.Executor, mods ...qm.QueryMod) slot
 	return query
 }
 
-// TagUsesG retrieves all the tag_use's tag use.
-func (o *Container) TagUsesG(mods ...qm.QueryMod) tagUseQuery {
-	return o.TagUsesByFk(boil.GetDB(), mods...)
-}
-
-// TagUses retrieves all the tag_use's tag use with an executor.
-func (o *Container) TagUsesByFk(exec boil.Executor, mods ...qm.QueryMod) tagUseQuery {
-	queryMods := []qm.QueryMod{
-		qm.Select("\"a\".*"),
-	}
-
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"a\".\"container\"=?", o.ID),
-	)
-
-	query := TagUses(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"tag_use\" as \"a\"")
-	return query
-}
-
 // SlotRecordsG retrieves all the slot_record's slot record.
 func (o *Container) SlotRecordsG(mods ...qm.QueryMod) slotRecordQuery {
 	return o.SlotRecordsByFk(boil.GetDB(), mods...)
@@ -472,6 +472,30 @@ func (o *Container) SlotRecordsByFk(exec boil.Executor, mods ...qm.QueryMod) slo
 	return query
 }
 
+// VolumeInclusionsG retrieves all the volume_inclusion's volume inclusion.
+func (o *Container) VolumeInclusionsG(mods ...qm.QueryMod) volumeInclusionQuery {
+	return o.VolumeInclusionsByFk(boil.GetDB(), mods...)
+}
+
+// VolumeInclusions retrieves all the volume_inclusion's volume inclusion with an executor.
+func (o *Container) VolumeInclusionsByFk(exec boil.Executor, mods ...qm.QueryMod) volumeInclusionQuery {
+	queryMods := []qm.QueryMod{
+		qm.Select("\"a\".*"),
+	}
+
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"a\".\"container\"=?", o.ID),
+	)
+
+	query := VolumeInclusions(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"volume_inclusion\" as \"a\"")
+	return query
+}
+
 // CommentsG retrieves all the comment's comment.
 func (o *Container) CommentsG(mods ...qm.QueryMod) commentQuery {
 	return o.CommentsByFk(boil.GetDB(), mods...)
@@ -493,30 +517,6 @@ func (o *Container) CommentsByFk(exec boil.Executor, mods ...qm.QueryMod) commen
 
 	query := Comments(exec, queryMods...)
 	queries.SetFrom(query.Query, "\"comment\" as \"a\"")
-	return query
-}
-
-// NotificationsG retrieves all the notification's notification.
-func (o *Container) NotificationsG(mods ...qm.QueryMod) notificationQuery {
-	return o.NotificationsByFk(boil.GetDB(), mods...)
-}
-
-// Notifications retrieves all the notification's notification with an executor.
-func (o *Container) NotificationsByFk(exec boil.Executor, mods ...qm.QueryMod) notificationQuery {
-	queryMods := []qm.QueryMod{
-		qm.Select("\"a\".*"),
-	}
-
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"a\".\"container\"=?", o.ID),
-	)
-
-	query := Notifications(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"notification\" as \"a\"")
 	return query
 }
 
@@ -598,6 +598,150 @@ func (containerL) LoadVolume(e boil.Executor, singular bool, maybeContainer inte
 	return nil
 }
 
+// LoadTagUses allows an eager lookup of values, cached into the
+// loaded structs of the objects.
+func (containerL) LoadTagUses(e boil.Executor, singular bool, maybeContainer interface{}) error {
+	var slice []*Container
+	var object *Container
+
+	count := 1
+	if singular {
+		object = maybeContainer.(*Container)
+	} else {
+		slice = *maybeContainer.(*ContainerSlice)
+		count = len(slice)
+	}
+
+	args := make([]interface{}, count)
+	if singular {
+		if object.R == nil {
+			object.R = &containerR{}
+		}
+		args[0] = object.ID
+	} else {
+		for i, obj := range slice {
+			if obj.R == nil {
+				obj.R = &containerR{}
+			}
+			args[i] = obj.ID
+		}
+	}
+
+	query := fmt.Sprintf(
+		"select * from \"tag_use\" where \"container\" in (%s)",
+		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
+	)
+	if boil.DebugMode {
+		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
+	}
+
+	results, err := e.Query(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load tag_use")
+	}
+	defer results.Close()
+
+	var resultSlice []*TagUse
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice tag_use")
+	}
+
+	if len(tagUseAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.TagUses = resultSlice
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.Container {
+				local.R.TagUses = append(local.R.TagUses, foreign)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadNotifications allows an eager lookup of values, cached into the
+// loaded structs of the objects.
+func (containerL) LoadNotifications(e boil.Executor, singular bool, maybeContainer interface{}) error {
+	var slice []*Container
+	var object *Container
+
+	count := 1
+	if singular {
+		object = maybeContainer.(*Container)
+	} else {
+		slice = *maybeContainer.(*ContainerSlice)
+		count = len(slice)
+	}
+
+	args := make([]interface{}, count)
+	if singular {
+		if object.R == nil {
+			object.R = &containerR{}
+		}
+		args[0] = object.ID
+	} else {
+		for i, obj := range slice {
+			if obj.R == nil {
+				obj.R = &containerR{}
+			}
+			args[i] = obj.ID
+		}
+	}
+
+	query := fmt.Sprintf(
+		"select * from \"notification\" where \"container\" in (%s)",
+		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
+	)
+	if boil.DebugMode {
+		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
+	}
+
+	results, err := e.Query(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load notification")
+	}
+	defer results.Close()
+
+	var resultSlice []*Notification
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice notification")
+	}
+
+	if len(notificationAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.Notifications = resultSlice
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.Container.Int {
+				local.R.Notifications = append(local.R.Notifications, foreign)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
 // LoadSlotReleases allows an eager lookup of values, cached into the
 // loaded structs of the objects.
 func (containerL) LoadSlotReleases(e boil.Executor, singular bool, maybeContainer interface{}) error {
@@ -662,78 +806,6 @@ func (containerL) LoadSlotReleases(e boil.Executor, singular bool, maybeContaine
 		for _, local := range slice {
 			if local.ID == foreign.Container {
 				local.R.SlotReleases = append(local.R.SlotReleases, foreign)
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
-// LoadVolumeInclusions allows an eager lookup of values, cached into the
-// loaded structs of the objects.
-func (containerL) LoadVolumeInclusions(e boil.Executor, singular bool, maybeContainer interface{}) error {
-	var slice []*Container
-	var object *Container
-
-	count := 1
-	if singular {
-		object = maybeContainer.(*Container)
-	} else {
-		slice = *maybeContainer.(*ContainerSlice)
-		count = len(slice)
-	}
-
-	args := make([]interface{}, count)
-	if singular {
-		if object.R == nil {
-			object.R = &containerR{}
-		}
-		args[0] = object.ID
-	} else {
-		for i, obj := range slice {
-			if obj.R == nil {
-				obj.R = &containerR{}
-			}
-			args[i] = obj.ID
-		}
-	}
-
-	query := fmt.Sprintf(
-		"select * from \"volume_inclusion\" where \"container\" in (%s)",
-		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
-	)
-	if boil.DebugMode {
-		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
-	}
-
-	results, err := e.Query(query, args...)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load volume_inclusion")
-	}
-	defer results.Close()
-
-	var resultSlice []*VolumeInclusion
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice volume_inclusion")
-	}
-
-	if len(volumeInclusionAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(e); err != nil {
-				return err
-			}
-		}
-	}
-	if singular {
-		object.R.VolumeInclusions = resultSlice
-		return nil
-	}
-
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if local.ID == foreign.Container {
-				local.R.VolumeInclusions = append(local.R.VolumeInclusions, foreign)
 				break
 			}
 		}
@@ -814,78 +886,6 @@ func (containerL) LoadSlotAssets(e boil.Executor, singular bool, maybeContainer 
 	return nil
 }
 
-// LoadTagUses allows an eager lookup of values, cached into the
-// loaded structs of the objects.
-func (containerL) LoadTagUses(e boil.Executor, singular bool, maybeContainer interface{}) error {
-	var slice []*Container
-	var object *Container
-
-	count := 1
-	if singular {
-		object = maybeContainer.(*Container)
-	} else {
-		slice = *maybeContainer.(*ContainerSlice)
-		count = len(slice)
-	}
-
-	args := make([]interface{}, count)
-	if singular {
-		if object.R == nil {
-			object.R = &containerR{}
-		}
-		args[0] = object.ID
-	} else {
-		for i, obj := range slice {
-			if obj.R == nil {
-				obj.R = &containerR{}
-			}
-			args[i] = obj.ID
-		}
-	}
-
-	query := fmt.Sprintf(
-		"select * from \"tag_use\" where \"container\" in (%s)",
-		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
-	)
-	if boil.DebugMode {
-		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
-	}
-
-	results, err := e.Query(query, args...)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load tag_use")
-	}
-	defer results.Close()
-
-	var resultSlice []*TagUse
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice tag_use")
-	}
-
-	if len(tagUseAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(e); err != nil {
-				return err
-			}
-		}
-	}
-	if singular {
-		object.R.TagUses = resultSlice
-		return nil
-	}
-
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if local.ID == foreign.Container {
-				local.R.TagUses = append(local.R.TagUses, foreign)
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
 // LoadSlotRecords allows an eager lookup of values, cached into the
 // loaded structs of the objects.
 func (containerL) LoadSlotRecords(e boil.Executor, singular bool, maybeContainer interface{}) error {
@@ -958,6 +958,78 @@ func (containerL) LoadSlotRecords(e boil.Executor, singular bool, maybeContainer
 	return nil
 }
 
+// LoadVolumeInclusions allows an eager lookup of values, cached into the
+// loaded structs of the objects.
+func (containerL) LoadVolumeInclusions(e boil.Executor, singular bool, maybeContainer interface{}) error {
+	var slice []*Container
+	var object *Container
+
+	count := 1
+	if singular {
+		object = maybeContainer.(*Container)
+	} else {
+		slice = *maybeContainer.(*ContainerSlice)
+		count = len(slice)
+	}
+
+	args := make([]interface{}, count)
+	if singular {
+		if object.R == nil {
+			object.R = &containerR{}
+		}
+		args[0] = object.ID
+	} else {
+		for i, obj := range slice {
+			if obj.R == nil {
+				obj.R = &containerR{}
+			}
+			args[i] = obj.ID
+		}
+	}
+
+	query := fmt.Sprintf(
+		"select * from \"volume_inclusion\" where \"container\" in (%s)",
+		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
+	)
+	if boil.DebugMode {
+		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
+	}
+
+	results, err := e.Query(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load volume_inclusion")
+	}
+	defer results.Close()
+
+	var resultSlice []*VolumeInclusion
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice volume_inclusion")
+	}
+
+	if len(volumeInclusionAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.VolumeInclusions = resultSlice
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.Container {
+				local.R.VolumeInclusions = append(local.R.VolumeInclusions, foreign)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
 // LoadComments allows an eager lookup of values, cached into the
 // loaded structs of the objects.
 func (containerL) LoadComments(e boil.Executor, singular bool, maybeContainer interface{}) error {
@@ -1022,78 +1094,6 @@ func (containerL) LoadComments(e boil.Executor, singular bool, maybeContainer in
 		for _, local := range slice {
 			if local.ID == foreign.Container {
 				local.R.Comments = append(local.R.Comments, foreign)
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
-// LoadNotifications allows an eager lookup of values, cached into the
-// loaded structs of the objects.
-func (containerL) LoadNotifications(e boil.Executor, singular bool, maybeContainer interface{}) error {
-	var slice []*Container
-	var object *Container
-
-	count := 1
-	if singular {
-		object = maybeContainer.(*Container)
-	} else {
-		slice = *maybeContainer.(*ContainerSlice)
-		count = len(slice)
-	}
-
-	args := make([]interface{}, count)
-	if singular {
-		if object.R == nil {
-			object.R = &containerR{}
-		}
-		args[0] = object.ID
-	} else {
-		for i, obj := range slice {
-			if obj.R == nil {
-				obj.R = &containerR{}
-			}
-			args[i] = obj.ID
-		}
-	}
-
-	query := fmt.Sprintf(
-		"select * from \"notification\" where \"container\" in (%s)",
-		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
-	)
-	if boil.DebugMode {
-		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
-	}
-
-	results, err := e.Query(query, args...)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load notification")
-	}
-	defer results.Close()
-
-	var resultSlice []*Notification
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice notification")
-	}
-
-	if len(notificationAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(e); err != nil {
-				return err
-			}
-		}
-	}
-	if singular {
-		object.R.Notifications = resultSlice
-		return nil
-	}
-
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if local.ID == foreign.Container.Int {
-				local.R.Notifications = append(local.R.Notifications, foreign)
 				break
 			}
 		}
@@ -1178,258 +1178,6 @@ func (o *Container) SetVolume(exec boil.Executor, insert bool, related *Volume) 
 	return nil
 }
 
-// AddSlotReleasesG adds the given related objects to the existing relationships
-// of the container, optionally inserting them as new records.
-// Appends related to o.R.SlotReleases.
-// Sets related.R.Container appropriately.
-// Uses the global database handle.
-func (o *Container) AddSlotReleasesG(insert bool, related ...*SlotRelease) error {
-	return o.AddSlotReleases(boil.GetDB(), insert, related...)
-}
-
-// AddSlotReleasesP adds the given related objects to the existing relationships
-// of the container, optionally inserting them as new records.
-// Appends related to o.R.SlotReleases.
-// Sets related.R.Container appropriately.
-// Panics on error.
-func (o *Container) AddSlotReleasesP(exec boil.Executor, insert bool, related ...*SlotRelease) {
-	if err := o.AddSlotReleases(exec, insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddSlotReleasesGP adds the given related objects to the existing relationships
-// of the container, optionally inserting them as new records.
-// Appends related to o.R.SlotReleases.
-// Sets related.R.Container appropriately.
-// Uses the global database handle and panics on error.
-func (o *Container) AddSlotReleasesGP(insert bool, related ...*SlotRelease) {
-	if err := o.AddSlotReleases(boil.GetDB(), insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddSlotReleases adds the given related objects to the existing relationships
-// of the container, optionally inserting them as new records.
-// Appends related to o.R.SlotReleases.
-// Sets related.R.Container appropriately.
-func (o *Container) AddSlotReleases(exec boil.Executor, insert bool, related ...*SlotRelease) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.Container = o.ID
-			if err = rel.Insert(exec); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"slot_release\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"container"}),
-				strmangle.WhereClause("\"", "\"", 2, slotReleasePrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.Container, rel.Segment}
-
-			if boil.DebugMode {
-				fmt.Fprintln(boil.DebugWriter, updateQuery)
-				fmt.Fprintln(boil.DebugWriter, values)
-			}
-
-			if _, err = exec.Exec(updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.Container = o.ID
-		}
-	}
-
-	if o.R == nil {
-		o.R = &containerR{
-			SlotReleases: related,
-		}
-	} else {
-		o.R.SlotReleases = append(o.R.SlotReleases, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &slotReleaseR{
-				Container: o,
-			}
-		} else {
-			rel.R.Container = o
-		}
-	}
-	return nil
-}
-
-// AddVolumeInclusionsG adds the given related objects to the existing relationships
-// of the container, optionally inserting them as new records.
-// Appends related to o.R.VolumeInclusions.
-// Sets related.R.Container appropriately.
-// Uses the global database handle.
-func (o *Container) AddVolumeInclusionsG(insert bool, related ...*VolumeInclusion) error {
-	return o.AddVolumeInclusions(boil.GetDB(), insert, related...)
-}
-
-// AddVolumeInclusionsP adds the given related objects to the existing relationships
-// of the container, optionally inserting them as new records.
-// Appends related to o.R.VolumeInclusions.
-// Sets related.R.Container appropriately.
-// Panics on error.
-func (o *Container) AddVolumeInclusionsP(exec boil.Executor, insert bool, related ...*VolumeInclusion) {
-	if err := o.AddVolumeInclusions(exec, insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddVolumeInclusionsGP adds the given related objects to the existing relationships
-// of the container, optionally inserting them as new records.
-// Appends related to o.R.VolumeInclusions.
-// Sets related.R.Container appropriately.
-// Uses the global database handle and panics on error.
-func (o *Container) AddVolumeInclusionsGP(insert bool, related ...*VolumeInclusion) {
-	if err := o.AddVolumeInclusions(boil.GetDB(), insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddVolumeInclusions adds the given related objects to the existing relationships
-// of the container, optionally inserting them as new records.
-// Appends related to o.R.VolumeInclusions.
-// Sets related.R.Container appropriately.
-func (o *Container) AddVolumeInclusions(exec boil.Executor, insert bool, related ...*VolumeInclusion) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.Container = o.ID
-			if err = rel.Insert(exec); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"volume_inclusion\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"container"}),
-				strmangle.WhereClause("\"", "\"", 2, volumeInclusionPrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.Container, rel.Volume}
-
-			if boil.DebugMode {
-				fmt.Fprintln(boil.DebugWriter, updateQuery)
-				fmt.Fprintln(boil.DebugWriter, values)
-			}
-
-			if _, err = exec.Exec(updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.Container = o.ID
-		}
-	}
-
-	if o.R == nil {
-		o.R = &containerR{
-			VolumeInclusions: related,
-		}
-	} else {
-		o.R.VolumeInclusions = append(o.R.VolumeInclusions, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &volumeInclusionR{
-				Container: o,
-			}
-		} else {
-			rel.R.Container = o
-		}
-	}
-	return nil
-}
-
-// AddSlotAssetsG adds the given related objects to the existing relationships
-// of the container, optionally inserting them as new records.
-// Appends related to o.R.SlotAssets.
-// Sets related.R.Container appropriately.
-// Uses the global database handle.
-func (o *Container) AddSlotAssetsG(insert bool, related ...*SlotAsset) error {
-	return o.AddSlotAssets(boil.GetDB(), insert, related...)
-}
-
-// AddSlotAssetsP adds the given related objects to the existing relationships
-// of the container, optionally inserting them as new records.
-// Appends related to o.R.SlotAssets.
-// Sets related.R.Container appropriately.
-// Panics on error.
-func (o *Container) AddSlotAssetsP(exec boil.Executor, insert bool, related ...*SlotAsset) {
-	if err := o.AddSlotAssets(exec, insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddSlotAssetsGP adds the given related objects to the existing relationships
-// of the container, optionally inserting them as new records.
-// Appends related to o.R.SlotAssets.
-// Sets related.R.Container appropriately.
-// Uses the global database handle and panics on error.
-func (o *Container) AddSlotAssetsGP(insert bool, related ...*SlotAsset) {
-	if err := o.AddSlotAssets(boil.GetDB(), insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddSlotAssets adds the given related objects to the existing relationships
-// of the container, optionally inserting them as new records.
-// Appends related to o.R.SlotAssets.
-// Sets related.R.Container appropriately.
-func (o *Container) AddSlotAssets(exec boil.Executor, insert bool, related ...*SlotAsset) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.Container = o.ID
-			if err = rel.Insert(exec); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"slot_asset\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"container"}),
-				strmangle.WhereClause("\"", "\"", 2, slotAssetPrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.Asset}
-
-			if boil.DebugMode {
-				fmt.Fprintln(boil.DebugWriter, updateQuery)
-				fmt.Fprintln(boil.DebugWriter, values)
-			}
-
-			if _, err = exec.Exec(updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.Container = o.ID
-		}
-	}
-
-	if o.R == nil {
-		o.R = &containerR{
-			SlotAssets: related,
-		}
-	} else {
-		o.R.SlotAssets = append(o.R.SlotAssets, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &slotAssetR{
-				Container: o,
-			}
-		} else {
-			rel.R.Container = o
-		}
-	}
-	return nil
-}
-
 // AddTagUsesG adds the given related objects to the existing relationships
 // of the container, optionally inserting them as new records.
 // Appends related to o.R.TagUses.
@@ -1505,174 +1253,6 @@ func (o *Container) AddTagUses(exec boil.Executor, insert bool, related ...*TagU
 	for _, rel := range related {
 		if rel.R == nil {
 			rel.R = &tagUseR{
-				Container: o,
-			}
-		} else {
-			rel.R.Container = o
-		}
-	}
-	return nil
-}
-
-// AddSlotRecordsG adds the given related objects to the existing relationships
-// of the container, optionally inserting them as new records.
-// Appends related to o.R.SlotRecords.
-// Sets related.R.Container appropriately.
-// Uses the global database handle.
-func (o *Container) AddSlotRecordsG(insert bool, related ...*SlotRecord) error {
-	return o.AddSlotRecords(boil.GetDB(), insert, related...)
-}
-
-// AddSlotRecordsP adds the given related objects to the existing relationships
-// of the container, optionally inserting them as new records.
-// Appends related to o.R.SlotRecords.
-// Sets related.R.Container appropriately.
-// Panics on error.
-func (o *Container) AddSlotRecordsP(exec boil.Executor, insert bool, related ...*SlotRecord) {
-	if err := o.AddSlotRecords(exec, insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddSlotRecordsGP adds the given related objects to the existing relationships
-// of the container, optionally inserting them as new records.
-// Appends related to o.R.SlotRecords.
-// Sets related.R.Container appropriately.
-// Uses the global database handle and panics on error.
-func (o *Container) AddSlotRecordsGP(insert bool, related ...*SlotRecord) {
-	if err := o.AddSlotRecords(boil.GetDB(), insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddSlotRecords adds the given related objects to the existing relationships
-// of the container, optionally inserting them as new records.
-// Appends related to o.R.SlotRecords.
-// Sets related.R.Container appropriately.
-func (o *Container) AddSlotRecords(exec boil.Executor, insert bool, related ...*SlotRecord) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.Container = o.ID
-			if err = rel.Insert(exec); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"slot_record\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"container"}),
-				strmangle.WhereClause("\"", "\"", 2, slotRecordPrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.Container, rel.Segment, rel.Record}
-
-			if boil.DebugMode {
-				fmt.Fprintln(boil.DebugWriter, updateQuery)
-				fmt.Fprintln(boil.DebugWriter, values)
-			}
-
-			if _, err = exec.Exec(updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.Container = o.ID
-		}
-	}
-
-	if o.R == nil {
-		o.R = &containerR{
-			SlotRecords: related,
-		}
-	} else {
-		o.R.SlotRecords = append(o.R.SlotRecords, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &slotRecordR{
-				Container: o,
-			}
-		} else {
-			rel.R.Container = o
-		}
-	}
-	return nil
-}
-
-// AddCommentsG adds the given related objects to the existing relationships
-// of the container, optionally inserting them as new records.
-// Appends related to o.R.Comments.
-// Sets related.R.Container appropriately.
-// Uses the global database handle.
-func (o *Container) AddCommentsG(insert bool, related ...*Comment) error {
-	return o.AddComments(boil.GetDB(), insert, related...)
-}
-
-// AddCommentsP adds the given related objects to the existing relationships
-// of the container, optionally inserting them as new records.
-// Appends related to o.R.Comments.
-// Sets related.R.Container appropriately.
-// Panics on error.
-func (o *Container) AddCommentsP(exec boil.Executor, insert bool, related ...*Comment) {
-	if err := o.AddComments(exec, insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddCommentsGP adds the given related objects to the existing relationships
-// of the container, optionally inserting them as new records.
-// Appends related to o.R.Comments.
-// Sets related.R.Container appropriately.
-// Uses the global database handle and panics on error.
-func (o *Container) AddCommentsGP(insert bool, related ...*Comment) {
-	if err := o.AddComments(boil.GetDB(), insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddComments adds the given related objects to the existing relationships
-// of the container, optionally inserting them as new records.
-// Appends related to o.R.Comments.
-// Sets related.R.Container appropriately.
-func (o *Container) AddComments(exec boil.Executor, insert bool, related ...*Comment) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.Container = o.ID
-			if err = rel.Insert(exec); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"comment\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"container"}),
-				strmangle.WhereClause("\"", "\"", 2, commentPrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.ID}
-
-			if boil.DebugMode {
-				fmt.Fprintln(boil.DebugWriter, updateQuery)
-				fmt.Fprintln(boil.DebugWriter, values)
-			}
-
-			if _, err = exec.Exec(updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.Container = o.ID
-		}
-	}
-
-	if o.R == nil {
-		o.R = &containerR{
-			Comments: related,
-		}
-	} else {
-		o.R.Comments = append(o.R.Comments, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &commentR{
 				Container: o,
 			}
 		} else {
@@ -1900,6 +1480,426 @@ func (o *Container) RemoveNotifications(exec boil.Executor, related ...*Notifica
 		}
 	}
 
+	return nil
+}
+
+// AddSlotReleasesG adds the given related objects to the existing relationships
+// of the container, optionally inserting them as new records.
+// Appends related to o.R.SlotReleases.
+// Sets related.R.Container appropriately.
+// Uses the global database handle.
+func (o *Container) AddSlotReleasesG(insert bool, related ...*SlotRelease) error {
+	return o.AddSlotReleases(boil.GetDB(), insert, related...)
+}
+
+// AddSlotReleasesP adds the given related objects to the existing relationships
+// of the container, optionally inserting them as new records.
+// Appends related to o.R.SlotReleases.
+// Sets related.R.Container appropriately.
+// Panics on error.
+func (o *Container) AddSlotReleasesP(exec boil.Executor, insert bool, related ...*SlotRelease) {
+	if err := o.AddSlotReleases(exec, insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddSlotReleasesGP adds the given related objects to the existing relationships
+// of the container, optionally inserting them as new records.
+// Appends related to o.R.SlotReleases.
+// Sets related.R.Container appropriately.
+// Uses the global database handle and panics on error.
+func (o *Container) AddSlotReleasesGP(insert bool, related ...*SlotRelease) {
+	if err := o.AddSlotReleases(boil.GetDB(), insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddSlotReleases adds the given related objects to the existing relationships
+// of the container, optionally inserting them as new records.
+// Appends related to o.R.SlotReleases.
+// Sets related.R.Container appropriately.
+func (o *Container) AddSlotReleases(exec boil.Executor, insert bool, related ...*SlotRelease) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.Container = o.ID
+			if err = rel.Insert(exec); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"slot_release\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"container"}),
+				strmangle.WhereClause("\"", "\"", 2, slotReleasePrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.Container, rel.Segment}
+
+			if boil.DebugMode {
+				fmt.Fprintln(boil.DebugWriter, updateQuery)
+				fmt.Fprintln(boil.DebugWriter, values)
+			}
+
+			if _, err = exec.Exec(updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.Container = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &containerR{
+			SlotReleases: related,
+		}
+	} else {
+		o.R.SlotReleases = append(o.R.SlotReleases, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &slotReleaseR{
+				Container: o,
+			}
+		} else {
+			rel.R.Container = o
+		}
+	}
+	return nil
+}
+
+// AddSlotAssetsG adds the given related objects to the existing relationships
+// of the container, optionally inserting them as new records.
+// Appends related to o.R.SlotAssets.
+// Sets related.R.Container appropriately.
+// Uses the global database handle.
+func (o *Container) AddSlotAssetsG(insert bool, related ...*SlotAsset) error {
+	return o.AddSlotAssets(boil.GetDB(), insert, related...)
+}
+
+// AddSlotAssetsP adds the given related objects to the existing relationships
+// of the container, optionally inserting them as new records.
+// Appends related to o.R.SlotAssets.
+// Sets related.R.Container appropriately.
+// Panics on error.
+func (o *Container) AddSlotAssetsP(exec boil.Executor, insert bool, related ...*SlotAsset) {
+	if err := o.AddSlotAssets(exec, insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddSlotAssetsGP adds the given related objects to the existing relationships
+// of the container, optionally inserting them as new records.
+// Appends related to o.R.SlotAssets.
+// Sets related.R.Container appropriately.
+// Uses the global database handle and panics on error.
+func (o *Container) AddSlotAssetsGP(insert bool, related ...*SlotAsset) {
+	if err := o.AddSlotAssets(boil.GetDB(), insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddSlotAssets adds the given related objects to the existing relationships
+// of the container, optionally inserting them as new records.
+// Appends related to o.R.SlotAssets.
+// Sets related.R.Container appropriately.
+func (o *Container) AddSlotAssets(exec boil.Executor, insert bool, related ...*SlotAsset) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.Container = o.ID
+			if err = rel.Insert(exec); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"slot_asset\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"container"}),
+				strmangle.WhereClause("\"", "\"", 2, slotAssetPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.Asset}
+
+			if boil.DebugMode {
+				fmt.Fprintln(boil.DebugWriter, updateQuery)
+				fmt.Fprintln(boil.DebugWriter, values)
+			}
+
+			if _, err = exec.Exec(updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.Container = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &containerR{
+			SlotAssets: related,
+		}
+	} else {
+		o.R.SlotAssets = append(o.R.SlotAssets, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &slotAssetR{
+				Container: o,
+			}
+		} else {
+			rel.R.Container = o
+		}
+	}
+	return nil
+}
+
+// AddSlotRecordsG adds the given related objects to the existing relationships
+// of the container, optionally inserting them as new records.
+// Appends related to o.R.SlotRecords.
+// Sets related.R.Container appropriately.
+// Uses the global database handle.
+func (o *Container) AddSlotRecordsG(insert bool, related ...*SlotRecord) error {
+	return o.AddSlotRecords(boil.GetDB(), insert, related...)
+}
+
+// AddSlotRecordsP adds the given related objects to the existing relationships
+// of the container, optionally inserting them as new records.
+// Appends related to o.R.SlotRecords.
+// Sets related.R.Container appropriately.
+// Panics on error.
+func (o *Container) AddSlotRecordsP(exec boil.Executor, insert bool, related ...*SlotRecord) {
+	if err := o.AddSlotRecords(exec, insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddSlotRecordsGP adds the given related objects to the existing relationships
+// of the container, optionally inserting them as new records.
+// Appends related to o.R.SlotRecords.
+// Sets related.R.Container appropriately.
+// Uses the global database handle and panics on error.
+func (o *Container) AddSlotRecordsGP(insert bool, related ...*SlotRecord) {
+	if err := o.AddSlotRecords(boil.GetDB(), insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddSlotRecords adds the given related objects to the existing relationships
+// of the container, optionally inserting them as new records.
+// Appends related to o.R.SlotRecords.
+// Sets related.R.Container appropriately.
+func (o *Container) AddSlotRecords(exec boil.Executor, insert bool, related ...*SlotRecord) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.Container = o.ID
+			if err = rel.Insert(exec); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"slot_record\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"container"}),
+				strmangle.WhereClause("\"", "\"", 2, slotRecordPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.Container, rel.Segment, rel.Record}
+
+			if boil.DebugMode {
+				fmt.Fprintln(boil.DebugWriter, updateQuery)
+				fmt.Fprintln(boil.DebugWriter, values)
+			}
+
+			if _, err = exec.Exec(updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.Container = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &containerR{
+			SlotRecords: related,
+		}
+	} else {
+		o.R.SlotRecords = append(o.R.SlotRecords, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &slotRecordR{
+				Container: o,
+			}
+		} else {
+			rel.R.Container = o
+		}
+	}
+	return nil
+}
+
+// AddVolumeInclusionsG adds the given related objects to the existing relationships
+// of the container, optionally inserting them as new records.
+// Appends related to o.R.VolumeInclusions.
+// Sets related.R.Container appropriately.
+// Uses the global database handle.
+func (o *Container) AddVolumeInclusionsG(insert bool, related ...*VolumeInclusion) error {
+	return o.AddVolumeInclusions(boil.GetDB(), insert, related...)
+}
+
+// AddVolumeInclusionsP adds the given related objects to the existing relationships
+// of the container, optionally inserting them as new records.
+// Appends related to o.R.VolumeInclusions.
+// Sets related.R.Container appropriately.
+// Panics on error.
+func (o *Container) AddVolumeInclusionsP(exec boil.Executor, insert bool, related ...*VolumeInclusion) {
+	if err := o.AddVolumeInclusions(exec, insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddVolumeInclusionsGP adds the given related objects to the existing relationships
+// of the container, optionally inserting them as new records.
+// Appends related to o.R.VolumeInclusions.
+// Sets related.R.Container appropriately.
+// Uses the global database handle and panics on error.
+func (o *Container) AddVolumeInclusionsGP(insert bool, related ...*VolumeInclusion) {
+	if err := o.AddVolumeInclusions(boil.GetDB(), insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddVolumeInclusions adds the given related objects to the existing relationships
+// of the container, optionally inserting them as new records.
+// Appends related to o.R.VolumeInclusions.
+// Sets related.R.Container appropriately.
+func (o *Container) AddVolumeInclusions(exec boil.Executor, insert bool, related ...*VolumeInclusion) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.Container = o.ID
+			if err = rel.Insert(exec); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"volume_inclusion\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"container"}),
+				strmangle.WhereClause("\"", "\"", 2, volumeInclusionPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.Container, rel.Volume}
+
+			if boil.DebugMode {
+				fmt.Fprintln(boil.DebugWriter, updateQuery)
+				fmt.Fprintln(boil.DebugWriter, values)
+			}
+
+			if _, err = exec.Exec(updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.Container = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &containerR{
+			VolumeInclusions: related,
+		}
+	} else {
+		o.R.VolumeInclusions = append(o.R.VolumeInclusions, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &volumeInclusionR{
+				Container: o,
+			}
+		} else {
+			rel.R.Container = o
+		}
+	}
+	return nil
+}
+
+// AddCommentsG adds the given related objects to the existing relationships
+// of the container, optionally inserting them as new records.
+// Appends related to o.R.Comments.
+// Sets related.R.Container appropriately.
+// Uses the global database handle.
+func (o *Container) AddCommentsG(insert bool, related ...*Comment) error {
+	return o.AddComments(boil.GetDB(), insert, related...)
+}
+
+// AddCommentsP adds the given related objects to the existing relationships
+// of the container, optionally inserting them as new records.
+// Appends related to o.R.Comments.
+// Sets related.R.Container appropriately.
+// Panics on error.
+func (o *Container) AddCommentsP(exec boil.Executor, insert bool, related ...*Comment) {
+	if err := o.AddComments(exec, insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddCommentsGP adds the given related objects to the existing relationships
+// of the container, optionally inserting them as new records.
+// Appends related to o.R.Comments.
+// Sets related.R.Container appropriately.
+// Uses the global database handle and panics on error.
+func (o *Container) AddCommentsGP(insert bool, related ...*Comment) {
+	if err := o.AddComments(boil.GetDB(), insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddComments adds the given related objects to the existing relationships
+// of the container, optionally inserting them as new records.
+// Appends related to o.R.Comments.
+// Sets related.R.Container appropriately.
+func (o *Container) AddComments(exec boil.Executor, insert bool, related ...*Comment) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.Container = o.ID
+			if err = rel.Insert(exec); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"comment\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"container"}),
+				strmangle.WhereClause("\"", "\"", 2, commentPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.DebugMode {
+				fmt.Fprintln(boil.DebugWriter, updateQuery)
+				fmt.Fprintln(boil.DebugWriter, values)
+			}
+
+			if _, err = exec.Exec(updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.Container = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &containerR{
+			Comments: related,
+		}
+	} else {
+		o.R.Comments = append(o.R.Comments, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &commentR{
+				Container: o,
+			}
+		} else {
+			rel.R.Container = o
+		}
+	}
 	return nil
 }
 

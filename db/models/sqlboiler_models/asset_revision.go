@@ -44,7 +44,7 @@ var (
 	assetRevisionColumnsWithDefault    = []string{}
 	assetRevisionColumnsWithCustom     = []string{}
 
-	assetRevisionPrimaryKeyColumns = []string{"asset"}
+	assetRevisionPrimaryKeyColumns = []string{"orig"}
 )
 
 type (
@@ -519,7 +519,7 @@ func (assetRevisionL) LoadOrig(e boil.Executor, singular bool, maybeAssetRevisio
 
 // SetAssetG of the asset_revision to the related item.
 // Sets o.R.Asset to related.
-// Adds o to related.R.AssetRevision.
+// Adds o to related.R.AssetRevisions.
 // Uses the global database handle.
 func (o *AssetRevision) SetAssetG(insert bool, related *Asset) error {
 	return o.SetAsset(boil.GetDB(), insert, related)
@@ -527,7 +527,7 @@ func (o *AssetRevision) SetAssetG(insert bool, related *Asset) error {
 
 // SetAssetP of the asset_revision to the related item.
 // Sets o.R.Asset to related.
-// Adds o to related.R.AssetRevision.
+// Adds o to related.R.AssetRevisions.
 // Panics on error.
 func (o *AssetRevision) SetAssetP(exec boil.Executor, insert bool, related *Asset) {
 	if err := o.SetAsset(exec, insert, related); err != nil {
@@ -537,7 +537,7 @@ func (o *AssetRevision) SetAssetP(exec boil.Executor, insert bool, related *Asse
 
 // SetAssetGP of the asset_revision to the related item.
 // Sets o.R.Asset to related.
-// Adds o to related.R.AssetRevision.
+// Adds o to related.R.AssetRevisions.
 // Uses the global database handle and panics on error.
 func (o *AssetRevision) SetAssetGP(insert bool, related *Asset) {
 	if err := o.SetAsset(boil.GetDB(), insert, related); err != nil {
@@ -547,7 +547,7 @@ func (o *AssetRevision) SetAssetGP(insert bool, related *Asset) {
 
 // SetAsset of the asset_revision to the related item.
 // Sets o.R.Asset to related.
-// Adds o to related.R.AssetRevision.
+// Adds o to related.R.AssetRevisions.
 func (o *AssetRevision) SetAsset(exec boil.Executor, insert bool, related *Asset) error {
 	var err error
 	if insert {
@@ -561,7 +561,7 @@ func (o *AssetRevision) SetAsset(exec boil.Executor, insert bool, related *Asset
 		strmangle.SetParamNames("\"", "\"", 1, []string{"asset"}),
 		strmangle.WhereClause("\"", "\"", 2, assetRevisionPrimaryKeyColumns),
 	)
-	values := []interface{}{related.ID, o.Asset}
+	values := []interface{}{related.ID, o.Orig}
 
 	if boil.DebugMode {
 		fmt.Fprintln(boil.DebugWriter, updateQuery)
@@ -584,10 +584,10 @@ func (o *AssetRevision) SetAsset(exec boil.Executor, insert bool, related *Asset
 
 	if related.R == nil {
 		related.R = &assetR{
-			AssetRevision: o,
+			AssetRevisions: AssetRevisionSlice{o},
 		}
 	} else {
-		related.R.AssetRevision = o
+		related.R.AssetRevisions = append(related.R.AssetRevisions, o)
 	}
 
 	return nil
@@ -595,7 +595,7 @@ func (o *AssetRevision) SetAsset(exec boil.Executor, insert bool, related *Asset
 
 // SetOrigG of the asset_revision to the related item.
 // Sets o.R.Orig to related.
-// Adds o to related.R.OrigAssetRevisions.
+// Adds o to related.R.OrigAssetRevision.
 // Uses the global database handle.
 func (o *AssetRevision) SetOrigG(insert bool, related *Asset) error {
 	return o.SetOrig(boil.GetDB(), insert, related)
@@ -603,7 +603,7 @@ func (o *AssetRevision) SetOrigG(insert bool, related *Asset) error {
 
 // SetOrigP of the asset_revision to the related item.
 // Sets o.R.Orig to related.
-// Adds o to related.R.OrigAssetRevisions.
+// Adds o to related.R.OrigAssetRevision.
 // Panics on error.
 func (o *AssetRevision) SetOrigP(exec boil.Executor, insert bool, related *Asset) {
 	if err := o.SetOrig(exec, insert, related); err != nil {
@@ -613,7 +613,7 @@ func (o *AssetRevision) SetOrigP(exec boil.Executor, insert bool, related *Asset
 
 // SetOrigGP of the asset_revision to the related item.
 // Sets o.R.Orig to related.
-// Adds o to related.R.OrigAssetRevisions.
+// Adds o to related.R.OrigAssetRevision.
 // Uses the global database handle and panics on error.
 func (o *AssetRevision) SetOrigGP(insert bool, related *Asset) {
 	if err := o.SetOrig(boil.GetDB(), insert, related); err != nil {
@@ -623,7 +623,7 @@ func (o *AssetRevision) SetOrigGP(insert bool, related *Asset) {
 
 // SetOrig of the asset_revision to the related item.
 // Sets o.R.Orig to related.
-// Adds o to related.R.OrigAssetRevisions.
+// Adds o to related.R.OrigAssetRevision.
 func (o *AssetRevision) SetOrig(exec boil.Executor, insert bool, related *Asset) error {
 	var err error
 	if insert {
@@ -637,7 +637,7 @@ func (o *AssetRevision) SetOrig(exec boil.Executor, insert bool, related *Asset)
 		strmangle.SetParamNames("\"", "\"", 1, []string{"orig"}),
 		strmangle.WhereClause("\"", "\"", 2, assetRevisionPrimaryKeyColumns),
 	)
-	values := []interface{}{related.ID, o.Asset}
+	values := []interface{}{related.ID, o.Orig}
 
 	if boil.DebugMode {
 		fmt.Fprintln(boil.DebugWriter, updateQuery)
@@ -660,10 +660,10 @@ func (o *AssetRevision) SetOrig(exec boil.Executor, insert bool, related *Asset)
 
 	if related.R == nil {
 		related.R = &assetR{
-			OrigAssetRevisions: AssetRevisionSlice{o},
+			OrigAssetRevision: o,
 		}
 	} else {
-		related.R.OrigAssetRevisions = append(related.R.OrigAssetRevisions, o)
+		related.R.OrigAssetRevision = o
 	}
 
 	return nil
@@ -681,13 +681,13 @@ func AssetRevisions(exec boil.Executor, mods ...qm.QueryMod) assetRevisionQuery 
 }
 
 // FindAssetRevisionG retrieves a single record by ID.
-func FindAssetRevisionG(asset int, selectCols ...string) (*AssetRevision, error) {
-	return FindAssetRevision(boil.GetDB(), asset, selectCols...)
+func FindAssetRevisionG(orig int, selectCols ...string) (*AssetRevision, error) {
+	return FindAssetRevision(boil.GetDB(), orig, selectCols...)
 }
 
 // FindAssetRevisionGP retrieves a single record by ID, and panics on error.
-func FindAssetRevisionGP(asset int, selectCols ...string) *AssetRevision {
-	retobj, err := FindAssetRevision(boil.GetDB(), asset, selectCols...)
+func FindAssetRevisionGP(orig int, selectCols ...string) *AssetRevision {
+	retobj, err := FindAssetRevision(boil.GetDB(), orig, selectCols...)
 	if err != nil {
 		panic(boil.WrapErr(err))
 	}
@@ -697,7 +697,7 @@ func FindAssetRevisionGP(asset int, selectCols ...string) *AssetRevision {
 
 // FindAssetRevision retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindAssetRevision(exec boil.Executor, asset int, selectCols ...string) (*AssetRevision, error) {
+func FindAssetRevision(exec boil.Executor, orig int, selectCols ...string) (*AssetRevision, error) {
 	assetRevisionObj := &AssetRevision{}
 
 	sel := "*"
@@ -705,10 +705,10 @@ func FindAssetRevision(exec boil.Executor, asset int, selectCols ...string) (*As
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from \"asset_revision\" where \"asset\"=$1", sel,
+		"select %s from \"asset_revision\" where \"orig\"=$1", sel,
 	)
 
-	q := queries.Raw(exec, query, asset)
+	q := queries.Raw(exec, query, orig)
 
 	err := q.Bind(assetRevisionObj)
 	if err != nil {
@@ -722,8 +722,8 @@ func FindAssetRevision(exec boil.Executor, asset int, selectCols ...string) (*As
 }
 
 // FindAssetRevisionP retrieves a single record by ID with an executor, and panics on error.
-func FindAssetRevisionP(exec boil.Executor, asset int, selectCols ...string) *AssetRevision {
-	retobj, err := FindAssetRevision(exec, asset, selectCols...)
+func FindAssetRevisionP(exec boil.Executor, orig int, selectCols ...string) *AssetRevision {
+	retobj, err := FindAssetRevision(exec, orig, selectCols...)
 	if err != nil {
 		panic(boil.WrapErr(err))
 	}
@@ -974,7 +974,7 @@ func (o AssetRevisionSlice) UpdateAll(exec boil.Executor, cols M) error {
 	}
 
 	query := fmt.Sprintf(
-		"UPDATE \"asset_revision\" SET %s WHERE (\"asset\") IN (%s)",
+		"UPDATE \"asset_revision\" SET %s WHERE (\"orig\") IN (%s)",
 		strmangle.SetParamNames("\"", "\"", 1, colNames),
 		strmangle.Placeholders(dialect.IndexPlaceholders, len(o)*len(assetRevisionPrimaryKeyColumns), len(colNames)+1, len(assetRevisionPrimaryKeyColumns)),
 	)
@@ -1166,7 +1166,7 @@ func (o *AssetRevision) Delete(exec boil.Executor) error {
 	}
 
 	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), assetRevisionPrimaryKeyMapping)
-	query := "DELETE FROM \"asset_revision\" WHERE \"asset\"=$1"
+	query := "DELETE FROM \"asset_revision\" WHERE \"orig\"=$1"
 
 	if boil.DebugMode {
 		fmt.Fprintln(boil.DebugWriter, query)
@@ -1307,7 +1307,7 @@ func (o *AssetRevision) ReloadG() error {
 // Reload refetches the object from the database
 // using the primary keys with an executor.
 func (o *AssetRevision) Reload(exec boil.Executor) error {
-	ret, err := FindAssetRevision(exec, o.Asset)
+	ret, err := FindAssetRevision(exec, o.Orig)
 	if err != nil {
 		return err
 	}
@@ -1377,17 +1377,17 @@ func (o *AssetRevisionSlice) ReloadAll(exec boil.Executor) error {
 }
 
 // AssetRevisionExists checks if the AssetRevision row exists.
-func AssetRevisionExists(exec boil.Executor, asset int) (bool, error) {
+func AssetRevisionExists(exec boil.Executor, orig int) (bool, error) {
 	var exists bool
 
-	query := "select exists(select 1 from \"asset_revision\" where \"asset\"=$1 limit 1)"
+	query := "select exists(select 1 from \"asset_revision\" where \"orig\"=$1 limit 1)"
 
 	if boil.DebugMode {
 		fmt.Fprintln(boil.DebugWriter, query)
-		fmt.Fprintln(boil.DebugWriter, asset)
+		fmt.Fprintln(boil.DebugWriter, orig)
 	}
 
-	row := exec.QueryRow(query, asset)
+	row := exec.QueryRow(query, orig)
 
 	err := row.Scan(&exists)
 	if err != nil {
@@ -1398,13 +1398,13 @@ func AssetRevisionExists(exec boil.Executor, asset int) (bool, error) {
 }
 
 // AssetRevisionExistsG checks if the AssetRevision row exists.
-func AssetRevisionExistsG(asset int) (bool, error) {
-	return AssetRevisionExists(boil.GetDB(), asset)
+func AssetRevisionExistsG(orig int) (bool, error) {
+	return AssetRevisionExists(boil.GetDB(), orig)
 }
 
 // AssetRevisionExistsGP checks if the AssetRevision row exists. Panics on error.
-func AssetRevisionExistsGP(asset int) bool {
-	e, err := AssetRevisionExists(boil.GetDB(), asset)
+func AssetRevisionExistsGP(orig int) bool {
+	e, err := AssetRevisionExists(boil.GetDB(), orig)
 	if err != nil {
 		panic(boil.WrapErr(err))
 	}
@@ -1413,8 +1413,8 @@ func AssetRevisionExistsGP(asset int) bool {
 }
 
 // AssetRevisionExistsP checks if the AssetRevision row exists. Panics on error.
-func AssetRevisionExistsP(exec boil.Executor, asset int) bool {
-	e, err := AssetRevisionExists(exec, asset)
+func AssetRevisionExistsP(exec boil.Executor, orig int) bool {
+	e, err := AssetRevisionExists(exec, orig)
 	if err != nil {
 		panic(boil.WrapErr(err))
 	}

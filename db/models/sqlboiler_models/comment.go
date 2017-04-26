@@ -38,11 +38,11 @@ type Comment struct {
 
 // commentR is where relationships are stored.
 type commentR struct {
-	Parent         *Comment
 	Container      *Container
+	Parent         *Comment
 	Who            *Account
-	ParentComments CommentSlice
 	Notifications  NotificationSlice
+	ParentComments CommentSlice
 }
 
 // commentL is where Load methods for each relationship are stored.
@@ -333,25 +333,6 @@ func (q commentQuery) Exists() (bool, error) {
 	return count > 0, nil
 }
 
-// ParentG pointed to by the foreign key.
-func (o *Comment) ParentG(mods ...qm.QueryMod) commentQuery {
-	return o.ParentByFk(boil.GetDB(), mods...)
-}
-
-// Parent pointed to by the foreign key.
-func (o *Comment) ParentByFk(exec boil.Executor, mods ...qm.QueryMod) commentQuery {
-	queryMods := []qm.QueryMod{
-		qm.Where("id=?", o.Parent),
-	}
-
-	queryMods = append(queryMods, mods...)
-
-	query := Comments(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"comment\"")
-
-	return query
-}
-
 // ContainerG pointed to by the foreign key.
 func (o *Comment) ContainerG(mods ...qm.QueryMod) containerQuery {
 	return o.ContainerByFk(boil.GetDB(), mods...)
@@ -367,6 +348,25 @@ func (o *Comment) ContainerByFk(exec boil.Executor, mods ...qm.QueryMod) contain
 
 	query := Containers(exec, queryMods...)
 	queries.SetFrom(query.Query, "\"container\"")
+
+	return query
+}
+
+// ParentG pointed to by the foreign key.
+func (o *Comment) ParentG(mods ...qm.QueryMod) commentQuery {
+	return o.ParentByFk(boil.GetDB(), mods...)
+}
+
+// Parent pointed to by the foreign key.
+func (o *Comment) ParentByFk(exec boil.Executor, mods ...qm.QueryMod) commentQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("id=?", o.Parent),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	query := Comments(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"comment\"")
 
 	return query
 }
@@ -387,30 +387,6 @@ func (o *Comment) WhoByFk(exec boil.Executor, mods ...qm.QueryMod) accountQuery 
 	query := Accounts(exec, queryMods...)
 	queries.SetFrom(query.Query, "\"account\"")
 
-	return query
-}
-
-// ParentCommentsG retrieves all the comment's comment via parent column.
-func (o *Comment) ParentCommentsG(mods ...qm.QueryMod) commentQuery {
-	return o.ParentCommentsByFk(boil.GetDB(), mods...)
-}
-
-// ParentComments retrieves all the comment's comment with an executor via parent column.
-func (o *Comment) ParentCommentsByFk(exec boil.Executor, mods ...qm.QueryMod) commentQuery {
-	queryMods := []qm.QueryMod{
-		qm.Select("\"a\".*"),
-	}
-
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"a\".\"parent\"=?", o.ID),
-	)
-
-	query := Comments(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"comment\" as \"a\"")
 	return query
 }
 
@@ -438,82 +414,28 @@ func (o *Comment) NotificationsByFk(exec boil.Executor, mods ...qm.QueryMod) not
 	return query
 }
 
-// LoadParent allows an eager lookup of values, cached into the
-// loaded structs of the objects.
-func (commentL) LoadParent(e boil.Executor, singular bool, maybeComment interface{}) error {
-	var slice []*Comment
-	var object *Comment
+// ParentCommentsG retrieves all the comment's comment via parent column.
+func (o *Comment) ParentCommentsG(mods ...qm.QueryMod) commentQuery {
+	return o.ParentCommentsByFk(boil.GetDB(), mods...)
+}
 
-	count := 1
-	if singular {
-		object = maybeComment.(*Comment)
-	} else {
-		slice = *maybeComment.(*CommentSlice)
-		count = len(slice)
+// ParentComments retrieves all the comment's comment with an executor via parent column.
+func (o *Comment) ParentCommentsByFk(exec boil.Executor, mods ...qm.QueryMod) commentQuery {
+	queryMods := []qm.QueryMod{
+		qm.Select("\"a\".*"),
 	}
 
-	args := make([]interface{}, count)
-	if singular {
-		if object.R == nil {
-			object.R = &commentR{}
-		}
-		args[0] = object.Parent
-	} else {
-		for i, obj := range slice {
-			if obj.R == nil {
-				obj.R = &commentR{}
-			}
-			args[i] = obj.Parent
-		}
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
 	}
 
-	query := fmt.Sprintf(
-		"select * from \"comment\" where \"id\" in (%s)",
-		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
+	queryMods = append(queryMods,
+		qm.Where("\"a\".\"parent\"=?", o.ID),
 	)
 
-	if boil.DebugMode {
-		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
-	}
-
-	results, err := e.Query(query, args...)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load Comment")
-	}
-	defer results.Close()
-
-	var resultSlice []*Comment
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice Comment")
-	}
-
-	if len(commentAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(e); err != nil {
-				return err
-			}
-		}
-	}
-
-	if len(resultSlice) == 0 {
-		return nil
-	}
-
-	if singular {
-		object.R.Parent = resultSlice[0]
-		return nil
-	}
-
-	for _, local := range slice {
-		for _, foreign := range resultSlice {
-			if local.Parent.Int == foreign.ID {
-				local.R.Parent = foreign
-				break
-			}
-		}
-	}
-
-	return nil
+	query := Comments(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"comment\" as \"a\"")
+	return query
 }
 
 // LoadContainer allows an eager lookup of values, cached into the
@@ -586,6 +508,84 @@ func (commentL) LoadContainer(e boil.Executor, singular bool, maybeComment inter
 		for _, foreign := range resultSlice {
 			if local.Container == foreign.ID {
 				local.R.Container = foreign
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadParent allows an eager lookup of values, cached into the
+// loaded structs of the objects.
+func (commentL) LoadParent(e boil.Executor, singular bool, maybeComment interface{}) error {
+	var slice []*Comment
+	var object *Comment
+
+	count := 1
+	if singular {
+		object = maybeComment.(*Comment)
+	} else {
+		slice = *maybeComment.(*CommentSlice)
+		count = len(slice)
+	}
+
+	args := make([]interface{}, count)
+	if singular {
+		if object.R == nil {
+			object.R = &commentR{}
+		}
+		args[0] = object.Parent
+	} else {
+		for i, obj := range slice {
+			if obj.R == nil {
+				obj.R = &commentR{}
+			}
+			args[i] = obj.Parent
+		}
+	}
+
+	query := fmt.Sprintf(
+		"select * from \"comment\" where \"id\" in (%s)",
+		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
+	)
+
+	if boil.DebugMode {
+		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
+	}
+
+	results, err := e.Query(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load Comment")
+	}
+	defer results.Close()
+
+	var resultSlice []*Comment
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice Comment")
+	}
+
+	if len(commentAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(e); err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		object.R.Parent = resultSlice[0]
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if local.Parent.Int == foreign.ID {
+				local.R.Parent = foreign
 				break
 			}
 		}
@@ -672,6 +672,78 @@ func (commentL) LoadWho(e boil.Executor, singular bool, maybeComment interface{}
 	return nil
 }
 
+// LoadNotifications allows an eager lookup of values, cached into the
+// loaded structs of the objects.
+func (commentL) LoadNotifications(e boil.Executor, singular bool, maybeComment interface{}) error {
+	var slice []*Comment
+	var object *Comment
+
+	count := 1
+	if singular {
+		object = maybeComment.(*Comment)
+	} else {
+		slice = *maybeComment.(*CommentSlice)
+		count = len(slice)
+	}
+
+	args := make([]interface{}, count)
+	if singular {
+		if object.R == nil {
+			object.R = &commentR{}
+		}
+		args[0] = object.ID
+	} else {
+		for i, obj := range slice {
+			if obj.R == nil {
+				obj.R = &commentR{}
+			}
+			args[i] = obj.ID
+		}
+	}
+
+	query := fmt.Sprintf(
+		"select * from \"notification\" where \"comment\" in (%s)",
+		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
+	)
+	if boil.DebugMode {
+		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
+	}
+
+	results, err := e.Query(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load notification")
+	}
+	defer results.Close()
+
+	var resultSlice []*Notification
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice notification")
+	}
+
+	if len(notificationAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.Notifications = resultSlice
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.Comment.Int {
+				local.R.Notifications = append(local.R.Notifications, foreign)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
 // LoadParentComments allows an eager lookup of values, cached into the
 // loaded structs of the objects.
 func (commentL) LoadParentComments(e boil.Executor, singular bool, maybeComment interface{}) error {
@@ -744,73 +816,77 @@ func (commentL) LoadParentComments(e boil.Executor, singular bool, maybeComment 
 	return nil
 }
 
-// LoadNotifications allows an eager lookup of values, cached into the
-// loaded structs of the objects.
-func (commentL) LoadNotifications(e boil.Executor, singular bool, maybeComment interface{}) error {
-	var slice []*Comment
-	var object *Comment
+// SetContainerG of the comment to the related item.
+// Sets o.R.Container to related.
+// Adds o to related.R.Comments.
+// Uses the global database handle.
+func (o *Comment) SetContainerG(insert bool, related *Container) error {
+	return o.SetContainer(boil.GetDB(), insert, related)
+}
 
-	count := 1
-	if singular {
-		object = maybeComment.(*Comment)
-	} else {
-		slice = *maybeComment.(*CommentSlice)
-		count = len(slice)
+// SetContainerP of the comment to the related item.
+// Sets o.R.Container to related.
+// Adds o to related.R.Comments.
+// Panics on error.
+func (o *Comment) SetContainerP(exec boil.Executor, insert bool, related *Container) {
+	if err := o.SetContainer(exec, insert, related); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// SetContainerGP of the comment to the related item.
+// Sets o.R.Container to related.
+// Adds o to related.R.Comments.
+// Uses the global database handle and panics on error.
+func (o *Comment) SetContainerGP(insert bool, related *Container) {
+	if err := o.SetContainer(boil.GetDB(), insert, related); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// SetContainer of the comment to the related item.
+// Sets o.R.Container to related.
+// Adds o to related.R.Comments.
+func (o *Comment) SetContainer(exec boil.Executor, insert bool, related *Container) error {
+	var err error
+	if insert {
+		if err = related.Insert(exec); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
 	}
 
-	args := make([]interface{}, count)
-	if singular {
-		if object.R == nil {
-			object.R = &commentR{}
-		}
-		args[0] = object.ID
-	} else {
-		for i, obj := range slice {
-			if obj.R == nil {
-				obj.R = &commentR{}
-			}
-			args[i] = obj.ID
-		}
-	}
-
-	query := fmt.Sprintf(
-		"select * from \"notification\" where \"comment\" in (%s)",
-		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"comment\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"container"}),
+		strmangle.WhereClause("\"", "\"", 2, commentPrimaryKeyColumns),
 	)
+	values := []interface{}{related.ID, o.ID}
+
 	if boil.DebugMode {
-		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
+		fmt.Fprintln(boil.DebugWriter, updateQuery)
+		fmt.Fprintln(boil.DebugWriter, values)
 	}
 
-	results, err := e.Query(query, args...)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load notification")
-	}
-	defer results.Close()
-
-	var resultSlice []*Notification
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice notification")
+	if _, err = exec.Exec(updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
 	}
 
-	if len(notificationAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(e); err != nil {
-				return err
-			}
+	o.Container = related.ID
+
+	if o.R == nil {
+		o.R = &commentR{
+			Container: related,
 		}
-	}
-	if singular {
-		object.R.Notifications = resultSlice
-		return nil
+	} else {
+		o.R.Container = related
 	}
 
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if local.ID == foreign.Comment.Int {
-				local.R.Notifications = append(local.R.Notifications, foreign)
-				break
-			}
+	if related.R == nil {
+		related.R = &containerR{
+			Comments: CommentSlice{o},
 		}
+	} else {
+		related.R.Comments = append(related.R.Comments, o)
 	}
 
 	return nil
@@ -953,82 +1029,6 @@ func (o *Comment) RemoveParent(exec boil.Executor, related *Comment) error {
 	return nil
 }
 
-// SetContainerG of the comment to the related item.
-// Sets o.R.Container to related.
-// Adds o to related.R.Comments.
-// Uses the global database handle.
-func (o *Comment) SetContainerG(insert bool, related *Container) error {
-	return o.SetContainer(boil.GetDB(), insert, related)
-}
-
-// SetContainerP of the comment to the related item.
-// Sets o.R.Container to related.
-// Adds o to related.R.Comments.
-// Panics on error.
-func (o *Comment) SetContainerP(exec boil.Executor, insert bool, related *Container) {
-	if err := o.SetContainer(exec, insert, related); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// SetContainerGP of the comment to the related item.
-// Sets o.R.Container to related.
-// Adds o to related.R.Comments.
-// Uses the global database handle and panics on error.
-func (o *Comment) SetContainerGP(insert bool, related *Container) {
-	if err := o.SetContainer(boil.GetDB(), insert, related); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// SetContainer of the comment to the related item.
-// Sets o.R.Container to related.
-// Adds o to related.R.Comments.
-func (o *Comment) SetContainer(exec boil.Executor, insert bool, related *Container) error {
-	var err error
-	if insert {
-		if err = related.Insert(exec); err != nil {
-			return errors.Wrap(err, "failed to insert into foreign table")
-		}
-	}
-
-	updateQuery := fmt.Sprintf(
-		"UPDATE \"comment\" SET %s WHERE %s",
-		strmangle.SetParamNames("\"", "\"", 1, []string{"container"}),
-		strmangle.WhereClause("\"", "\"", 2, commentPrimaryKeyColumns),
-	)
-	values := []interface{}{related.ID, o.ID}
-
-	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, updateQuery)
-		fmt.Fprintln(boil.DebugWriter, values)
-	}
-
-	if _, err = exec.Exec(updateQuery, values...); err != nil {
-		return errors.Wrap(err, "failed to update local table")
-	}
-
-	o.Container = related.ID
-
-	if o.R == nil {
-		o.R = &commentR{
-			Container: related,
-		}
-	} else {
-		o.R.Container = related
-	}
-
-	if related.R == nil {
-		related.R = &containerR{
-			Comments: CommentSlice{o},
-		}
-	} else {
-		related.R.Comments = append(related.R.Comments, o)
-	}
-
-	return nil
-}
-
 // SetWhoG of the comment to the related item.
 // Sets o.R.Who to related.
 // Adds o to related.R.WhoComments.
@@ -1100,227 +1100,6 @@ func (o *Comment) SetWho(exec boil.Executor, insert bool, related *Account) erro
 		}
 	} else {
 		related.R.WhoComments = append(related.R.WhoComments, o)
-	}
-
-	return nil
-}
-
-// AddParentCommentsG adds the given related objects to the existing relationships
-// of the comment, optionally inserting them as new records.
-// Appends related to o.R.ParentComments.
-// Sets related.R.Parent appropriately.
-// Uses the global database handle.
-func (o *Comment) AddParentCommentsG(insert bool, related ...*Comment) error {
-	return o.AddParentComments(boil.GetDB(), insert, related...)
-}
-
-// AddParentCommentsP adds the given related objects to the existing relationships
-// of the comment, optionally inserting them as new records.
-// Appends related to o.R.ParentComments.
-// Sets related.R.Parent appropriately.
-// Panics on error.
-func (o *Comment) AddParentCommentsP(exec boil.Executor, insert bool, related ...*Comment) {
-	if err := o.AddParentComments(exec, insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddParentCommentsGP adds the given related objects to the existing relationships
-// of the comment, optionally inserting them as new records.
-// Appends related to o.R.ParentComments.
-// Sets related.R.Parent appropriately.
-// Uses the global database handle and panics on error.
-func (o *Comment) AddParentCommentsGP(insert bool, related ...*Comment) {
-	if err := o.AddParentComments(boil.GetDB(), insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddParentComments adds the given related objects to the existing relationships
-// of the comment, optionally inserting them as new records.
-// Appends related to o.R.ParentComments.
-// Sets related.R.Parent appropriately.
-func (o *Comment) AddParentComments(exec boil.Executor, insert bool, related ...*Comment) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.Parent.Int = o.ID
-			rel.Parent.Valid = true
-			if err = rel.Insert(exec); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"comment\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"parent"}),
-				strmangle.WhereClause("\"", "\"", 2, commentPrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.ID}
-
-			if boil.DebugMode {
-				fmt.Fprintln(boil.DebugWriter, updateQuery)
-				fmt.Fprintln(boil.DebugWriter, values)
-			}
-
-			if _, err = exec.Exec(updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.Parent.Int = o.ID
-			rel.Parent.Valid = true
-		}
-	}
-
-	if o.R == nil {
-		o.R = &commentR{
-			ParentComments: related,
-		}
-	} else {
-		o.R.ParentComments = append(o.R.ParentComments, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &commentR{
-				Parent: o,
-			}
-		} else {
-			rel.R.Parent = o
-		}
-	}
-	return nil
-}
-
-// SetParentCommentsG removes all previously related items of the
-// comment replacing them completely with the passed
-// in related items, optionally inserting them as new records.
-// Sets o.R.Parent's ParentComments accordingly.
-// Replaces o.R.ParentComments with related.
-// Sets related.R.Parent's ParentComments accordingly.
-// Uses the global database handle.
-func (o *Comment) SetParentCommentsG(insert bool, related ...*Comment) error {
-	return o.SetParentComments(boil.GetDB(), insert, related...)
-}
-
-// SetParentCommentsP removes all previously related items of the
-// comment replacing them completely with the passed
-// in related items, optionally inserting them as new records.
-// Sets o.R.Parent's ParentComments accordingly.
-// Replaces o.R.ParentComments with related.
-// Sets related.R.Parent's ParentComments accordingly.
-// Panics on error.
-func (o *Comment) SetParentCommentsP(exec boil.Executor, insert bool, related ...*Comment) {
-	if err := o.SetParentComments(exec, insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// SetParentCommentsGP removes all previously related items of the
-// comment replacing them completely with the passed
-// in related items, optionally inserting them as new records.
-// Sets o.R.Parent's ParentComments accordingly.
-// Replaces o.R.ParentComments with related.
-// Sets related.R.Parent's ParentComments accordingly.
-// Uses the global database handle and panics on error.
-func (o *Comment) SetParentCommentsGP(insert bool, related ...*Comment) {
-	if err := o.SetParentComments(boil.GetDB(), insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// SetParentComments removes all previously related items of the
-// comment replacing them completely with the passed
-// in related items, optionally inserting them as new records.
-// Sets o.R.Parent's ParentComments accordingly.
-// Replaces o.R.ParentComments with related.
-// Sets related.R.Parent's ParentComments accordingly.
-func (o *Comment) SetParentComments(exec boil.Executor, insert bool, related ...*Comment) error {
-	query := "update \"comment\" set \"parent\" = null where \"parent\" = $1"
-	values := []interface{}{o.ID}
-	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, query)
-		fmt.Fprintln(boil.DebugWriter, values)
-	}
-
-	_, err := exec.Exec(query, values...)
-	if err != nil {
-		return errors.Wrap(err, "failed to remove relationships before set")
-	}
-
-	if o.R != nil {
-		for _, rel := range o.R.ParentComments {
-			rel.Parent.Valid = false
-			if rel.R == nil {
-				continue
-			}
-
-			rel.R.Parent = nil
-		}
-
-		o.R.ParentComments = nil
-	}
-	return o.AddParentComments(exec, insert, related...)
-}
-
-// RemoveParentCommentsG relationships from objects passed in.
-// Removes related items from R.ParentComments (uses pointer comparison, removal does not keep order)
-// Sets related.R.Parent.
-// Uses the global database handle.
-func (o *Comment) RemoveParentCommentsG(related ...*Comment) error {
-	return o.RemoveParentComments(boil.GetDB(), related...)
-}
-
-// RemoveParentCommentsP relationships from objects passed in.
-// Removes related items from R.ParentComments (uses pointer comparison, removal does not keep order)
-// Sets related.R.Parent.
-// Panics on error.
-func (o *Comment) RemoveParentCommentsP(exec boil.Executor, related ...*Comment) {
-	if err := o.RemoveParentComments(exec, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// RemoveParentCommentsGP relationships from objects passed in.
-// Removes related items from R.ParentComments (uses pointer comparison, removal does not keep order)
-// Sets related.R.Parent.
-// Uses the global database handle and panics on error.
-func (o *Comment) RemoveParentCommentsGP(related ...*Comment) {
-	if err := o.RemoveParentComments(boil.GetDB(), related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// RemoveParentComments relationships from objects passed in.
-// Removes related items from R.ParentComments (uses pointer comparison, removal does not keep order)
-// Sets related.R.Parent.
-func (o *Comment) RemoveParentComments(exec boil.Executor, related ...*Comment) error {
-	var err error
-	for _, rel := range related {
-		rel.Parent.Valid = false
-		if rel.R != nil {
-			rel.R.Parent = nil
-		}
-		if err = rel.Update(exec, "parent"); err != nil {
-			return err
-		}
-	}
-	if o.R == nil {
-		return nil
-	}
-
-	for _, rel := range related {
-		for i, ri := range o.R.ParentComments {
-			if rel != ri {
-				continue
-			}
-
-			ln := len(o.R.ParentComments)
-			if ln > 1 && i < ln-1 {
-				o.R.ParentComments[i] = o.R.ParentComments[ln-1]
-			}
-			o.R.ParentComments = o.R.ParentComments[:ln-1]
-			break
-		}
 	}
 
 	return nil
@@ -1540,6 +1319,227 @@ func (o *Comment) RemoveNotifications(exec boil.Executor, related ...*Notificati
 				o.R.Notifications[i] = o.R.Notifications[ln-1]
 			}
 			o.R.Notifications = o.R.Notifications[:ln-1]
+			break
+		}
+	}
+
+	return nil
+}
+
+// AddParentCommentsG adds the given related objects to the existing relationships
+// of the comment, optionally inserting them as new records.
+// Appends related to o.R.ParentComments.
+// Sets related.R.Parent appropriately.
+// Uses the global database handle.
+func (o *Comment) AddParentCommentsG(insert bool, related ...*Comment) error {
+	return o.AddParentComments(boil.GetDB(), insert, related...)
+}
+
+// AddParentCommentsP adds the given related objects to the existing relationships
+// of the comment, optionally inserting them as new records.
+// Appends related to o.R.ParentComments.
+// Sets related.R.Parent appropriately.
+// Panics on error.
+func (o *Comment) AddParentCommentsP(exec boil.Executor, insert bool, related ...*Comment) {
+	if err := o.AddParentComments(exec, insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddParentCommentsGP adds the given related objects to the existing relationships
+// of the comment, optionally inserting them as new records.
+// Appends related to o.R.ParentComments.
+// Sets related.R.Parent appropriately.
+// Uses the global database handle and panics on error.
+func (o *Comment) AddParentCommentsGP(insert bool, related ...*Comment) {
+	if err := o.AddParentComments(boil.GetDB(), insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddParentComments adds the given related objects to the existing relationships
+// of the comment, optionally inserting them as new records.
+// Appends related to o.R.ParentComments.
+// Sets related.R.Parent appropriately.
+func (o *Comment) AddParentComments(exec boil.Executor, insert bool, related ...*Comment) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.Parent.Int = o.ID
+			rel.Parent.Valid = true
+			if err = rel.Insert(exec); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"comment\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"parent"}),
+				strmangle.WhereClause("\"", "\"", 2, commentPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.DebugMode {
+				fmt.Fprintln(boil.DebugWriter, updateQuery)
+				fmt.Fprintln(boil.DebugWriter, values)
+			}
+
+			if _, err = exec.Exec(updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.Parent.Int = o.ID
+			rel.Parent.Valid = true
+		}
+	}
+
+	if o.R == nil {
+		o.R = &commentR{
+			ParentComments: related,
+		}
+	} else {
+		o.R.ParentComments = append(o.R.ParentComments, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &commentR{
+				Parent: o,
+			}
+		} else {
+			rel.R.Parent = o
+		}
+	}
+	return nil
+}
+
+// SetParentCommentsG removes all previously related items of the
+// comment replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.Parent's ParentComments accordingly.
+// Replaces o.R.ParentComments with related.
+// Sets related.R.Parent's ParentComments accordingly.
+// Uses the global database handle.
+func (o *Comment) SetParentCommentsG(insert bool, related ...*Comment) error {
+	return o.SetParentComments(boil.GetDB(), insert, related...)
+}
+
+// SetParentCommentsP removes all previously related items of the
+// comment replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.Parent's ParentComments accordingly.
+// Replaces o.R.ParentComments with related.
+// Sets related.R.Parent's ParentComments accordingly.
+// Panics on error.
+func (o *Comment) SetParentCommentsP(exec boil.Executor, insert bool, related ...*Comment) {
+	if err := o.SetParentComments(exec, insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// SetParentCommentsGP removes all previously related items of the
+// comment replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.Parent's ParentComments accordingly.
+// Replaces o.R.ParentComments with related.
+// Sets related.R.Parent's ParentComments accordingly.
+// Uses the global database handle and panics on error.
+func (o *Comment) SetParentCommentsGP(insert bool, related ...*Comment) {
+	if err := o.SetParentComments(boil.GetDB(), insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// SetParentComments removes all previously related items of the
+// comment replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.Parent's ParentComments accordingly.
+// Replaces o.R.ParentComments with related.
+// Sets related.R.Parent's ParentComments accordingly.
+func (o *Comment) SetParentComments(exec boil.Executor, insert bool, related ...*Comment) error {
+	query := "update \"comment\" set \"parent\" = null where \"parent\" = $1"
+	values := []interface{}{o.ID}
+	if boil.DebugMode {
+		fmt.Fprintln(boil.DebugWriter, query)
+		fmt.Fprintln(boil.DebugWriter, values)
+	}
+
+	_, err := exec.Exec(query, values...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove relationships before set")
+	}
+
+	if o.R != nil {
+		for _, rel := range o.R.ParentComments {
+			rel.Parent.Valid = false
+			if rel.R == nil {
+				continue
+			}
+
+			rel.R.Parent = nil
+		}
+
+		o.R.ParentComments = nil
+	}
+	return o.AddParentComments(exec, insert, related...)
+}
+
+// RemoveParentCommentsG relationships from objects passed in.
+// Removes related items from R.ParentComments (uses pointer comparison, removal does not keep order)
+// Sets related.R.Parent.
+// Uses the global database handle.
+func (o *Comment) RemoveParentCommentsG(related ...*Comment) error {
+	return o.RemoveParentComments(boil.GetDB(), related...)
+}
+
+// RemoveParentCommentsP relationships from objects passed in.
+// Removes related items from R.ParentComments (uses pointer comparison, removal does not keep order)
+// Sets related.R.Parent.
+// Panics on error.
+func (o *Comment) RemoveParentCommentsP(exec boil.Executor, related ...*Comment) {
+	if err := o.RemoveParentComments(exec, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// RemoveParentCommentsGP relationships from objects passed in.
+// Removes related items from R.ParentComments (uses pointer comparison, removal does not keep order)
+// Sets related.R.Parent.
+// Uses the global database handle and panics on error.
+func (o *Comment) RemoveParentCommentsGP(related ...*Comment) {
+	if err := o.RemoveParentComments(boil.GetDB(), related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// RemoveParentComments relationships from objects passed in.
+// Removes related items from R.ParentComments (uses pointer comparison, removal does not keep order)
+// Sets related.R.Parent.
+func (o *Comment) RemoveParentComments(exec boil.Executor, related ...*Comment) error {
+	var err error
+	for _, rel := range related {
+		rel.Parent.Valid = false
+		if rel.R != nil {
+			rel.R.Parent = nil
+		}
+		if err = rel.Update(exec, "parent"); err != nil {
+			return err
+		}
+	}
+	if o.R == nil {
+		return nil
+	}
+
+	for _, rel := range related {
+		for i, ri := range o.R.ParentComments {
+			if rel != ri {
+				continue
+			}
+
+			ln := len(o.R.ParentComments)
+			if ln > 1 && i < ln-1 {
+				o.R.ParentComments[i] = o.R.ParentComments[ln-1]
+			}
+			o.R.ParentComments = o.R.ParentComments[:ln-1]
 			break
 		}
 	}

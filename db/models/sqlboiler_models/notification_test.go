@@ -534,18 +534,18 @@ func testNotificationsInsertWhitelist(t *testing.T) {
 	}
 }
 
-func testNotificationToOneTagUsingTag(t *testing.T) {
+func testNotificationToOnePartyUsingAgent(t *testing.T) {
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
 
 	seed := randomize.NewSeed()
 
-	var foreign Tag
+	var foreign Party
 	var local Notification
 
-	foreignBlacklist := tagColumnsWithDefault
-	if err := randomize.Struct(seed, &foreign, tagDBTypes, true, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Tag struct: %s", err)
+	foreignBlacklist := partyColumnsWithDefault
+	if err := randomize.Struct(seed, &foreign, partyDBTypes, true, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Party struct: %s", err)
 	}
 	localBlacklist := notificationColumnsWithDefault
 	localBlacklist = append(localBlacklist, notificationColumnsWithCustom...)
@@ -558,18 +558,16 @@ func testNotificationToOneTagUsingTag(t *testing.T) {
 	local.Segment = custom_types.NullSegmentRandom()
 	local.Release = custom_types.NullReleaseRandom()
 
-	local.Tag.Valid = true
-
 	if err := foreign.Insert(tx); err != nil {
 		t.Fatal(err)
 	}
 
-	local.Tag.Int = foreign.ID
+	local.Agent = foreign.ID
 	if err := local.Insert(tx); err != nil {
 		t.Fatal(err)
 	}
 
-	check, err := local.TagByFk(tx).One()
+	check, err := local.AgentByFk(tx).One()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -579,83 +577,18 @@ func testNotificationToOneTagUsingTag(t *testing.T) {
 	}
 
 	slice := NotificationSlice{&local}
-	if err = local.L.LoadTag(tx, false, &slice); err != nil {
+	if err = local.L.LoadAgent(tx, false, &slice); err != nil {
 		t.Fatal(err)
 	}
-	if local.R.Tag == nil {
+	if local.R.Agent == nil {
 		t.Error("struct should have been eager loaded")
 	}
 
-	local.R.Tag = nil
-	if err = local.L.LoadTag(tx, true, &local); err != nil {
+	local.R.Agent = nil
+	if err = local.L.LoadAgent(tx, true, &local); err != nil {
 		t.Fatal(err)
 	}
-	if local.R.Tag == nil {
-		t.Error("struct should have been eager loaded")
-	}
-}
-
-func testNotificationToOneCommentUsingComment(t *testing.T) {
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var foreign Comment
-	var local Notification
-
-	foreignBlacklist := commentColumnsWithDefault
-	foreignBlacklist = append(foreignBlacklist, commentColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &foreign, commentDBTypes, true, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
-	foreign.Segment = custom_types.SegmentRandom()
-
-	localBlacklist := notificationColumnsWithDefault
-	localBlacklist = append(localBlacklist, notificationColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &local, notificationDBTypes, true, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Notification struct: %s", err)
-	}
-	local.Delivered = custom_types.NoticeDeliveryRandom()
-	local.Permission = custom_types.NullPermissionRandom()
-	local.Segment = custom_types.NullSegmentRandom()
-	local.Release = custom_types.NullReleaseRandom()
-
-	local.Comment.Valid = true
-
-	if err := foreign.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	local.Comment.Int = foreign.ID
-	if err := local.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	check, err := local.CommentByFk(tx).One()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if check.ID != foreign.ID {
-		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
-	}
-
-	slice := NotificationSlice{&local}
-	if err = local.L.LoadComment(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.Comment == nil {
-		t.Error("struct should have been eager loaded")
-	}
-
-	local.R.Comment = nil
-	if err = local.L.LoadComment(tx, true, &local); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.Comment == nil {
+	if local.R.Agent == nil {
 		t.Error("struct should have been eager loaded")
 	}
 }
@@ -725,6 +658,71 @@ func testNotificationToOneAssetUsingAsset(t *testing.T) {
 	}
 }
 
+func testNotificationToOneCommentUsingComment(t *testing.T) {
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var foreign Comment
+	var local Notification
+
+	foreignBlacklist := commentColumnsWithDefault
+	foreignBlacklist = append(foreignBlacklist, commentColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &foreign, commentDBTypes, true, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Comment struct: %s", err)
+	}
+	foreign.Segment = custom_types.SegmentRandom()
+
+	localBlacklist := notificationColumnsWithDefault
+	localBlacklist = append(localBlacklist, notificationColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &local, notificationDBTypes, true, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Notification struct: %s", err)
+	}
+	local.Delivered = custom_types.NoticeDeliveryRandom()
+	local.Permission = custom_types.NullPermissionRandom()
+	local.Segment = custom_types.NullSegmentRandom()
+	local.Release = custom_types.NullReleaseRandom()
+
+	local.Comment.Valid = true
+
+	if err := foreign.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	local.Comment.Int = foreign.ID
+	if err := local.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := local.CommentByFk(tx).One()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if check.ID != foreign.ID {
+		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
+	}
+
+	slice := NotificationSlice{&local}
+	if err = local.L.LoadComment(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Comment == nil {
+		t.Error("struct should have been eager loaded")
+	}
+
+	local.R.Comment = nil
+	if err = local.L.LoadComment(tx, true, &local); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Comment == nil {
+		t.Error("struct should have been eager loaded")
+	}
+}
+
 func testNotificationToOneContainerUsingContainer(t *testing.T) {
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -782,187 +780,6 @@ func testNotificationToOneContainerUsingContainer(t *testing.T) {
 		t.Fatal(err)
 	}
 	if local.R.Container == nil {
-		t.Error("struct should have been eager loaded")
-	}
-}
-
-func testNotificationToOneVolumeUsingVolume(t *testing.T) {
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var foreign Volume
-	var local Notification
-
-	foreignBlacklist := volumeColumnsWithDefault
-	if err := randomize.Struct(seed, &foreign, volumeDBTypes, true, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Volume struct: %s", err)
-	}
-	localBlacklist := notificationColumnsWithDefault
-	localBlacklist = append(localBlacklist, notificationColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &local, notificationDBTypes, true, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Notification struct: %s", err)
-	}
-	local.Delivered = custom_types.NoticeDeliveryRandom()
-	local.Permission = custom_types.NullPermissionRandom()
-	local.Segment = custom_types.NullSegmentRandom()
-	local.Release = custom_types.NullReleaseRandom()
-
-	local.Volume.Valid = true
-
-	if err := foreign.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	local.Volume.Int = foreign.ID
-	if err := local.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	check, err := local.VolumeByFk(tx).One()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if check.ID != foreign.ID {
-		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
-	}
-
-	slice := NotificationSlice{&local}
-	if err = local.L.LoadVolume(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.Volume == nil {
-		t.Error("struct should have been eager loaded")
-	}
-
-	local.R.Volume = nil
-	if err = local.L.LoadVolume(tx, true, &local); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.Volume == nil {
-		t.Error("struct should have been eager loaded")
-	}
-}
-
-func testNotificationToOnePartyUsingParty(t *testing.T) {
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var foreign Party
-	var local Notification
-
-	foreignBlacklist := partyColumnsWithDefault
-	if err := randomize.Struct(seed, &foreign, partyDBTypes, true, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Party struct: %s", err)
-	}
-	localBlacklist := notificationColumnsWithDefault
-	localBlacklist = append(localBlacklist, notificationColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &local, notificationDBTypes, true, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Notification struct: %s", err)
-	}
-	local.Delivered = custom_types.NoticeDeliveryRandom()
-	local.Permission = custom_types.NullPermissionRandom()
-	local.Segment = custom_types.NullSegmentRandom()
-	local.Release = custom_types.NullReleaseRandom()
-
-	local.Party.Valid = true
-
-	if err := foreign.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	local.Party.Int = foreign.ID
-	if err := local.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	check, err := local.PartyByFk(tx).One()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if check.ID != foreign.ID {
-		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
-	}
-
-	slice := NotificationSlice{&local}
-	if err = local.L.LoadParty(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.Party == nil {
-		t.Error("struct should have been eager loaded")
-	}
-
-	local.R.Party = nil
-	if err = local.L.LoadParty(tx, true, &local); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.Party == nil {
-		t.Error("struct should have been eager loaded")
-	}
-}
-
-func testNotificationToOnePartyUsingAgent(t *testing.T) {
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var foreign Party
-	var local Notification
-
-	foreignBlacklist := partyColumnsWithDefault
-	if err := randomize.Struct(seed, &foreign, partyDBTypes, true, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Party struct: %s", err)
-	}
-	localBlacklist := notificationColumnsWithDefault
-	localBlacklist = append(localBlacklist, notificationColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &local, notificationDBTypes, true, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Notification struct: %s", err)
-	}
-	local.Delivered = custom_types.NoticeDeliveryRandom()
-	local.Permission = custom_types.NullPermissionRandom()
-	local.Segment = custom_types.NullSegmentRandom()
-	local.Release = custom_types.NullReleaseRandom()
-
-	if err := foreign.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	local.Agent = foreign.ID
-	if err := local.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	check, err := local.AgentByFk(tx).One()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if check.ID != foreign.ID {
-		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
-	}
-
-	slice := NotificationSlice{&local}
-	if err = local.L.LoadAgent(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.Agent == nil {
-		t.Error("struct should have been eager loaded")
-	}
-
-	local.R.Agent = nil
-	if err = local.L.LoadAgent(tx, true, &local); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.Agent == nil {
 		t.Error("struct should have been eager loaded")
 	}
 }
@@ -1030,6 +847,128 @@ func testNotificationToOneNoticeUsingNotice(t *testing.T) {
 	}
 }
 
+func testNotificationToOnePartyUsingParty(t *testing.T) {
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var foreign Party
+	var local Notification
+
+	foreignBlacklist := partyColumnsWithDefault
+	if err := randomize.Struct(seed, &foreign, partyDBTypes, true, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Party struct: %s", err)
+	}
+	localBlacklist := notificationColumnsWithDefault
+	localBlacklist = append(localBlacklist, notificationColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &local, notificationDBTypes, true, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Notification struct: %s", err)
+	}
+	local.Delivered = custom_types.NoticeDeliveryRandom()
+	local.Permission = custom_types.NullPermissionRandom()
+	local.Segment = custom_types.NullSegmentRandom()
+	local.Release = custom_types.NullReleaseRandom()
+
+	local.Party.Valid = true
+
+	if err := foreign.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	local.Party.Int = foreign.ID
+	if err := local.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := local.PartyByFk(tx).One()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if check.ID != foreign.ID {
+		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
+	}
+
+	slice := NotificationSlice{&local}
+	if err = local.L.LoadParty(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Party == nil {
+		t.Error("struct should have been eager loaded")
+	}
+
+	local.R.Party = nil
+	if err = local.L.LoadParty(tx, true, &local); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Party == nil {
+		t.Error("struct should have been eager loaded")
+	}
+}
+
+func testNotificationToOneTagUsingTag(t *testing.T) {
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var foreign Tag
+	var local Notification
+
+	foreignBlacklist := tagColumnsWithDefault
+	if err := randomize.Struct(seed, &foreign, tagDBTypes, true, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Tag struct: %s", err)
+	}
+	localBlacklist := notificationColumnsWithDefault
+	localBlacklist = append(localBlacklist, notificationColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &local, notificationDBTypes, true, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Notification struct: %s", err)
+	}
+	local.Delivered = custom_types.NoticeDeliveryRandom()
+	local.Permission = custom_types.NullPermissionRandom()
+	local.Segment = custom_types.NullSegmentRandom()
+	local.Release = custom_types.NullReleaseRandom()
+
+	local.Tag.Valid = true
+
+	if err := foreign.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	local.Tag.Int = foreign.ID
+	if err := local.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := local.TagByFk(tx).One()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if check.ID != foreign.ID {
+		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
+	}
+
+	slice := NotificationSlice{&local}
+	if err = local.L.LoadTag(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Tag == nil {
+		t.Error("struct should have been eager loaded")
+	}
+
+	local.R.Tag = nil
+	if err = local.L.LoadTag(tx, true, &local); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Tag == nil {
+		t.Error("struct should have been eager loaded")
+	}
+}
+
 func testNotificationToOneAccountUsingTarget(t *testing.T) {
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -1089,7 +1028,68 @@ func testNotificationToOneAccountUsingTarget(t *testing.T) {
 	}
 }
 
-func testNotificationToOneSetOpTagUsingTag(t *testing.T) {
+func testNotificationToOneVolumeUsingVolume(t *testing.T) {
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var foreign Volume
+	var local Notification
+
+	foreignBlacklist := volumeColumnsWithDefault
+	if err := randomize.Struct(seed, &foreign, volumeDBTypes, true, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Volume struct: %s", err)
+	}
+	localBlacklist := notificationColumnsWithDefault
+	localBlacklist = append(localBlacklist, notificationColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &local, notificationDBTypes, true, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Notification struct: %s", err)
+	}
+	local.Delivered = custom_types.NoticeDeliveryRandom()
+	local.Permission = custom_types.NullPermissionRandom()
+	local.Segment = custom_types.NullSegmentRandom()
+	local.Release = custom_types.NullReleaseRandom()
+
+	local.Volume.Valid = true
+
+	if err := foreign.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	local.Volume.Int = foreign.ID
+	if err := local.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := local.VolumeByFk(tx).One()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if check.ID != foreign.ID {
+		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
+	}
+
+	slice := NotificationSlice{&local}
+	if err = local.L.LoadVolume(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Volume == nil {
+		t.Error("struct should have been eager loaded")
+	}
+
+	local.R.Volume = nil
+	if err = local.L.LoadVolume(tx, true, &local); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Volume == nil {
+		t.Error("struct should have been eager loaded")
+	}
+}
+
+func testNotificationToOneSetOpPartyUsingAgent(t *testing.T) {
 	var err error
 
 	tx := MustTx(boil.Begin())
@@ -1098,14 +1098,14 @@ func testNotificationToOneSetOpTagUsingTag(t *testing.T) {
 	seed := randomize.NewSeed()
 
 	var a Notification
-	var b, c Tag
+	var b, c Party
 
-	foreignBlacklist := strmangle.SetComplement(tagPrimaryKeyColumns, tagColumnsWithoutDefault)
-	if err := randomize.Struct(seed, &b, tagDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Tag struct: %s", err)
+	foreignBlacklist := strmangle.SetComplement(partyPrimaryKeyColumns, partyColumnsWithoutDefault)
+	if err := randomize.Struct(seed, &b, partyDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Party struct: %s", err)
 	}
-	if err := randomize.Struct(seed, &c, tagDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Tag struct: %s", err)
+	if err := randomize.Struct(seed, &c, partyDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Party struct: %s", err)
 	}
 	localBlacklist := strmangle.SetComplement(notificationPrimaryKeyColumns, notificationColumnsWithoutDefault)
 	localBlacklist = append(localBlacklist, notificationColumnsWithCustom...)
@@ -1125,37 +1125,36 @@ func testNotificationToOneSetOpTagUsingTag(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for i, x := range []*Tag{&b, &c} {
-		err = a.SetTag(tx, i != 0, x)
+	for i, x := range []*Party{&b, &c} {
+		err = a.SetAgent(tx, i != 0, x)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if a.R.Tag != x {
+		if a.R.Agent != x {
 			t.Error("relationship struct not set to correct value")
 		}
 
-		if x.R.Notifications[0] != &a {
+		if x.R.AgentNotifications[0] != &a {
 			t.Error("failed to append to foreign relationship struct")
 		}
-		if a.Tag.Int != x.ID {
-			t.Error("foreign key was wrong value", a.Tag.Int)
+		if a.Agent != x.ID {
+			t.Error("foreign key was wrong value", a.Agent)
 		}
 
-		zero := reflect.Zero(reflect.TypeOf(a.Tag.Int))
-		reflect.Indirect(reflect.ValueOf(&a.Tag.Int)).Set(zero)
+		zero := reflect.Zero(reflect.TypeOf(a.Agent))
+		reflect.Indirect(reflect.ValueOf(&a.Agent)).Set(zero)
 
 		if err = a.Reload(tx); err != nil {
 			t.Fatal("failed to reload", err)
 		}
 
-		if a.Tag.Int != x.ID {
-			t.Error("foreign key was wrong value", a.Tag.Int, x.ID)
+		if a.Agent != x.ID {
+			t.Error("foreign key was wrong value", a.Agent, x.ID)
 		}
 	}
 }
-
-func testNotificationToOneRemoveOpTagUsingTag(t *testing.T) {
+func testNotificationToOneSetOpAssetUsingAsset(t *testing.T) {
 	var err error
 
 	tx := MustTx(boil.Begin())
@@ -1164,15 +1163,91 @@ func testNotificationToOneRemoveOpTagUsingTag(t *testing.T) {
 	seed := randomize.NewSeed()
 
 	var a Notification
-	var b, c Tag
+	var b, c Asset
 
-	foreignBlacklist := strmangle.SetComplement(tagPrimaryKeyColumns, tagColumnsWithoutDefault)
-	if err := randomize.Struct(seed, &b, tagDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Tag struct: %s", err)
+	foreignBlacklist := strmangle.SetComplement(assetPrimaryKeyColumns, assetColumnsWithoutDefault)
+	foreignBlacklist = append(foreignBlacklist, assetColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &b, assetDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Asset struct: %s", err)
 	}
-	if err := randomize.Struct(seed, &c, tagDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Tag struct: %s", err)
+	if err := randomize.Struct(seed, &c, assetDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Asset struct: %s", err)
 	}
+	b.Release = custom_types.NullReleaseRandom()
+	c.Release = custom_types.NullReleaseRandom()
+
+	localBlacklist := strmangle.SetComplement(notificationPrimaryKeyColumns, notificationColumnsWithoutDefault)
+	localBlacklist = append(localBlacklist, notificationColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &a, notificationDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Notification struct: %s", err)
+	}
+	a.Delivered = custom_types.NoticeDeliveryRandom()
+	a.Permission = custom_types.NullPermissionRandom()
+	a.Segment = custom_types.NullSegmentRandom()
+	a.Release = custom_types.NullReleaseRandom()
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	for i, x := range []*Asset{&b, &c} {
+		err = a.SetAsset(tx, i != 0, x)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if a.R.Asset != x {
+			t.Error("relationship struct not set to correct value")
+		}
+
+		if x.R.Notifications[0] != &a {
+			t.Error("failed to append to foreign relationship struct")
+		}
+		if a.Asset.Int != x.ID {
+			t.Error("foreign key was wrong value", a.Asset.Int)
+		}
+
+		zero := reflect.Zero(reflect.TypeOf(a.Asset.Int))
+		reflect.Indirect(reflect.ValueOf(&a.Asset.Int)).Set(zero)
+
+		if err = a.Reload(tx); err != nil {
+			t.Fatal("failed to reload", err)
+		}
+
+		if a.Asset.Int != x.ID {
+			t.Error("foreign key was wrong value", a.Asset.Int, x.ID)
+		}
+	}
+}
+
+func testNotificationToOneRemoveOpAssetUsingAsset(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var a Notification
+	var b, c Asset
+
+	foreignBlacklist := strmangle.SetComplement(assetPrimaryKeyColumns, assetColumnsWithoutDefault)
+	foreignBlacklist = append(foreignBlacklist, assetColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &b, assetDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Asset struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, assetDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Asset struct: %s", err)
+	}
+	b.Release = custom_types.NullReleaseRandom()
+	c.Release = custom_types.NullReleaseRandom()
+
 	localBlacklist := strmangle.SetComplement(notificationPrimaryKeyColumns, notificationColumnsWithoutDefault)
 	localBlacklist = append(localBlacklist, notificationColumnsWithCustom...)
 
@@ -1188,15 +1263,15 @@ func testNotificationToOneRemoveOpTagUsingTag(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err = a.SetTag(tx, true, &b); err != nil {
+	if err = a.SetAsset(tx, true, &b); err != nil {
 		t.Fatal(err)
 	}
 
-	if err = a.RemoveTag(tx, &b); err != nil {
+	if err = a.RemoveAsset(tx, &b); err != nil {
 		t.Error("failed to remove relationship")
 	}
 
-	count, err := a.TagByFk(tx).Count()
+	count, err := a.AssetByFk(tx).Count()
 	if err != nil {
 		t.Error(err)
 	}
@@ -1204,11 +1279,11 @@ func testNotificationToOneRemoveOpTagUsingTag(t *testing.T) {
 		t.Error("want no relationships remaining")
 	}
 
-	if a.R.Tag != nil {
+	if a.R.Asset != nil {
 		t.Error("R struct entry should be nil")
 	}
 
-	if a.Tag.Valid {
+	if a.Asset.Valid {
 		t.Error("foreign key value should be nil")
 	}
 
@@ -1355,144 +1430,6 @@ func testNotificationToOneRemoveOpCommentUsingComment(t *testing.T) {
 	}
 }
 
-func testNotificationToOneSetOpAssetUsingAsset(t *testing.T) {
-	var err error
-
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var a Notification
-	var b, c Asset
-
-	foreignBlacklist := strmangle.SetComplement(assetPrimaryKeyColumns, assetColumnsWithoutDefault)
-	foreignBlacklist = append(foreignBlacklist, assetColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &b, assetDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Asset struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &c, assetDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Asset struct: %s", err)
-	}
-	b.Release = custom_types.NullReleaseRandom()
-	c.Release = custom_types.NullReleaseRandom()
-
-	localBlacklist := strmangle.SetComplement(notificationPrimaryKeyColumns, notificationColumnsWithoutDefault)
-	localBlacklist = append(localBlacklist, notificationColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &a, notificationDBTypes, false, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Notification struct: %s", err)
-	}
-	a.Delivered = custom_types.NoticeDeliveryRandom()
-	a.Permission = custom_types.NullPermissionRandom()
-	a.Segment = custom_types.NullSegmentRandom()
-	a.Release = custom_types.NullReleaseRandom()
-
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	for i, x := range []*Asset{&b, &c} {
-		err = a.SetAsset(tx, i != 0, x)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if a.R.Asset != x {
-			t.Error("relationship struct not set to correct value")
-		}
-
-		if x.R.Notifications[0] != &a {
-			t.Error("failed to append to foreign relationship struct")
-		}
-		if a.Asset.Int != x.ID {
-			t.Error("foreign key was wrong value", a.Asset.Int)
-		}
-
-		zero := reflect.Zero(reflect.TypeOf(a.Asset.Int))
-		reflect.Indirect(reflect.ValueOf(&a.Asset.Int)).Set(zero)
-
-		if err = a.Reload(tx); err != nil {
-			t.Fatal("failed to reload", err)
-		}
-
-		if a.Asset.Int != x.ID {
-			t.Error("foreign key was wrong value", a.Asset.Int, x.ID)
-		}
-	}
-}
-
-func testNotificationToOneRemoveOpAssetUsingAsset(t *testing.T) {
-	var err error
-
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var a Notification
-	var b, c Asset
-
-	foreignBlacklist := strmangle.SetComplement(assetPrimaryKeyColumns, assetColumnsWithoutDefault)
-	foreignBlacklist = append(foreignBlacklist, assetColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &b, assetDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Asset struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &c, assetDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Asset struct: %s", err)
-	}
-	b.Release = custom_types.NullReleaseRandom()
-	c.Release = custom_types.NullReleaseRandom()
-
-	localBlacklist := strmangle.SetComplement(notificationPrimaryKeyColumns, notificationColumnsWithoutDefault)
-	localBlacklist = append(localBlacklist, notificationColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &a, notificationDBTypes, false, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Notification struct: %s", err)
-	}
-	a.Delivered = custom_types.NoticeDeliveryRandom()
-	a.Permission = custom_types.NullPermissionRandom()
-	a.Segment = custom_types.NullSegmentRandom()
-	a.Release = custom_types.NullReleaseRandom()
-
-	if err = a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	if err = a.SetAsset(tx, true, &b); err != nil {
-		t.Fatal(err)
-	}
-
-	if err = a.RemoveAsset(tx, &b); err != nil {
-		t.Error("failed to remove relationship")
-	}
-
-	count, err := a.AssetByFk(tx).Count()
-	if err != nil {
-		t.Error(err)
-	}
-	if count != 0 {
-		t.Error("want no relationships remaining")
-	}
-
-	if a.R.Asset != nil {
-		t.Error("R struct entry should be nil")
-	}
-
-	if a.Asset.Valid {
-		t.Error("foreign key value should be nil")
-	}
-
-	if len(b.R.Notifications) != 0 {
-		t.Error("failed to remove a from b's relationships")
-	}
-}
-
 func testNotificationToOneSetOpContainerUsingContainer(t *testing.T) {
 	var err error
 
@@ -1621,7 +1558,7 @@ func testNotificationToOneRemoveOpContainerUsingContainer(t *testing.T) {
 	}
 }
 
-func testNotificationToOneSetOpVolumeUsingVolume(t *testing.T) {
+func testNotificationToOneSetOpNoticeUsingNotice(t *testing.T) {
 	var err error
 
 	tx := MustTx(boil.Begin())
@@ -1630,15 +1567,20 @@ func testNotificationToOneSetOpVolumeUsingVolume(t *testing.T) {
 	seed := randomize.NewSeed()
 
 	var a Notification
-	var b, c Volume
+	var b, c Notice
 
-	foreignBlacklist := strmangle.SetComplement(volumePrimaryKeyColumns, volumeColumnsWithoutDefault)
-	if err := randomize.Struct(seed, &b, volumeDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Volume struct: %s", err)
+	foreignBlacklist := strmangle.SetComplement(noticePrimaryKeyColumns, noticeColumnsWithoutDefault)
+	foreignBlacklist = append(foreignBlacklist, noticeColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &b, noticeDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Notice struct: %s", err)
 	}
-	if err := randomize.Struct(seed, &c, volumeDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Volume struct: %s", err)
+	if err := randomize.Struct(seed, &c, noticeDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Notice struct: %s", err)
 	}
+	b.Delivery = custom_types.NoticeDeliveryRandom()
+	c.Delivery = custom_types.NoticeDeliveryRandom()
+
 	localBlacklist := strmangle.SetComplement(notificationPrimaryKeyColumns, notificationColumnsWithoutDefault)
 	localBlacklist = append(localBlacklist, notificationColumnsWithCustom...)
 
@@ -1657,98 +1599,35 @@ func testNotificationToOneSetOpVolumeUsingVolume(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for i, x := range []*Volume{&b, &c} {
-		err = a.SetVolume(tx, i != 0, x)
+	for i, x := range []*Notice{&b, &c} {
+		err = a.SetNotice(tx, i != 0, x)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if a.R.Volume != x {
+		if a.R.Notice != x {
 			t.Error("relationship struct not set to correct value")
 		}
 
 		if x.R.Notifications[0] != &a {
 			t.Error("failed to append to foreign relationship struct")
 		}
-		if a.Volume.Int != x.ID {
-			t.Error("foreign key was wrong value", a.Volume.Int)
+		if a.Notice != x.ID {
+			t.Error("foreign key was wrong value", a.Notice)
 		}
 
-		zero := reflect.Zero(reflect.TypeOf(a.Volume.Int))
-		reflect.Indirect(reflect.ValueOf(&a.Volume.Int)).Set(zero)
+		zero := reflect.Zero(reflect.TypeOf(a.Notice))
+		reflect.Indirect(reflect.ValueOf(&a.Notice)).Set(zero)
 
 		if err = a.Reload(tx); err != nil {
 			t.Fatal("failed to reload", err)
 		}
 
-		if a.Volume.Int != x.ID {
-			t.Error("foreign key was wrong value", a.Volume.Int, x.ID)
+		if a.Notice != x.ID {
+			t.Error("foreign key was wrong value", a.Notice, x.ID)
 		}
 	}
 }
-
-func testNotificationToOneRemoveOpVolumeUsingVolume(t *testing.T) {
-	var err error
-
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var a Notification
-	var b, c Volume
-
-	foreignBlacklist := strmangle.SetComplement(volumePrimaryKeyColumns, volumeColumnsWithoutDefault)
-	if err := randomize.Struct(seed, &b, volumeDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Volume struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &c, volumeDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Volume struct: %s", err)
-	}
-	localBlacklist := strmangle.SetComplement(notificationPrimaryKeyColumns, notificationColumnsWithoutDefault)
-	localBlacklist = append(localBlacklist, notificationColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &a, notificationDBTypes, false, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Notification struct: %s", err)
-	}
-	a.Delivered = custom_types.NoticeDeliveryRandom()
-	a.Permission = custom_types.NullPermissionRandom()
-	a.Segment = custom_types.NullSegmentRandom()
-	a.Release = custom_types.NullReleaseRandom()
-
-	if err = a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	if err = a.SetVolume(tx, true, &b); err != nil {
-		t.Fatal(err)
-	}
-
-	if err = a.RemoveVolume(tx, &b); err != nil {
-		t.Error("failed to remove relationship")
-	}
-
-	count, err := a.VolumeByFk(tx).Count()
-	if err != nil {
-		t.Error(err)
-	}
-	if count != 0 {
-		t.Error("want no relationships remaining")
-	}
-
-	if a.R.Volume != nil {
-		t.Error("R struct entry should be nil")
-	}
-
-	if a.Volume.Valid {
-		t.Error("foreign key value should be nil")
-	}
-
-	if len(b.R.Notifications) != 0 {
-		t.Error("failed to remove a from b's relationships")
-	}
-}
-
 func testNotificationToOneSetOpPartyUsingParty(t *testing.T) {
 	var err error
 
@@ -1877,7 +1756,7 @@ func testNotificationToOneRemoveOpPartyUsingParty(t *testing.T) {
 	}
 }
 
-func testNotificationToOneSetOpPartyUsingAgent(t *testing.T) {
+func testNotificationToOneSetOpTagUsingTag(t *testing.T) {
 	var err error
 
 	tx := MustTx(boil.Begin())
@@ -1886,14 +1765,14 @@ func testNotificationToOneSetOpPartyUsingAgent(t *testing.T) {
 	seed := randomize.NewSeed()
 
 	var a Notification
-	var b, c Party
+	var b, c Tag
 
-	foreignBlacklist := strmangle.SetComplement(partyPrimaryKeyColumns, partyColumnsWithoutDefault)
-	if err := randomize.Struct(seed, &b, partyDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Party struct: %s", err)
+	foreignBlacklist := strmangle.SetComplement(tagPrimaryKeyColumns, tagColumnsWithoutDefault)
+	if err := randomize.Struct(seed, &b, tagDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Tag struct: %s", err)
 	}
-	if err := randomize.Struct(seed, &c, partyDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Party struct: %s", err)
+	if err := randomize.Struct(seed, &c, tagDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Tag struct: %s", err)
 	}
 	localBlacklist := strmangle.SetComplement(notificationPrimaryKeyColumns, notificationColumnsWithoutDefault)
 	localBlacklist = append(localBlacklist, notificationColumnsWithCustom...)
@@ -1913,105 +1792,98 @@ func testNotificationToOneSetOpPartyUsingAgent(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for i, x := range []*Party{&b, &c} {
-		err = a.SetAgent(tx, i != 0, x)
+	for i, x := range []*Tag{&b, &c} {
+		err = a.SetTag(tx, i != 0, x)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if a.R.Agent != x {
-			t.Error("relationship struct not set to correct value")
-		}
-
-		if x.R.AgentNotifications[0] != &a {
-			t.Error("failed to append to foreign relationship struct")
-		}
-		if a.Agent != x.ID {
-			t.Error("foreign key was wrong value", a.Agent)
-		}
-
-		zero := reflect.Zero(reflect.TypeOf(a.Agent))
-		reflect.Indirect(reflect.ValueOf(&a.Agent)).Set(zero)
-
-		if err = a.Reload(tx); err != nil {
-			t.Fatal("failed to reload", err)
-		}
-
-		if a.Agent != x.ID {
-			t.Error("foreign key was wrong value", a.Agent, x.ID)
-		}
-	}
-}
-func testNotificationToOneSetOpNoticeUsingNotice(t *testing.T) {
-	var err error
-
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var a Notification
-	var b, c Notice
-
-	foreignBlacklist := strmangle.SetComplement(noticePrimaryKeyColumns, noticeColumnsWithoutDefault)
-	foreignBlacklist = append(foreignBlacklist, noticeColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &b, noticeDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Notice struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &c, noticeDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Notice struct: %s", err)
-	}
-	b.Delivery = custom_types.NoticeDeliveryRandom()
-	c.Delivery = custom_types.NoticeDeliveryRandom()
-
-	localBlacklist := strmangle.SetComplement(notificationPrimaryKeyColumns, notificationColumnsWithoutDefault)
-	localBlacklist = append(localBlacklist, notificationColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &a, notificationDBTypes, false, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Notification struct: %s", err)
-	}
-	a.Delivered = custom_types.NoticeDeliveryRandom()
-	a.Permission = custom_types.NullPermissionRandom()
-	a.Segment = custom_types.NullSegmentRandom()
-	a.Release = custom_types.NullReleaseRandom()
-
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	for i, x := range []*Notice{&b, &c} {
-		err = a.SetNotice(tx, i != 0, x)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if a.R.Notice != x {
+		if a.R.Tag != x {
 			t.Error("relationship struct not set to correct value")
 		}
 
 		if x.R.Notifications[0] != &a {
 			t.Error("failed to append to foreign relationship struct")
 		}
-		if a.Notice != x.ID {
-			t.Error("foreign key was wrong value", a.Notice)
+		if a.Tag.Int != x.ID {
+			t.Error("foreign key was wrong value", a.Tag.Int)
 		}
 
-		zero := reflect.Zero(reflect.TypeOf(a.Notice))
-		reflect.Indirect(reflect.ValueOf(&a.Notice)).Set(zero)
+		zero := reflect.Zero(reflect.TypeOf(a.Tag.Int))
+		reflect.Indirect(reflect.ValueOf(&a.Tag.Int)).Set(zero)
 
 		if err = a.Reload(tx); err != nil {
 			t.Fatal("failed to reload", err)
 		}
 
-		if a.Notice != x.ID {
-			t.Error("foreign key was wrong value", a.Notice, x.ID)
+		if a.Tag.Int != x.ID {
+			t.Error("foreign key was wrong value", a.Tag.Int, x.ID)
 		}
 	}
 }
+
+func testNotificationToOneRemoveOpTagUsingTag(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var a Notification
+	var b, c Tag
+
+	foreignBlacklist := strmangle.SetComplement(tagPrimaryKeyColumns, tagColumnsWithoutDefault)
+	if err := randomize.Struct(seed, &b, tagDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Tag struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, tagDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Tag struct: %s", err)
+	}
+	localBlacklist := strmangle.SetComplement(notificationPrimaryKeyColumns, notificationColumnsWithoutDefault)
+	localBlacklist = append(localBlacklist, notificationColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &a, notificationDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Notification struct: %s", err)
+	}
+	a.Delivered = custom_types.NoticeDeliveryRandom()
+	a.Permission = custom_types.NullPermissionRandom()
+	a.Segment = custom_types.NullSegmentRandom()
+	a.Release = custom_types.NullReleaseRandom()
+
+	if err = a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.SetTag(tx, true, &b); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.RemoveTag(tx, &b); err != nil {
+		t.Error("failed to remove relationship")
+	}
+
+	count, err := a.TagByFk(tx).Count()
+	if err != nil {
+		t.Error(err)
+	}
+	if count != 0 {
+		t.Error("want no relationships remaining")
+	}
+
+	if a.R.Tag != nil {
+		t.Error("R struct entry should be nil")
+	}
+
+	if a.Tag.Valid {
+		t.Error("foreign key value should be nil")
+	}
+
+	if len(b.R.Notifications) != 0 {
+		t.Error("failed to remove a from b's relationships")
+	}
+}
+
 func testNotificationToOneSetOpAccountUsingTarget(t *testing.T) {
 	var err error
 
@@ -2077,6 +1949,134 @@ func testNotificationToOneSetOpAccountUsingTarget(t *testing.T) {
 		}
 	}
 }
+func testNotificationToOneSetOpVolumeUsingVolume(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var a Notification
+	var b, c Volume
+
+	foreignBlacklist := strmangle.SetComplement(volumePrimaryKeyColumns, volumeColumnsWithoutDefault)
+	if err := randomize.Struct(seed, &b, volumeDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Volume struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, volumeDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Volume struct: %s", err)
+	}
+	localBlacklist := strmangle.SetComplement(notificationPrimaryKeyColumns, notificationColumnsWithoutDefault)
+	localBlacklist = append(localBlacklist, notificationColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &a, notificationDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Notification struct: %s", err)
+	}
+	a.Delivered = custom_types.NoticeDeliveryRandom()
+	a.Permission = custom_types.NullPermissionRandom()
+	a.Segment = custom_types.NullSegmentRandom()
+	a.Release = custom_types.NullReleaseRandom()
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	for i, x := range []*Volume{&b, &c} {
+		err = a.SetVolume(tx, i != 0, x)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if a.R.Volume != x {
+			t.Error("relationship struct not set to correct value")
+		}
+
+		if x.R.Notifications[0] != &a {
+			t.Error("failed to append to foreign relationship struct")
+		}
+		if a.Volume.Int != x.ID {
+			t.Error("foreign key was wrong value", a.Volume.Int)
+		}
+
+		zero := reflect.Zero(reflect.TypeOf(a.Volume.Int))
+		reflect.Indirect(reflect.ValueOf(&a.Volume.Int)).Set(zero)
+
+		if err = a.Reload(tx); err != nil {
+			t.Fatal("failed to reload", err)
+		}
+
+		if a.Volume.Int != x.ID {
+			t.Error("foreign key was wrong value", a.Volume.Int, x.ID)
+		}
+	}
+}
+
+func testNotificationToOneRemoveOpVolumeUsingVolume(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var a Notification
+	var b, c Volume
+
+	foreignBlacklist := strmangle.SetComplement(volumePrimaryKeyColumns, volumeColumnsWithoutDefault)
+	if err := randomize.Struct(seed, &b, volumeDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Volume struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, volumeDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Volume struct: %s", err)
+	}
+	localBlacklist := strmangle.SetComplement(notificationPrimaryKeyColumns, notificationColumnsWithoutDefault)
+	localBlacklist = append(localBlacklist, notificationColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &a, notificationDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Notification struct: %s", err)
+	}
+	a.Delivered = custom_types.NoticeDeliveryRandom()
+	a.Permission = custom_types.NullPermissionRandom()
+	a.Segment = custom_types.NullSegmentRandom()
+	a.Release = custom_types.NullReleaseRandom()
+
+	if err = a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.SetVolume(tx, true, &b); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.RemoveVolume(tx, &b); err != nil {
+		t.Error("failed to remove relationship")
+	}
+
+	count, err := a.VolumeByFk(tx).Count()
+	if err != nil {
+		t.Error(err)
+	}
+	if count != 0 {
+		t.Error("want no relationships remaining")
+	}
+
+	if a.R.Volume != nil {
+		t.Error("R struct entry should be nil")
+	}
+
+	if a.Volume.Valid {
+		t.Error("foreign key value should be nil")
+	}
+
+	if len(b.R.Notifications) != 0 {
+		t.Error("failed to remove a from b's relationships")
+	}
+}
+
 func testNotificationsReload(t *testing.T) {
 	t.Parallel()
 

@@ -39,15 +39,15 @@ type Asset struct {
 
 // assetR is where relationships are stored.
 type assetR struct {
-	Format             *Format
-	Volume             *Volume
-	SlotAsset          *SlotAsset
-	AssetRevision      *AssetRevision
-	Transcode          *Transcode
-	OrigAssetRevisions AssetRevisionSlice
-	OrigTranscodes     TranscodeSlice
-	Avatars            AvatarSlice
-	Notifications      NotificationSlice
+	Format            *Format
+	Volume            *Volume
+	Transcode         *Transcode
+	SlotAsset         *SlotAsset
+	OrigAssetRevision *AssetRevision
+	OrigTranscodes    TranscodeSlice
+	Notifications     NotificationSlice
+	AssetRevisions    AssetRevisionSlice
+	Avatars           AvatarSlice
 }
 
 // assetL is where Load methods for each relationship are stored.
@@ -376,44 +376,6 @@ func (o *Asset) VolumeByFk(exec boil.Executor, mods ...qm.QueryMod) volumeQuery 
 	return query
 }
 
-// SlotAssetG pointed to by the foreign key.
-func (o *Asset) SlotAssetG(mods ...qm.QueryMod) slotAssetQuery {
-	return o.SlotAssetByFk(boil.GetDB(), mods...)
-}
-
-// SlotAsset pointed to by the foreign key.
-func (o *Asset) SlotAssetByFk(exec boil.Executor, mods ...qm.QueryMod) slotAssetQuery {
-	queryMods := []qm.QueryMod{
-		qm.Where("asset=?", o.ID),
-	}
-
-	queryMods = append(queryMods, mods...)
-
-	query := SlotAssets(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"slot_asset\"")
-
-	return query
-}
-
-// AssetRevisionG pointed to by the foreign key.
-func (o *Asset) AssetRevisionG(mods ...qm.QueryMod) assetRevisionQuery {
-	return o.AssetRevisionByFk(boil.GetDB(), mods...)
-}
-
-// AssetRevision pointed to by the foreign key.
-func (o *Asset) AssetRevisionByFk(exec boil.Executor, mods ...qm.QueryMod) assetRevisionQuery {
-	queryMods := []qm.QueryMod{
-		qm.Where("asset=?", o.ID),
-	}
-
-	queryMods = append(queryMods, mods...)
-
-	query := AssetRevisions(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"asset_revision\"")
-
-	return query
-}
-
 // TranscodeG pointed to by the foreign key.
 func (o *Asset) TranscodeG(mods ...qm.QueryMod) transcodeQuery {
 	return o.TranscodeByFk(boil.GetDB(), mods...)
@@ -433,27 +395,41 @@ func (o *Asset) TranscodeByFk(exec boil.Executor, mods ...qm.QueryMod) transcode
 	return query
 }
 
-// OrigAssetRevisionsG retrieves all the asset_revision's asset revision via orig column.
-func (o *Asset) OrigAssetRevisionsG(mods ...qm.QueryMod) assetRevisionQuery {
-	return o.OrigAssetRevisionsByFk(boil.GetDB(), mods...)
+// SlotAssetG pointed to by the foreign key.
+func (o *Asset) SlotAssetG(mods ...qm.QueryMod) slotAssetQuery {
+	return o.SlotAssetByFk(boil.GetDB(), mods...)
 }
 
-// OrigAssetRevisions retrieves all the asset_revision's asset revision with an executor via orig column.
-func (o *Asset) OrigAssetRevisionsByFk(exec boil.Executor, mods ...qm.QueryMod) assetRevisionQuery {
+// SlotAsset pointed to by the foreign key.
+func (o *Asset) SlotAssetByFk(exec boil.Executor, mods ...qm.QueryMod) slotAssetQuery {
 	queryMods := []qm.QueryMod{
-		qm.Select("\"a\".*"),
+		qm.Where("asset=?", o.ID),
 	}
 
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
+	queryMods = append(queryMods, mods...)
+
+	query := SlotAssets(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"slot_asset\"")
+
+	return query
+}
+
+// OrigAssetRevisionG pointed to by the foreign key.
+func (o *Asset) OrigAssetRevisionG(mods ...qm.QueryMod) assetRevisionQuery {
+	return o.OrigAssetRevisionByFk(boil.GetDB(), mods...)
+}
+
+// OrigAssetRevision pointed to by the foreign key.
+func (o *Asset) OrigAssetRevisionByFk(exec boil.Executor, mods ...qm.QueryMod) assetRevisionQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("orig=?", o.ID),
 	}
 
-	queryMods = append(queryMods,
-		qm.Where("\"a\".\"orig\"=?", o.ID),
-	)
+	queryMods = append(queryMods, mods...)
 
 	query := AssetRevisions(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"asset_revision\" as \"a\"")
+	queries.SetFrom(query.Query, "\"asset_revision\"")
+
 	return query
 }
 
@@ -481,30 +457,6 @@ func (o *Asset) OrigTranscodesByFk(exec boil.Executor, mods ...qm.QueryMod) tran
 	return query
 }
 
-// AvatarsG retrieves all the avatar's avatar.
-func (o *Asset) AvatarsG(mods ...qm.QueryMod) avatarQuery {
-	return o.AvatarsByFk(boil.GetDB(), mods...)
-}
-
-// Avatars retrieves all the avatar's avatar with an executor.
-func (o *Asset) AvatarsByFk(exec boil.Executor, mods ...qm.QueryMod) avatarQuery {
-	queryMods := []qm.QueryMod{
-		qm.Select("\"a\".*"),
-	}
-
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"a\".\"asset\"=?", o.ID),
-	)
-
-	query := Avatars(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"avatar\" as \"a\"")
-	return query
-}
-
 // NotificationsG retrieves all the notification's notification.
 func (o *Asset) NotificationsG(mods ...qm.QueryMod) notificationQuery {
 	return o.NotificationsByFk(boil.GetDB(), mods...)
@@ -526,6 +478,54 @@ func (o *Asset) NotificationsByFk(exec boil.Executor, mods ...qm.QueryMod) notif
 
 	query := Notifications(exec, queryMods...)
 	queries.SetFrom(query.Query, "\"notification\" as \"a\"")
+	return query
+}
+
+// AssetRevisionsG retrieves all the asset_revision's asset revision.
+func (o *Asset) AssetRevisionsG(mods ...qm.QueryMod) assetRevisionQuery {
+	return o.AssetRevisionsByFk(boil.GetDB(), mods...)
+}
+
+// AssetRevisions retrieves all the asset_revision's asset revision with an executor.
+func (o *Asset) AssetRevisionsByFk(exec boil.Executor, mods ...qm.QueryMod) assetRevisionQuery {
+	queryMods := []qm.QueryMod{
+		qm.Select("\"a\".*"),
+	}
+
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"a\".\"asset\"=?", o.ID),
+	)
+
+	query := AssetRevisions(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"asset_revision\" as \"a\"")
+	return query
+}
+
+// AvatarsG retrieves all the avatar's avatar.
+func (o *Asset) AvatarsG(mods ...qm.QueryMod) avatarQuery {
+	return o.AvatarsByFk(boil.GetDB(), mods...)
+}
+
+// Avatars retrieves all the avatar's avatar with an executor.
+func (o *Asset) AvatarsByFk(exec boil.Executor, mods ...qm.QueryMod) avatarQuery {
+	queryMods := []qm.QueryMod{
+		qm.Select("\"a\".*"),
+	}
+
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"a\".\"asset\"=?", o.ID),
+	)
+
+	query := Avatars(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"avatar\" as \"a\"")
 	return query
 }
 
@@ -685,162 +685,6 @@ func (assetL) LoadVolume(e boil.Executor, singular bool, maybeAsset interface{})
 	return nil
 }
 
-// LoadSlotAsset allows an eager lookup of values, cached into the
-// loaded structs of the objects.
-func (assetL) LoadSlotAsset(e boil.Executor, singular bool, maybeAsset interface{}) error {
-	var slice []*Asset
-	var object *Asset
-
-	count := 1
-	if singular {
-		object = maybeAsset.(*Asset)
-	} else {
-		slice = *maybeAsset.(*AssetSlice)
-		count = len(slice)
-	}
-
-	args := make([]interface{}, count)
-	if singular {
-		if object.R == nil {
-			object.R = &assetR{}
-		}
-		args[0] = object.ID
-	} else {
-		for i, obj := range slice {
-			if obj.R == nil {
-				obj.R = &assetR{}
-			}
-			args[i] = obj.ID
-		}
-	}
-
-	query := fmt.Sprintf(
-		"select * from \"slot_asset\" where \"asset\" in (%s)",
-		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
-	)
-
-	if boil.DebugMode {
-		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
-	}
-
-	results, err := e.Query(query, args...)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load SlotAsset")
-	}
-	defer results.Close()
-
-	var resultSlice []*SlotAsset
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice SlotAsset")
-	}
-
-	if len(assetAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(e); err != nil {
-				return err
-			}
-		}
-	}
-
-	if len(resultSlice) == 0 {
-		return nil
-	}
-
-	if singular {
-		object.R.SlotAsset = resultSlice[0]
-		return nil
-	}
-
-	for _, local := range slice {
-		for _, foreign := range resultSlice {
-			if local.ID == foreign.Asset {
-				local.R.SlotAsset = foreign
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
-// LoadAssetRevision allows an eager lookup of values, cached into the
-// loaded structs of the objects.
-func (assetL) LoadAssetRevision(e boil.Executor, singular bool, maybeAsset interface{}) error {
-	var slice []*Asset
-	var object *Asset
-
-	count := 1
-	if singular {
-		object = maybeAsset.(*Asset)
-	} else {
-		slice = *maybeAsset.(*AssetSlice)
-		count = len(slice)
-	}
-
-	args := make([]interface{}, count)
-	if singular {
-		if object.R == nil {
-			object.R = &assetR{}
-		}
-		args[0] = object.ID
-	} else {
-		for i, obj := range slice {
-			if obj.R == nil {
-				obj.R = &assetR{}
-			}
-			args[i] = obj.ID
-		}
-	}
-
-	query := fmt.Sprintf(
-		"select * from \"asset_revision\" where \"asset\" in (%s)",
-		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
-	)
-
-	if boil.DebugMode {
-		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
-	}
-
-	results, err := e.Query(query, args...)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load AssetRevision")
-	}
-	defer results.Close()
-
-	var resultSlice []*AssetRevision
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice AssetRevision")
-	}
-
-	if len(assetAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(e); err != nil {
-				return err
-			}
-		}
-	}
-
-	if len(resultSlice) == 0 {
-		return nil
-	}
-
-	if singular {
-		object.R.AssetRevision = resultSlice[0]
-		return nil
-	}
-
-	for _, local := range slice {
-		for _, foreign := range resultSlice {
-			if local.ID == foreign.Asset {
-				local.R.AssetRevision = foreign
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
 // LoadTranscode allows an eager lookup of values, cached into the
 // loaded structs of the objects.
 func (assetL) LoadTranscode(e boil.Executor, singular bool, maybeAsset interface{}) error {
@@ -919,9 +763,87 @@ func (assetL) LoadTranscode(e boil.Executor, singular bool, maybeAsset interface
 	return nil
 }
 
-// LoadOrigAssetRevisions allows an eager lookup of values, cached into the
+// LoadSlotAsset allows an eager lookup of values, cached into the
 // loaded structs of the objects.
-func (assetL) LoadOrigAssetRevisions(e boil.Executor, singular bool, maybeAsset interface{}) error {
+func (assetL) LoadSlotAsset(e boil.Executor, singular bool, maybeAsset interface{}) error {
+	var slice []*Asset
+	var object *Asset
+
+	count := 1
+	if singular {
+		object = maybeAsset.(*Asset)
+	} else {
+		slice = *maybeAsset.(*AssetSlice)
+		count = len(slice)
+	}
+
+	args := make([]interface{}, count)
+	if singular {
+		if object.R == nil {
+			object.R = &assetR{}
+		}
+		args[0] = object.ID
+	} else {
+		for i, obj := range slice {
+			if obj.R == nil {
+				obj.R = &assetR{}
+			}
+			args[i] = obj.ID
+		}
+	}
+
+	query := fmt.Sprintf(
+		"select * from \"slot_asset\" where \"asset\" in (%s)",
+		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
+	)
+
+	if boil.DebugMode {
+		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
+	}
+
+	results, err := e.Query(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load SlotAsset")
+	}
+	defer results.Close()
+
+	var resultSlice []*SlotAsset
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice SlotAsset")
+	}
+
+	if len(assetAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(e); err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		object.R.SlotAsset = resultSlice[0]
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if local.ID == foreign.Asset {
+				local.R.SlotAsset = foreign
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadOrigAssetRevision allows an eager lookup of values, cached into the
+// loaded structs of the objects.
+func (assetL) LoadOrigAssetRevision(e boil.Executor, singular bool, maybeAsset interface{}) error {
 	var slice []*Asset
 	var object *Asset
 
@@ -952,37 +874,43 @@ func (assetL) LoadOrigAssetRevisions(e boil.Executor, singular bool, maybeAsset 
 		"select * from \"asset_revision\" where \"orig\" in (%s)",
 		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
 	)
+
 	if boil.DebugMode {
 		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
 	}
 
 	results, err := e.Query(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "failed to eager load asset_revision")
+		return errors.Wrap(err, "failed to eager load AssetRevision")
 	}
 	defer results.Close()
 
 	var resultSlice []*AssetRevision
 	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice asset_revision")
+		return errors.Wrap(err, "failed to bind eager loaded slice AssetRevision")
 	}
 
-	if len(assetRevisionAfterSelectHooks) != 0 {
+	if len(assetAfterSelectHooks) != 0 {
 		for _, obj := range resultSlice {
 			if err := obj.doAfterSelectHooks(e); err != nil {
 				return err
 			}
 		}
 	}
-	if singular {
-		object.R.OrigAssetRevisions = resultSlice
+
+	if len(resultSlice) == 0 {
 		return nil
 	}
 
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
+	if singular {
+		object.R.OrigAssetRevision = resultSlice[0]
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
 			if local.ID == foreign.Orig {
-				local.R.OrigAssetRevisions = append(local.R.OrigAssetRevisions, foreign)
+				local.R.OrigAssetRevision = foreign
 				break
 			}
 		}
@@ -1063,78 +991,6 @@ func (assetL) LoadOrigTranscodes(e boil.Executor, singular bool, maybeAsset inte
 	return nil
 }
 
-// LoadAvatars allows an eager lookup of values, cached into the
-// loaded structs of the objects.
-func (assetL) LoadAvatars(e boil.Executor, singular bool, maybeAsset interface{}) error {
-	var slice []*Asset
-	var object *Asset
-
-	count := 1
-	if singular {
-		object = maybeAsset.(*Asset)
-	} else {
-		slice = *maybeAsset.(*AssetSlice)
-		count = len(slice)
-	}
-
-	args := make([]interface{}, count)
-	if singular {
-		if object.R == nil {
-			object.R = &assetR{}
-		}
-		args[0] = object.ID
-	} else {
-		for i, obj := range slice {
-			if obj.R == nil {
-				obj.R = &assetR{}
-			}
-			args[i] = obj.ID
-		}
-	}
-
-	query := fmt.Sprintf(
-		"select * from \"avatar\" where \"asset\" in (%s)",
-		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
-	)
-	if boil.DebugMode {
-		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
-	}
-
-	results, err := e.Query(query, args...)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load avatar")
-	}
-	defer results.Close()
-
-	var resultSlice []*Avatar
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice avatar")
-	}
-
-	if len(avatarAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(e); err != nil {
-				return err
-			}
-		}
-	}
-	if singular {
-		object.R.Avatars = resultSlice
-		return nil
-	}
-
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if local.ID == foreign.Asset {
-				local.R.Avatars = append(local.R.Avatars, foreign)
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
 // LoadNotifications allows an eager lookup of values, cached into the
 // loaded structs of the objects.
 func (assetL) LoadNotifications(e boil.Executor, singular bool, maybeAsset interface{}) error {
@@ -1199,6 +1055,150 @@ func (assetL) LoadNotifications(e boil.Executor, singular bool, maybeAsset inter
 		for _, local := range slice {
 			if local.ID == foreign.Asset.Int {
 				local.R.Notifications = append(local.R.Notifications, foreign)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadAssetRevisions allows an eager lookup of values, cached into the
+// loaded structs of the objects.
+func (assetL) LoadAssetRevisions(e boil.Executor, singular bool, maybeAsset interface{}) error {
+	var slice []*Asset
+	var object *Asset
+
+	count := 1
+	if singular {
+		object = maybeAsset.(*Asset)
+	} else {
+		slice = *maybeAsset.(*AssetSlice)
+		count = len(slice)
+	}
+
+	args := make([]interface{}, count)
+	if singular {
+		if object.R == nil {
+			object.R = &assetR{}
+		}
+		args[0] = object.ID
+	} else {
+		for i, obj := range slice {
+			if obj.R == nil {
+				obj.R = &assetR{}
+			}
+			args[i] = obj.ID
+		}
+	}
+
+	query := fmt.Sprintf(
+		"select * from \"asset_revision\" where \"asset\" in (%s)",
+		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
+	)
+	if boil.DebugMode {
+		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
+	}
+
+	results, err := e.Query(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load asset_revision")
+	}
+	defer results.Close()
+
+	var resultSlice []*AssetRevision
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice asset_revision")
+	}
+
+	if len(assetRevisionAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.AssetRevisions = resultSlice
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.Asset {
+				local.R.AssetRevisions = append(local.R.AssetRevisions, foreign)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadAvatars allows an eager lookup of values, cached into the
+// loaded structs of the objects.
+func (assetL) LoadAvatars(e boil.Executor, singular bool, maybeAsset interface{}) error {
+	var slice []*Asset
+	var object *Asset
+
+	count := 1
+	if singular {
+		object = maybeAsset.(*Asset)
+	} else {
+		slice = *maybeAsset.(*AssetSlice)
+		count = len(slice)
+	}
+
+	args := make([]interface{}, count)
+	if singular {
+		if object.R == nil {
+			object.R = &assetR{}
+		}
+		args[0] = object.ID
+	} else {
+		for i, obj := range slice {
+			if obj.R == nil {
+				obj.R = &assetR{}
+			}
+			args[i] = obj.ID
+		}
+	}
+
+	query := fmt.Sprintf(
+		"select * from \"avatar\" where \"asset\" in (%s)",
+		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
+	)
+	if boil.DebugMode {
+		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
+	}
+
+	results, err := e.Query(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load avatar")
+	}
+	defer results.Close()
+
+	var resultSlice []*Avatar
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice avatar")
+	}
+
+	if len(avatarAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.Avatars = resultSlice
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.Asset {
+				local.R.Avatars = append(local.R.Avatars, foreign)
 				break
 			}
 		}
@@ -1359,164 +1359,6 @@ func (o *Asset) SetVolume(exec boil.Executor, insert bool, related *Volume) erro
 	return nil
 }
 
-// SetSlotAssetG of the asset to the related item.
-// Sets o.R.SlotAsset to related.
-// Adds o to related.R.Asset.
-// Uses the global database handle.
-func (o *Asset) SetSlotAssetG(insert bool, related *SlotAsset) error {
-	return o.SetSlotAsset(boil.GetDB(), insert, related)
-}
-
-// SetSlotAssetP of the asset to the related item.
-// Sets o.R.SlotAsset to related.
-// Adds o to related.R.Asset.
-// Panics on error.
-func (o *Asset) SetSlotAssetP(exec boil.Executor, insert bool, related *SlotAsset) {
-	if err := o.SetSlotAsset(exec, insert, related); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// SetSlotAssetGP of the asset to the related item.
-// Sets o.R.SlotAsset to related.
-// Adds o to related.R.Asset.
-// Uses the global database handle and panics on error.
-func (o *Asset) SetSlotAssetGP(insert bool, related *SlotAsset) {
-	if err := o.SetSlotAsset(boil.GetDB(), insert, related); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// SetSlotAsset of the asset to the related item.
-// Sets o.R.SlotAsset to related.
-// Adds o to related.R.Asset.
-func (o *Asset) SetSlotAsset(exec boil.Executor, insert bool, related *SlotAsset) error {
-	var err error
-
-	if insert {
-		related.Asset = o.ID
-
-		if err = related.Insert(exec); err != nil {
-			return errors.Wrap(err, "failed to insert into foreign table")
-		}
-	} else {
-		updateQuery := fmt.Sprintf(
-			"UPDATE \"slot_asset\" SET %s WHERE %s",
-			strmangle.SetParamNames("\"", "\"", 1, []string{"asset"}),
-			strmangle.WhereClause("\"", "\"", 2, slotAssetPrimaryKeyColumns),
-		)
-		values := []interface{}{o.ID, related.Asset}
-
-		if boil.DebugMode {
-			fmt.Fprintln(boil.DebugWriter, updateQuery)
-			fmt.Fprintln(boil.DebugWriter, values)
-		}
-
-		if _, err = exec.Exec(updateQuery, values...); err != nil {
-			return errors.Wrap(err, "failed to update foreign table")
-		}
-
-		related.Asset = o.ID
-
-	}
-
-	if o.R == nil {
-		o.R = &assetR{
-			SlotAsset: related,
-		}
-	} else {
-		o.R.SlotAsset = related
-	}
-
-	if related.R == nil {
-		related.R = &slotAssetR{
-			Asset: o,
-		}
-	} else {
-		related.R.Asset = o
-	}
-	return nil
-}
-
-// SetAssetRevisionG of the asset to the related item.
-// Sets o.R.AssetRevision to related.
-// Adds o to related.R.Asset.
-// Uses the global database handle.
-func (o *Asset) SetAssetRevisionG(insert bool, related *AssetRevision) error {
-	return o.SetAssetRevision(boil.GetDB(), insert, related)
-}
-
-// SetAssetRevisionP of the asset to the related item.
-// Sets o.R.AssetRevision to related.
-// Adds o to related.R.Asset.
-// Panics on error.
-func (o *Asset) SetAssetRevisionP(exec boil.Executor, insert bool, related *AssetRevision) {
-	if err := o.SetAssetRevision(exec, insert, related); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// SetAssetRevisionGP of the asset to the related item.
-// Sets o.R.AssetRevision to related.
-// Adds o to related.R.Asset.
-// Uses the global database handle and panics on error.
-func (o *Asset) SetAssetRevisionGP(insert bool, related *AssetRevision) {
-	if err := o.SetAssetRevision(boil.GetDB(), insert, related); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// SetAssetRevision of the asset to the related item.
-// Sets o.R.AssetRevision to related.
-// Adds o to related.R.Asset.
-func (o *Asset) SetAssetRevision(exec boil.Executor, insert bool, related *AssetRevision) error {
-	var err error
-
-	if insert {
-		related.Asset = o.ID
-
-		if err = related.Insert(exec); err != nil {
-			return errors.Wrap(err, "failed to insert into foreign table")
-		}
-	} else {
-		updateQuery := fmt.Sprintf(
-			"UPDATE \"asset_revision\" SET %s WHERE %s",
-			strmangle.SetParamNames("\"", "\"", 1, []string{"asset"}),
-			strmangle.WhereClause("\"", "\"", 2, assetRevisionPrimaryKeyColumns),
-		)
-		values := []interface{}{o.ID, related.Asset}
-
-		if boil.DebugMode {
-			fmt.Fprintln(boil.DebugWriter, updateQuery)
-			fmt.Fprintln(boil.DebugWriter, values)
-		}
-
-		if _, err = exec.Exec(updateQuery, values...); err != nil {
-			return errors.Wrap(err, "failed to update foreign table")
-		}
-
-		related.Asset = o.ID
-
-	}
-
-	if o.R == nil {
-		o.R = &assetR{
-			AssetRevision: related,
-		}
-	} else {
-		o.R.AssetRevision = related
-	}
-
-	if related.R == nil {
-		related.R = &assetRevisionR{
-			Asset: o,
-		}
-	} else {
-		related.R.Asset = o
-	}
-	return nil
-}
-
 // SetTranscodeG of the asset to the related item.
 // Sets o.R.Transcode to related.
 // Adds o to related.R.Asset.
@@ -1596,86 +1438,160 @@ func (o *Asset) SetTranscode(exec boil.Executor, insert bool, related *Transcode
 	return nil
 }
 
-// AddOrigAssetRevisionsG adds the given related objects to the existing relationships
-// of the asset, optionally inserting them as new records.
-// Appends related to o.R.OrigAssetRevisions.
-// Sets related.R.Orig appropriately.
+// SetSlotAssetG of the asset to the related item.
+// Sets o.R.SlotAsset to related.
+// Adds o to related.R.Asset.
 // Uses the global database handle.
-func (o *Asset) AddOrigAssetRevisionsG(insert bool, related ...*AssetRevision) error {
-	return o.AddOrigAssetRevisions(boil.GetDB(), insert, related...)
+func (o *Asset) SetSlotAssetG(insert bool, related *SlotAsset) error {
+	return o.SetSlotAsset(boil.GetDB(), insert, related)
 }
 
-// AddOrigAssetRevisionsP adds the given related objects to the existing relationships
-// of the asset, optionally inserting them as new records.
-// Appends related to o.R.OrigAssetRevisions.
-// Sets related.R.Orig appropriately.
+// SetSlotAssetP of the asset to the related item.
+// Sets o.R.SlotAsset to related.
+// Adds o to related.R.Asset.
 // Panics on error.
-func (o *Asset) AddOrigAssetRevisionsP(exec boil.Executor, insert bool, related ...*AssetRevision) {
-	if err := o.AddOrigAssetRevisions(exec, insert, related...); err != nil {
+func (o *Asset) SetSlotAssetP(exec boil.Executor, insert bool, related *SlotAsset) {
+	if err := o.SetSlotAsset(exec, insert, related); err != nil {
 		panic(boil.WrapErr(err))
 	}
 }
 
-// AddOrigAssetRevisionsGP adds the given related objects to the existing relationships
-// of the asset, optionally inserting them as new records.
-// Appends related to o.R.OrigAssetRevisions.
-// Sets related.R.Orig appropriately.
+// SetSlotAssetGP of the asset to the related item.
+// Sets o.R.SlotAsset to related.
+// Adds o to related.R.Asset.
 // Uses the global database handle and panics on error.
-func (o *Asset) AddOrigAssetRevisionsGP(insert bool, related ...*AssetRevision) {
-	if err := o.AddOrigAssetRevisions(boil.GetDB(), insert, related...); err != nil {
+func (o *Asset) SetSlotAssetGP(insert bool, related *SlotAsset) {
+	if err := o.SetSlotAsset(boil.GetDB(), insert, related); err != nil {
 		panic(boil.WrapErr(err))
 	}
 }
 
-// AddOrigAssetRevisions adds the given related objects to the existing relationships
-// of the asset, optionally inserting them as new records.
-// Appends related to o.R.OrigAssetRevisions.
-// Sets related.R.Orig appropriately.
-func (o *Asset) AddOrigAssetRevisions(exec boil.Executor, insert bool, related ...*AssetRevision) error {
+// SetSlotAsset of the asset to the related item.
+// Sets o.R.SlotAsset to related.
+// Adds o to related.R.Asset.
+func (o *Asset) SetSlotAsset(exec boil.Executor, insert bool, related *SlotAsset) error {
 	var err error
-	for _, rel := range related {
-		if insert {
-			rel.Orig = o.ID
-			if err = rel.Insert(exec); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"asset_revision\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"orig"}),
-				strmangle.WhereClause("\"", "\"", 2, assetRevisionPrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.Asset}
 
-			if boil.DebugMode {
-				fmt.Fprintln(boil.DebugWriter, updateQuery)
-				fmt.Fprintln(boil.DebugWriter, values)
-			}
+	if insert {
+		related.Asset = o.ID
 
-			if _, err = exec.Exec(updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.Orig = o.ID
+		if err = related.Insert(exec); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
 		}
+	} else {
+		updateQuery := fmt.Sprintf(
+			"UPDATE \"slot_asset\" SET %s WHERE %s",
+			strmangle.SetParamNames("\"", "\"", 1, []string{"asset"}),
+			strmangle.WhereClause("\"", "\"", 2, slotAssetPrimaryKeyColumns),
+		)
+		values := []interface{}{o.ID, related.Asset}
+
+		if boil.DebugMode {
+			fmt.Fprintln(boil.DebugWriter, updateQuery)
+			fmt.Fprintln(boil.DebugWriter, values)
+		}
+
+		if _, err = exec.Exec(updateQuery, values...); err != nil {
+			return errors.Wrap(err, "failed to update foreign table")
+		}
+
+		related.Asset = o.ID
+
 	}
 
 	if o.R == nil {
 		o.R = &assetR{
-			OrigAssetRevisions: related,
+			SlotAsset: related,
 		}
 	} else {
-		o.R.OrigAssetRevisions = append(o.R.OrigAssetRevisions, related...)
+		o.R.SlotAsset = related
 	}
 
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &assetRevisionR{
-				Orig: o,
-			}
-		} else {
-			rel.R.Orig = o
+	if related.R == nil {
+		related.R = &slotAssetR{
+			Asset: o,
 		}
+	} else {
+		related.R.Asset = o
+	}
+	return nil
+}
+
+// SetOrigAssetRevisionG of the asset to the related item.
+// Sets o.R.OrigAssetRevision to related.
+// Adds o to related.R.Orig.
+// Uses the global database handle.
+func (o *Asset) SetOrigAssetRevisionG(insert bool, related *AssetRevision) error {
+	return o.SetOrigAssetRevision(boil.GetDB(), insert, related)
+}
+
+// SetOrigAssetRevisionP of the asset to the related item.
+// Sets o.R.OrigAssetRevision to related.
+// Adds o to related.R.Orig.
+// Panics on error.
+func (o *Asset) SetOrigAssetRevisionP(exec boil.Executor, insert bool, related *AssetRevision) {
+	if err := o.SetOrigAssetRevision(exec, insert, related); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// SetOrigAssetRevisionGP of the asset to the related item.
+// Sets o.R.OrigAssetRevision to related.
+// Adds o to related.R.Orig.
+// Uses the global database handle and panics on error.
+func (o *Asset) SetOrigAssetRevisionGP(insert bool, related *AssetRevision) {
+	if err := o.SetOrigAssetRevision(boil.GetDB(), insert, related); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// SetOrigAssetRevision of the asset to the related item.
+// Sets o.R.OrigAssetRevision to related.
+// Adds o to related.R.Orig.
+func (o *Asset) SetOrigAssetRevision(exec boil.Executor, insert bool, related *AssetRevision) error {
+	var err error
+
+	if insert {
+		related.Orig = o.ID
+
+		if err = related.Insert(exec); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	} else {
+		updateQuery := fmt.Sprintf(
+			"UPDATE \"asset_revision\" SET %s WHERE %s",
+			strmangle.SetParamNames("\"", "\"", 1, []string{"orig"}),
+			strmangle.WhereClause("\"", "\"", 2, assetRevisionPrimaryKeyColumns),
+		)
+		values := []interface{}{o.ID, related.Orig}
+
+		if boil.DebugMode {
+			fmt.Fprintln(boil.DebugWriter, updateQuery)
+			fmt.Fprintln(boil.DebugWriter, values)
+		}
+
+		if _, err = exec.Exec(updateQuery, values...); err != nil {
+			return errors.Wrap(err, "failed to update foreign table")
+		}
+
+		related.Orig = o.ID
+
+	}
+
+	if o.R == nil {
+		o.R = &assetR{
+			OrigAssetRevision: related,
+		}
+	} else {
+		o.R.OrigAssetRevision = related
+	}
+
+	if related.R == nil {
+		related.R = &assetRevisionR{
+			Orig: o,
+		}
+	} else {
+		related.R.Orig = o
 	}
 	return nil
 }
@@ -1759,90 +1675,6 @@ func (o *Asset) AddOrigTranscodes(exec boil.Executor, insert bool, related ...*T
 			}
 		} else {
 			rel.R.Orig = o
-		}
-	}
-	return nil
-}
-
-// AddAvatarsG adds the given related objects to the existing relationships
-// of the asset, optionally inserting them as new records.
-// Appends related to o.R.Avatars.
-// Sets related.R.Asset appropriately.
-// Uses the global database handle.
-func (o *Asset) AddAvatarsG(insert bool, related ...*Avatar) error {
-	return o.AddAvatars(boil.GetDB(), insert, related...)
-}
-
-// AddAvatarsP adds the given related objects to the existing relationships
-// of the asset, optionally inserting them as new records.
-// Appends related to o.R.Avatars.
-// Sets related.R.Asset appropriately.
-// Panics on error.
-func (o *Asset) AddAvatarsP(exec boil.Executor, insert bool, related ...*Avatar) {
-	if err := o.AddAvatars(exec, insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddAvatarsGP adds the given related objects to the existing relationships
-// of the asset, optionally inserting them as new records.
-// Appends related to o.R.Avatars.
-// Sets related.R.Asset appropriately.
-// Uses the global database handle and panics on error.
-func (o *Asset) AddAvatarsGP(insert bool, related ...*Avatar) {
-	if err := o.AddAvatars(boil.GetDB(), insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddAvatars adds the given related objects to the existing relationships
-// of the asset, optionally inserting them as new records.
-// Appends related to o.R.Avatars.
-// Sets related.R.Asset appropriately.
-func (o *Asset) AddAvatars(exec boil.Executor, insert bool, related ...*Avatar) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.Asset = o.ID
-			if err = rel.Insert(exec); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"avatar\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"asset"}),
-				strmangle.WhereClause("\"", "\"", 2, avatarPrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.Party}
-
-			if boil.DebugMode {
-				fmt.Fprintln(boil.DebugWriter, updateQuery)
-				fmt.Fprintln(boil.DebugWriter, values)
-			}
-
-			if _, err = exec.Exec(updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.Asset = o.ID
-		}
-	}
-
-	if o.R == nil {
-		o.R = &assetR{
-			Avatars: related,
-		}
-	} else {
-		o.R.Avatars = append(o.R.Avatars, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &avatarR{
-				Asset: o,
-			}
-		} else {
-			rel.R.Asset = o
 		}
 	}
 	return nil
@@ -2066,6 +1898,174 @@ func (o *Asset) RemoveNotifications(exec boil.Executor, related ...*Notification
 		}
 	}
 
+	return nil
+}
+
+// AddAssetRevisionsG adds the given related objects to the existing relationships
+// of the asset, optionally inserting them as new records.
+// Appends related to o.R.AssetRevisions.
+// Sets related.R.Asset appropriately.
+// Uses the global database handle.
+func (o *Asset) AddAssetRevisionsG(insert bool, related ...*AssetRevision) error {
+	return o.AddAssetRevisions(boil.GetDB(), insert, related...)
+}
+
+// AddAssetRevisionsP adds the given related objects to the existing relationships
+// of the asset, optionally inserting them as new records.
+// Appends related to o.R.AssetRevisions.
+// Sets related.R.Asset appropriately.
+// Panics on error.
+func (o *Asset) AddAssetRevisionsP(exec boil.Executor, insert bool, related ...*AssetRevision) {
+	if err := o.AddAssetRevisions(exec, insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddAssetRevisionsGP adds the given related objects to the existing relationships
+// of the asset, optionally inserting them as new records.
+// Appends related to o.R.AssetRevisions.
+// Sets related.R.Asset appropriately.
+// Uses the global database handle and panics on error.
+func (o *Asset) AddAssetRevisionsGP(insert bool, related ...*AssetRevision) {
+	if err := o.AddAssetRevisions(boil.GetDB(), insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddAssetRevisions adds the given related objects to the existing relationships
+// of the asset, optionally inserting them as new records.
+// Appends related to o.R.AssetRevisions.
+// Sets related.R.Asset appropriately.
+func (o *Asset) AddAssetRevisions(exec boil.Executor, insert bool, related ...*AssetRevision) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.Asset = o.ID
+			if err = rel.Insert(exec); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"asset_revision\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"asset"}),
+				strmangle.WhereClause("\"", "\"", 2, assetRevisionPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.Orig}
+
+			if boil.DebugMode {
+				fmt.Fprintln(boil.DebugWriter, updateQuery)
+				fmt.Fprintln(boil.DebugWriter, values)
+			}
+
+			if _, err = exec.Exec(updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.Asset = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &assetR{
+			AssetRevisions: related,
+		}
+	} else {
+		o.R.AssetRevisions = append(o.R.AssetRevisions, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &assetRevisionR{
+				Asset: o,
+			}
+		} else {
+			rel.R.Asset = o
+		}
+	}
+	return nil
+}
+
+// AddAvatarsG adds the given related objects to the existing relationships
+// of the asset, optionally inserting them as new records.
+// Appends related to o.R.Avatars.
+// Sets related.R.Asset appropriately.
+// Uses the global database handle.
+func (o *Asset) AddAvatarsG(insert bool, related ...*Avatar) error {
+	return o.AddAvatars(boil.GetDB(), insert, related...)
+}
+
+// AddAvatarsP adds the given related objects to the existing relationships
+// of the asset, optionally inserting them as new records.
+// Appends related to o.R.Avatars.
+// Sets related.R.Asset appropriately.
+// Panics on error.
+func (o *Asset) AddAvatarsP(exec boil.Executor, insert bool, related ...*Avatar) {
+	if err := o.AddAvatars(exec, insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddAvatarsGP adds the given related objects to the existing relationships
+// of the asset, optionally inserting them as new records.
+// Appends related to o.R.Avatars.
+// Sets related.R.Asset appropriately.
+// Uses the global database handle and panics on error.
+func (o *Asset) AddAvatarsGP(insert bool, related ...*Avatar) {
+	if err := o.AddAvatars(boil.GetDB(), insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddAvatars adds the given related objects to the existing relationships
+// of the asset, optionally inserting them as new records.
+// Appends related to o.R.Avatars.
+// Sets related.R.Asset appropriately.
+func (o *Asset) AddAvatars(exec boil.Executor, insert bool, related ...*Avatar) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.Asset = o.ID
+			if err = rel.Insert(exec); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"avatar\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"asset"}),
+				strmangle.WhereClause("\"", "\"", 2, avatarPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.Party}
+
+			if boil.DebugMode {
+				fmt.Fprintln(boil.DebugWriter, updateQuery)
+				fmt.Fprintln(boil.DebugWriter, values)
+			}
+
+			if _, err = exec.Exec(updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.Asset = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &assetR{
+			Avatars: related,
+		}
+	} else {
+		o.R.Avatars = append(o.R.Avatars, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &avatarR{
+				Asset: o,
+			}
+		} else {
+			rel.R.Asset = o
+		}
+	}
 	return nil
 }
 

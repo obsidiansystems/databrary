@@ -506,63 +506,6 @@ func testAuthorizesInsertWhitelist(t *testing.T) {
 	}
 }
 
-func testAuthorizeToOnePartyUsingParent(t *testing.T) {
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var foreign Party
-	var local Authorize
-
-	foreignBlacklist := partyColumnsWithDefault
-	if err := randomize.Struct(seed, &foreign, partyDBTypes, true, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Party struct: %s", err)
-	}
-	localBlacklist := authorizeColumnsWithDefault
-	localBlacklist = append(localBlacklist, authorizeColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &local, authorizeDBTypes, true, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Authorize struct: %s", err)
-	}
-	local.Site = custom_types.PermissionRandom()
-	local.Member = custom_types.PermissionRandom()
-
-	if err := foreign.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	local.Parent = foreign.ID
-	if err := local.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	check, err := local.ParentByFk(tx).One()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if check.ID != foreign.ID {
-		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
-	}
-
-	slice := AuthorizeSlice{&local}
-	if err = local.L.LoadParent(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.Parent == nil {
-		t.Error("struct should have been eager loaded")
-	}
-
-	local.R.Parent = nil
-	if err = local.L.LoadParent(tx, true, &local); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.Parent == nil {
-		t.Error("struct should have been eager loaded")
-	}
-}
-
 func testAuthorizeToOnePartyUsingChild(t *testing.T) {
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -620,65 +563,63 @@ func testAuthorizeToOnePartyUsingChild(t *testing.T) {
 	}
 }
 
-func testAuthorizeToOneSetOpPartyUsingParent(t *testing.T) {
-	var err error
-
+func testAuthorizeToOnePartyUsingParent(t *testing.T) {
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
 
 	seed := randomize.NewSeed()
 
-	var a Authorize
-	var b, c Party
+	var foreign Party
+	var local Authorize
 
-	foreignBlacklist := strmangle.SetComplement(partyPrimaryKeyColumns, partyColumnsWithoutDefault)
-	if err := randomize.Struct(seed, &b, partyDBTypes, false, foreignBlacklist...); err != nil {
+	foreignBlacklist := partyColumnsWithDefault
+	if err := randomize.Struct(seed, &foreign, partyDBTypes, true, foreignBlacklist...); err != nil {
 		t.Errorf("Unable to randomize Party struct: %s", err)
 	}
-	if err := randomize.Struct(seed, &c, partyDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Party struct: %s", err)
-	}
-	localBlacklist := strmangle.SetComplement(authorizePrimaryKeyColumns, authorizeColumnsWithoutDefault)
+	localBlacklist := authorizeColumnsWithDefault
 	localBlacklist = append(localBlacklist, authorizeColumnsWithCustom...)
 
-	if err := randomize.Struct(seed, &a, authorizeDBTypes, false, localBlacklist...); err != nil {
+	if err := randomize.Struct(seed, &local, authorizeDBTypes, true, localBlacklist...); err != nil {
 		t.Errorf("Unable to randomize Authorize struct: %s", err)
 	}
-	a.Site = custom_types.PermissionRandom()
-	a.Member = custom_types.PermissionRandom()
+	local.Site = custom_types.PermissionRandom()
+	local.Member = custom_types.PermissionRandom()
 
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(tx); err != nil {
+	if err := foreign.Insert(tx); err != nil {
 		t.Fatal(err)
 	}
 
-	for i, x := range []*Party{&b, &c} {
-		err = a.SetParent(tx, i != 0, x)
-		if err != nil {
-			t.Fatal(err)
-		}
+	local.Parent = foreign.ID
+	if err := local.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
 
-		if a.R.Parent != x {
-			t.Error("relationship struct not set to correct value")
-		}
+	check, err := local.ParentByFk(tx).One()
+	if err != nil {
+		t.Fatal(err)
+	}
 
-		if x.R.ParentAuthorizes[0] != &a {
-			t.Error("failed to append to foreign relationship struct")
-		}
-		if a.Parent != x.ID {
-			t.Error("foreign key was wrong value", a.Parent)
-		}
+	if check.ID != foreign.ID {
+		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
+	}
 
-		if exists, err := AuthorizeExists(tx, a.Child, a.Parent); err != nil {
-			t.Fatal(err)
-		} else if !exists {
-			t.Error("want 'a' to exist")
-		}
+	slice := AuthorizeSlice{&local}
+	if err = local.L.LoadParent(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Parent == nil {
+		t.Error("struct should have been eager loaded")
+	}
 
+	local.R.Parent = nil
+	if err = local.L.LoadParent(tx, true, &local); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Parent == nil {
+		t.Error("struct should have been eager loaded")
 	}
 }
+
 func testAuthorizeToOneSetOpPartyUsingChild(t *testing.T) {
 	var err error
 
@@ -728,6 +669,65 @@ func testAuthorizeToOneSetOpPartyUsingChild(t *testing.T) {
 		}
 		if a.Child != x.ID {
 			t.Error("foreign key was wrong value", a.Child)
+		}
+
+		if exists, err := AuthorizeExists(tx, a.Child, a.Parent); err != nil {
+			t.Fatal(err)
+		} else if !exists {
+			t.Error("want 'a' to exist")
+		}
+
+	}
+}
+func testAuthorizeToOneSetOpPartyUsingParent(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var a Authorize
+	var b, c Party
+
+	foreignBlacklist := strmangle.SetComplement(partyPrimaryKeyColumns, partyColumnsWithoutDefault)
+	if err := randomize.Struct(seed, &b, partyDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Party struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, partyDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Party struct: %s", err)
+	}
+	localBlacklist := strmangle.SetComplement(authorizePrimaryKeyColumns, authorizeColumnsWithoutDefault)
+	localBlacklist = append(localBlacklist, authorizeColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &a, authorizeDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Authorize struct: %s", err)
+	}
+	a.Site = custom_types.PermissionRandom()
+	a.Member = custom_types.PermissionRandom()
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	for i, x := range []*Party{&b, &c} {
+		err = a.SetParent(tx, i != 0, x)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if a.R.Parent != x {
+			t.Error("relationship struct not set to correct value")
+		}
+
+		if x.R.ParentAuthorizes[0] != &a {
+			t.Error("failed to append to foreign relationship struct")
+		}
+		if a.Parent != x.ID {
+			t.Error("foreign key was wrong value", a.Parent)
 		}
 
 		if exists, err := AuthorizeExists(tx, a.Child, a.Parent); err != nil {

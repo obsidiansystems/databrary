@@ -33,8 +33,8 @@ type SlotAsset struct {
 
 // slotAssetR is where relationships are stored.
 type slotAssetR struct {
-	Container     *Container
 	Asset         *Asset
+	Container     *Container
 	AssetExcerpts ExcerptSlice
 }
 
@@ -326,25 +326,6 @@ func (q slotAssetQuery) Exists() (bool, error) {
 	return count > 0, nil
 }
 
-// ContainerG pointed to by the foreign key.
-func (o *SlotAsset) ContainerG(mods ...qm.QueryMod) containerQuery {
-	return o.ContainerByFk(boil.GetDB(), mods...)
-}
-
-// Container pointed to by the foreign key.
-func (o *SlotAsset) ContainerByFk(exec boil.Executor, mods ...qm.QueryMod) containerQuery {
-	queryMods := []qm.QueryMod{
-		qm.Where("id=?", o.Container),
-	}
-
-	queryMods = append(queryMods, mods...)
-
-	query := Containers(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"container\"")
-
-	return query
-}
-
 // AssetG pointed to by the foreign key.
 func (o *SlotAsset) AssetG(mods ...qm.QueryMod) assetQuery {
 	return o.AssetByFk(boil.GetDB(), mods...)
@@ -360,6 +341,25 @@ func (o *SlotAsset) AssetByFk(exec boil.Executor, mods ...qm.QueryMod) assetQuer
 
 	query := Assets(exec, queryMods...)
 	queries.SetFrom(query.Query, "\"asset\"")
+
+	return query
+}
+
+// ContainerG pointed to by the foreign key.
+func (o *SlotAsset) ContainerG(mods ...qm.QueryMod) containerQuery {
+	return o.ContainerByFk(boil.GetDB(), mods...)
+}
+
+// Container pointed to by the foreign key.
+func (o *SlotAsset) ContainerByFk(exec boil.Executor, mods ...qm.QueryMod) containerQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("id=?", o.Container),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	query := Containers(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"container\"")
 
 	return query
 }
@@ -386,84 +386,6 @@ func (o *SlotAsset) AssetExcerptsByFk(exec boil.Executor, mods ...qm.QueryMod) e
 	query := Excerpts(exec, queryMods...)
 	queries.SetFrom(query.Query, "\"excerpt\" as \"a\"")
 	return query
-}
-
-// LoadContainer allows an eager lookup of values, cached into the
-// loaded structs of the objects.
-func (slotAssetL) LoadContainer(e boil.Executor, singular bool, maybeSlotAsset interface{}) error {
-	var slice []*SlotAsset
-	var object *SlotAsset
-
-	count := 1
-	if singular {
-		object = maybeSlotAsset.(*SlotAsset)
-	} else {
-		slice = *maybeSlotAsset.(*SlotAssetSlice)
-		count = len(slice)
-	}
-
-	args := make([]interface{}, count)
-	if singular {
-		if object.R == nil {
-			object.R = &slotAssetR{}
-		}
-		args[0] = object.Container
-	} else {
-		for i, obj := range slice {
-			if obj.R == nil {
-				obj.R = &slotAssetR{}
-			}
-			args[i] = obj.Container
-		}
-	}
-
-	query := fmt.Sprintf(
-		"select * from \"container\" where \"id\" in (%s)",
-		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
-	)
-
-	if boil.DebugMode {
-		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
-	}
-
-	results, err := e.Query(query, args...)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load Container")
-	}
-	defer results.Close()
-
-	var resultSlice []*Container
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice Container")
-	}
-
-	if len(slotAssetAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(e); err != nil {
-				return err
-			}
-		}
-	}
-
-	if len(resultSlice) == 0 {
-		return nil
-	}
-
-	if singular {
-		object.R.Container = resultSlice[0]
-		return nil
-	}
-
-	for _, local := range slice {
-		for _, foreign := range resultSlice {
-			if local.Container == foreign.ID {
-				local.R.Container = foreign
-				break
-			}
-		}
-	}
-
-	return nil
 }
 
 // LoadAsset allows an eager lookup of values, cached into the
@@ -544,6 +466,84 @@ func (slotAssetL) LoadAsset(e boil.Executor, singular bool, maybeSlotAsset inter
 	return nil
 }
 
+// LoadContainer allows an eager lookup of values, cached into the
+// loaded structs of the objects.
+func (slotAssetL) LoadContainer(e boil.Executor, singular bool, maybeSlotAsset interface{}) error {
+	var slice []*SlotAsset
+	var object *SlotAsset
+
+	count := 1
+	if singular {
+		object = maybeSlotAsset.(*SlotAsset)
+	} else {
+		slice = *maybeSlotAsset.(*SlotAssetSlice)
+		count = len(slice)
+	}
+
+	args := make([]interface{}, count)
+	if singular {
+		if object.R == nil {
+			object.R = &slotAssetR{}
+		}
+		args[0] = object.Container
+	} else {
+		for i, obj := range slice {
+			if obj.R == nil {
+				obj.R = &slotAssetR{}
+			}
+			args[i] = obj.Container
+		}
+	}
+
+	query := fmt.Sprintf(
+		"select * from \"container\" where \"id\" in (%s)",
+		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
+	)
+
+	if boil.DebugMode {
+		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
+	}
+
+	results, err := e.Query(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load Container")
+	}
+	defer results.Close()
+
+	var resultSlice []*Container
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice Container")
+	}
+
+	if len(slotAssetAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(e); err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		object.R.Container = resultSlice[0]
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if local.Container == foreign.ID {
+				local.R.Container = foreign
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
 // LoadAssetExcerpts allows an eager lookup of values, cached into the
 // loaded structs of the objects.
 func (slotAssetL) LoadAssetExcerpts(e boil.Executor, singular bool, maybeSlotAsset interface{}) error {
@@ -611,82 +611,6 @@ func (slotAssetL) LoadAssetExcerpts(e boil.Executor, singular bool, maybeSlotAss
 				break
 			}
 		}
-	}
-
-	return nil
-}
-
-// SetContainerG of the slot_asset to the related item.
-// Sets o.R.Container to related.
-// Adds o to related.R.SlotAssets.
-// Uses the global database handle.
-func (o *SlotAsset) SetContainerG(insert bool, related *Container) error {
-	return o.SetContainer(boil.GetDB(), insert, related)
-}
-
-// SetContainerP of the slot_asset to the related item.
-// Sets o.R.Container to related.
-// Adds o to related.R.SlotAssets.
-// Panics on error.
-func (o *SlotAsset) SetContainerP(exec boil.Executor, insert bool, related *Container) {
-	if err := o.SetContainer(exec, insert, related); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// SetContainerGP of the slot_asset to the related item.
-// Sets o.R.Container to related.
-// Adds o to related.R.SlotAssets.
-// Uses the global database handle and panics on error.
-func (o *SlotAsset) SetContainerGP(insert bool, related *Container) {
-	if err := o.SetContainer(boil.GetDB(), insert, related); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// SetContainer of the slot_asset to the related item.
-// Sets o.R.Container to related.
-// Adds o to related.R.SlotAssets.
-func (o *SlotAsset) SetContainer(exec boil.Executor, insert bool, related *Container) error {
-	var err error
-	if insert {
-		if err = related.Insert(exec); err != nil {
-			return errors.Wrap(err, "failed to insert into foreign table")
-		}
-	}
-
-	updateQuery := fmt.Sprintf(
-		"UPDATE \"slot_asset\" SET %s WHERE %s",
-		strmangle.SetParamNames("\"", "\"", 1, []string{"container"}),
-		strmangle.WhereClause("\"", "\"", 2, slotAssetPrimaryKeyColumns),
-	)
-	values := []interface{}{related.ID, o.Asset}
-
-	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, updateQuery)
-		fmt.Fprintln(boil.DebugWriter, values)
-	}
-
-	if _, err = exec.Exec(updateQuery, values...); err != nil {
-		return errors.Wrap(err, "failed to update local table")
-	}
-
-	o.Container = related.ID
-
-	if o.R == nil {
-		o.R = &slotAssetR{
-			Container: related,
-		}
-	} else {
-		o.R.Container = related
-	}
-
-	if related.R == nil {
-		related.R = &containerR{
-			SlotAssets: SlotAssetSlice{o},
-		}
-	} else {
-		related.R.SlotAssets = append(related.R.SlotAssets, o)
 	}
 
 	return nil
@@ -763,6 +687,82 @@ func (o *SlotAsset) SetAsset(exec boil.Executor, insert bool, related *Asset) er
 		}
 	} else {
 		related.R.SlotAsset = o
+	}
+
+	return nil
+}
+
+// SetContainerG of the slot_asset to the related item.
+// Sets o.R.Container to related.
+// Adds o to related.R.SlotAssets.
+// Uses the global database handle.
+func (o *SlotAsset) SetContainerG(insert bool, related *Container) error {
+	return o.SetContainer(boil.GetDB(), insert, related)
+}
+
+// SetContainerP of the slot_asset to the related item.
+// Sets o.R.Container to related.
+// Adds o to related.R.SlotAssets.
+// Panics on error.
+func (o *SlotAsset) SetContainerP(exec boil.Executor, insert bool, related *Container) {
+	if err := o.SetContainer(exec, insert, related); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// SetContainerGP of the slot_asset to the related item.
+// Sets o.R.Container to related.
+// Adds o to related.R.SlotAssets.
+// Uses the global database handle and panics on error.
+func (o *SlotAsset) SetContainerGP(insert bool, related *Container) {
+	if err := o.SetContainer(boil.GetDB(), insert, related); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// SetContainer of the slot_asset to the related item.
+// Sets o.R.Container to related.
+// Adds o to related.R.SlotAssets.
+func (o *SlotAsset) SetContainer(exec boil.Executor, insert bool, related *Container) error {
+	var err error
+	if insert {
+		if err = related.Insert(exec); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"slot_asset\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"container"}),
+		strmangle.WhereClause("\"", "\"", 2, slotAssetPrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.Asset}
+
+	if boil.DebugMode {
+		fmt.Fprintln(boil.DebugWriter, updateQuery)
+		fmt.Fprintln(boil.DebugWriter, values)
+	}
+
+	if _, err = exec.Exec(updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	o.Container = related.ID
+
+	if o.R == nil {
+		o.R = &slotAssetR{
+			Container: related,
+		}
+	} else {
+		o.R.Container = related
+	}
+
+	if related.R == nil {
+		related.R = &containerR{
+			SlotAssets: SlotAssetSlice{o},
+		}
+	} else {
+		related.R.SlotAssets = append(related.R.SlotAssets, o)
 	}
 
 	return nil

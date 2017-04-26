@@ -548,62 +548,6 @@ func testTagUseToOneContainerUsingContainer(t *testing.T) {
 	}
 }
 
-func testTagUseToOneAccountUsingWho(t *testing.T) {
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var foreign Account
-	var local TagUse
-
-	foreignBlacklist := accountColumnsWithDefault
-	if err := randomize.Struct(seed, &foreign, accountDBTypes, true, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Account struct: %s", err)
-	}
-	localBlacklist := tagUseColumnsWithDefault
-	localBlacklist = append(localBlacklist, tagUseColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &local, tagUseDBTypes, true, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize TagUse struct: %s", err)
-	}
-	local.Segment = custom_types.SegmentRandom()
-
-	if err := foreign.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	local.Who = foreign.ID
-	if err := local.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	check, err := local.WhoByFk(tx).One()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if check.ID != foreign.ID {
-		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
-	}
-
-	slice := TagUseSlice{&local}
-	if err = local.L.LoadWho(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.Who == nil {
-		t.Error("struct should have been eager loaded")
-	}
-
-	local.R.Who = nil
-	if err = local.L.LoadWho(tx, true, &local); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.Who == nil {
-		t.Error("struct should have been eager loaded")
-	}
-}
-
 func testTagUseToOneTagUsingTag(t *testing.T) {
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -656,6 +600,62 @@ func testTagUseToOneTagUsingTag(t *testing.T) {
 		t.Fatal(err)
 	}
 	if local.R.Tag == nil {
+		t.Error("struct should have been eager loaded")
+	}
+}
+
+func testTagUseToOneAccountUsingWho(t *testing.T) {
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var foreign Account
+	var local TagUse
+
+	foreignBlacklist := accountColumnsWithDefault
+	if err := randomize.Struct(seed, &foreign, accountDBTypes, true, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Account struct: %s", err)
+	}
+	localBlacklist := tagUseColumnsWithDefault
+	localBlacklist = append(localBlacklist, tagUseColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &local, tagUseDBTypes, true, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize TagUse struct: %s", err)
+	}
+	local.Segment = custom_types.SegmentRandom()
+
+	if err := foreign.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	local.Who = foreign.ID
+	if err := local.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := local.WhoByFk(tx).One()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if check.ID != foreign.ID {
+		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
+	}
+
+	slice := TagUseSlice{&local}
+	if err = local.L.LoadWho(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Who == nil {
+		t.Error("struct should have been eager loaded")
+	}
+
+	local.R.Who = nil
+	if err = local.L.LoadWho(tx, true, &local); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Who == nil {
 		t.Error("struct should have been eager loaded")
 	}
 }
@@ -718,64 +718,6 @@ func testTagUseToOneSetOpContainerUsingContainer(t *testing.T) {
 
 	}
 }
-func testTagUseToOneSetOpAccountUsingWho(t *testing.T) {
-	var err error
-
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var a TagUse
-	var b, c Account
-
-	foreignBlacklist := strmangle.SetComplement(accountPrimaryKeyColumns, accountColumnsWithoutDefault)
-	if err := randomize.Struct(seed, &b, accountDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Account struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &c, accountDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Account struct: %s", err)
-	}
-	localBlacklist := strmangle.SetComplement(tagUsePrimaryKeyColumns, tagUseColumnsWithoutDefault)
-	localBlacklist = append(localBlacklist, tagUseColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &a, tagUseDBTypes, false, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize TagUse struct: %s", err)
-	}
-	a.Segment = custom_types.SegmentRandom()
-
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	for i, x := range []*Account{&b, &c} {
-		err = a.SetWho(tx, i != 0, x)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if a.R.Who != x {
-			t.Error("relationship struct not set to correct value")
-		}
-
-		if x.R.WhoTagUses[0] != &a {
-			t.Error("failed to append to foreign relationship struct")
-		}
-		if a.Who != x.ID {
-			t.Error("foreign key was wrong value", a.Who)
-		}
-
-		if exists, err := TagUseExists(tx, a.Container, a.Segment, a.Tag, a.Who); err != nil {
-			t.Fatal(err)
-		} else if !exists {
-			t.Error("want 'a' to exist")
-		}
-
-	}
-}
 func testTagUseToOneSetOpTagUsingTag(t *testing.T) {
 	var err error
 
@@ -824,6 +766,64 @@ func testTagUseToOneSetOpTagUsingTag(t *testing.T) {
 		}
 		if a.Tag != x.ID {
 			t.Error("foreign key was wrong value", a.Tag)
+		}
+
+		if exists, err := TagUseExists(tx, a.Container, a.Segment, a.Tag, a.Who); err != nil {
+			t.Fatal(err)
+		} else if !exists {
+			t.Error("want 'a' to exist")
+		}
+
+	}
+}
+func testTagUseToOneSetOpAccountUsingWho(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var a TagUse
+	var b, c Account
+
+	foreignBlacklist := strmangle.SetComplement(accountPrimaryKeyColumns, accountColumnsWithoutDefault)
+	if err := randomize.Struct(seed, &b, accountDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Account struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, accountDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Account struct: %s", err)
+	}
+	localBlacklist := strmangle.SetComplement(tagUsePrimaryKeyColumns, tagUseColumnsWithoutDefault)
+	localBlacklist = append(localBlacklist, tagUseColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &a, tagUseDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize TagUse struct: %s", err)
+	}
+	a.Segment = custom_types.SegmentRandom()
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	for i, x := range []*Account{&b, &c} {
+		err = a.SetWho(tx, i != 0, x)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if a.R.Who != x {
+			t.Error("relationship struct not set to correct value")
+		}
+
+		if x.R.WhoTagUses[0] != &a {
+			t.Error("failed to append to foreign relationship struct")
+		}
+		if a.Who != x.ID {
+			t.Error("foreign key was wrong value", a.Who)
 		}
 
 		if exists, err := TagUseExists(tx, a.Container, a.Segment, a.Tag, a.Who); err != nil {

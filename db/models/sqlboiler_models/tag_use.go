@@ -35,8 +35,8 @@ type TagUse struct {
 // tagUseR is where relationships are stored.
 type tagUseR struct {
 	Container *Container
-	Who       *Account
 	Tag       *Tag
+	Who       *Account
 }
 
 // tagUseL is where Load methods for each relationship are stored.
@@ -346,25 +346,6 @@ func (o *TagUse) ContainerByFk(exec boil.Executor, mods ...qm.QueryMod) containe
 	return query
 }
 
-// WhoG pointed to by the foreign key.
-func (o *TagUse) WhoG(mods ...qm.QueryMod) accountQuery {
-	return o.WhoByFk(boil.GetDB(), mods...)
-}
-
-// Who pointed to by the foreign key.
-func (o *TagUse) WhoByFk(exec boil.Executor, mods ...qm.QueryMod) accountQuery {
-	queryMods := []qm.QueryMod{
-		qm.Where("id=?", o.Who),
-	}
-
-	queryMods = append(queryMods, mods...)
-
-	query := Accounts(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"account\"")
-
-	return query
-}
-
 // TagG pointed to by the foreign key.
 func (o *TagUse) TagG(mods ...qm.QueryMod) tagQuery {
 	return o.TagByFk(boil.GetDB(), mods...)
@@ -380,6 +361,25 @@ func (o *TagUse) TagByFk(exec boil.Executor, mods ...qm.QueryMod) tagQuery {
 
 	query := Tags(exec, queryMods...)
 	queries.SetFrom(query.Query, "\"tag\"")
+
+	return query
+}
+
+// WhoG pointed to by the foreign key.
+func (o *TagUse) WhoG(mods ...qm.QueryMod) accountQuery {
+	return o.WhoByFk(boil.GetDB(), mods...)
+}
+
+// Who pointed to by the foreign key.
+func (o *TagUse) WhoByFk(exec boil.Executor, mods ...qm.QueryMod) accountQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("id=?", o.Who),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	query := Accounts(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"account\"")
 
 	return query
 }
@@ -454,84 +454,6 @@ func (tagUseL) LoadContainer(e boil.Executor, singular bool, maybeTagUse interfa
 		for _, foreign := range resultSlice {
 			if local.Container == foreign.ID {
 				local.R.Container = foreign
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
-// LoadWho allows an eager lookup of values, cached into the
-// loaded structs of the objects.
-func (tagUseL) LoadWho(e boil.Executor, singular bool, maybeTagUse interface{}) error {
-	var slice []*TagUse
-	var object *TagUse
-
-	count := 1
-	if singular {
-		object = maybeTagUse.(*TagUse)
-	} else {
-		slice = *maybeTagUse.(*TagUseSlice)
-		count = len(slice)
-	}
-
-	args := make([]interface{}, count)
-	if singular {
-		if object.R == nil {
-			object.R = &tagUseR{}
-		}
-		args[0] = object.Who
-	} else {
-		for i, obj := range slice {
-			if obj.R == nil {
-				obj.R = &tagUseR{}
-			}
-			args[i] = obj.Who
-		}
-	}
-
-	query := fmt.Sprintf(
-		"select * from \"account\" where \"id\" in (%s)",
-		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
-	)
-
-	if boil.DebugMode {
-		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
-	}
-
-	results, err := e.Query(query, args...)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load Account")
-	}
-	defer results.Close()
-
-	var resultSlice []*Account
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice Account")
-	}
-
-	if len(tagUseAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(e); err != nil {
-				return err
-			}
-		}
-	}
-
-	if len(resultSlice) == 0 {
-		return nil
-	}
-
-	if singular {
-		object.R.Who = resultSlice[0]
-		return nil
-	}
-
-	for _, local := range slice {
-		for _, foreign := range resultSlice {
-			if local.Who == foreign.ID {
-				local.R.Who = foreign
 				break
 			}
 		}
@@ -618,6 +540,84 @@ func (tagUseL) LoadTag(e boil.Executor, singular bool, maybeTagUse interface{}) 
 	return nil
 }
 
+// LoadWho allows an eager lookup of values, cached into the
+// loaded structs of the objects.
+func (tagUseL) LoadWho(e boil.Executor, singular bool, maybeTagUse interface{}) error {
+	var slice []*TagUse
+	var object *TagUse
+
+	count := 1
+	if singular {
+		object = maybeTagUse.(*TagUse)
+	} else {
+		slice = *maybeTagUse.(*TagUseSlice)
+		count = len(slice)
+	}
+
+	args := make([]interface{}, count)
+	if singular {
+		if object.R == nil {
+			object.R = &tagUseR{}
+		}
+		args[0] = object.Who
+	} else {
+		for i, obj := range slice {
+			if obj.R == nil {
+				obj.R = &tagUseR{}
+			}
+			args[i] = obj.Who
+		}
+	}
+
+	query := fmt.Sprintf(
+		"select * from \"account\" where \"id\" in (%s)",
+		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
+	)
+
+	if boil.DebugMode {
+		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
+	}
+
+	results, err := e.Query(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load Account")
+	}
+	defer results.Close()
+
+	var resultSlice []*Account
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice Account")
+	}
+
+	if len(tagUseAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(e); err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		object.R.Who = resultSlice[0]
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if local.Who == foreign.ID {
+				local.R.Who = foreign
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
 // SetContainerG of the tag_use to the related item.
 // Sets o.R.Container to related.
 // Adds o to related.R.TagUses.
@@ -685,6 +685,82 @@ func (o *TagUse) SetContainer(exec boil.Executor, insert bool, related *Containe
 
 	if related.R == nil {
 		related.R = &containerR{
+			TagUses: TagUseSlice{o},
+		}
+	} else {
+		related.R.TagUses = append(related.R.TagUses, o)
+	}
+
+	return nil
+}
+
+// SetTagG of the tag_use to the related item.
+// Sets o.R.Tag to related.
+// Adds o to related.R.TagUses.
+// Uses the global database handle.
+func (o *TagUse) SetTagG(insert bool, related *Tag) error {
+	return o.SetTag(boil.GetDB(), insert, related)
+}
+
+// SetTagP of the tag_use to the related item.
+// Sets o.R.Tag to related.
+// Adds o to related.R.TagUses.
+// Panics on error.
+func (o *TagUse) SetTagP(exec boil.Executor, insert bool, related *Tag) {
+	if err := o.SetTag(exec, insert, related); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// SetTagGP of the tag_use to the related item.
+// Sets o.R.Tag to related.
+// Adds o to related.R.TagUses.
+// Uses the global database handle and panics on error.
+func (o *TagUse) SetTagGP(insert bool, related *Tag) {
+	if err := o.SetTag(boil.GetDB(), insert, related); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// SetTag of the tag_use to the related item.
+// Sets o.R.Tag to related.
+// Adds o to related.R.TagUses.
+func (o *TagUse) SetTag(exec boil.Executor, insert bool, related *Tag) error {
+	var err error
+	if insert {
+		if err = related.Insert(exec); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"tag_use\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"tag"}),
+		strmangle.WhereClause("\"", "\"", 2, tagUsePrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.Container, o.Segment, o.Tag, o.Who}
+
+	if boil.DebugMode {
+		fmt.Fprintln(boil.DebugWriter, updateQuery)
+		fmt.Fprintln(boil.DebugWriter, values)
+	}
+
+	if _, err = exec.Exec(updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	o.Tag = related.ID
+
+	if o.R == nil {
+		o.R = &tagUseR{
+			Tag: related,
+		}
+	} else {
+		o.R.Tag = related
+	}
+
+	if related.R == nil {
+		related.R = &tagR{
 			TagUses: TagUseSlice{o},
 		}
 	} else {
@@ -765,82 +841,6 @@ func (o *TagUse) SetWho(exec boil.Executor, insert bool, related *Account) error
 		}
 	} else {
 		related.R.WhoTagUses = append(related.R.WhoTagUses, o)
-	}
-
-	return nil
-}
-
-// SetTagG of the tag_use to the related item.
-// Sets o.R.Tag to related.
-// Adds o to related.R.TagUses.
-// Uses the global database handle.
-func (o *TagUse) SetTagG(insert bool, related *Tag) error {
-	return o.SetTag(boil.GetDB(), insert, related)
-}
-
-// SetTagP of the tag_use to the related item.
-// Sets o.R.Tag to related.
-// Adds o to related.R.TagUses.
-// Panics on error.
-func (o *TagUse) SetTagP(exec boil.Executor, insert bool, related *Tag) {
-	if err := o.SetTag(exec, insert, related); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// SetTagGP of the tag_use to the related item.
-// Sets o.R.Tag to related.
-// Adds o to related.R.TagUses.
-// Uses the global database handle and panics on error.
-func (o *TagUse) SetTagGP(insert bool, related *Tag) {
-	if err := o.SetTag(boil.GetDB(), insert, related); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// SetTag of the tag_use to the related item.
-// Sets o.R.Tag to related.
-// Adds o to related.R.TagUses.
-func (o *TagUse) SetTag(exec boil.Executor, insert bool, related *Tag) error {
-	var err error
-	if insert {
-		if err = related.Insert(exec); err != nil {
-			return errors.Wrap(err, "failed to insert into foreign table")
-		}
-	}
-
-	updateQuery := fmt.Sprintf(
-		"UPDATE \"tag_use\" SET %s WHERE %s",
-		strmangle.SetParamNames("\"", "\"", 1, []string{"tag"}),
-		strmangle.WhereClause("\"", "\"", 2, tagUsePrimaryKeyColumns),
-	)
-	values := []interface{}{related.ID, o.Container, o.Segment, o.Tag, o.Who}
-
-	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, updateQuery)
-		fmt.Fprintln(boil.DebugWriter, values)
-	}
-
-	if _, err = exec.Exec(updateQuery, values...); err != nil {
-		return errors.Wrap(err, "failed to update local table")
-	}
-
-	o.Tag = related.ID
-
-	if o.R == nil {
-		o.R = &tagUseR{
-			Tag: related,
-		}
-	} else {
-		o.R.Tag = related
-	}
-
-	if related.R == nil {
-		related.R = &tagR{
-			TagUses: TagUseSlice{o},
-		}
-	} else {
-		related.R.TagUses = append(related.R.TagUses, o)
 	}
 
 	return nil

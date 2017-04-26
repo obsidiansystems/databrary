@@ -35,11 +35,11 @@ type recordR struct {
 	Category        *Category
 	Volume          *Volume
 	IDRecordMeasure *RecordMeasure
-	Metrics         MetricSlice
-	MeasureTexts    MeasureTextSlice
-	MeasureNumerics MeasureNumericSlice
-	MeasureDates    MeasureDateSlice
 	SlotRecords     SlotRecordSlice
+	Metrics         MetricSlice
+	MeasureDates    MeasureDateSlice
+	MeasureNumerics MeasureNumericSlice
+	MeasureTexts    MeasureTextSlice
 }
 
 // recordL is where Load methods for each relationship are stored.
@@ -387,6 +387,30 @@ func (o *Record) IDRecordMeasureByFk(exec boil.Executor, mods ...qm.QueryMod) re
 	return query
 }
 
+// SlotRecordsG retrieves all the slot_record's slot record.
+func (o *Record) SlotRecordsG(mods ...qm.QueryMod) slotRecordQuery {
+	return o.SlotRecordsByFk(boil.GetDB(), mods...)
+}
+
+// SlotRecords retrieves all the slot_record's slot record with an executor.
+func (o *Record) SlotRecordsByFk(exec boil.Executor, mods ...qm.QueryMod) slotRecordQuery {
+	queryMods := []qm.QueryMod{
+		qm.Select("\"a\".*"),
+	}
+
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"a\".\"record\"=?", o.ID),
+	)
+
+	query := SlotRecords(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"slot_record\" as \"a\"")
+	return query
+}
+
 // MetricsG retrieves all the metric's metric.
 func (o *Record) MetricsG(mods ...qm.QueryMod) metricQuery {
 	return o.MetricsByFk(boil.GetDB(), mods...)
@@ -409,54 +433,6 @@ func (o *Record) MetricsByFk(exec boil.Executor, mods ...qm.QueryMod) metricQuer
 
 	query := Metrics(exec, queryMods...)
 	queries.SetFrom(query.Query, "\"metric\" as \"a\"")
-	return query
-}
-
-// MeasureTextsG retrieves all the measure_text's measure text.
-func (o *Record) MeasureTextsG(mods ...qm.QueryMod) measureTextQuery {
-	return o.MeasureTextsByFk(boil.GetDB(), mods...)
-}
-
-// MeasureTexts retrieves all the measure_text's measure text with an executor.
-func (o *Record) MeasureTextsByFk(exec boil.Executor, mods ...qm.QueryMod) measureTextQuery {
-	queryMods := []qm.QueryMod{
-		qm.Select("\"a\".*"),
-	}
-
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"a\".\"record\"=?", o.ID),
-	)
-
-	query := MeasureTexts(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"measure_text\" as \"a\"")
-	return query
-}
-
-// MeasureNumericsG retrieves all the measure_numeric's measure numeric.
-func (o *Record) MeasureNumericsG(mods ...qm.QueryMod) measureNumericQuery {
-	return o.MeasureNumericsByFk(boil.GetDB(), mods...)
-}
-
-// MeasureNumerics retrieves all the measure_numeric's measure numeric with an executor.
-func (o *Record) MeasureNumericsByFk(exec boil.Executor, mods ...qm.QueryMod) measureNumericQuery {
-	queryMods := []qm.QueryMod{
-		qm.Select("\"a\".*"),
-	}
-
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"a\".\"record\"=?", o.ID),
-	)
-
-	query := MeasureNumerics(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"measure_numeric\" as \"a\"")
 	return query
 }
 
@@ -484,13 +460,13 @@ func (o *Record) MeasureDatesByFk(exec boil.Executor, mods ...qm.QueryMod) measu
 	return query
 }
 
-// SlotRecordsG retrieves all the slot_record's slot record.
-func (o *Record) SlotRecordsG(mods ...qm.QueryMod) slotRecordQuery {
-	return o.SlotRecordsByFk(boil.GetDB(), mods...)
+// MeasureNumericsG retrieves all the measure_numeric's measure numeric.
+func (o *Record) MeasureNumericsG(mods ...qm.QueryMod) measureNumericQuery {
+	return o.MeasureNumericsByFk(boil.GetDB(), mods...)
 }
 
-// SlotRecords retrieves all the slot_record's slot record with an executor.
-func (o *Record) SlotRecordsByFk(exec boil.Executor, mods ...qm.QueryMod) slotRecordQuery {
+// MeasureNumerics retrieves all the measure_numeric's measure numeric with an executor.
+func (o *Record) MeasureNumericsByFk(exec boil.Executor, mods ...qm.QueryMod) measureNumericQuery {
 	queryMods := []qm.QueryMod{
 		qm.Select("\"a\".*"),
 	}
@@ -503,8 +479,32 @@ func (o *Record) SlotRecordsByFk(exec boil.Executor, mods ...qm.QueryMod) slotRe
 		qm.Where("\"a\".\"record\"=?", o.ID),
 	)
 
-	query := SlotRecords(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"slot_record\" as \"a\"")
+	query := MeasureNumerics(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"measure_numeric\" as \"a\"")
+	return query
+}
+
+// MeasureTextsG retrieves all the measure_text's measure text.
+func (o *Record) MeasureTextsG(mods ...qm.QueryMod) measureTextQuery {
+	return o.MeasureTextsByFk(boil.GetDB(), mods...)
+}
+
+// MeasureTexts retrieves all the measure_text's measure text with an executor.
+func (o *Record) MeasureTextsByFk(exec boil.Executor, mods ...qm.QueryMod) measureTextQuery {
+	queryMods := []qm.QueryMod{
+		qm.Select("\"a\".*"),
+	}
+
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"a\".\"record\"=?", o.ID),
+	)
+
+	query := MeasureTexts(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"measure_text\" as \"a\"")
 	return query
 }
 
@@ -742,6 +742,78 @@ func (recordL) LoadIDRecordMeasure(e boil.Executor, singular bool, maybeRecord i
 	return nil
 }
 
+// LoadSlotRecords allows an eager lookup of values, cached into the
+// loaded structs of the objects.
+func (recordL) LoadSlotRecords(e boil.Executor, singular bool, maybeRecord interface{}) error {
+	var slice []*Record
+	var object *Record
+
+	count := 1
+	if singular {
+		object = maybeRecord.(*Record)
+	} else {
+		slice = *maybeRecord.(*RecordSlice)
+		count = len(slice)
+	}
+
+	args := make([]interface{}, count)
+	if singular {
+		if object.R == nil {
+			object.R = &recordR{}
+		}
+		args[0] = object.ID
+	} else {
+		for i, obj := range slice {
+			if obj.R == nil {
+				obj.R = &recordR{}
+			}
+			args[i] = obj.ID
+		}
+	}
+
+	query := fmt.Sprintf(
+		"select * from \"slot_record\" where \"record\" in (%s)",
+		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
+	)
+	if boil.DebugMode {
+		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
+	}
+
+	results, err := e.Query(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load slot_record")
+	}
+	defer results.Close()
+
+	var resultSlice []*SlotRecord
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice slot_record")
+	}
+
+	if len(slotRecordAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.SlotRecords = resultSlice
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.Record {
+				local.R.SlotRecords = append(local.R.SlotRecords, foreign)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
 // LoadMetrics allows an eager lookup of values, cached into the
 // loaded structs of the objects.
 func (recordL) LoadMetrics(e boil.Executor, singular bool, maybeRecord interface{}) error {
@@ -830,9 +902,9 @@ func (recordL) LoadMetrics(e boil.Executor, singular bool, maybeRecord interface
 	return nil
 }
 
-// LoadMeasureTexts allows an eager lookup of values, cached into the
+// LoadMeasureDates allows an eager lookup of values, cached into the
 // loaded structs of the objects.
-func (recordL) LoadMeasureTexts(e boil.Executor, singular bool, maybeRecord interface{}) error {
+func (recordL) LoadMeasureDates(e boil.Executor, singular bool, maybeRecord interface{}) error {
 	var slice []*Record
 	var object *Record
 
@@ -860,7 +932,7 @@ func (recordL) LoadMeasureTexts(e boil.Executor, singular bool, maybeRecord inte
 	}
 
 	query := fmt.Sprintf(
-		"select * from \"measure_text\" where \"record\" in (%s)",
+		"select * from \"measure_date\" where \"record\" in (%s)",
 		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
 	)
 	if boil.DebugMode {
@@ -869,16 +941,16 @@ func (recordL) LoadMeasureTexts(e boil.Executor, singular bool, maybeRecord inte
 
 	results, err := e.Query(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "failed to eager load measure_text")
+		return errors.Wrap(err, "failed to eager load measure_date")
 	}
 	defer results.Close()
 
-	var resultSlice []*MeasureText
+	var resultSlice []*MeasureDate
 	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice measure_text")
+		return errors.Wrap(err, "failed to bind eager loaded slice measure_date")
 	}
 
-	if len(measureTextAfterSelectHooks) != 0 {
+	if len(measureDateAfterSelectHooks) != 0 {
 		for _, obj := range resultSlice {
 			if err := obj.doAfterSelectHooks(e); err != nil {
 				return err
@@ -886,14 +958,14 @@ func (recordL) LoadMeasureTexts(e boil.Executor, singular bool, maybeRecord inte
 		}
 	}
 	if singular {
-		object.R.MeasureTexts = resultSlice
+		object.R.MeasureDates = resultSlice
 		return nil
 	}
 
 	for _, foreign := range resultSlice {
 		for _, local := range slice {
 			if local.ID == foreign.Record {
-				local.R.MeasureTexts = append(local.R.MeasureTexts, foreign)
+				local.R.MeasureDates = append(local.R.MeasureDates, foreign)
 				break
 			}
 		}
@@ -974,9 +1046,9 @@ func (recordL) LoadMeasureNumerics(e boil.Executor, singular bool, maybeRecord i
 	return nil
 }
 
-// LoadMeasureDates allows an eager lookup of values, cached into the
+// LoadMeasureTexts allows an eager lookup of values, cached into the
 // loaded structs of the objects.
-func (recordL) LoadMeasureDates(e boil.Executor, singular bool, maybeRecord interface{}) error {
+func (recordL) LoadMeasureTexts(e boil.Executor, singular bool, maybeRecord interface{}) error {
 	var slice []*Record
 	var object *Record
 
@@ -1004,7 +1076,7 @@ func (recordL) LoadMeasureDates(e boil.Executor, singular bool, maybeRecord inte
 	}
 
 	query := fmt.Sprintf(
-		"select * from \"measure_date\" where \"record\" in (%s)",
+		"select * from \"measure_text\" where \"record\" in (%s)",
 		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
 	)
 	if boil.DebugMode {
@@ -1013,16 +1085,16 @@ func (recordL) LoadMeasureDates(e boil.Executor, singular bool, maybeRecord inte
 
 	results, err := e.Query(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "failed to eager load measure_date")
+		return errors.Wrap(err, "failed to eager load measure_text")
 	}
 	defer results.Close()
 
-	var resultSlice []*MeasureDate
+	var resultSlice []*MeasureText
 	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice measure_date")
+		return errors.Wrap(err, "failed to bind eager loaded slice measure_text")
 	}
 
-	if len(measureDateAfterSelectHooks) != 0 {
+	if len(measureTextAfterSelectHooks) != 0 {
 		for _, obj := range resultSlice {
 			if err := obj.doAfterSelectHooks(e); err != nil {
 				return err
@@ -1030,86 +1102,14 @@ func (recordL) LoadMeasureDates(e boil.Executor, singular bool, maybeRecord inte
 		}
 	}
 	if singular {
-		object.R.MeasureDates = resultSlice
+		object.R.MeasureTexts = resultSlice
 		return nil
 	}
 
 	for _, foreign := range resultSlice {
 		for _, local := range slice {
 			if local.ID == foreign.Record {
-				local.R.MeasureDates = append(local.R.MeasureDates, foreign)
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
-// LoadSlotRecords allows an eager lookup of values, cached into the
-// loaded structs of the objects.
-func (recordL) LoadSlotRecords(e boil.Executor, singular bool, maybeRecord interface{}) error {
-	var slice []*Record
-	var object *Record
-
-	count := 1
-	if singular {
-		object = maybeRecord.(*Record)
-	} else {
-		slice = *maybeRecord.(*RecordSlice)
-		count = len(slice)
-	}
-
-	args := make([]interface{}, count)
-	if singular {
-		if object.R == nil {
-			object.R = &recordR{}
-		}
-		args[0] = object.ID
-	} else {
-		for i, obj := range slice {
-			if obj.R == nil {
-				obj.R = &recordR{}
-			}
-			args[i] = obj.ID
-		}
-	}
-
-	query := fmt.Sprintf(
-		"select * from \"slot_record\" where \"record\" in (%s)",
-		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
-	)
-	if boil.DebugMode {
-		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
-	}
-
-	results, err := e.Query(query, args...)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load slot_record")
-	}
-	defer results.Close()
-
-	var resultSlice []*SlotRecord
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice slot_record")
-	}
-
-	if len(slotRecordAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(e); err != nil {
-				return err
-			}
-		}
-	}
-	if singular {
-		object.R.SlotRecords = resultSlice
-		return nil
-	}
-
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if local.ID == foreign.Record {
-				local.R.SlotRecords = append(local.R.SlotRecords, foreign)
+				local.R.MeasureTexts = append(local.R.MeasureTexts, foreign)
 				break
 			}
 		}
@@ -1345,6 +1345,90 @@ func (o *Record) SetIDRecordMeasure(exec boil.Executor, insert bool, related *Re
 		}
 	} else {
 		related.R.ID = o
+	}
+	return nil
+}
+
+// AddSlotRecordsG adds the given related objects to the existing relationships
+// of the record, optionally inserting them as new records.
+// Appends related to o.R.SlotRecords.
+// Sets related.R.Record appropriately.
+// Uses the global database handle.
+func (o *Record) AddSlotRecordsG(insert bool, related ...*SlotRecord) error {
+	return o.AddSlotRecords(boil.GetDB(), insert, related...)
+}
+
+// AddSlotRecordsP adds the given related objects to the existing relationships
+// of the record, optionally inserting them as new records.
+// Appends related to o.R.SlotRecords.
+// Sets related.R.Record appropriately.
+// Panics on error.
+func (o *Record) AddSlotRecordsP(exec boil.Executor, insert bool, related ...*SlotRecord) {
+	if err := o.AddSlotRecords(exec, insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddSlotRecordsGP adds the given related objects to the existing relationships
+// of the record, optionally inserting them as new records.
+// Appends related to o.R.SlotRecords.
+// Sets related.R.Record appropriately.
+// Uses the global database handle and panics on error.
+func (o *Record) AddSlotRecordsGP(insert bool, related ...*SlotRecord) {
+	if err := o.AddSlotRecords(boil.GetDB(), insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddSlotRecords adds the given related objects to the existing relationships
+// of the record, optionally inserting them as new records.
+// Appends related to o.R.SlotRecords.
+// Sets related.R.Record appropriately.
+func (o *Record) AddSlotRecords(exec boil.Executor, insert bool, related ...*SlotRecord) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.Record = o.ID
+			if err = rel.Insert(exec); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"slot_record\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"record"}),
+				strmangle.WhereClause("\"", "\"", 2, slotRecordPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.Container, rel.Segment, rel.Record}
+
+			if boil.DebugMode {
+				fmt.Fprintln(boil.DebugWriter, updateQuery)
+				fmt.Fprintln(boil.DebugWriter, values)
+			}
+
+			if _, err = exec.Exec(updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.Record = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &recordR{
+			SlotRecords: related,
+		}
+	} else {
+		o.R.SlotRecords = append(o.R.SlotRecords, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &slotRecordR{
+				Record: o,
+			}
+		} else {
+			rel.R.Record = o
+		}
 	}
 	return nil
 }
@@ -1585,42 +1669,42 @@ func removeMetricsFromRecordsSlice(o *Record, related []*Metric) {
 	}
 }
 
-// AddMeasureTextsG adds the given related objects to the existing relationships
+// AddMeasureDatesG adds the given related objects to the existing relationships
 // of the record, optionally inserting them as new records.
-// Appends related to o.R.MeasureTexts.
+// Appends related to o.R.MeasureDates.
 // Sets related.R.Record appropriately.
 // Uses the global database handle.
-func (o *Record) AddMeasureTextsG(insert bool, related ...*MeasureText) error {
-	return o.AddMeasureTexts(boil.GetDB(), insert, related...)
+func (o *Record) AddMeasureDatesG(insert bool, related ...*MeasureDate) error {
+	return o.AddMeasureDates(boil.GetDB(), insert, related...)
 }
 
-// AddMeasureTextsP adds the given related objects to the existing relationships
+// AddMeasureDatesP adds the given related objects to the existing relationships
 // of the record, optionally inserting them as new records.
-// Appends related to o.R.MeasureTexts.
+// Appends related to o.R.MeasureDates.
 // Sets related.R.Record appropriately.
 // Panics on error.
-func (o *Record) AddMeasureTextsP(exec boil.Executor, insert bool, related ...*MeasureText) {
-	if err := o.AddMeasureTexts(exec, insert, related...); err != nil {
+func (o *Record) AddMeasureDatesP(exec boil.Executor, insert bool, related ...*MeasureDate) {
+	if err := o.AddMeasureDates(exec, insert, related...); err != nil {
 		panic(boil.WrapErr(err))
 	}
 }
 
-// AddMeasureTextsGP adds the given related objects to the existing relationships
+// AddMeasureDatesGP adds the given related objects to the existing relationships
 // of the record, optionally inserting them as new records.
-// Appends related to o.R.MeasureTexts.
+// Appends related to o.R.MeasureDates.
 // Sets related.R.Record appropriately.
 // Uses the global database handle and panics on error.
-func (o *Record) AddMeasureTextsGP(insert bool, related ...*MeasureText) {
-	if err := o.AddMeasureTexts(boil.GetDB(), insert, related...); err != nil {
+func (o *Record) AddMeasureDatesGP(insert bool, related ...*MeasureDate) {
+	if err := o.AddMeasureDates(boil.GetDB(), insert, related...); err != nil {
 		panic(boil.WrapErr(err))
 	}
 }
 
-// AddMeasureTexts adds the given related objects to the existing relationships
+// AddMeasureDates adds the given related objects to the existing relationships
 // of the record, optionally inserting them as new records.
-// Appends related to o.R.MeasureTexts.
+// Appends related to o.R.MeasureDates.
 // Sets related.R.Record appropriately.
-func (o *Record) AddMeasureTexts(exec boil.Executor, insert bool, related ...*MeasureText) error {
+func (o *Record) AddMeasureDates(exec boil.Executor, insert bool, related ...*MeasureDate) error {
 	var err error
 	for _, rel := range related {
 		if insert {
@@ -1630,9 +1714,9 @@ func (o *Record) AddMeasureTexts(exec boil.Executor, insert bool, related ...*Me
 			}
 		} else {
 			updateQuery := fmt.Sprintf(
-				"UPDATE \"measure_text\" SET %s WHERE %s",
+				"UPDATE \"measure_date\" SET %s WHERE %s",
 				strmangle.SetParamNames("\"", "\"", 1, []string{"record"}),
-				strmangle.WhereClause("\"", "\"", 2, measureTextPrimaryKeyColumns),
+				strmangle.WhereClause("\"", "\"", 2, measureDatePrimaryKeyColumns),
 			)
 			values := []interface{}{o.ID, rel.Record, rel.Metric}
 
@@ -1651,15 +1735,15 @@ func (o *Record) AddMeasureTexts(exec boil.Executor, insert bool, related ...*Me
 
 	if o.R == nil {
 		o.R = &recordR{
-			MeasureTexts: related,
+			MeasureDates: related,
 		}
 	} else {
-		o.R.MeasureTexts = append(o.R.MeasureTexts, related...)
+		o.R.MeasureDates = append(o.R.MeasureDates, related...)
 	}
 
 	for _, rel := range related {
 		if rel.R == nil {
-			rel.R = &measureTextR{
+			rel.R = &measureDateR{
 				Record: o,
 			}
 		} else {
@@ -1753,42 +1837,42 @@ func (o *Record) AddMeasureNumerics(exec boil.Executor, insert bool, related ...
 	return nil
 }
 
-// AddMeasureDatesG adds the given related objects to the existing relationships
+// AddMeasureTextsG adds the given related objects to the existing relationships
 // of the record, optionally inserting them as new records.
-// Appends related to o.R.MeasureDates.
+// Appends related to o.R.MeasureTexts.
 // Sets related.R.Record appropriately.
 // Uses the global database handle.
-func (o *Record) AddMeasureDatesG(insert bool, related ...*MeasureDate) error {
-	return o.AddMeasureDates(boil.GetDB(), insert, related...)
+func (o *Record) AddMeasureTextsG(insert bool, related ...*MeasureText) error {
+	return o.AddMeasureTexts(boil.GetDB(), insert, related...)
 }
 
-// AddMeasureDatesP adds the given related objects to the existing relationships
+// AddMeasureTextsP adds the given related objects to the existing relationships
 // of the record, optionally inserting them as new records.
-// Appends related to o.R.MeasureDates.
+// Appends related to o.R.MeasureTexts.
 // Sets related.R.Record appropriately.
 // Panics on error.
-func (o *Record) AddMeasureDatesP(exec boil.Executor, insert bool, related ...*MeasureDate) {
-	if err := o.AddMeasureDates(exec, insert, related...); err != nil {
+func (o *Record) AddMeasureTextsP(exec boil.Executor, insert bool, related ...*MeasureText) {
+	if err := o.AddMeasureTexts(exec, insert, related...); err != nil {
 		panic(boil.WrapErr(err))
 	}
 }
 
-// AddMeasureDatesGP adds the given related objects to the existing relationships
+// AddMeasureTextsGP adds the given related objects to the existing relationships
 // of the record, optionally inserting them as new records.
-// Appends related to o.R.MeasureDates.
+// Appends related to o.R.MeasureTexts.
 // Sets related.R.Record appropriately.
 // Uses the global database handle and panics on error.
-func (o *Record) AddMeasureDatesGP(insert bool, related ...*MeasureDate) {
-	if err := o.AddMeasureDates(boil.GetDB(), insert, related...); err != nil {
+func (o *Record) AddMeasureTextsGP(insert bool, related ...*MeasureText) {
+	if err := o.AddMeasureTexts(boil.GetDB(), insert, related...); err != nil {
 		panic(boil.WrapErr(err))
 	}
 }
 
-// AddMeasureDates adds the given related objects to the existing relationships
+// AddMeasureTexts adds the given related objects to the existing relationships
 // of the record, optionally inserting them as new records.
-// Appends related to o.R.MeasureDates.
+// Appends related to o.R.MeasureTexts.
 // Sets related.R.Record appropriately.
-func (o *Record) AddMeasureDates(exec boil.Executor, insert bool, related ...*MeasureDate) error {
+func (o *Record) AddMeasureTexts(exec boil.Executor, insert bool, related ...*MeasureText) error {
 	var err error
 	for _, rel := range related {
 		if insert {
@@ -1798,9 +1882,9 @@ func (o *Record) AddMeasureDates(exec boil.Executor, insert bool, related ...*Me
 			}
 		} else {
 			updateQuery := fmt.Sprintf(
-				"UPDATE \"measure_date\" SET %s WHERE %s",
+				"UPDATE \"measure_text\" SET %s WHERE %s",
 				strmangle.SetParamNames("\"", "\"", 1, []string{"record"}),
-				strmangle.WhereClause("\"", "\"", 2, measureDatePrimaryKeyColumns),
+				strmangle.WhereClause("\"", "\"", 2, measureTextPrimaryKeyColumns),
 			)
 			values := []interface{}{o.ID, rel.Record, rel.Metric}
 
@@ -1819,99 +1903,15 @@ func (o *Record) AddMeasureDates(exec boil.Executor, insert bool, related ...*Me
 
 	if o.R == nil {
 		o.R = &recordR{
-			MeasureDates: related,
+			MeasureTexts: related,
 		}
 	} else {
-		o.R.MeasureDates = append(o.R.MeasureDates, related...)
+		o.R.MeasureTexts = append(o.R.MeasureTexts, related...)
 	}
 
 	for _, rel := range related {
 		if rel.R == nil {
-			rel.R = &measureDateR{
-				Record: o,
-			}
-		} else {
-			rel.R.Record = o
-		}
-	}
-	return nil
-}
-
-// AddSlotRecordsG adds the given related objects to the existing relationships
-// of the record, optionally inserting them as new records.
-// Appends related to o.R.SlotRecords.
-// Sets related.R.Record appropriately.
-// Uses the global database handle.
-func (o *Record) AddSlotRecordsG(insert bool, related ...*SlotRecord) error {
-	return o.AddSlotRecords(boil.GetDB(), insert, related...)
-}
-
-// AddSlotRecordsP adds the given related objects to the existing relationships
-// of the record, optionally inserting them as new records.
-// Appends related to o.R.SlotRecords.
-// Sets related.R.Record appropriately.
-// Panics on error.
-func (o *Record) AddSlotRecordsP(exec boil.Executor, insert bool, related ...*SlotRecord) {
-	if err := o.AddSlotRecords(exec, insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddSlotRecordsGP adds the given related objects to the existing relationships
-// of the record, optionally inserting them as new records.
-// Appends related to o.R.SlotRecords.
-// Sets related.R.Record appropriately.
-// Uses the global database handle and panics on error.
-func (o *Record) AddSlotRecordsGP(insert bool, related ...*SlotRecord) {
-	if err := o.AddSlotRecords(boil.GetDB(), insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddSlotRecords adds the given related objects to the existing relationships
-// of the record, optionally inserting them as new records.
-// Appends related to o.R.SlotRecords.
-// Sets related.R.Record appropriately.
-func (o *Record) AddSlotRecords(exec boil.Executor, insert bool, related ...*SlotRecord) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.Record = o.ID
-			if err = rel.Insert(exec); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"slot_record\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"record"}),
-				strmangle.WhereClause("\"", "\"", 2, slotRecordPrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.Container, rel.Segment, rel.Record}
-
-			if boil.DebugMode {
-				fmt.Fprintln(boil.DebugWriter, updateQuery)
-				fmt.Fprintln(boil.DebugWriter, values)
-			}
-
-			if _, err = exec.Exec(updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.Record = o.ID
-		}
-	}
-
-	if o.R == nil {
-		o.R = &recordR{
-			SlotRecords: related,
-		}
-	} else {
-		o.R.SlotRecords = append(o.R.SlotRecords, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &slotRecordR{
+			rel.R = &measureTextR{
 				Record: o,
 			}
 		} else {

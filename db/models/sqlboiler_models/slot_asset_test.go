@@ -661,62 +661,6 @@ func testSlotAssetToManyAddOpAssetExcerpts(t *testing.T) {
 		}
 	}
 }
-func testSlotAssetToOneContainerUsingContainer(t *testing.T) {
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var foreign Container
-	var local SlotAsset
-
-	foreignBlacklist := containerColumnsWithDefault
-	if err := randomize.Struct(seed, &foreign, containerDBTypes, true, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Container struct: %s", err)
-	}
-	localBlacklist := slotAssetColumnsWithDefault
-	localBlacklist = append(localBlacklist, slotAssetColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &local, slotAssetDBTypes, true, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize SlotAsset struct: %s", err)
-	}
-	local.Segment = custom_types.SegmentRandom()
-
-	if err := foreign.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	local.Container = foreign.ID
-	if err := local.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	check, err := local.ContainerByFk(tx).One()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if check.ID != foreign.ID {
-		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
-	}
-
-	slice := SlotAssetSlice{&local}
-	if err = local.L.LoadContainer(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.Container == nil {
-		t.Error("struct should have been eager loaded")
-	}
-
-	local.R.Container = nil
-	if err = local.L.LoadContainer(tx, true, &local); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.Container == nil {
-		t.Error("struct should have been eager loaded")
-	}
-}
-
 func testSlotAssetToOneAssetUsingAsset(t *testing.T) {
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -777,68 +721,62 @@ func testSlotAssetToOneAssetUsingAsset(t *testing.T) {
 	}
 }
 
-func testSlotAssetToOneSetOpContainerUsingContainer(t *testing.T) {
-	var err error
-
+func testSlotAssetToOneContainerUsingContainer(t *testing.T) {
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
 
 	seed := randomize.NewSeed()
 
-	var a SlotAsset
-	var b, c Container
+	var foreign Container
+	var local SlotAsset
 
-	foreignBlacklist := strmangle.SetComplement(containerPrimaryKeyColumns, containerColumnsWithoutDefault)
-	if err := randomize.Struct(seed, &b, containerDBTypes, false, foreignBlacklist...); err != nil {
+	foreignBlacklist := containerColumnsWithDefault
+	if err := randomize.Struct(seed, &foreign, containerDBTypes, true, foreignBlacklist...); err != nil {
 		t.Errorf("Unable to randomize Container struct: %s", err)
 	}
-	if err := randomize.Struct(seed, &c, containerDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Container struct: %s", err)
-	}
-	localBlacklist := strmangle.SetComplement(slotAssetPrimaryKeyColumns, slotAssetColumnsWithoutDefault)
+	localBlacklist := slotAssetColumnsWithDefault
 	localBlacklist = append(localBlacklist, slotAssetColumnsWithCustom...)
 
-	if err := randomize.Struct(seed, &a, slotAssetDBTypes, false, localBlacklist...); err != nil {
+	if err := randomize.Struct(seed, &local, slotAssetDBTypes, true, localBlacklist...); err != nil {
 		t.Errorf("Unable to randomize SlotAsset struct: %s", err)
 	}
-	a.Segment = custom_types.SegmentRandom()
+	local.Segment = custom_types.SegmentRandom()
 
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(tx); err != nil {
+	if err := foreign.Insert(tx); err != nil {
 		t.Fatal(err)
 	}
 
-	for i, x := range []*Container{&b, &c} {
-		err = a.SetContainer(tx, i != 0, x)
-		if err != nil {
-			t.Fatal(err)
-		}
+	local.Container = foreign.ID
+	if err := local.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
 
-		if a.R.Container != x {
-			t.Error("relationship struct not set to correct value")
-		}
+	check, err := local.ContainerByFk(tx).One()
+	if err != nil {
+		t.Fatal(err)
+	}
 
-		if x.R.SlotAssets[0] != &a {
-			t.Error("failed to append to foreign relationship struct")
-		}
-		if a.Container != x.ID {
-			t.Error("foreign key was wrong value", a.Container)
-		}
+	if check.ID != foreign.ID {
+		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
+	}
 
-		zero := reflect.Zero(reflect.TypeOf(a.Container))
-		reflect.Indirect(reflect.ValueOf(&a.Container)).Set(zero)
+	slice := SlotAssetSlice{&local}
+	if err = local.L.LoadContainer(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Container == nil {
+		t.Error("struct should have been eager loaded")
+	}
 
-		if err = a.Reload(tx); err != nil {
-			t.Fatal("failed to reload", err)
-		}
-
-		if a.Container != x.ID {
-			t.Error("foreign key was wrong value", a.Container, x.ID)
-		}
+	local.R.Container = nil
+	if err = local.L.LoadContainer(tx, true, &local); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Container == nil {
+		t.Error("struct should have been eager loaded")
 	}
 }
+
 func testSlotAssetToOneSetOpAssetUsingAsset(t *testing.T) {
 	var err error
 
@@ -900,6 +838,68 @@ func testSlotAssetToOneSetOpAssetUsingAsset(t *testing.T) {
 			t.Error("want 'a' to exist")
 		}
 
+	}
+}
+func testSlotAssetToOneSetOpContainerUsingContainer(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var a SlotAsset
+	var b, c Container
+
+	foreignBlacklist := strmangle.SetComplement(containerPrimaryKeyColumns, containerColumnsWithoutDefault)
+	if err := randomize.Struct(seed, &b, containerDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Container struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, containerDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Container struct: %s", err)
+	}
+	localBlacklist := strmangle.SetComplement(slotAssetPrimaryKeyColumns, slotAssetColumnsWithoutDefault)
+	localBlacklist = append(localBlacklist, slotAssetColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &a, slotAssetDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize SlotAsset struct: %s", err)
+	}
+	a.Segment = custom_types.SegmentRandom()
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	for i, x := range []*Container{&b, &c} {
+		err = a.SetContainer(tx, i != 0, x)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if a.R.Container != x {
+			t.Error("relationship struct not set to correct value")
+		}
+
+		if x.R.SlotAssets[0] != &a {
+			t.Error("failed to append to foreign relationship struct")
+		}
+		if a.Container != x.ID {
+			t.Error("foreign key was wrong value", a.Container)
+		}
+
+		zero := reflect.Zero(reflect.TypeOf(a.Container))
+		reflect.Indirect(reflect.ValueOf(&a.Container)).Set(zero)
+
+		if err = a.Reload(tx); err != nil {
+			t.Fatal("failed to reload", err)
+		}
+
+		if a.Container != x.ID {
+			t.Error("foreign key was wrong value", a.Container, x.ID)
+		}
 	}
 }
 func testSlotAssetsReload(t *testing.T) {

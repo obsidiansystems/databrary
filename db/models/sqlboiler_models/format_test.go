@@ -9,10 +9,10 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/vattle/sqlboiler/boil"
 	"github.com/vattle/sqlboiler/randomize"
 	"github.com/vattle/sqlboiler/strmangle"
-	"github.com/databrary/databrary/db/models/custom_types"
 )
 
 func testFormats(t *testing.T) {

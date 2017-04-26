@@ -1,9 +1,10 @@
 schema="public"
+# these are all views except the last (which is a deprecated index for searching using postgres
 blacklist=["authorize_valid", "authorize_view", "volume_access_view", "volume_owners_view", "slot", "asset_replace", "measure", "measures", "volume_text", "notify_view", "volume_text_idx"]
 [postgres]
 host = "localhost"
-dbname = "testdb_yndpksssxf"
-port = "5432"
+dbname = "databrary"
+port = "5433"
 user = "postgres"
 pass = "mysecretpassword"
 sslmode = "disable"

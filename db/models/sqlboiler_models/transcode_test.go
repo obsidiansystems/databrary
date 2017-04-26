@@ -492,6 +492,66 @@ func testTranscodesInsertWhitelist(t *testing.T) {
 	}
 }
 
+func testTranscodeToOneAssetUsingAsset(t *testing.T) {
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var foreign Asset
+	var local Transcode
+
+	foreignBlacklist := assetColumnsWithDefault
+	foreignBlacklist = append(foreignBlacklist, assetColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &foreign, assetDBTypes, true, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Asset struct: %s", err)
+	}
+	foreign.Release = custom_types.NullReleaseRandom()
+
+	localBlacklist := transcodeColumnsWithDefault
+	localBlacklist = append(localBlacklist, transcodeColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &local, transcodeDBTypes, true, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Transcode struct: %s", err)
+	}
+	local.Segment = custom_types.SegmentRandom()
+
+	if err := foreign.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	local.Asset = foreign.ID
+	if err := local.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := local.AssetByFk(tx).One()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if check.ID != foreign.ID {
+		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
+	}
+
+	slice := TranscodeSlice{&local}
+	if err = local.L.LoadAsset(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Asset == nil {
+		t.Error("struct should have been eager loaded")
+	}
+
+	local.R.Asset = nil
+	if err = local.L.LoadAsset(tx, true, &local); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Asset == nil {
+		t.Error("struct should have been eager loaded")
+	}
+}
+
 func testTranscodeToOneAssetUsingOrig(t *testing.T) {
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -608,66 +668,69 @@ func testTranscodeToOneAccountUsingOwner(t *testing.T) {
 	}
 }
 
-func testTranscodeToOneAssetUsingAsset(t *testing.T) {
+func testTranscodeToOneSetOpAssetUsingAsset(t *testing.T) {
+	var err error
+
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
 
 	seed := randomize.NewSeed()
 
-	var foreign Asset
-	var local Transcode
+	var a Transcode
+	var b, c Asset
 
-	foreignBlacklist := assetColumnsWithDefault
+	foreignBlacklist := strmangle.SetComplement(assetPrimaryKeyColumns, assetColumnsWithoutDefault)
 	foreignBlacklist = append(foreignBlacklist, assetColumnsWithCustom...)
 
-	if err := randomize.Struct(seed, &foreign, assetDBTypes, true, foreignBlacklist...); err != nil {
+	if err := randomize.Struct(seed, &b, assetDBTypes, false, foreignBlacklist...); err != nil {
 		t.Errorf("Unable to randomize Asset struct: %s", err)
 	}
-	foreign.Release = custom_types.NullReleaseRandom()
+	if err := randomize.Struct(seed, &c, assetDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Asset struct: %s", err)
+	}
+	b.Release = custom_types.NullReleaseRandom()
+	c.Release = custom_types.NullReleaseRandom()
 
-	localBlacklist := transcodeColumnsWithDefault
+	localBlacklist := strmangle.SetComplement(transcodePrimaryKeyColumns, transcodeColumnsWithoutDefault)
 	localBlacklist = append(localBlacklist, transcodeColumnsWithCustom...)
 
-	if err := randomize.Struct(seed, &local, transcodeDBTypes, true, localBlacklist...); err != nil {
+	if err := randomize.Struct(seed, &a, transcodeDBTypes, false, localBlacklist...); err != nil {
 		t.Errorf("Unable to randomize Transcode struct: %s", err)
 	}
-	local.Segment = custom_types.SegmentRandom()
+	a.Segment = custom_types.SegmentRandom()
 
-	if err := foreign.Insert(tx); err != nil {
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(tx); err != nil {
 		t.Fatal(err)
 	}
 
-	local.Asset = foreign.ID
-	if err := local.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
+	for i, x := range []*Asset{&b, &c} {
+		err = a.SetAsset(tx, i != 0, x)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	check, err := local.AssetByFk(tx).One()
-	if err != nil {
-		t.Fatal(err)
-	}
+		if a.R.Asset != x {
+			t.Error("relationship struct not set to correct value")
+		}
 
-	if check.ID != foreign.ID {
-		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
-	}
+		if x.R.Transcode != &a {
+			t.Error("failed to append to foreign relationship struct")
+		}
+		if a.Asset != x.ID {
+			t.Error("foreign key was wrong value", a.Asset)
+		}
 
-	slice := TranscodeSlice{&local}
-	if err = local.L.LoadAsset(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.Asset == nil {
-		t.Error("struct should have been eager loaded")
-	}
+		if exists, err := TranscodeExists(tx, a.Asset); err != nil {
+			t.Fatal(err)
+		} else if !exists {
+			t.Error("want 'a' to exist")
+		}
 
-	local.R.Asset = nil
-	if err = local.L.LoadAsset(tx, true, &local); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.Asset == nil {
-		t.Error("struct should have been eager loaded")
 	}
 }
-
 func testTranscodeToOneSetOpAssetUsingOrig(t *testing.T) {
 	var err error
 
@@ -795,69 +858,6 @@ func testTranscodeToOneSetOpAccountUsingOwner(t *testing.T) {
 		if a.Owner != x.ID {
 			t.Error("foreign key was wrong value", a.Owner, x.ID)
 		}
-	}
-}
-func testTranscodeToOneSetOpAssetUsingAsset(t *testing.T) {
-	var err error
-
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var a Transcode
-	var b, c Asset
-
-	foreignBlacklist := strmangle.SetComplement(assetPrimaryKeyColumns, assetColumnsWithoutDefault)
-	foreignBlacklist = append(foreignBlacklist, assetColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &b, assetDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Asset struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &c, assetDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Asset struct: %s", err)
-	}
-	b.Release = custom_types.NullReleaseRandom()
-	c.Release = custom_types.NullReleaseRandom()
-
-	localBlacklist := strmangle.SetComplement(transcodePrimaryKeyColumns, transcodeColumnsWithoutDefault)
-	localBlacklist = append(localBlacklist, transcodeColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &a, transcodeDBTypes, false, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Transcode struct: %s", err)
-	}
-	a.Segment = custom_types.SegmentRandom()
-
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	for i, x := range []*Asset{&b, &c} {
-		err = a.SetAsset(tx, i != 0, x)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if a.R.Asset != x {
-			t.Error("relationship struct not set to correct value")
-		}
-
-		if x.R.Transcode != &a {
-			t.Error("failed to append to foreign relationship struct")
-		}
-		if a.Asset != x.ID {
-			t.Error("foreign key was wrong value", a.Asset)
-		}
-
-		if exists, err := TranscodeExists(tx, a.Asset); err != nil {
-			t.Fatal(err)
-		} else if !exists {
-			t.Error("want 'a' to exist")
-		}
-
 	}
 }
 func testTranscodesReload(t *testing.T) {

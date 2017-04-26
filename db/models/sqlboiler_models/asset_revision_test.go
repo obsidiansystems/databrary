@@ -9,10 +9,10 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/vattle/sqlboiler/boil"
 	"github.com/vattle/sqlboiler/randomize"
 	"github.com/vattle/sqlboiler/strmangle"
-	"github.com/databrary/databrary/db/models/custom_types"
 )
 
 func testAssetRevisions(t *testing.T) {
@@ -131,7 +131,7 @@ func testAssetRevisionsExists(t *testing.T) {
 		t.Error(err)
 	}
 
-	e, err := AssetRevisionExists(tx, assetRevision.Asset)
+	e, err := AssetRevisionExists(tx, assetRevision.Orig)
 	if err != nil {
 		t.Errorf("Unable to check if AssetRevision exists: %s", err)
 	}
@@ -155,7 +155,7 @@ func testAssetRevisionsFind(t *testing.T) {
 		t.Error(err)
 	}
 
-	assetRevisionFound, err := FindAssetRevision(tx, assetRevision.Asset)
+	assetRevisionFound, err := FindAssetRevision(tx, assetRevision.Orig)
 	if err != nil {
 		t.Error(err)
 	}
@@ -625,19 +625,23 @@ func testAssetRevisionToOneSetOpAssetUsingAsset(t *testing.T) {
 			t.Error("relationship struct not set to correct value")
 		}
 
-		if x.R.AssetRevision != &a {
+		if x.R.AssetRevisions[0] != &a {
 			t.Error("failed to append to foreign relationship struct")
 		}
 		if a.Asset != x.ID {
 			t.Error("foreign key was wrong value", a.Asset)
 		}
 
-		if exists, err := AssetRevisionExists(tx, a.Asset); err != nil {
-			t.Fatal(err)
-		} else if !exists {
-			t.Error("want 'a' to exist")
+		zero := reflect.Zero(reflect.TypeOf(a.Asset))
+		reflect.Indirect(reflect.ValueOf(&a.Asset)).Set(zero)
+
+		if err = a.Reload(tx); err != nil {
+			t.Fatal("failed to reload", err)
 		}
 
+		if a.Asset != x.ID {
+			t.Error("foreign key was wrong value", a.Asset, x.ID)
+		}
 	}
 }
 func testAssetRevisionToOneSetOpAssetUsingOrig(t *testing.T) {
@@ -685,23 +689,19 @@ func testAssetRevisionToOneSetOpAssetUsingOrig(t *testing.T) {
 			t.Error("relationship struct not set to correct value")
 		}
 
-		if x.R.OrigAssetRevisions[0] != &a {
+		if x.R.OrigAssetRevision != &a {
 			t.Error("failed to append to foreign relationship struct")
 		}
 		if a.Orig != x.ID {
 			t.Error("foreign key was wrong value", a.Orig)
 		}
 
-		zero := reflect.Zero(reflect.TypeOf(a.Orig))
-		reflect.Indirect(reflect.ValueOf(&a.Orig)).Set(zero)
-
-		if err = a.Reload(tx); err != nil {
-			t.Fatal("failed to reload", err)
+		if exists, err := AssetRevisionExists(tx, a.Orig); err != nil {
+			t.Fatal(err)
+		} else if !exists {
+			t.Error("want 'a' to exist")
 		}
 
-		if a.Orig != x.ID {
-			t.Error("foreign key was wrong value", a.Orig, x.ID)
-		}
 	}
 }
 func testAssetRevisionsReload(t *testing.T) {

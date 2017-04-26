@@ -9,10 +9,10 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/vattle/sqlboiler/boil"
 	"github.com/vattle/sqlboiler/randomize"
 	"github.com/vattle/sqlboiler/strmangle"
-	"github.com/databrary/databrary/db/models/custom_types"
 )
 
 func testCategories(t *testing.T) {
@@ -466,6 +466,80 @@ func testCategoriesInsertWhitelist(t *testing.T) {
 	}
 }
 
+func testCategoryToManyRecords(t *testing.T) {
+	var err error
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var a Category
+	var b, c Record
+
+	foreignBlacklist := recordColumnsWithDefault
+	if err := randomize.Struct(seed, &b, recordDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Record struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, recordDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Record struct: %s", err)
+	}
+	localBlacklist := categoryColumnsWithDefault
+	if err := randomize.Struct(seed, &a, categoryDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Category struct: %s", err)
+	}
+
+	b.Category = a.ID
+	c.Category = a.ID
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	record, err := a.RecordsByFk(tx).All()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range record {
+		if v.Category == b.Category {
+			bFound = true
+		}
+		if v.Category == c.Category {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := CategorySlice{&a}
+	if err = a.L.LoadRecords(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.Records); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.Records = nil
+	if err = a.L.LoadRecords(tx, true, &a); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.Records); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", record)
+	}
+}
+
 func testCategoryToManyMetrics(t *testing.T) {
 	var err error
 	tx := MustTx(boil.Begin())
@@ -547,30 +621,33 @@ func testCategoryToManyMetrics(t *testing.T) {
 	}
 }
 
-func testCategoryToManyRecords(t *testing.T) {
+func testCategoryToManyAddOpRecords(t *testing.T) {
 	var err error
+
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
 
-	seed := randomize.NewSeed()
-
 	var a Category
-	var b, c Record
+	var b, c, d, e Record
 
-	foreignBlacklist := recordColumnsWithDefault
-	if err := randomize.Struct(seed, &b, recordDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Record struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &c, recordDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Record struct: %s", err)
-	}
-	localBlacklist := categoryColumnsWithDefault
-	if err := randomize.Struct(seed, &a, categoryDBTypes, false, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Category struct: %s", err)
+	seed := randomize.NewSeed()
+	localComplelementList := strmangle.SetComplement(categoryPrimaryKeyColumns, categoryColumnsWithoutDefault)
+	if err = randomize.Struct(seed, &a, categoryDBTypes, false, localComplelementList...); err != nil {
+		t.Fatal(err)
 	}
 
-	b.Category = a.ID
-	c.Category = a.ID
+	foreignComplementList := strmangle.SetComplement(recordPrimaryKeyColumns, recordColumnsWithoutDefault)
+
+	foreigners := []*Record{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, recordDBTypes, false, foreignComplementList...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
 	if err = b.Insert(tx); err != nil {
 		t.Fatal(err)
 	}
@@ -578,49 +655,50 @@ func testCategoryToManyRecords(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	record, err := a.RecordsByFk(tx).All()
-	if err != nil {
-		t.Fatal(err)
+	foreignersSplitByInsertion := [][]*Record{
+		{&b, &c},
+		{&d, &e},
 	}
 
-	bFound, cFound := false, false
-	for _, v := range record {
-		if v.Category == b.Category {
-			bFound = true
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddRecords(tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
 		}
-		if v.Category == c.Category {
-			cFound = true
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.Category {
+			t.Error("foreign key was wrong value", a.ID, first.Category)
 		}
-	}
+		if a.ID != second.Category {
+			t.Error("foreign key was wrong value", a.ID, second.Category)
+		}
 
-	if !bFound {
-		t.Error("expected to find b")
-	}
-	if !cFound {
-		t.Error("expected to find c")
-	}
+		if first.R.Category != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Category != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
 
-	slice := CategorySlice{&a}
-	if err = a.L.LoadRecords(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.Records); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
+		if a.R.Records[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.Records[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
 
-	a.R.Records = nil
-	if err = a.L.LoadRecords(tx, true, &a); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.Records); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	if t.Failed() {
-		t.Logf("%#v", record)
+		count, err := a.RecordsByFk(tx).Count()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
 	}
 }
-
 func testCategoryToManyAddOpMetrics(t *testing.T) {
 	var err error
 
@@ -695,84 +773,6 @@ func testCategoryToManyAddOpMetrics(t *testing.T) {
 		}
 
 		count, err := a.MetricsByFk(tx).Count()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if want := int64((i + 1) * 2); count != want {
-			t.Error("want", want, "got", count)
-		}
-	}
-}
-func testCategoryToManyAddOpRecords(t *testing.T) {
-	var err error
-
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	var a Category
-	var b, c, d, e Record
-
-	seed := randomize.NewSeed()
-	localComplelementList := strmangle.SetComplement(categoryPrimaryKeyColumns, categoryColumnsWithoutDefault)
-	if err = randomize.Struct(seed, &a, categoryDBTypes, false, localComplelementList...); err != nil {
-		t.Fatal(err)
-	}
-
-	foreignComplementList := strmangle.SetComplement(recordPrimaryKeyColumns, recordColumnsWithoutDefault)
-
-	foreigners := []*Record{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, recordDBTypes, false, foreignComplementList...); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	foreignersSplitByInsertion := [][]*Record{
-		{&b, &c},
-		{&d, &e},
-	}
-
-	for i, x := range foreignersSplitByInsertion {
-		err = a.AddRecords(tx, i != 0, x...)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		first := x[0]
-		second := x[1]
-
-		if a.ID != first.Category {
-			t.Error("foreign key was wrong value", a.ID, first.Category)
-		}
-		if a.ID != second.Category {
-			t.Error("foreign key was wrong value", a.ID, second.Category)
-		}
-
-		if first.R.Category != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-		if second.R.Category != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-
-		if a.R.Records[i*2] != first {
-			t.Error("relationship struct slice not set to correct value")
-		}
-		if a.R.Records[i*2+1] != second {
-			t.Error("relationship struct slice not set to correct value")
-		}
-
-		count, err := a.RecordsByFk(tx).Count()
 		if err != nil {
 			t.Fatal(err)
 		}

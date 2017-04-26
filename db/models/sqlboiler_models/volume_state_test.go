@@ -643,7 +643,7 @@ func testVolumeStatesSelect(t *testing.T) {
 }
 
 var (
-	volumeStateDBTypes = map[string]string{`Key`: `character varying`, `Public`: `boolean`, `Value`: `jsonb`, `Volume`: `integer`}
+	volumeStateDBTypes = map[string]string{`Key`: `character varying`, `Public`: `boolean`, `Value`: `json`, `Volume`: `integer`}
 	_                  = bytes.MinRead
 )
 

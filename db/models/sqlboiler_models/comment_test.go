@@ -492,90 +492,6 @@ func testCommentsInsertWhitelist(t *testing.T) {
 	}
 }
 
-func testCommentToManyParentComments(t *testing.T) {
-	var err error
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var a Comment
-	var b, c Comment
-
-	foreignBlacklist := commentColumnsWithDefault
-	foreignBlacklist = append(foreignBlacklist, commentColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &b, commentDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &c, commentDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
-	b.Segment = custom_types.SegmentRandom()
-	c.Segment = custom_types.SegmentRandom()
-
-	localBlacklist := commentColumnsWithDefault
-	localBlacklist = append(localBlacklist, commentColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &a, commentDBTypes, false, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
-	a.Segment = custom_types.SegmentRandom()
-
-	b.Parent.Valid = true
-	c.Parent.Valid = true
-	b.Parent.Int = a.ID
-	c.Parent.Int = a.ID
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	comment, err := a.ParentCommentsByFk(tx).All()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	bFound, cFound := false, false
-	for _, v := range comment {
-		if v.Parent.Int == b.Parent.Int {
-			bFound = true
-		}
-		if v.Parent.Int == c.Parent.Int {
-			cFound = true
-		}
-	}
-
-	if !bFound {
-		t.Error("expected to find b")
-	}
-	if !cFound {
-		t.Error("expected to find c")
-	}
-
-	slice := CommentSlice{&a}
-	if err = a.L.LoadParentComments(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.ParentComments); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	a.R.ParentComments = nil
-	if err = a.L.LoadParentComments(tx, true, &a); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.ParentComments); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	if t.Failed() {
-		t.Logf("%#v", comment)
-	}
-}
-
 func testCommentToManyNotifications(t *testing.T) {
 	var err error
 	tx := MustTx(boil.Begin())
@@ -666,39 +582,40 @@ func testCommentToManyNotifications(t *testing.T) {
 	}
 }
 
-func testCommentToManyAddOpParentComments(t *testing.T) {
+func testCommentToManyParentComments(t *testing.T) {
 	var err error
-
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
 
-	var a Comment
-	var b, c, d, e Comment
-
 	seed := randomize.NewSeed()
-	localComplelementList := strmangle.SetComplement(commentPrimaryKeyColumns, commentColumnsWithoutDefault)
-	localComplelementList = append(localComplelementList, commentColumnsWithCustom...)
 
-	if err = randomize.Struct(seed, &a, commentDBTypes, false, localComplelementList...); err != nil {
-		t.Fatal(err)
+	var a Comment
+	var b, c Comment
+
+	foreignBlacklist := commentColumnsWithDefault
+	foreignBlacklist = append(foreignBlacklist, commentColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &b, commentDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Comment struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, commentDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Comment struct: %s", err)
+	}
+	b.Segment = custom_types.SegmentRandom()
+	c.Segment = custom_types.SegmentRandom()
+
+	localBlacklist := commentColumnsWithDefault
+	localBlacklist = append(localBlacklist, commentColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &a, commentDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Comment struct: %s", err)
 	}
 	a.Segment = custom_types.SegmentRandom()
 
-	foreignComplementList := strmangle.SetComplement(commentPrimaryKeyColumns, commentColumnsWithoutDefault)
-	foreignComplementList = append(foreignComplementList, commentColumnsWithCustom...)
-
-	foreigners := []*Comment{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, commentDBTypes, false, foreignComplementList...); err != nil {
-			t.Fatal(err)
-		}
-		x.Segment = custom_types.SegmentRandom()
-
-	}
-
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
+	b.Parent.Valid = true
+	c.Parent.Valid = true
+	b.Parent.Int = a.ID
+	c.Parent.Int = a.ID
 	if err = b.Insert(tx); err != nil {
 		t.Fatal(err)
 	}
@@ -706,241 +623,46 @@ func testCommentToManyAddOpParentComments(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	foreignersSplitByInsertion := [][]*Comment{
-		{&b, &c},
-		{&d, &e},
-	}
-
-	for i, x := range foreignersSplitByInsertion {
-		err = a.AddParentComments(tx, i != 0, x...)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		first := x[0]
-		second := x[1]
-
-		if a.ID != first.Parent.Int {
-			t.Error("foreign key was wrong value", a.ID, first.Parent.Int)
-		}
-		if a.ID != second.Parent.Int {
-			t.Error("foreign key was wrong value", a.ID, second.Parent.Int)
-		}
-
-		if first.R.Parent != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-		if second.R.Parent != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-
-		if a.R.ParentComments[i*2] != first {
-			t.Error("relationship struct slice not set to correct value")
-		}
-		if a.R.ParentComments[i*2+1] != second {
-			t.Error("relationship struct slice not set to correct value")
-		}
-
-		count, err := a.ParentCommentsByFk(tx).Count()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if want := int64((i + 1) * 2); count != want {
-			t.Error("want", want, "got", count)
-		}
-	}
-}
-
-func testCommentToManySetOpParentComments(t *testing.T) {
-	var err error
-
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	var a Comment
-	var b, c, d, e Comment
-
-	seed := randomize.NewSeed()
-	localComplelementList := strmangle.SetComplement(commentPrimaryKeyColumns, commentColumnsWithoutDefault)
-	localComplelementList = append(localComplelementList, commentColumnsWithCustom...)
-
-	if err = randomize.Struct(seed, &a, commentDBTypes, false, localComplelementList...); err != nil {
-		t.Fatal(err)
-	}
-	a.Segment = custom_types.SegmentRandom()
-
-	foreignComplementList := strmangle.SetComplement(commentPrimaryKeyColumns, commentColumnsWithoutDefault)
-	foreignComplementList = append(foreignComplementList, commentColumnsWithCustom...)
-
-	foreigners := []*Comment{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, commentDBTypes, false, foreignComplementList...); err != nil {
-			t.Fatal(err)
-		}
-		x.Segment = custom_types.SegmentRandom()
-
-	}
-
-	if err = a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	err = a.SetParentComments(tx, false, &b, &c)
+	comment, err := a.ParentCommentsByFk(tx).All()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	count, err := a.ParentCommentsByFk(tx).Count()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 2 {
-		t.Error("count was wrong:", count)
-	}
-
-	err = a.SetParentComments(tx, true, &d, &e)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	count, err = a.ParentCommentsByFk(tx).Count()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 2 {
-		t.Error("count was wrong:", count)
-	}
-
-	if b.Parent.Valid {
-		t.Error("want b's foreign key value to be nil")
-	}
-	if c.Parent.Valid {
-		t.Error("want c's foreign key value to be nil")
-	}
-	if a.ID != d.Parent.Int {
-		t.Error("foreign key was wrong value", a.ID, d.Parent.Int)
-	}
-	if a.ID != e.Parent.Int {
-		t.Error("foreign key was wrong value", a.ID, e.Parent.Int)
-	}
-
-	if b.R.Parent != nil {
-		t.Error("relationship was not removed properly from the foreign struct")
-	}
-	if c.R.Parent != nil {
-		t.Error("relationship was not removed properly from the foreign struct")
-	}
-	if d.R.Parent != &a {
-		t.Error("relationship was not added properly to the foreign struct")
-	}
-	if e.R.Parent != &a {
-		t.Error("relationship was not added properly to the foreign struct")
-	}
-
-	if a.R.ParentComments[0] != &d {
-		t.Error("relationship struct slice not set to correct value")
-	}
-	if a.R.ParentComments[1] != &e {
-		t.Error("relationship struct slice not set to correct value")
-	}
-}
-
-func testCommentToManyRemoveOpParentComments(t *testing.T) {
-	var err error
-
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	var a Comment
-	var b, c, d, e Comment
-
-	seed := randomize.NewSeed()
-	localComplelementList := strmangle.SetComplement(commentPrimaryKeyColumns, commentColumnsWithoutDefault)
-	localComplelementList = append(localComplelementList, commentColumnsWithCustom...)
-
-	if err = randomize.Struct(seed, &a, commentDBTypes, false, localComplelementList...); err != nil {
-		t.Fatal(err)
-	}
-	a.Segment = custom_types.SegmentRandom()
-
-	foreignComplementList := strmangle.SetComplement(commentPrimaryKeyColumns, commentColumnsWithoutDefault)
-	foreignComplementList = append(foreignComplementList, commentColumnsWithCustom...)
-
-	foreigners := []*Comment{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, commentDBTypes, false, foreignComplementList...); err != nil {
-			t.Fatal(err)
+	bFound, cFound := false, false
+	for _, v := range comment {
+		if v.Parent.Int == b.Parent.Int {
+			bFound = true
 		}
-		x.Segment = custom_types.SegmentRandom()
-
+		if v.Parent.Int == c.Parent.Int {
+			cFound = true
+		}
 	}
 
-	if err := a.Insert(tx); err != nil {
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := CommentSlice{&a}
+	if err = a.L.LoadParentComments(tx, false, &slice); err != nil {
 		t.Fatal(err)
 	}
+	if got := len(a.R.ParentComments); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
 
-	err = a.AddParentComments(tx, true, foreigners...)
-	if err != nil {
+	a.R.ParentComments = nil
+	if err = a.L.LoadParentComments(tx, true, &a); err != nil {
 		t.Fatal(err)
 	}
-
-	count, err := a.ParentCommentsByFk(tx).Count()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 4 {
-		t.Error("count was wrong:", count)
+	if got := len(a.R.ParentComments); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
 	}
 
-	err = a.RemoveParentComments(tx, foreigners[:2]...)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	count, err = a.ParentCommentsByFk(tx).Count()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 2 {
-		t.Error("count was wrong:", count)
-	}
-
-	if b.Parent.Valid {
-		t.Error("want b's foreign key value to be nil")
-	}
-	if c.Parent.Valid {
-		t.Error("want c's foreign key value to be nil")
-	}
-
-	if b.R.Parent != nil {
-		t.Error("relationship was not removed properly from the foreign struct")
-	}
-	if c.R.Parent != nil {
-		t.Error("relationship was not removed properly from the foreign struct")
-	}
-	if d.R.Parent != &a {
-		t.Error("relationship to a should have been preserved")
-	}
-	if e.R.Parent != &a {
-		t.Error("relationship to a should have been preserved")
-	}
-
-	if len(a.R.ParentComments) != 2 {
-		t.Error("should have preserved two relationships")
-	}
-
-	// Removal doesn't do a stable deletion for performance so we have to flip the order
-	if a.R.ParentComments[1] != &d {
-		t.Error("relationship to d should have been preserved")
-	}
-	if a.R.ParentComments[0] != &e {
-		t.Error("relationship to e should have been preserved")
+	if t.Failed() {
+		t.Logf("%#v", comment)
 	}
 }
 
@@ -1231,6 +953,340 @@ func testCommentToManyRemoveOpNotifications(t *testing.T) {
 	}
 }
 
+func testCommentToManyAddOpParentComments(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	var a Comment
+	var b, c, d, e Comment
+
+	seed := randomize.NewSeed()
+	localComplelementList := strmangle.SetComplement(commentPrimaryKeyColumns, commentColumnsWithoutDefault)
+	localComplelementList = append(localComplelementList, commentColumnsWithCustom...)
+
+	if err = randomize.Struct(seed, &a, commentDBTypes, false, localComplelementList...); err != nil {
+		t.Fatal(err)
+	}
+	a.Segment = custom_types.SegmentRandom()
+
+	foreignComplementList := strmangle.SetComplement(commentPrimaryKeyColumns, commentColumnsWithoutDefault)
+	foreignComplementList = append(foreignComplementList, commentColumnsWithCustom...)
+
+	foreigners := []*Comment{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, commentDBTypes, false, foreignComplementList...); err != nil {
+			t.Fatal(err)
+		}
+		x.Segment = custom_types.SegmentRandom()
+
+	}
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*Comment{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddParentComments(tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.Parent.Int {
+			t.Error("foreign key was wrong value", a.ID, first.Parent.Int)
+		}
+		if a.ID != second.Parent.Int {
+			t.Error("foreign key was wrong value", a.ID, second.Parent.Int)
+		}
+
+		if first.R.Parent != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Parent != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.ParentComments[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.ParentComments[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.ParentCommentsByFk(tx).Count()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+
+func testCommentToManySetOpParentComments(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	var a Comment
+	var b, c, d, e Comment
+
+	seed := randomize.NewSeed()
+	localComplelementList := strmangle.SetComplement(commentPrimaryKeyColumns, commentColumnsWithoutDefault)
+	localComplelementList = append(localComplelementList, commentColumnsWithCustom...)
+
+	if err = randomize.Struct(seed, &a, commentDBTypes, false, localComplelementList...); err != nil {
+		t.Fatal(err)
+	}
+	a.Segment = custom_types.SegmentRandom()
+
+	foreignComplementList := strmangle.SetComplement(commentPrimaryKeyColumns, commentColumnsWithoutDefault)
+	foreignComplementList = append(foreignComplementList, commentColumnsWithCustom...)
+
+	foreigners := []*Comment{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, commentDBTypes, false, foreignComplementList...); err != nil {
+			t.Fatal(err)
+		}
+		x.Segment = custom_types.SegmentRandom()
+
+	}
+
+	if err = a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	err = a.SetParentComments(tx, false, &b, &c)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err := a.ParentCommentsByFk(tx).Count()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	err = a.SetParentComments(tx, true, &d, &e)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err = a.ParentCommentsByFk(tx).Count()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	if b.Parent.Valid {
+		t.Error("want b's foreign key value to be nil")
+	}
+	if c.Parent.Valid {
+		t.Error("want c's foreign key value to be nil")
+	}
+	if a.ID != d.Parent.Int {
+		t.Error("foreign key was wrong value", a.ID, d.Parent.Int)
+	}
+	if a.ID != e.Parent.Int {
+		t.Error("foreign key was wrong value", a.ID, e.Parent.Int)
+	}
+
+	if b.R.Parent != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if c.R.Parent != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if d.R.Parent != &a {
+		t.Error("relationship was not added properly to the foreign struct")
+	}
+	if e.R.Parent != &a {
+		t.Error("relationship was not added properly to the foreign struct")
+	}
+
+	if a.R.ParentComments[0] != &d {
+		t.Error("relationship struct slice not set to correct value")
+	}
+	if a.R.ParentComments[1] != &e {
+		t.Error("relationship struct slice not set to correct value")
+	}
+}
+
+func testCommentToManyRemoveOpParentComments(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	var a Comment
+	var b, c, d, e Comment
+
+	seed := randomize.NewSeed()
+	localComplelementList := strmangle.SetComplement(commentPrimaryKeyColumns, commentColumnsWithoutDefault)
+	localComplelementList = append(localComplelementList, commentColumnsWithCustom...)
+
+	if err = randomize.Struct(seed, &a, commentDBTypes, false, localComplelementList...); err != nil {
+		t.Fatal(err)
+	}
+	a.Segment = custom_types.SegmentRandom()
+
+	foreignComplementList := strmangle.SetComplement(commentPrimaryKeyColumns, commentColumnsWithoutDefault)
+	foreignComplementList = append(foreignComplementList, commentColumnsWithCustom...)
+
+	foreigners := []*Comment{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, commentDBTypes, false, foreignComplementList...); err != nil {
+			t.Fatal(err)
+		}
+		x.Segment = custom_types.SegmentRandom()
+
+	}
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	err = a.AddParentComments(tx, true, foreigners...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err := a.ParentCommentsByFk(tx).Count()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 4 {
+		t.Error("count was wrong:", count)
+	}
+
+	err = a.RemoveParentComments(tx, foreigners[:2]...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err = a.ParentCommentsByFk(tx).Count()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	if b.Parent.Valid {
+		t.Error("want b's foreign key value to be nil")
+	}
+	if c.Parent.Valid {
+		t.Error("want c's foreign key value to be nil")
+	}
+
+	if b.R.Parent != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if c.R.Parent != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if d.R.Parent != &a {
+		t.Error("relationship to a should have been preserved")
+	}
+	if e.R.Parent != &a {
+		t.Error("relationship to a should have been preserved")
+	}
+
+	if len(a.R.ParentComments) != 2 {
+		t.Error("should have preserved two relationships")
+	}
+
+	// Removal doesn't do a stable deletion for performance so we have to flip the order
+	if a.R.ParentComments[1] != &d {
+		t.Error("relationship to d should have been preserved")
+	}
+	if a.R.ParentComments[0] != &e {
+		t.Error("relationship to e should have been preserved")
+	}
+}
+
+func testCommentToOneContainerUsingContainer(t *testing.T) {
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var foreign Container
+	var local Comment
+
+	foreignBlacklist := containerColumnsWithDefault
+	if err := randomize.Struct(seed, &foreign, containerDBTypes, true, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Container struct: %s", err)
+	}
+	localBlacklist := commentColumnsWithDefault
+	localBlacklist = append(localBlacklist, commentColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &local, commentDBTypes, true, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Comment struct: %s", err)
+	}
+	local.Segment = custom_types.SegmentRandom()
+
+	if err := foreign.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	local.Container = foreign.ID
+	if err := local.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := local.ContainerByFk(tx).One()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if check.ID != foreign.ID {
+		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
+	}
+
+	slice := CommentSlice{&local}
+	if err = local.L.LoadContainer(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Container == nil {
+		t.Error("struct should have been eager loaded")
+	}
+
+	local.R.Container = nil
+	if err = local.L.LoadContainer(tx, true, &local); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Container == nil {
+		t.Error("struct should have been eager loaded")
+	}
+}
+
 func testCommentToOneCommentUsingParent(t *testing.T) {
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -1293,62 +1349,6 @@ func testCommentToOneCommentUsingParent(t *testing.T) {
 	}
 }
 
-func testCommentToOneContainerUsingContainer(t *testing.T) {
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var foreign Container
-	var local Comment
-
-	foreignBlacklist := containerColumnsWithDefault
-	if err := randomize.Struct(seed, &foreign, containerDBTypes, true, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Container struct: %s", err)
-	}
-	localBlacklist := commentColumnsWithDefault
-	localBlacklist = append(localBlacklist, commentColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &local, commentDBTypes, true, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
-	local.Segment = custom_types.SegmentRandom()
-
-	if err := foreign.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	local.Container = foreign.ID
-	if err := local.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	check, err := local.ContainerByFk(tx).One()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if check.ID != foreign.ID {
-		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
-	}
-
-	slice := CommentSlice{&local}
-	if err = local.L.LoadContainer(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.Container == nil {
-		t.Error("struct should have been eager loaded")
-	}
-
-	local.R.Container = nil
-	if err = local.L.LoadContainer(tx, true, &local); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.Container == nil {
-		t.Error("struct should have been eager loaded")
-	}
-}
-
 func testCommentToOneAccountUsingWho(t *testing.T) {
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -1405,6 +1405,68 @@ func testCommentToOneAccountUsingWho(t *testing.T) {
 	}
 }
 
+func testCommentToOneSetOpContainerUsingContainer(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var a Comment
+	var b, c Container
+
+	foreignBlacklist := strmangle.SetComplement(containerPrimaryKeyColumns, containerColumnsWithoutDefault)
+	if err := randomize.Struct(seed, &b, containerDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Container struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, containerDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Container struct: %s", err)
+	}
+	localBlacklist := strmangle.SetComplement(commentPrimaryKeyColumns, commentColumnsWithoutDefault)
+	localBlacklist = append(localBlacklist, commentColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &a, commentDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Comment struct: %s", err)
+	}
+	a.Segment = custom_types.SegmentRandom()
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	for i, x := range []*Container{&b, &c} {
+		err = a.SetContainer(tx, i != 0, x)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if a.R.Container != x {
+			t.Error("relationship struct not set to correct value")
+		}
+
+		if x.R.Comments[0] != &a {
+			t.Error("failed to append to foreign relationship struct")
+		}
+		if a.Container != x.ID {
+			t.Error("foreign key was wrong value", a.Container)
+		}
+
+		zero := reflect.Zero(reflect.TypeOf(a.Container))
+		reflect.Indirect(reflect.ValueOf(&a.Container)).Set(zero)
+
+		if err = a.Reload(tx); err != nil {
+			t.Fatal("failed to reload", err)
+		}
+
+		if a.Container != x.ID {
+			t.Error("foreign key was wrong value", a.Container, x.ID)
+		}
+	}
+}
 func testCommentToOneSetOpCommentUsingParent(t *testing.T) {
 	var err error
 
@@ -1537,68 +1599,6 @@ func testCommentToOneRemoveOpCommentUsingParent(t *testing.T) {
 	}
 }
 
-func testCommentToOneSetOpContainerUsingContainer(t *testing.T) {
-	var err error
-
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var a Comment
-	var b, c Container
-
-	foreignBlacklist := strmangle.SetComplement(containerPrimaryKeyColumns, containerColumnsWithoutDefault)
-	if err := randomize.Struct(seed, &b, containerDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Container struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &c, containerDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Container struct: %s", err)
-	}
-	localBlacklist := strmangle.SetComplement(commentPrimaryKeyColumns, commentColumnsWithoutDefault)
-	localBlacklist = append(localBlacklist, commentColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &a, commentDBTypes, false, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
-	a.Segment = custom_types.SegmentRandom()
-
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	for i, x := range []*Container{&b, &c} {
-		err = a.SetContainer(tx, i != 0, x)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if a.R.Container != x {
-			t.Error("relationship struct not set to correct value")
-		}
-
-		if x.R.Comments[0] != &a {
-			t.Error("failed to append to foreign relationship struct")
-		}
-		if a.Container != x.ID {
-			t.Error("foreign key was wrong value", a.Container)
-		}
-
-		zero := reflect.Zero(reflect.TypeOf(a.Container))
-		reflect.Indirect(reflect.ValueOf(&a.Container)).Set(zero)
-
-		if err = a.Reload(tx); err != nil {
-			t.Fatal("failed to reload", err)
-		}
-
-		if a.Container != x.ID {
-			t.Error("foreign key was wrong value", a.Container, x.ID)
-		}
-	}
-}
 func testCommentToOneSetOpAccountUsingWho(t *testing.T) {
 	var err error
 

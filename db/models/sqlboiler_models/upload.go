@@ -35,8 +35,8 @@ type Upload struct {
 
 // uploadR is where relationships are stored.
 type uploadR struct {
-	Volume  *Volume
 	Account *Account
+	Volume  *Volume
 }
 
 // uploadL is where Load methods for each relationship are stored.
@@ -327,25 +327,6 @@ func (q uploadQuery) Exists() (bool, error) {
 	return count > 0, nil
 }
 
-// VolumeG pointed to by the foreign key.
-func (o *Upload) VolumeG(mods ...qm.QueryMod) volumeQuery {
-	return o.VolumeByFk(boil.GetDB(), mods...)
-}
-
-// Volume pointed to by the foreign key.
-func (o *Upload) VolumeByFk(exec boil.Executor, mods ...qm.QueryMod) volumeQuery {
-	queryMods := []qm.QueryMod{
-		qm.Where("id=?", o.Volume),
-	}
-
-	queryMods = append(queryMods, mods...)
-
-	query := Volumes(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"volume\"")
-
-	return query
-}
-
 // AccountG pointed to by the foreign key.
 func (o *Upload) AccountG(mods ...qm.QueryMod) accountQuery {
 	return o.AccountByFk(boil.GetDB(), mods...)
@@ -365,82 +346,23 @@ func (o *Upload) AccountByFk(exec boil.Executor, mods ...qm.QueryMod) accountQue
 	return query
 }
 
-// LoadVolume allows an eager lookup of values, cached into the
-// loaded structs of the objects.
-func (uploadL) LoadVolume(e boil.Executor, singular bool, maybeUpload interface{}) error {
-	var slice []*Upload
-	var object *Upload
+// VolumeG pointed to by the foreign key.
+func (o *Upload) VolumeG(mods ...qm.QueryMod) volumeQuery {
+	return o.VolumeByFk(boil.GetDB(), mods...)
+}
 
-	count := 1
-	if singular {
-		object = maybeUpload.(*Upload)
-	} else {
-		slice = *maybeUpload.(*UploadSlice)
-		count = len(slice)
+// Volume pointed to by the foreign key.
+func (o *Upload) VolumeByFk(exec boil.Executor, mods ...qm.QueryMod) volumeQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("id=?", o.Volume),
 	}
 
-	args := make([]interface{}, count)
-	if singular {
-		if object.R == nil {
-			object.R = &uploadR{}
-		}
-		args[0] = object.Volume
-	} else {
-		for i, obj := range slice {
-			if obj.R == nil {
-				obj.R = &uploadR{}
-			}
-			args[i] = obj.Volume
-		}
-	}
+	queryMods = append(queryMods, mods...)
 
-	query := fmt.Sprintf(
-		"select * from \"volume\" where \"id\" in (%s)",
-		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
-	)
+	query := Volumes(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"volume\"")
 
-	if boil.DebugMode {
-		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
-	}
-
-	results, err := e.Query(query, args...)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load Volume")
-	}
-	defer results.Close()
-
-	var resultSlice []*Volume
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice Volume")
-	}
-
-	if len(uploadAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(e); err != nil {
-				return err
-			}
-		}
-	}
-
-	if len(resultSlice) == 0 {
-		return nil
-	}
-
-	if singular {
-		object.R.Volume = resultSlice[0]
-		return nil
-	}
-
-	for _, local := range slice {
-		for _, foreign := range resultSlice {
-			if local.Volume == foreign.ID {
-				local.R.Volume = foreign
-				break
-			}
-		}
-	}
-
-	return nil
+	return query
 }
 
 // LoadAccount allows an eager lookup of values, cached into the
@@ -521,77 +443,79 @@ func (uploadL) LoadAccount(e boil.Executor, singular bool, maybeUpload interface
 	return nil
 }
 
-// SetVolumeG of the upload to the related item.
-// Sets o.R.Volume to related.
-// Adds o to related.R.Uploads.
-// Uses the global database handle.
-func (o *Upload) SetVolumeG(insert bool, related *Volume) error {
-	return o.SetVolume(boil.GetDB(), insert, related)
-}
+// LoadVolume allows an eager lookup of values, cached into the
+// loaded structs of the objects.
+func (uploadL) LoadVolume(e boil.Executor, singular bool, maybeUpload interface{}) error {
+	var slice []*Upload
+	var object *Upload
 
-// SetVolumeP of the upload to the related item.
-// Sets o.R.Volume to related.
-// Adds o to related.R.Uploads.
-// Panics on error.
-func (o *Upload) SetVolumeP(exec boil.Executor, insert bool, related *Volume) {
-	if err := o.SetVolume(exec, insert, related); err != nil {
-		panic(boil.WrapErr(err))
+	count := 1
+	if singular {
+		object = maybeUpload.(*Upload)
+	} else {
+		slice = *maybeUpload.(*UploadSlice)
+		count = len(slice)
 	}
-}
 
-// SetVolumeGP of the upload to the related item.
-// Sets o.R.Volume to related.
-// Adds o to related.R.Uploads.
-// Uses the global database handle and panics on error.
-func (o *Upload) SetVolumeGP(insert bool, related *Volume) {
-	if err := o.SetVolume(boil.GetDB(), insert, related); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// SetVolume of the upload to the related item.
-// Sets o.R.Volume to related.
-// Adds o to related.R.Uploads.
-func (o *Upload) SetVolume(exec boil.Executor, insert bool, related *Volume) error {
-	var err error
-	if insert {
-		if err = related.Insert(exec); err != nil {
-			return errors.Wrap(err, "failed to insert into foreign table")
+	args := make([]interface{}, count)
+	if singular {
+		if object.R == nil {
+			object.R = &uploadR{}
+		}
+		args[0] = object.Volume
+	} else {
+		for i, obj := range slice {
+			if obj.R == nil {
+				obj.R = &uploadR{}
+			}
+			args[i] = obj.Volume
 		}
 	}
 
-	updateQuery := fmt.Sprintf(
-		"UPDATE \"upload\" SET %s WHERE %s",
-		strmangle.SetParamNames("\"", "\"", 1, []string{"volume"}),
-		strmangle.WhereClause("\"", "\"", 2, uploadPrimaryKeyColumns),
+	query := fmt.Sprintf(
+		"select * from \"volume\" where \"id\" in (%s)",
+		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
 	)
-	values := []interface{}{related.ID, o.Token}
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, updateQuery)
-		fmt.Fprintln(boil.DebugWriter, values)
+		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
 	}
 
-	if _, err = exec.Exec(updateQuery, values...); err != nil {
-		return errors.Wrap(err, "failed to update local table")
+	results, err := e.Query(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load Volume")
+	}
+	defer results.Close()
+
+	var resultSlice []*Volume
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice Volume")
 	}
 
-	o.Volume = related.ID
-
-	if o.R == nil {
-		o.R = &uploadR{
-			Volume: related,
+	if len(uploadAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(e); err != nil {
+				return err
+			}
 		}
-	} else {
-		o.R.Volume = related
 	}
 
-	if related.R == nil {
-		related.R = &volumeR{
-			Uploads: UploadSlice{o},
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		object.R.Volume = resultSlice[0]
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if local.Volume == foreign.ID {
+				local.R.Volume = foreign
+				break
+			}
 		}
-	} else {
-		related.R.Uploads = append(related.R.Uploads, o)
 	}
 
 	return nil
@@ -664,6 +588,82 @@ func (o *Upload) SetAccount(exec boil.Executor, insert bool, related *Account) e
 
 	if related.R == nil {
 		related.R = &accountR{
+			Uploads: UploadSlice{o},
+		}
+	} else {
+		related.R.Uploads = append(related.R.Uploads, o)
+	}
+
+	return nil
+}
+
+// SetVolumeG of the upload to the related item.
+// Sets o.R.Volume to related.
+// Adds o to related.R.Uploads.
+// Uses the global database handle.
+func (o *Upload) SetVolumeG(insert bool, related *Volume) error {
+	return o.SetVolume(boil.GetDB(), insert, related)
+}
+
+// SetVolumeP of the upload to the related item.
+// Sets o.R.Volume to related.
+// Adds o to related.R.Uploads.
+// Panics on error.
+func (o *Upload) SetVolumeP(exec boil.Executor, insert bool, related *Volume) {
+	if err := o.SetVolume(exec, insert, related); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// SetVolumeGP of the upload to the related item.
+// Sets o.R.Volume to related.
+// Adds o to related.R.Uploads.
+// Uses the global database handle and panics on error.
+func (o *Upload) SetVolumeGP(insert bool, related *Volume) {
+	if err := o.SetVolume(boil.GetDB(), insert, related); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// SetVolume of the upload to the related item.
+// Sets o.R.Volume to related.
+// Adds o to related.R.Uploads.
+func (o *Upload) SetVolume(exec boil.Executor, insert bool, related *Volume) error {
+	var err error
+	if insert {
+		if err = related.Insert(exec); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"upload\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"volume"}),
+		strmangle.WhereClause("\"", "\"", 2, uploadPrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.Token}
+
+	if boil.DebugMode {
+		fmt.Fprintln(boil.DebugWriter, updateQuery)
+		fmt.Fprintln(boil.DebugWriter, values)
+	}
+
+	if _, err = exec.Exec(updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	o.Volume = related.ID
+
+	if o.R == nil {
+		o.R = &uploadR{
+			Volume: related,
+		}
+	} else {
+		o.R.Volume = related
+	}
+
+	if related.R == nil {
+		related.R = &volumeR{
 			Uploads: UploadSlice{o},
 		}
 	} else {

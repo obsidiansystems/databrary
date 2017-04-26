@@ -57,6 +57,15 @@ const (
 	PermissionADMIN  = "ADMIN"
 )
 
+// Enum values for notice_delivery
+const (
+	NoticeDeliveryNone   = "none"
+	NoticeDeliverySite   = "site"
+	NoticeDeliveryWeekly = "weekly"
+	NoticeDeliveryDaily  = "daily"
+	NoticeDeliveryAsync  = "async"
+)
+
 // Enum values for release
 const (
 	ReleasePRIVATE  = "PRIVATE"
@@ -71,13 +80,4 @@ const (
 	DataTypeNumeric = "numeric"
 	DataTypeDate    = "date"
 	DataTypeVoid    = "void"
-)
-
-// Enum values for notice_delivery
-const (
-	NoticeDeliveryNone   = "none"
-	NoticeDeliverySite   = "site"
-	NoticeDeliveryWeekly = "weekly"
-	NoticeDeliveryDaily  = "daily"
-	NoticeDeliveryAsync  = "async"
 )

@@ -44,9 +44,9 @@ type metricR struct {
 	Category        *Category
 	Volumes         VolumeSlice
 	Records         RecordSlice
-	MeasureTexts    MeasureTextSlice
-	MeasureNumerics MeasureNumericSlice
 	MeasureDates    MeasureDateSlice
+	MeasureNumerics MeasureNumericSlice
+	MeasureTexts    MeasureTextSlice
 }
 
 // metricL is where Load methods for each relationship are stored.
@@ -406,13 +406,13 @@ func (o *Metric) RecordsByFk(exec boil.Executor, mods ...qm.QueryMod) recordQuer
 	return query
 }
 
-// MeasureTextsG retrieves all the measure_text's measure text.
-func (o *Metric) MeasureTextsG(mods ...qm.QueryMod) measureTextQuery {
-	return o.MeasureTextsByFk(boil.GetDB(), mods...)
+// MeasureDatesG retrieves all the measure_date's measure date.
+func (o *Metric) MeasureDatesG(mods ...qm.QueryMod) measureDateQuery {
+	return o.MeasureDatesByFk(boil.GetDB(), mods...)
 }
 
-// MeasureTexts retrieves all the measure_text's measure text with an executor.
-func (o *Metric) MeasureTextsByFk(exec boil.Executor, mods ...qm.QueryMod) measureTextQuery {
+// MeasureDates retrieves all the measure_date's measure date with an executor.
+func (o *Metric) MeasureDatesByFk(exec boil.Executor, mods ...qm.QueryMod) measureDateQuery {
 	queryMods := []qm.QueryMod{
 		qm.Select("\"a\".*"),
 	}
@@ -425,8 +425,8 @@ func (o *Metric) MeasureTextsByFk(exec boil.Executor, mods ...qm.QueryMod) measu
 		qm.Where("\"a\".\"metric\"=?", o.ID),
 	)
 
-	query := MeasureTexts(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"measure_text\" as \"a\"")
+	query := MeasureDates(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"measure_date\" as \"a\"")
 	return query
 }
 
@@ -454,13 +454,13 @@ func (o *Metric) MeasureNumericsByFk(exec boil.Executor, mods ...qm.QueryMod) me
 	return query
 }
 
-// MeasureDatesG retrieves all the measure_date's measure date.
-func (o *Metric) MeasureDatesG(mods ...qm.QueryMod) measureDateQuery {
-	return o.MeasureDatesByFk(boil.GetDB(), mods...)
+// MeasureTextsG retrieves all the measure_text's measure text.
+func (o *Metric) MeasureTextsG(mods ...qm.QueryMod) measureTextQuery {
+	return o.MeasureTextsByFk(boil.GetDB(), mods...)
 }
 
-// MeasureDates retrieves all the measure_date's measure date with an executor.
-func (o *Metric) MeasureDatesByFk(exec boil.Executor, mods ...qm.QueryMod) measureDateQuery {
+// MeasureTexts retrieves all the measure_text's measure text with an executor.
+func (o *Metric) MeasureTextsByFk(exec boil.Executor, mods ...qm.QueryMod) measureTextQuery {
 	queryMods := []qm.QueryMod{
 		qm.Select("\"a\".*"),
 	}
@@ -473,8 +473,8 @@ func (o *Metric) MeasureDatesByFk(exec boil.Executor, mods ...qm.QueryMod) measu
 		qm.Where("\"a\".\"metric\"=?", o.ID),
 	)
 
-	query := MeasureDates(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"measure_date\" as \"a\"")
+	query := MeasureTexts(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"measure_text\" as \"a\"")
 	return query
 }
 
@@ -732,9 +732,9 @@ func (metricL) LoadRecords(e boil.Executor, singular bool, maybeMetric interface
 	return nil
 }
 
-// LoadMeasureTexts allows an eager lookup of values, cached into the
+// LoadMeasureDates allows an eager lookup of values, cached into the
 // loaded structs of the objects.
-func (metricL) LoadMeasureTexts(e boil.Executor, singular bool, maybeMetric interface{}) error {
+func (metricL) LoadMeasureDates(e boil.Executor, singular bool, maybeMetric interface{}) error {
 	var slice []*Metric
 	var object *Metric
 
@@ -762,7 +762,7 @@ func (metricL) LoadMeasureTexts(e boil.Executor, singular bool, maybeMetric inte
 	}
 
 	query := fmt.Sprintf(
-		"select * from \"measure_text\" where \"metric\" in (%s)",
+		"select * from \"measure_date\" where \"metric\" in (%s)",
 		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
 	)
 	if boil.DebugMode {
@@ -771,16 +771,16 @@ func (metricL) LoadMeasureTexts(e boil.Executor, singular bool, maybeMetric inte
 
 	results, err := e.Query(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "failed to eager load measure_text")
+		return errors.Wrap(err, "failed to eager load measure_date")
 	}
 	defer results.Close()
 
-	var resultSlice []*MeasureText
+	var resultSlice []*MeasureDate
 	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice measure_text")
+		return errors.Wrap(err, "failed to bind eager loaded slice measure_date")
 	}
 
-	if len(measureTextAfterSelectHooks) != 0 {
+	if len(measureDateAfterSelectHooks) != 0 {
 		for _, obj := range resultSlice {
 			if err := obj.doAfterSelectHooks(e); err != nil {
 				return err
@@ -788,14 +788,14 @@ func (metricL) LoadMeasureTexts(e boil.Executor, singular bool, maybeMetric inte
 		}
 	}
 	if singular {
-		object.R.MeasureTexts = resultSlice
+		object.R.MeasureDates = resultSlice
 		return nil
 	}
 
 	for _, foreign := range resultSlice {
 		for _, local := range slice {
 			if local.ID == foreign.Metric {
-				local.R.MeasureTexts = append(local.R.MeasureTexts, foreign)
+				local.R.MeasureDates = append(local.R.MeasureDates, foreign)
 				break
 			}
 		}
@@ -876,9 +876,9 @@ func (metricL) LoadMeasureNumerics(e boil.Executor, singular bool, maybeMetric i
 	return nil
 }
 
-// LoadMeasureDates allows an eager lookup of values, cached into the
+// LoadMeasureTexts allows an eager lookup of values, cached into the
 // loaded structs of the objects.
-func (metricL) LoadMeasureDates(e boil.Executor, singular bool, maybeMetric interface{}) error {
+func (metricL) LoadMeasureTexts(e boil.Executor, singular bool, maybeMetric interface{}) error {
 	var slice []*Metric
 	var object *Metric
 
@@ -906,7 +906,7 @@ func (metricL) LoadMeasureDates(e boil.Executor, singular bool, maybeMetric inte
 	}
 
 	query := fmt.Sprintf(
-		"select * from \"measure_date\" where \"metric\" in (%s)",
+		"select * from \"measure_text\" where \"metric\" in (%s)",
 		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
 	)
 	if boil.DebugMode {
@@ -915,16 +915,16 @@ func (metricL) LoadMeasureDates(e boil.Executor, singular bool, maybeMetric inte
 
 	results, err := e.Query(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "failed to eager load measure_date")
+		return errors.Wrap(err, "failed to eager load measure_text")
 	}
 	defer results.Close()
 
-	var resultSlice []*MeasureDate
+	var resultSlice []*MeasureText
 	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice measure_date")
+		return errors.Wrap(err, "failed to bind eager loaded slice measure_text")
 	}
 
-	if len(measureDateAfterSelectHooks) != 0 {
+	if len(measureTextAfterSelectHooks) != 0 {
 		for _, obj := range resultSlice {
 			if err := obj.doAfterSelectHooks(e); err != nil {
 				return err
@@ -932,14 +932,14 @@ func (metricL) LoadMeasureDates(e boil.Executor, singular bool, maybeMetric inte
 		}
 	}
 	if singular {
-		object.R.MeasureDates = resultSlice
+		object.R.MeasureTexts = resultSlice
 		return nil
 	}
 
 	for _, foreign := range resultSlice {
 		for _, local := range slice {
 			if local.ID == foreign.Metric {
-				local.R.MeasureDates = append(local.R.MeasureDates, foreign)
+				local.R.MeasureTexts = append(local.R.MeasureTexts, foreign)
 				break
 			}
 		}
@@ -1496,42 +1496,42 @@ func removeRecordsFromMetricsSlice(o *Metric, related []*Record) {
 	}
 }
 
-// AddMeasureTextsG adds the given related objects to the existing relationships
+// AddMeasureDatesG adds the given related objects to the existing relationships
 // of the metric, optionally inserting them as new records.
-// Appends related to o.R.MeasureTexts.
+// Appends related to o.R.MeasureDates.
 // Sets related.R.Metric appropriately.
 // Uses the global database handle.
-func (o *Metric) AddMeasureTextsG(insert bool, related ...*MeasureText) error {
-	return o.AddMeasureTexts(boil.GetDB(), insert, related...)
+func (o *Metric) AddMeasureDatesG(insert bool, related ...*MeasureDate) error {
+	return o.AddMeasureDates(boil.GetDB(), insert, related...)
 }
 
-// AddMeasureTextsP adds the given related objects to the existing relationships
+// AddMeasureDatesP adds the given related objects to the existing relationships
 // of the metric, optionally inserting them as new records.
-// Appends related to o.R.MeasureTexts.
+// Appends related to o.R.MeasureDates.
 // Sets related.R.Metric appropriately.
 // Panics on error.
-func (o *Metric) AddMeasureTextsP(exec boil.Executor, insert bool, related ...*MeasureText) {
-	if err := o.AddMeasureTexts(exec, insert, related...); err != nil {
+func (o *Metric) AddMeasureDatesP(exec boil.Executor, insert bool, related ...*MeasureDate) {
+	if err := o.AddMeasureDates(exec, insert, related...); err != nil {
 		panic(boil.WrapErr(err))
 	}
 }
 
-// AddMeasureTextsGP adds the given related objects to the existing relationships
+// AddMeasureDatesGP adds the given related objects to the existing relationships
 // of the metric, optionally inserting them as new records.
-// Appends related to o.R.MeasureTexts.
+// Appends related to o.R.MeasureDates.
 // Sets related.R.Metric appropriately.
 // Uses the global database handle and panics on error.
-func (o *Metric) AddMeasureTextsGP(insert bool, related ...*MeasureText) {
-	if err := o.AddMeasureTexts(boil.GetDB(), insert, related...); err != nil {
+func (o *Metric) AddMeasureDatesGP(insert bool, related ...*MeasureDate) {
+	if err := o.AddMeasureDates(boil.GetDB(), insert, related...); err != nil {
 		panic(boil.WrapErr(err))
 	}
 }
 
-// AddMeasureTexts adds the given related objects to the existing relationships
+// AddMeasureDates adds the given related objects to the existing relationships
 // of the metric, optionally inserting them as new records.
-// Appends related to o.R.MeasureTexts.
+// Appends related to o.R.MeasureDates.
 // Sets related.R.Metric appropriately.
-func (o *Metric) AddMeasureTexts(exec boil.Executor, insert bool, related ...*MeasureText) error {
+func (o *Metric) AddMeasureDates(exec boil.Executor, insert bool, related ...*MeasureDate) error {
 	var err error
 	for _, rel := range related {
 		if insert {
@@ -1541,9 +1541,9 @@ func (o *Metric) AddMeasureTexts(exec boil.Executor, insert bool, related ...*Me
 			}
 		} else {
 			updateQuery := fmt.Sprintf(
-				"UPDATE \"measure_text\" SET %s WHERE %s",
+				"UPDATE \"measure_date\" SET %s WHERE %s",
 				strmangle.SetParamNames("\"", "\"", 1, []string{"metric"}),
-				strmangle.WhereClause("\"", "\"", 2, measureTextPrimaryKeyColumns),
+				strmangle.WhereClause("\"", "\"", 2, measureDatePrimaryKeyColumns),
 			)
 			values := []interface{}{o.ID, rel.Record, rel.Metric}
 
@@ -1562,15 +1562,15 @@ func (o *Metric) AddMeasureTexts(exec boil.Executor, insert bool, related ...*Me
 
 	if o.R == nil {
 		o.R = &metricR{
-			MeasureTexts: related,
+			MeasureDates: related,
 		}
 	} else {
-		o.R.MeasureTexts = append(o.R.MeasureTexts, related...)
+		o.R.MeasureDates = append(o.R.MeasureDates, related...)
 	}
 
 	for _, rel := range related {
 		if rel.R == nil {
-			rel.R = &measureTextR{
+			rel.R = &measureDateR{
 				Metric: o,
 			}
 		} else {
@@ -1664,42 +1664,42 @@ func (o *Metric) AddMeasureNumerics(exec boil.Executor, insert bool, related ...
 	return nil
 }
 
-// AddMeasureDatesG adds the given related objects to the existing relationships
+// AddMeasureTextsG adds the given related objects to the existing relationships
 // of the metric, optionally inserting them as new records.
-// Appends related to o.R.MeasureDates.
+// Appends related to o.R.MeasureTexts.
 // Sets related.R.Metric appropriately.
 // Uses the global database handle.
-func (o *Metric) AddMeasureDatesG(insert bool, related ...*MeasureDate) error {
-	return o.AddMeasureDates(boil.GetDB(), insert, related...)
+func (o *Metric) AddMeasureTextsG(insert bool, related ...*MeasureText) error {
+	return o.AddMeasureTexts(boil.GetDB(), insert, related...)
 }
 
-// AddMeasureDatesP adds the given related objects to the existing relationships
+// AddMeasureTextsP adds the given related objects to the existing relationships
 // of the metric, optionally inserting them as new records.
-// Appends related to o.R.MeasureDates.
+// Appends related to o.R.MeasureTexts.
 // Sets related.R.Metric appropriately.
 // Panics on error.
-func (o *Metric) AddMeasureDatesP(exec boil.Executor, insert bool, related ...*MeasureDate) {
-	if err := o.AddMeasureDates(exec, insert, related...); err != nil {
+func (o *Metric) AddMeasureTextsP(exec boil.Executor, insert bool, related ...*MeasureText) {
+	if err := o.AddMeasureTexts(exec, insert, related...); err != nil {
 		panic(boil.WrapErr(err))
 	}
 }
 
-// AddMeasureDatesGP adds the given related objects to the existing relationships
+// AddMeasureTextsGP adds the given related objects to the existing relationships
 // of the metric, optionally inserting them as new records.
-// Appends related to o.R.MeasureDates.
+// Appends related to o.R.MeasureTexts.
 // Sets related.R.Metric appropriately.
 // Uses the global database handle and panics on error.
-func (o *Metric) AddMeasureDatesGP(insert bool, related ...*MeasureDate) {
-	if err := o.AddMeasureDates(boil.GetDB(), insert, related...); err != nil {
+func (o *Metric) AddMeasureTextsGP(insert bool, related ...*MeasureText) {
+	if err := o.AddMeasureTexts(boil.GetDB(), insert, related...); err != nil {
 		panic(boil.WrapErr(err))
 	}
 }
 
-// AddMeasureDates adds the given related objects to the existing relationships
+// AddMeasureTexts adds the given related objects to the existing relationships
 // of the metric, optionally inserting them as new records.
-// Appends related to o.R.MeasureDates.
+// Appends related to o.R.MeasureTexts.
 // Sets related.R.Metric appropriately.
-func (o *Metric) AddMeasureDates(exec boil.Executor, insert bool, related ...*MeasureDate) error {
+func (o *Metric) AddMeasureTexts(exec boil.Executor, insert bool, related ...*MeasureText) error {
 	var err error
 	for _, rel := range related {
 		if insert {
@@ -1709,9 +1709,9 @@ func (o *Metric) AddMeasureDates(exec boil.Executor, insert bool, related ...*Me
 			}
 		} else {
 			updateQuery := fmt.Sprintf(
-				"UPDATE \"measure_date\" SET %s WHERE %s",
+				"UPDATE \"measure_text\" SET %s WHERE %s",
 				strmangle.SetParamNames("\"", "\"", 1, []string{"metric"}),
-				strmangle.WhereClause("\"", "\"", 2, measureDatePrimaryKeyColumns),
+				strmangle.WhereClause("\"", "\"", 2, measureTextPrimaryKeyColumns),
 			)
 			values := []interface{}{o.ID, rel.Record, rel.Metric}
 
@@ -1730,15 +1730,15 @@ func (o *Metric) AddMeasureDates(exec boil.Executor, insert bool, related ...*Me
 
 	if o.R == nil {
 		o.R = &metricR{
-			MeasureDates: related,
+			MeasureTexts: related,
 		}
 	} else {
-		o.R.MeasureDates = append(o.R.MeasureDates, related...)
+		o.R.MeasureTexts = append(o.R.MeasureTexts, related...)
 	}
 
 	for _, rel := range related {
 		if rel.R == nil {
-			rel.R = &measureDateR{
+			rel.R = &measureTextR{
 				Metric: o,
 			}
 		} else {

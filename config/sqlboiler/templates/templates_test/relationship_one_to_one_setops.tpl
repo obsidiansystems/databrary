@@ -8,8 +8,7 @@
 {{- $foreignVarNameSingular := .ForeignTable | singular | camelCase -}}
 {{- $foreignPKeyCols := (getTable $dot.Tables .ForeignTable).PKey.Columns}}
 {{- $foreignTable := getTable $dot.Tables .ForeignTable -}}
-{{- $foreignHasCustom := $foreignTable.HasCustom -}}
-{{- $hasCustom := $dot.Table.HasCustom}}
+{{- $foreignHasCustom := $foreignTable.HasCustom}}
 func test{{$txt.LocalTable.NameGo}}OneToOneSetOp{{$txt.ForeignTable.NameGo}}Using{{$txt.Function.Name}}(t *testing.T) {
 	var err error
 

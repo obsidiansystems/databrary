@@ -36,8 +36,8 @@ type Authorize struct {
 
 // authorizeR is where relationships are stored.
 type authorizeR struct {
-	Parent *Party
 	Child  *Party
+	Parent *Party
 }
 
 // authorizeL is where Load methods for each relationship are stored.
@@ -328,25 +328,6 @@ func (q authorizeQuery) Exists() (bool, error) {
 	return count > 0, nil
 }
 
-// ParentG pointed to by the foreign key.
-func (o *Authorize) ParentG(mods ...qm.QueryMod) partyQuery {
-	return o.ParentByFk(boil.GetDB(), mods...)
-}
-
-// Parent pointed to by the foreign key.
-func (o *Authorize) ParentByFk(exec boil.Executor, mods ...qm.QueryMod) partyQuery {
-	queryMods := []qm.QueryMod{
-		qm.Where("id=?", o.Parent),
-	}
-
-	queryMods = append(queryMods, mods...)
-
-	query := Parties(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"party\"")
-
-	return query
-}
-
 // ChildG pointed to by the foreign key.
 func (o *Authorize) ChildG(mods ...qm.QueryMod) partyQuery {
 	return o.ChildByFk(boil.GetDB(), mods...)
@@ -366,82 +347,23 @@ func (o *Authorize) ChildByFk(exec boil.Executor, mods ...qm.QueryMod) partyQuer
 	return query
 }
 
-// LoadParent allows an eager lookup of values, cached into the
-// loaded structs of the objects.
-func (authorizeL) LoadParent(e boil.Executor, singular bool, maybeAuthorize interface{}) error {
-	var slice []*Authorize
-	var object *Authorize
+// ParentG pointed to by the foreign key.
+func (o *Authorize) ParentG(mods ...qm.QueryMod) partyQuery {
+	return o.ParentByFk(boil.GetDB(), mods...)
+}
 
-	count := 1
-	if singular {
-		object = maybeAuthorize.(*Authorize)
-	} else {
-		slice = *maybeAuthorize.(*AuthorizeSlice)
-		count = len(slice)
+// Parent pointed to by the foreign key.
+func (o *Authorize) ParentByFk(exec boil.Executor, mods ...qm.QueryMod) partyQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("id=?", o.Parent),
 	}
 
-	args := make([]interface{}, count)
-	if singular {
-		if object.R == nil {
-			object.R = &authorizeR{}
-		}
-		args[0] = object.Parent
-	} else {
-		for i, obj := range slice {
-			if obj.R == nil {
-				obj.R = &authorizeR{}
-			}
-			args[i] = obj.Parent
-		}
-	}
+	queryMods = append(queryMods, mods...)
 
-	query := fmt.Sprintf(
-		"select * from \"party\" where \"id\" in (%s)",
-		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
-	)
+	query := Parties(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"party\"")
 
-	if boil.DebugMode {
-		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
-	}
-
-	results, err := e.Query(query, args...)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load Party")
-	}
-	defer results.Close()
-
-	var resultSlice []*Party
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice Party")
-	}
-
-	if len(authorizeAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(e); err != nil {
-				return err
-			}
-		}
-	}
-
-	if len(resultSlice) == 0 {
-		return nil
-	}
-
-	if singular {
-		object.R.Parent = resultSlice[0]
-		return nil
-	}
-
-	for _, local := range slice {
-		for _, foreign := range resultSlice {
-			if local.Parent == foreign.ID {
-				local.R.Parent = foreign
-				break
-			}
-		}
-	}
-
-	return nil
+	return query
 }
 
 // LoadChild allows an eager lookup of values, cached into the
@@ -522,77 +444,79 @@ func (authorizeL) LoadChild(e boil.Executor, singular bool, maybeAuthorize inter
 	return nil
 }
 
-// SetParentG of the authorize to the related item.
-// Sets o.R.Parent to related.
-// Adds o to related.R.ParentAuthorizes.
-// Uses the global database handle.
-func (o *Authorize) SetParentG(insert bool, related *Party) error {
-	return o.SetParent(boil.GetDB(), insert, related)
-}
+// LoadParent allows an eager lookup of values, cached into the
+// loaded structs of the objects.
+func (authorizeL) LoadParent(e boil.Executor, singular bool, maybeAuthorize interface{}) error {
+	var slice []*Authorize
+	var object *Authorize
 
-// SetParentP of the authorize to the related item.
-// Sets o.R.Parent to related.
-// Adds o to related.R.ParentAuthorizes.
-// Panics on error.
-func (o *Authorize) SetParentP(exec boil.Executor, insert bool, related *Party) {
-	if err := o.SetParent(exec, insert, related); err != nil {
-		panic(boil.WrapErr(err))
+	count := 1
+	if singular {
+		object = maybeAuthorize.(*Authorize)
+	} else {
+		slice = *maybeAuthorize.(*AuthorizeSlice)
+		count = len(slice)
 	}
-}
 
-// SetParentGP of the authorize to the related item.
-// Sets o.R.Parent to related.
-// Adds o to related.R.ParentAuthorizes.
-// Uses the global database handle and panics on error.
-func (o *Authorize) SetParentGP(insert bool, related *Party) {
-	if err := o.SetParent(boil.GetDB(), insert, related); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// SetParent of the authorize to the related item.
-// Sets o.R.Parent to related.
-// Adds o to related.R.ParentAuthorizes.
-func (o *Authorize) SetParent(exec boil.Executor, insert bool, related *Party) error {
-	var err error
-	if insert {
-		if err = related.Insert(exec); err != nil {
-			return errors.Wrap(err, "failed to insert into foreign table")
+	args := make([]interface{}, count)
+	if singular {
+		if object.R == nil {
+			object.R = &authorizeR{}
+		}
+		args[0] = object.Parent
+	} else {
+		for i, obj := range slice {
+			if obj.R == nil {
+				obj.R = &authorizeR{}
+			}
+			args[i] = obj.Parent
 		}
 	}
 
-	updateQuery := fmt.Sprintf(
-		"UPDATE \"authorize\" SET %s WHERE %s",
-		strmangle.SetParamNames("\"", "\"", 1, []string{"parent"}),
-		strmangle.WhereClause("\"", "\"", 2, authorizePrimaryKeyColumns),
+	query := fmt.Sprintf(
+		"select * from \"party\" where \"id\" in (%s)",
+		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
 	)
-	values := []interface{}{related.ID, o.Child, o.Parent}
 
 	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, updateQuery)
-		fmt.Fprintln(boil.DebugWriter, values)
+		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
 	}
 
-	if _, err = exec.Exec(updateQuery, values...); err != nil {
-		return errors.Wrap(err, "failed to update local table")
+	results, err := e.Query(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load Party")
+	}
+	defer results.Close()
+
+	var resultSlice []*Party
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice Party")
 	}
 
-	o.Parent = related.ID
-
-	if o.R == nil {
-		o.R = &authorizeR{
-			Parent: related,
+	if len(authorizeAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(e); err != nil {
+				return err
+			}
 		}
-	} else {
-		o.R.Parent = related
 	}
 
-	if related.R == nil {
-		related.R = &partyR{
-			ParentAuthorizes: AuthorizeSlice{o},
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		object.R.Parent = resultSlice[0]
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if local.Parent == foreign.ID {
+				local.R.Parent = foreign
+				break
+			}
 		}
-	} else {
-		related.R.ParentAuthorizes = append(related.R.ParentAuthorizes, o)
 	}
 
 	return nil
@@ -669,6 +593,82 @@ func (o *Authorize) SetChild(exec boil.Executor, insert bool, related *Party) er
 		}
 	} else {
 		related.R.ChildAuthorizes = append(related.R.ChildAuthorizes, o)
+	}
+
+	return nil
+}
+
+// SetParentG of the authorize to the related item.
+// Sets o.R.Parent to related.
+// Adds o to related.R.ParentAuthorizes.
+// Uses the global database handle.
+func (o *Authorize) SetParentG(insert bool, related *Party) error {
+	return o.SetParent(boil.GetDB(), insert, related)
+}
+
+// SetParentP of the authorize to the related item.
+// Sets o.R.Parent to related.
+// Adds o to related.R.ParentAuthorizes.
+// Panics on error.
+func (o *Authorize) SetParentP(exec boil.Executor, insert bool, related *Party) {
+	if err := o.SetParent(exec, insert, related); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// SetParentGP of the authorize to the related item.
+// Sets o.R.Parent to related.
+// Adds o to related.R.ParentAuthorizes.
+// Uses the global database handle and panics on error.
+func (o *Authorize) SetParentGP(insert bool, related *Party) {
+	if err := o.SetParent(boil.GetDB(), insert, related); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// SetParent of the authorize to the related item.
+// Sets o.R.Parent to related.
+// Adds o to related.R.ParentAuthorizes.
+func (o *Authorize) SetParent(exec boil.Executor, insert bool, related *Party) error {
+	var err error
+	if insert {
+		if err = related.Insert(exec); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"authorize\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"parent"}),
+		strmangle.WhereClause("\"", "\"", 2, authorizePrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.Child, o.Parent}
+
+	if boil.DebugMode {
+		fmt.Fprintln(boil.DebugWriter, updateQuery)
+		fmt.Fprintln(boil.DebugWriter, values)
+	}
+
+	if _, err = exec.Exec(updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	o.Parent = related.ID
+
+	if o.R == nil {
+		o.R = &authorizeR{
+			Parent: related,
+		}
+	} else {
+		o.R.Parent = related
+	}
+
+	if related.R == nil {
+		related.R = &partyR{
+			ParentAuthorizes: AuthorizeSlice{o},
+		}
+	} else {
+		related.R.ParentAuthorizes = append(related.R.ParentAuthorizes, o)
 	}
 
 	return nil

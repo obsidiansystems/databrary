@@ -40,9 +40,9 @@ type Transcode struct {
 
 // transcodeR is where relationships are stored.
 type transcodeR struct {
+	Asset *Asset
 	Orig  *Asset
 	Owner *Account
-	Asset *Asset
 }
 
 // transcodeL is where Load methods for each relationship are stored.
@@ -333,6 +333,25 @@ func (q transcodeQuery) Exists() (bool, error) {
 	return count > 0, nil
 }
 
+// AssetG pointed to by the foreign key.
+func (o *Transcode) AssetG(mods ...qm.QueryMod) assetQuery {
+	return o.AssetByFk(boil.GetDB(), mods...)
+}
+
+// Asset pointed to by the foreign key.
+func (o *Transcode) AssetByFk(exec boil.Executor, mods ...qm.QueryMod) assetQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("id=?", o.Asset),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	query := Assets(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"asset\"")
+
+	return query
+}
+
 // OrigG pointed to by the foreign key.
 func (o *Transcode) OrigG(mods ...qm.QueryMod) assetQuery {
 	return o.OrigByFk(boil.GetDB(), mods...)
@@ -371,23 +390,82 @@ func (o *Transcode) OwnerByFk(exec boil.Executor, mods ...qm.QueryMod) accountQu
 	return query
 }
 
-// AssetG pointed to by the foreign key.
-func (o *Transcode) AssetG(mods ...qm.QueryMod) assetQuery {
-	return o.AssetByFk(boil.GetDB(), mods...)
-}
+// LoadAsset allows an eager lookup of values, cached into the
+// loaded structs of the objects.
+func (transcodeL) LoadAsset(e boil.Executor, singular bool, maybeTranscode interface{}) error {
+	var slice []*Transcode
+	var object *Transcode
 
-// Asset pointed to by the foreign key.
-func (o *Transcode) AssetByFk(exec boil.Executor, mods ...qm.QueryMod) assetQuery {
-	queryMods := []qm.QueryMod{
-		qm.Where("id=?", o.Asset),
+	count := 1
+	if singular {
+		object = maybeTranscode.(*Transcode)
+	} else {
+		slice = *maybeTranscode.(*TranscodeSlice)
+		count = len(slice)
 	}
 
-	queryMods = append(queryMods, mods...)
+	args := make([]interface{}, count)
+	if singular {
+		if object.R == nil {
+			object.R = &transcodeR{}
+		}
+		args[0] = object.Asset
+	} else {
+		for i, obj := range slice {
+			if obj.R == nil {
+				obj.R = &transcodeR{}
+			}
+			args[i] = obj.Asset
+		}
+	}
 
-	query := Assets(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"asset\"")
+	query := fmt.Sprintf(
+		"select * from \"asset\" where \"id\" in (%s)",
+		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
+	)
 
-	return query
+	if boil.DebugMode {
+		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
+	}
+
+	results, err := e.Query(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load Asset")
+	}
+	defer results.Close()
+
+	var resultSlice []*Asset
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice Asset")
+	}
+
+	if len(transcodeAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(e); err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		object.R.Asset = resultSlice[0]
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if local.Asset == foreign.ID {
+				local.R.Asset = foreign
+				break
+			}
+		}
+	}
+
+	return nil
 }
 
 // LoadOrig allows an eager lookup of values, cached into the
@@ -546,79 +624,77 @@ func (transcodeL) LoadOwner(e boil.Executor, singular bool, maybeTranscode inter
 	return nil
 }
 
-// LoadAsset allows an eager lookup of values, cached into the
-// loaded structs of the objects.
-func (transcodeL) LoadAsset(e boil.Executor, singular bool, maybeTranscode interface{}) error {
-	var slice []*Transcode
-	var object *Transcode
+// SetAssetG of the transcode to the related item.
+// Sets o.R.Asset to related.
+// Adds o to related.R.Transcode.
+// Uses the global database handle.
+func (o *Transcode) SetAssetG(insert bool, related *Asset) error {
+	return o.SetAsset(boil.GetDB(), insert, related)
+}
 
-	count := 1
-	if singular {
-		object = maybeTranscode.(*Transcode)
-	} else {
-		slice = *maybeTranscode.(*TranscodeSlice)
-		count = len(slice)
+// SetAssetP of the transcode to the related item.
+// Sets o.R.Asset to related.
+// Adds o to related.R.Transcode.
+// Panics on error.
+func (o *Transcode) SetAssetP(exec boil.Executor, insert bool, related *Asset) {
+	if err := o.SetAsset(exec, insert, related); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// SetAssetGP of the transcode to the related item.
+// Sets o.R.Asset to related.
+// Adds o to related.R.Transcode.
+// Uses the global database handle and panics on error.
+func (o *Transcode) SetAssetGP(insert bool, related *Asset) {
+	if err := o.SetAsset(boil.GetDB(), insert, related); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// SetAsset of the transcode to the related item.
+// Sets o.R.Asset to related.
+// Adds o to related.R.Transcode.
+func (o *Transcode) SetAsset(exec boil.Executor, insert bool, related *Asset) error {
+	var err error
+	if insert {
+		if err = related.Insert(exec); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
 	}
 
-	args := make([]interface{}, count)
-	if singular {
-		if object.R == nil {
-			object.R = &transcodeR{}
-		}
-		args[0] = object.Asset
-	} else {
-		for i, obj := range slice {
-			if obj.R == nil {
-				obj.R = &transcodeR{}
-			}
-			args[i] = obj.Asset
-		}
-	}
-
-	query := fmt.Sprintf(
-		"select * from \"asset\" where \"id\" in (%s)",
-		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"transcode\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"asset"}),
+		strmangle.WhereClause("\"", "\"", 2, transcodePrimaryKeyColumns),
 	)
+	values := []interface{}{related.ID, o.Asset}
 
 	if boil.DebugMode {
-		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
+		fmt.Fprintln(boil.DebugWriter, updateQuery)
+		fmt.Fprintln(boil.DebugWriter, values)
 	}
 
-	results, err := e.Query(query, args...)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load Asset")
-	}
-	defer results.Close()
-
-	var resultSlice []*Asset
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice Asset")
+	if _, err = exec.Exec(updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
 	}
 
-	if len(transcodeAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(e); err != nil {
-				return err
-			}
+	o.Asset = related.ID
+
+	if o.R == nil {
+		o.R = &transcodeR{
+			Asset: related,
 		}
+	} else {
+		o.R.Asset = related
 	}
 
-	if len(resultSlice) == 0 {
-		return nil
-	}
-
-	if singular {
-		object.R.Asset = resultSlice[0]
-		return nil
-	}
-
-	for _, local := range slice {
-		for _, foreign := range resultSlice {
-			if local.Asset == foreign.ID {
-				local.R.Asset = foreign
-				break
-			}
+	if related.R == nil {
+		related.R = &assetR{
+			Transcode: o,
 		}
+	} else {
+		related.R.Transcode = o
 	}
 
 	return nil
@@ -771,82 +847,6 @@ func (o *Transcode) SetOwner(exec boil.Executor, insert bool, related *Account) 
 		}
 	} else {
 		related.R.OwnerTranscodes = append(related.R.OwnerTranscodes, o)
-	}
-
-	return nil
-}
-
-// SetAssetG of the transcode to the related item.
-// Sets o.R.Asset to related.
-// Adds o to related.R.Transcode.
-// Uses the global database handle.
-func (o *Transcode) SetAssetG(insert bool, related *Asset) error {
-	return o.SetAsset(boil.GetDB(), insert, related)
-}
-
-// SetAssetP of the transcode to the related item.
-// Sets o.R.Asset to related.
-// Adds o to related.R.Transcode.
-// Panics on error.
-func (o *Transcode) SetAssetP(exec boil.Executor, insert bool, related *Asset) {
-	if err := o.SetAsset(exec, insert, related); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// SetAssetGP of the transcode to the related item.
-// Sets o.R.Asset to related.
-// Adds o to related.R.Transcode.
-// Uses the global database handle and panics on error.
-func (o *Transcode) SetAssetGP(insert bool, related *Asset) {
-	if err := o.SetAsset(boil.GetDB(), insert, related); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// SetAsset of the transcode to the related item.
-// Sets o.R.Asset to related.
-// Adds o to related.R.Transcode.
-func (o *Transcode) SetAsset(exec boil.Executor, insert bool, related *Asset) error {
-	var err error
-	if insert {
-		if err = related.Insert(exec); err != nil {
-			return errors.Wrap(err, "failed to insert into foreign table")
-		}
-	}
-
-	updateQuery := fmt.Sprintf(
-		"UPDATE \"transcode\" SET %s WHERE %s",
-		strmangle.SetParamNames("\"", "\"", 1, []string{"asset"}),
-		strmangle.WhereClause("\"", "\"", 2, transcodePrimaryKeyColumns),
-	)
-	values := []interface{}{related.ID, o.Asset}
-
-	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, updateQuery)
-		fmt.Fprintln(boil.DebugWriter, values)
-	}
-
-	if _, err = exec.Exec(updateQuery, values...); err != nil {
-		return errors.Wrap(err, "failed to update local table")
-	}
-
-	o.Asset = related.ID
-
-	if o.R == nil {
-		o.R = &transcodeR{
-			Asset: related,
-		}
-	} else {
-		o.R.Asset = related
-	}
-
-	if related.R == nil {
-		related.R = &assetR{
-			Transcode: o,
-		}
-	} else {
-		related.R.Transcode = o
 	}
 
 	return nil

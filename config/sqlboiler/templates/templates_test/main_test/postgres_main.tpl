@@ -48,9 +48,14 @@ func (p *pgTester) setup() error {
   createCmd := exec.Command("psql", p.testDBName)
   createCmd.Env = append(os.Environ(), p.pgEnv()...)
 
-  r, w := io.Pipe()
-  dumpCmd.Stdout = w
-  createCmd.Stdin = newFKeyDestroyer(rgxPGFkey, r)
+	r, w := io.Pipe()
+	dumpCmd.Stdout = w
+	fkDestroyer := newFKeyDestroyer(rgxPGFkey, r)
+	//conDestroyer := newFKeyDestroyer(rgxPGConEx, fkDestroyer)
+	trigDestroyer := newFKeyDestroyer(rgxPGTrig, fkDestroyer)
+	deferDestroyer := newFKeyDestroyer(rgxPGDefer, trigDestroyer)
+	checkReplacer := newConReplacer(rgxPGConstraint, deferDestroyer)
+	createCmd.Stdin = checkReplacer
 
   if err = dumpCmd.Start(); err != nil {
     return errors.Wrap(err, "failed to start pg_dump command")

@@ -9,10 +9,10 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/vattle/sqlboiler/boil"
 	"github.com/vattle/sqlboiler/randomize"
 	"github.com/vattle/sqlboiler/strmangle"
-	"github.com/databrary/databrary/db/models/custom_types"
 )
 
 func testContainers(t *testing.T) {
@@ -466,245 +466,6 @@ func testContainersInsertWhitelist(t *testing.T) {
 	}
 }
 
-func testContainerToManySlotReleases(t *testing.T) {
-	var err error
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var a Container
-	var b, c SlotRelease
-
-	foreignBlacklist := slotReleaseColumnsWithDefault
-	foreignBlacklist = append(foreignBlacklist, slotReleaseColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &b, slotReleaseDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize SlotRelease struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &c, slotReleaseDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize SlotRelease struct: %s", err)
-	}
-	b.Segment = custom_types.SegmentRandom()
-	c.Segment = custom_types.SegmentRandom()
-	b.Release = custom_types.ReleaseRandom()
-	c.Release = custom_types.ReleaseRandom()
-
-	localBlacklist := containerColumnsWithDefault
-	if err := randomize.Struct(seed, &a, containerDBTypes, false, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Container struct: %s", err)
-	}
-
-	b.Container = a.ID
-	c.Container = a.ID
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	slotRelease, err := a.SlotReleasesByFk(tx).All()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	bFound, cFound := false, false
-	for _, v := range slotRelease {
-		if v.Container == b.Container {
-			bFound = true
-		}
-		if v.Container == c.Container {
-			cFound = true
-		}
-	}
-
-	if !bFound {
-		t.Error("expected to find b")
-	}
-	if !cFound {
-		t.Error("expected to find c")
-	}
-
-	slice := ContainerSlice{&a}
-	if err = a.L.LoadSlotReleases(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.SlotReleases); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	a.R.SlotReleases = nil
-	if err = a.L.LoadSlotReleases(tx, true, &a); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.SlotReleases); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	if t.Failed() {
-		t.Logf("%#v", slotRelease)
-	}
-}
-
-func testContainerToManyVolumeInclusions(t *testing.T) {
-	var err error
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var a Container
-	var b, c VolumeInclusion
-
-	foreignBlacklist := volumeInclusionColumnsWithDefault
-	foreignBlacklist = append(foreignBlacklist, volumeInclusionColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &b, volumeInclusionDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize VolumeInclusion struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &c, volumeInclusionDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize VolumeInclusion struct: %s", err)
-	}
-	b.Segment = custom_types.SegmentRandom()
-	c.Segment = custom_types.SegmentRandom()
-
-	localBlacklist := containerColumnsWithDefault
-	if err := randomize.Struct(seed, &a, containerDBTypes, false, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Container struct: %s", err)
-	}
-
-	b.Container = a.ID
-	c.Container = a.ID
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	volumeInclusion, err := a.VolumeInclusionsByFk(tx).All()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	bFound, cFound := false, false
-	for _, v := range volumeInclusion {
-		if v.Container == b.Container {
-			bFound = true
-		}
-		if v.Container == c.Container {
-			cFound = true
-		}
-	}
-
-	if !bFound {
-		t.Error("expected to find b")
-	}
-	if !cFound {
-		t.Error("expected to find c")
-	}
-
-	slice := ContainerSlice{&a}
-	if err = a.L.LoadVolumeInclusions(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.VolumeInclusions); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	a.R.VolumeInclusions = nil
-	if err = a.L.LoadVolumeInclusions(tx, true, &a); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.VolumeInclusions); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	if t.Failed() {
-		t.Logf("%#v", volumeInclusion)
-	}
-}
-
-func testContainerToManySlotAssets(t *testing.T) {
-	var err error
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var a Container
-	var b, c SlotAsset
-
-	foreignBlacklist := slotAssetColumnsWithDefault
-	foreignBlacklist = append(foreignBlacklist, slotAssetColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &b, slotAssetDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize SlotAsset struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &c, slotAssetDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize SlotAsset struct: %s", err)
-	}
-	b.Segment = custom_types.SegmentRandom()
-	c.Segment = custom_types.SegmentRandom()
-
-	localBlacklist := containerColumnsWithDefault
-	if err := randomize.Struct(seed, &a, containerDBTypes, false, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Container struct: %s", err)
-	}
-
-	b.Container = a.ID
-	c.Container = a.ID
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	slotAsset, err := a.SlotAssetsByFk(tx).All()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	bFound, cFound := false, false
-	for _, v := range slotAsset {
-		if v.Container == b.Container {
-			bFound = true
-		}
-		if v.Container == c.Container {
-			cFound = true
-		}
-	}
-
-	if !bFound {
-		t.Error("expected to find b")
-	}
-	if !cFound {
-		t.Error("expected to find c")
-	}
-
-	slice := ContainerSlice{&a}
-	if err = a.L.LoadSlotAssets(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.SlotAssets); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	a.R.SlotAssets = nil
-	if err = a.L.LoadSlotAssets(tx, true, &a); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.SlotAssets); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	if t.Failed() {
-		t.Logf("%#v", slotAsset)
-	}
-}
-
 func testContainerToManyTagUses(t *testing.T) {
 	var err error
 	tx := MustTx(boil.Begin())
@@ -781,164 +542,6 @@ func testContainerToManyTagUses(t *testing.T) {
 
 	if t.Failed() {
 		t.Logf("%#v", tagUse)
-	}
-}
-
-func testContainerToManySlotRecords(t *testing.T) {
-	var err error
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var a Container
-	var b, c SlotRecord
-
-	foreignBlacklist := slotRecordColumnsWithDefault
-	foreignBlacklist = append(foreignBlacklist, slotRecordColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &b, slotRecordDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &c, slotRecordDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
-	}
-	b.Segment = custom_types.SegmentRandom()
-	c.Segment = custom_types.SegmentRandom()
-
-	localBlacklist := containerColumnsWithDefault
-	if err := randomize.Struct(seed, &a, containerDBTypes, false, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Container struct: %s", err)
-	}
-
-	b.Container = a.ID
-	c.Container = a.ID
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	slotRecord, err := a.SlotRecordsByFk(tx).All()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	bFound, cFound := false, false
-	for _, v := range slotRecord {
-		if v.Container == b.Container {
-			bFound = true
-		}
-		if v.Container == c.Container {
-			cFound = true
-		}
-	}
-
-	if !bFound {
-		t.Error("expected to find b")
-	}
-	if !cFound {
-		t.Error("expected to find c")
-	}
-
-	slice := ContainerSlice{&a}
-	if err = a.L.LoadSlotRecords(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.SlotRecords); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	a.R.SlotRecords = nil
-	if err = a.L.LoadSlotRecords(tx, true, &a); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.SlotRecords); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	if t.Failed() {
-		t.Logf("%#v", slotRecord)
-	}
-}
-
-func testContainerToManyComments(t *testing.T) {
-	var err error
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var a Container
-	var b, c Comment
-
-	foreignBlacklist := commentColumnsWithDefault
-	foreignBlacklist = append(foreignBlacklist, commentColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &b, commentDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &c, commentDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Comment struct: %s", err)
-	}
-	b.Segment = custom_types.SegmentRandom()
-	c.Segment = custom_types.SegmentRandom()
-
-	localBlacklist := containerColumnsWithDefault
-	if err := randomize.Struct(seed, &a, containerDBTypes, false, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Container struct: %s", err)
-	}
-
-	b.Container = a.ID
-	c.Container = a.ID
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	comment, err := a.CommentsByFk(tx).All()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	bFound, cFound := false, false
-	for _, v := range comment {
-		if v.Container == b.Container {
-			bFound = true
-		}
-		if v.Container == c.Container {
-			cFound = true
-		}
-	}
-
-	if !bFound {
-		t.Error("expected to find b")
-	}
-	if !cFound {
-		t.Error("expected to find c")
-	}
-
-	slice := ContainerSlice{&a}
-	if err = a.L.LoadComments(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.Comments); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	a.R.Comments = nil
-	if err = a.L.LoadComments(tx, true, &a); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.Comments); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	if t.Failed() {
-		t.Logf("%#v", comment)
 	}
 }
 
@@ -1029,37 +632,37 @@ func testContainerToManyNotifications(t *testing.T) {
 	}
 }
 
-func testContainerToManyAddOpSlotReleases(t *testing.T) {
+func testContainerToManySlotReleases(t *testing.T) {
 	var err error
-
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
 
-	var a Container
-	var b, c, d, e SlotRelease
-
 	seed := randomize.NewSeed()
-	localComplelementList := strmangle.SetComplement(containerPrimaryKeyColumns, containerColumnsWithoutDefault)
-	if err = randomize.Struct(seed, &a, containerDBTypes, false, localComplelementList...); err != nil {
-		t.Fatal(err)
+
+	var a Container
+	var b, c SlotRelease
+
+	foreignBlacklist := slotReleaseColumnsWithDefault
+	foreignBlacklist = append(foreignBlacklist, slotReleaseColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &b, slotReleaseDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize SlotRelease struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, slotReleaseDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize SlotRelease struct: %s", err)
+	}
+	b.Segment = custom_types.SegmentRandom()
+	c.Segment = custom_types.SegmentRandom()
+	b.Release = custom_types.ReleaseRandom()
+	c.Release = custom_types.ReleaseRandom()
+
+	localBlacklist := containerColumnsWithDefault
+	if err := randomize.Struct(seed, &a, containerDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Container struct: %s", err)
 	}
 
-	foreignComplementList := strmangle.SetComplement(slotReleasePrimaryKeyColumns, slotReleaseColumnsWithoutDefault)
-	foreignComplementList = append(foreignComplementList, slotReleaseColumnsWithCustom...)
-
-	foreigners := []*SlotRelease{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, slotReleaseDBTypes, false, foreignComplementList...); err != nil {
-			t.Fatal(err)
-		}
-		x.Segment = custom_types.SegmentRandom()
-		x.Release = custom_types.ReleaseRandom()
-
-	}
-
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
+	b.Container = a.ID
+	c.Container = a.ID
 	if err = b.Insert(tx); err != nil {
 		t.Fatal(err)
 	}
@@ -1067,80 +670,78 @@ func testContainerToManyAddOpSlotReleases(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	foreignersSplitByInsertion := [][]*SlotRelease{
-		{&b, &c},
-		{&d, &e},
+	slotRelease, err := a.SlotReleasesByFk(tx).All()
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	for i, x := range foreignersSplitByInsertion {
-		err = a.AddSlotReleases(tx, i != 0, x...)
-		if err != nil {
-			t.Fatal(err)
+	bFound, cFound := false, false
+	for _, v := range slotRelease {
+		if v.Container == b.Container {
+			bFound = true
 		}
+		if v.Container == c.Container {
+			cFound = true
+		}
+	}
 
-		first := x[0]
-		second := x[1]
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
 
-		if a.ID != first.Container {
-			t.Error("foreign key was wrong value", a.ID, first.Container)
-		}
-		if a.ID != second.Container {
-			t.Error("foreign key was wrong value", a.ID, second.Container)
-		}
+	slice := ContainerSlice{&a}
+	if err = a.L.LoadSlotReleases(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.SlotReleases); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
 
-		if first.R.Container != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-		if second.R.Container != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
+	a.R.SlotReleases = nil
+	if err = a.L.LoadSlotReleases(tx, true, &a); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.SlotReleases); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
 
-		if a.R.SlotReleases[i*2] != first {
-			t.Error("relationship struct slice not set to correct value")
-		}
-		if a.R.SlotReleases[i*2+1] != second {
-			t.Error("relationship struct slice not set to correct value")
-		}
-
-		count, err := a.SlotReleasesByFk(tx).Count()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if want := int64((i + 1) * 2); count != want {
-			t.Error("want", want, "got", count)
-		}
+	if t.Failed() {
+		t.Logf("%#v", slotRelease)
 	}
 }
-func testContainerToManyAddOpVolumeInclusions(t *testing.T) {
-	var err error
 
+func testContainerToManySlotAssets(t *testing.T) {
+	var err error
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
 
-	var a Container
-	var b, c, d, e VolumeInclusion
-
 	seed := randomize.NewSeed()
-	localComplelementList := strmangle.SetComplement(containerPrimaryKeyColumns, containerColumnsWithoutDefault)
-	if err = randomize.Struct(seed, &a, containerDBTypes, false, localComplelementList...); err != nil {
-		t.Fatal(err)
+
+	var a Container
+	var b, c SlotAsset
+
+	foreignBlacklist := slotAssetColumnsWithDefault
+	foreignBlacklist = append(foreignBlacklist, slotAssetColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &b, slotAssetDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize SlotAsset struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, slotAssetDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize SlotAsset struct: %s", err)
+	}
+	b.Segment = custom_types.SegmentRandom()
+	c.Segment = custom_types.SegmentRandom()
+
+	localBlacklist := containerColumnsWithDefault
+	if err := randomize.Struct(seed, &a, containerDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Container struct: %s", err)
 	}
 
-	foreignComplementList := strmangle.SetComplement(volumeInclusionPrimaryKeyColumns, volumeInclusionColumnsWithoutDefault)
-	foreignComplementList = append(foreignComplementList, volumeInclusionColumnsWithCustom...)
-
-	foreigners := []*VolumeInclusion{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, volumeInclusionDBTypes, false, foreignComplementList...); err != nil {
-			t.Fatal(err)
-		}
-		x.Segment = custom_types.SegmentRandom()
-
-	}
-
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
+	b.Container = a.ID
+	c.Container = a.ID
 	if err = b.Insert(tx); err != nil {
 		t.Fatal(err)
 	}
@@ -1148,80 +749,78 @@ func testContainerToManyAddOpVolumeInclusions(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	foreignersSplitByInsertion := [][]*VolumeInclusion{
-		{&b, &c},
-		{&d, &e},
+	slotAsset, err := a.SlotAssetsByFk(tx).All()
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	for i, x := range foreignersSplitByInsertion {
-		err = a.AddVolumeInclusions(tx, i != 0, x...)
-		if err != nil {
-			t.Fatal(err)
+	bFound, cFound := false, false
+	for _, v := range slotAsset {
+		if v.Container == b.Container {
+			bFound = true
 		}
+		if v.Container == c.Container {
+			cFound = true
+		}
+	}
 
-		first := x[0]
-		second := x[1]
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
 
-		if a.ID != first.Container {
-			t.Error("foreign key was wrong value", a.ID, first.Container)
-		}
-		if a.ID != second.Container {
-			t.Error("foreign key was wrong value", a.ID, second.Container)
-		}
+	slice := ContainerSlice{&a}
+	if err = a.L.LoadSlotAssets(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.SlotAssets); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
 
-		if first.R.Container != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-		if second.R.Container != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
+	a.R.SlotAssets = nil
+	if err = a.L.LoadSlotAssets(tx, true, &a); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.SlotAssets); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
 
-		if a.R.VolumeInclusions[i*2] != first {
-			t.Error("relationship struct slice not set to correct value")
-		}
-		if a.R.VolumeInclusions[i*2+1] != second {
-			t.Error("relationship struct slice not set to correct value")
-		}
-
-		count, err := a.VolumeInclusionsByFk(tx).Count()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if want := int64((i + 1) * 2); count != want {
-			t.Error("want", want, "got", count)
-		}
+	if t.Failed() {
+		t.Logf("%#v", slotAsset)
 	}
 }
-func testContainerToManyAddOpSlotAssets(t *testing.T) {
-	var err error
 
+func testContainerToManySlotRecords(t *testing.T) {
+	var err error
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
 
-	var a Container
-	var b, c, d, e SlotAsset
-
 	seed := randomize.NewSeed()
-	localComplelementList := strmangle.SetComplement(containerPrimaryKeyColumns, containerColumnsWithoutDefault)
-	if err = randomize.Struct(seed, &a, containerDBTypes, false, localComplelementList...); err != nil {
-		t.Fatal(err)
+
+	var a Container
+	var b, c SlotRecord
+
+	foreignBlacklist := slotRecordColumnsWithDefault
+	foreignBlacklist = append(foreignBlacklist, slotRecordColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &b, slotRecordDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, slotRecordDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
+	}
+	b.Segment = custom_types.SegmentRandom()
+	c.Segment = custom_types.SegmentRandom()
+
+	localBlacklist := containerColumnsWithDefault
+	if err := randomize.Struct(seed, &a, containerDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Container struct: %s", err)
 	}
 
-	foreignComplementList := strmangle.SetComplement(slotAssetPrimaryKeyColumns, slotAssetColumnsWithoutDefault)
-	foreignComplementList = append(foreignComplementList, slotAssetColumnsWithCustom...)
-
-	foreigners := []*SlotAsset{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, slotAssetDBTypes, false, foreignComplementList...); err != nil {
-			t.Fatal(err)
-		}
-		x.Segment = custom_types.SegmentRandom()
-
-	}
-
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
+	b.Container = a.ID
+	c.Container = a.ID
 	if err = b.Insert(tx); err != nil {
 		t.Fatal(err)
 	}
@@ -1229,50 +828,207 @@ func testContainerToManyAddOpSlotAssets(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	foreignersSplitByInsertion := [][]*SlotAsset{
-		{&b, &c},
-		{&d, &e},
+	slotRecord, err := a.SlotRecordsByFk(tx).All()
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	for i, x := range foreignersSplitByInsertion {
-		err = a.AddSlotAssets(tx, i != 0, x...)
-		if err != nil {
-			t.Fatal(err)
+	bFound, cFound := false, false
+	for _, v := range slotRecord {
+		if v.Container == b.Container {
+			bFound = true
 		}
+		if v.Container == c.Container {
+			cFound = true
+		}
+	}
 
-		first := x[0]
-		second := x[1]
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
 
-		if a.ID != first.Container {
-			t.Error("foreign key was wrong value", a.ID, first.Container)
-		}
-		if a.ID != second.Container {
-			t.Error("foreign key was wrong value", a.ID, second.Container)
-		}
+	slice := ContainerSlice{&a}
+	if err = a.L.LoadSlotRecords(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.SlotRecords); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
 
-		if first.R.Container != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-		if second.R.Container != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
+	a.R.SlotRecords = nil
+	if err = a.L.LoadSlotRecords(tx, true, &a); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.SlotRecords); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
 
-		if a.R.SlotAssets[i*2] != first {
-			t.Error("relationship struct slice not set to correct value")
-		}
-		if a.R.SlotAssets[i*2+1] != second {
-			t.Error("relationship struct slice not set to correct value")
-		}
-
-		count, err := a.SlotAssetsByFk(tx).Count()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if want := int64((i + 1) * 2); count != want {
-			t.Error("want", want, "got", count)
-		}
+	if t.Failed() {
+		t.Logf("%#v", slotRecord)
 	}
 }
+
+func testContainerToManyVolumeInclusions(t *testing.T) {
+	var err error
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var a Container
+	var b, c VolumeInclusion
+
+	foreignBlacklist := volumeInclusionColumnsWithDefault
+	foreignBlacklist = append(foreignBlacklist, volumeInclusionColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &b, volumeInclusionDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize VolumeInclusion struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, volumeInclusionDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize VolumeInclusion struct: %s", err)
+	}
+	b.Segment = custom_types.SegmentRandom()
+	c.Segment = custom_types.SegmentRandom()
+
+	localBlacklist := containerColumnsWithDefault
+	if err := randomize.Struct(seed, &a, containerDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Container struct: %s", err)
+	}
+
+	b.Container = a.ID
+	c.Container = a.ID
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	volumeInclusion, err := a.VolumeInclusionsByFk(tx).All()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range volumeInclusion {
+		if v.Container == b.Container {
+			bFound = true
+		}
+		if v.Container == c.Container {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := ContainerSlice{&a}
+	if err = a.L.LoadVolumeInclusions(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.VolumeInclusions); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.VolumeInclusions = nil
+	if err = a.L.LoadVolumeInclusions(tx, true, &a); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.VolumeInclusions); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", volumeInclusion)
+	}
+}
+
+func testContainerToManyComments(t *testing.T) {
+	var err error
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var a Container
+	var b, c Comment
+
+	foreignBlacklist := commentColumnsWithDefault
+	foreignBlacklist = append(foreignBlacklist, commentColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &b, commentDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Comment struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, commentDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Comment struct: %s", err)
+	}
+	b.Segment = custom_types.SegmentRandom()
+	c.Segment = custom_types.SegmentRandom()
+
+	localBlacklist := containerColumnsWithDefault
+	if err := randomize.Struct(seed, &a, containerDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Container struct: %s", err)
+	}
+
+	b.Container = a.ID
+	c.Container = a.ID
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	comment, err := a.CommentsByFk(tx).All()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range comment {
+		if v.Container == b.Container {
+			bFound = true
+		}
+		if v.Container == c.Container {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := ContainerSlice{&a}
+	if err = a.L.LoadComments(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.Comments); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.Comments = nil
+	if err = a.L.LoadComments(tx, true, &a); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.Comments); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", comment)
+	}
+}
+
 func testContainerToManyAddOpTagUses(t *testing.T) {
 	var err error
 
@@ -1346,168 +1102,6 @@ func testContainerToManyAddOpTagUses(t *testing.T) {
 		}
 
 		count, err := a.TagUsesByFk(tx).Count()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if want := int64((i + 1) * 2); count != want {
-			t.Error("want", want, "got", count)
-		}
-	}
-}
-func testContainerToManyAddOpSlotRecords(t *testing.T) {
-	var err error
-
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	var a Container
-	var b, c, d, e SlotRecord
-
-	seed := randomize.NewSeed()
-	localComplelementList := strmangle.SetComplement(containerPrimaryKeyColumns, containerColumnsWithoutDefault)
-	if err = randomize.Struct(seed, &a, containerDBTypes, false, localComplelementList...); err != nil {
-		t.Fatal(err)
-	}
-
-	foreignComplementList := strmangle.SetComplement(slotRecordPrimaryKeyColumns, slotRecordColumnsWithoutDefault)
-	foreignComplementList = append(foreignComplementList, slotRecordColumnsWithCustom...)
-
-	foreigners := []*SlotRecord{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, slotRecordDBTypes, false, foreignComplementList...); err != nil {
-			t.Fatal(err)
-		}
-		x.Segment = custom_types.SegmentRandom()
-
-	}
-
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	foreignersSplitByInsertion := [][]*SlotRecord{
-		{&b, &c},
-		{&d, &e},
-	}
-
-	for i, x := range foreignersSplitByInsertion {
-		err = a.AddSlotRecords(tx, i != 0, x...)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		first := x[0]
-		second := x[1]
-
-		if a.ID != first.Container {
-			t.Error("foreign key was wrong value", a.ID, first.Container)
-		}
-		if a.ID != second.Container {
-			t.Error("foreign key was wrong value", a.ID, second.Container)
-		}
-
-		if first.R.Container != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-		if second.R.Container != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-
-		if a.R.SlotRecords[i*2] != first {
-			t.Error("relationship struct slice not set to correct value")
-		}
-		if a.R.SlotRecords[i*2+1] != second {
-			t.Error("relationship struct slice not set to correct value")
-		}
-
-		count, err := a.SlotRecordsByFk(tx).Count()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if want := int64((i + 1) * 2); count != want {
-			t.Error("want", want, "got", count)
-		}
-	}
-}
-func testContainerToManyAddOpComments(t *testing.T) {
-	var err error
-
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	var a Container
-	var b, c, d, e Comment
-
-	seed := randomize.NewSeed()
-	localComplelementList := strmangle.SetComplement(containerPrimaryKeyColumns, containerColumnsWithoutDefault)
-	if err = randomize.Struct(seed, &a, containerDBTypes, false, localComplelementList...); err != nil {
-		t.Fatal(err)
-	}
-
-	foreignComplementList := strmangle.SetComplement(commentPrimaryKeyColumns, commentColumnsWithoutDefault)
-	foreignComplementList = append(foreignComplementList, commentColumnsWithCustom...)
-
-	foreigners := []*Comment{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, commentDBTypes, false, foreignComplementList...); err != nil {
-			t.Fatal(err)
-		}
-		x.Segment = custom_types.SegmentRandom()
-
-	}
-
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	foreignersSplitByInsertion := [][]*Comment{
-		{&b, &c},
-		{&d, &e},
-	}
-
-	for i, x := range foreignersSplitByInsertion {
-		err = a.AddComments(tx, i != 0, x...)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		first := x[0]
-		second := x[1]
-
-		if a.ID != first.Container {
-			t.Error("foreign key was wrong value", a.ID, first.Container)
-		}
-		if a.ID != second.Container {
-			t.Error("foreign key was wrong value", a.ID, second.Container)
-		}
-
-		if first.R.Container != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-		if second.R.Container != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-
-		if a.R.Comments[i*2] != first {
-			t.Error("relationship struct slice not set to correct value")
-		}
-		if a.R.Comments[i*2+1] != second {
-			t.Error("relationship struct slice not set to correct value")
-		}
-
-		count, err := a.CommentsByFk(tx).Count()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1794,6 +1388,412 @@ func testContainerToManyRemoveOpNotifications(t *testing.T) {
 	}
 }
 
+func testContainerToManyAddOpSlotReleases(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	var a Container
+	var b, c, d, e SlotRelease
+
+	seed := randomize.NewSeed()
+	localComplelementList := strmangle.SetComplement(containerPrimaryKeyColumns, containerColumnsWithoutDefault)
+	if err = randomize.Struct(seed, &a, containerDBTypes, false, localComplelementList...); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignComplementList := strmangle.SetComplement(slotReleasePrimaryKeyColumns, slotReleaseColumnsWithoutDefault)
+	foreignComplementList = append(foreignComplementList, slotReleaseColumnsWithCustom...)
+
+	foreigners := []*SlotRelease{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, slotReleaseDBTypes, false, foreignComplementList...); err != nil {
+			t.Fatal(err)
+		}
+		x.Segment = custom_types.SegmentRandom()
+		x.Release = custom_types.ReleaseRandom()
+
+	}
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*SlotRelease{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddSlotReleases(tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.Container {
+			t.Error("foreign key was wrong value", a.ID, first.Container)
+		}
+		if a.ID != second.Container {
+			t.Error("foreign key was wrong value", a.ID, second.Container)
+		}
+
+		if first.R.Container != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Container != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.SlotReleases[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.SlotReleases[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.SlotReleasesByFk(tx).Count()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+func testContainerToManyAddOpSlotAssets(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	var a Container
+	var b, c, d, e SlotAsset
+
+	seed := randomize.NewSeed()
+	localComplelementList := strmangle.SetComplement(containerPrimaryKeyColumns, containerColumnsWithoutDefault)
+	if err = randomize.Struct(seed, &a, containerDBTypes, false, localComplelementList...); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignComplementList := strmangle.SetComplement(slotAssetPrimaryKeyColumns, slotAssetColumnsWithoutDefault)
+	foreignComplementList = append(foreignComplementList, slotAssetColumnsWithCustom...)
+
+	foreigners := []*SlotAsset{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, slotAssetDBTypes, false, foreignComplementList...); err != nil {
+			t.Fatal(err)
+		}
+		x.Segment = custom_types.SegmentRandom()
+
+	}
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*SlotAsset{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddSlotAssets(tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.Container {
+			t.Error("foreign key was wrong value", a.ID, first.Container)
+		}
+		if a.ID != second.Container {
+			t.Error("foreign key was wrong value", a.ID, second.Container)
+		}
+
+		if first.R.Container != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Container != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.SlotAssets[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.SlotAssets[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.SlotAssetsByFk(tx).Count()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+func testContainerToManyAddOpSlotRecords(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	var a Container
+	var b, c, d, e SlotRecord
+
+	seed := randomize.NewSeed()
+	localComplelementList := strmangle.SetComplement(containerPrimaryKeyColumns, containerColumnsWithoutDefault)
+	if err = randomize.Struct(seed, &a, containerDBTypes, false, localComplelementList...); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignComplementList := strmangle.SetComplement(slotRecordPrimaryKeyColumns, slotRecordColumnsWithoutDefault)
+	foreignComplementList = append(foreignComplementList, slotRecordColumnsWithCustom...)
+
+	foreigners := []*SlotRecord{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, slotRecordDBTypes, false, foreignComplementList...); err != nil {
+			t.Fatal(err)
+		}
+		x.Segment = custom_types.SegmentRandom()
+
+	}
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*SlotRecord{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddSlotRecords(tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.Container {
+			t.Error("foreign key was wrong value", a.ID, first.Container)
+		}
+		if a.ID != second.Container {
+			t.Error("foreign key was wrong value", a.ID, second.Container)
+		}
+
+		if first.R.Container != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Container != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.SlotRecords[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.SlotRecords[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.SlotRecordsByFk(tx).Count()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+func testContainerToManyAddOpVolumeInclusions(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	var a Container
+	var b, c, d, e VolumeInclusion
+
+	seed := randomize.NewSeed()
+	localComplelementList := strmangle.SetComplement(containerPrimaryKeyColumns, containerColumnsWithoutDefault)
+	if err = randomize.Struct(seed, &a, containerDBTypes, false, localComplelementList...); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignComplementList := strmangle.SetComplement(volumeInclusionPrimaryKeyColumns, volumeInclusionColumnsWithoutDefault)
+	foreignComplementList = append(foreignComplementList, volumeInclusionColumnsWithCustom...)
+
+	foreigners := []*VolumeInclusion{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, volumeInclusionDBTypes, false, foreignComplementList...); err != nil {
+			t.Fatal(err)
+		}
+		x.Segment = custom_types.SegmentRandom()
+
+	}
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*VolumeInclusion{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddVolumeInclusions(tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.Container {
+			t.Error("foreign key was wrong value", a.ID, first.Container)
+		}
+		if a.ID != second.Container {
+			t.Error("foreign key was wrong value", a.ID, second.Container)
+		}
+
+		if first.R.Container != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Container != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.VolumeInclusions[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.VolumeInclusions[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.VolumeInclusionsByFk(tx).Count()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+func testContainerToManyAddOpComments(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	var a Container
+	var b, c, d, e Comment
+
+	seed := randomize.NewSeed()
+	localComplelementList := strmangle.SetComplement(containerPrimaryKeyColumns, containerColumnsWithoutDefault)
+	if err = randomize.Struct(seed, &a, containerDBTypes, false, localComplelementList...); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignComplementList := strmangle.SetComplement(commentPrimaryKeyColumns, commentColumnsWithoutDefault)
+	foreignComplementList = append(foreignComplementList, commentColumnsWithCustom...)
+
+	foreigners := []*Comment{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, commentDBTypes, false, foreignComplementList...); err != nil {
+			t.Fatal(err)
+		}
+		x.Segment = custom_types.SegmentRandom()
+
+	}
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*Comment{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddComments(tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.Container {
+			t.Error("foreign key was wrong value", a.ID, first.Container)
+		}
+		if a.ID != second.Container {
+			t.Error("foreign key was wrong value", a.ID, second.Container)
+		}
+
+		if first.R.Container != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Container != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.Comments[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.Comments[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.CommentsByFk(tx).Count()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
 func testContainerToOneVolumeUsingVolume(t *testing.T) {
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()

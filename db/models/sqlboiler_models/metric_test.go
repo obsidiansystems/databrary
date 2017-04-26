@@ -676,7 +676,7 @@ func testMetricToManyRecords(t *testing.T) {
 	}
 }
 
-func testMetricToManyMeasureTexts(t *testing.T) {
+func testMetricToManyMeasureDates(t *testing.T) {
 	var err error
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -684,14 +684,14 @@ func testMetricToManyMeasureTexts(t *testing.T) {
 	seed := randomize.NewSeed()
 
 	var a Metric
-	var b, c MeasureText
+	var b, c MeasureDate
 
-	foreignBlacklist := measureTextColumnsWithDefault
-	if err := randomize.Struct(seed, &b, measureTextDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize MeasureText struct: %s", err)
+	foreignBlacklist := measureDateColumnsWithDefault
+	if err := randomize.Struct(seed, &b, measureDateDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize MeasureDate struct: %s", err)
 	}
-	if err := randomize.Struct(seed, &c, measureTextDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize MeasureText struct: %s", err)
+	if err := randomize.Struct(seed, &c, measureDateDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize MeasureDate struct: %s", err)
 	}
 	localBlacklist := metricColumnsWithDefault
 	localBlacklist = append(localBlacklist, metricColumnsWithCustom...)
@@ -711,13 +711,13 @@ func testMetricToManyMeasureTexts(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	measureText, err := a.MeasureTextsByFk(tx).All()
+	measureDate, err := a.MeasureDatesByFk(tx).All()
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	bFound, cFound := false, false
-	for _, v := range measureText {
+	for _, v := range measureDate {
 		if v.Metric == b.Metric {
 			bFound = true
 		}
@@ -734,23 +734,23 @@ func testMetricToManyMeasureTexts(t *testing.T) {
 	}
 
 	slice := MetricSlice{&a}
-	if err = a.L.LoadMeasureTexts(tx, false, &slice); err != nil {
+	if err = a.L.LoadMeasureDates(tx, false, &slice); err != nil {
 		t.Fatal(err)
 	}
-	if got := len(a.R.MeasureTexts); got != 2 {
+	if got := len(a.R.MeasureDates); got != 2 {
 		t.Error("number of eager loaded records wrong, got:", got)
 	}
 
-	a.R.MeasureTexts = nil
-	if err = a.L.LoadMeasureTexts(tx, true, &a); err != nil {
+	a.R.MeasureDates = nil
+	if err = a.L.LoadMeasureDates(tx, true, &a); err != nil {
 		t.Fatal(err)
 	}
-	if got := len(a.R.MeasureTexts); got != 2 {
+	if got := len(a.R.MeasureDates); got != 2 {
 		t.Error("number of eager loaded records wrong, got:", got)
 	}
 
 	if t.Failed() {
-		t.Logf("%#v", measureText)
+		t.Logf("%#v", measureDate)
 	}
 }
 
@@ -832,7 +832,7 @@ func testMetricToManyMeasureNumerics(t *testing.T) {
 	}
 }
 
-func testMetricToManyMeasureDates(t *testing.T) {
+func testMetricToManyMeasureTexts(t *testing.T) {
 	var err error
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -840,14 +840,14 @@ func testMetricToManyMeasureDates(t *testing.T) {
 	seed := randomize.NewSeed()
 
 	var a Metric
-	var b, c MeasureDate
+	var b, c MeasureText
 
-	foreignBlacklist := measureDateColumnsWithDefault
-	if err := randomize.Struct(seed, &b, measureDateDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize MeasureDate struct: %s", err)
+	foreignBlacklist := measureTextColumnsWithDefault
+	if err := randomize.Struct(seed, &b, measureTextDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize MeasureText struct: %s", err)
 	}
-	if err := randomize.Struct(seed, &c, measureDateDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize MeasureDate struct: %s", err)
+	if err := randomize.Struct(seed, &c, measureTextDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize MeasureText struct: %s", err)
 	}
 	localBlacklist := metricColumnsWithDefault
 	localBlacklist = append(localBlacklist, metricColumnsWithCustom...)
@@ -867,13 +867,13 @@ func testMetricToManyMeasureDates(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	measureDate, err := a.MeasureDatesByFk(tx).All()
+	measureText, err := a.MeasureTextsByFk(tx).All()
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	bFound, cFound := false, false
-	for _, v := range measureDate {
+	for _, v := range measureText {
 		if v.Metric == b.Metric {
 			bFound = true
 		}
@@ -890,23 +890,23 @@ func testMetricToManyMeasureDates(t *testing.T) {
 	}
 
 	slice := MetricSlice{&a}
-	if err = a.L.LoadMeasureDates(tx, false, &slice); err != nil {
+	if err = a.L.LoadMeasureTexts(tx, false, &slice); err != nil {
 		t.Fatal(err)
 	}
-	if got := len(a.R.MeasureDates); got != 2 {
+	if got := len(a.R.MeasureTexts); got != 2 {
 		t.Error("number of eager loaded records wrong, got:", got)
 	}
 
-	a.R.MeasureDates = nil
-	if err = a.L.LoadMeasureDates(tx, true, &a); err != nil {
+	a.R.MeasureTexts = nil
+	if err = a.L.LoadMeasureTexts(tx, true, &a); err != nil {
 		t.Fatal(err)
 	}
-	if got := len(a.R.MeasureDates); got != 2 {
+	if got := len(a.R.MeasureTexts); got != 2 {
 		t.Error("number of eager loaded records wrong, got:", got)
 	}
 
 	if t.Failed() {
-		t.Logf("%#v", measureDate)
+		t.Logf("%#v", measureText)
 	}
 }
 
@@ -1408,14 +1408,14 @@ func testMetricToManyRemoveOpRecords(t *testing.T) {
 	}
 }
 
-func testMetricToManyAddOpMeasureTexts(t *testing.T) {
+func testMetricToManyAddOpMeasureDates(t *testing.T) {
 	var err error
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
 
 	var a Metric
-	var b, c, d, e MeasureText
+	var b, c, d, e MeasureDate
 
 	seed := randomize.NewSeed()
 	localComplelementList := strmangle.SetComplement(metricPrimaryKeyColumns, metricColumnsWithoutDefault)
@@ -1427,11 +1427,11 @@ func testMetricToManyAddOpMeasureTexts(t *testing.T) {
 	a.Release = custom_types.NullReleaseRandom()
 	a.Type = custom_types.DataTypeRandom()
 
-	foreignComplementList := strmangle.SetComplement(measureTextPrimaryKeyColumns, measureTextColumnsWithoutDefault)
+	foreignComplementList := strmangle.SetComplement(measureDatePrimaryKeyColumns, measureDateColumnsWithoutDefault)
 
-	foreigners := []*MeasureText{&b, &c, &d, &e}
+	foreigners := []*MeasureDate{&b, &c, &d, &e}
 	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, measureTextDBTypes, false, foreignComplementList...); err != nil {
+		if err = randomize.Struct(seed, x, measureDateDBTypes, false, foreignComplementList...); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -1446,13 +1446,13 @@ func testMetricToManyAddOpMeasureTexts(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	foreignersSplitByInsertion := [][]*MeasureText{
+	foreignersSplitByInsertion := [][]*MeasureDate{
 		{&b, &c},
 		{&d, &e},
 	}
 
 	for i, x := range foreignersSplitByInsertion {
-		err = a.AddMeasureTexts(tx, i != 0, x...)
+		err = a.AddMeasureDates(tx, i != 0, x...)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1474,14 +1474,14 @@ func testMetricToManyAddOpMeasureTexts(t *testing.T) {
 			t.Error("relationship was not added properly to the foreign slice")
 		}
 
-		if a.R.MeasureTexts[i*2] != first {
+		if a.R.MeasureDates[i*2] != first {
 			t.Error("relationship struct slice not set to correct value")
 		}
-		if a.R.MeasureTexts[i*2+1] != second {
+		if a.R.MeasureDates[i*2+1] != second {
 			t.Error("relationship struct slice not set to correct value")
 		}
 
-		count, err := a.MeasureTextsByFk(tx).Count()
+		count, err := a.MeasureDatesByFk(tx).Count()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1572,14 +1572,14 @@ func testMetricToManyAddOpMeasureNumerics(t *testing.T) {
 		}
 	}
 }
-func testMetricToManyAddOpMeasureDates(t *testing.T) {
+func testMetricToManyAddOpMeasureTexts(t *testing.T) {
 	var err error
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
 
 	var a Metric
-	var b, c, d, e MeasureDate
+	var b, c, d, e MeasureText
 
 	seed := randomize.NewSeed()
 	localComplelementList := strmangle.SetComplement(metricPrimaryKeyColumns, metricColumnsWithoutDefault)
@@ -1591,11 +1591,11 @@ func testMetricToManyAddOpMeasureDates(t *testing.T) {
 	a.Release = custom_types.NullReleaseRandom()
 	a.Type = custom_types.DataTypeRandom()
 
-	foreignComplementList := strmangle.SetComplement(measureDatePrimaryKeyColumns, measureDateColumnsWithoutDefault)
+	foreignComplementList := strmangle.SetComplement(measureTextPrimaryKeyColumns, measureTextColumnsWithoutDefault)
 
-	foreigners := []*MeasureDate{&b, &c, &d, &e}
+	foreigners := []*MeasureText{&b, &c, &d, &e}
 	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, measureDateDBTypes, false, foreignComplementList...); err != nil {
+		if err = randomize.Struct(seed, x, measureTextDBTypes, false, foreignComplementList...); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -1610,13 +1610,13 @@ func testMetricToManyAddOpMeasureDates(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	foreignersSplitByInsertion := [][]*MeasureDate{
+	foreignersSplitByInsertion := [][]*MeasureText{
 		{&b, &c},
 		{&d, &e},
 	}
 
 	for i, x := range foreignersSplitByInsertion {
-		err = a.AddMeasureDates(tx, i != 0, x...)
+		err = a.AddMeasureTexts(tx, i != 0, x...)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1638,14 +1638,14 @@ func testMetricToManyAddOpMeasureDates(t *testing.T) {
 			t.Error("relationship was not added properly to the foreign slice")
 		}
 
-		if a.R.MeasureDates[i*2] != first {
+		if a.R.MeasureTexts[i*2] != first {
 			t.Error("relationship struct slice not set to correct value")
 		}
-		if a.R.MeasureDates[i*2+1] != second {
+		if a.R.MeasureTexts[i*2+1] != second {
 			t.Error("relationship struct slice not set to correct value")
 		}
 
-		count, err := a.MeasureDatesByFk(tx).Count()
+		count, err := a.MeasureTextsByFk(tx).Count()
 		if err != nil {
 			t.Fatal(err)
 		}
