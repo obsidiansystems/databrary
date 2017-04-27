@@ -337,3 +337,26 @@ func TestUpsert(t *testing.T) {
   {{end -}}
   {{- end -}}
 }
+
+func TestLive(t *testing.T) {
+	if err := dbMain.setupLiveTest(); err != nil {
+		fmt.Println("Unable to execute setupLiveTest:", err)
+		os.Exit(-4)
+	}
+	var err error
+	dbMain.liveTestDbConn, err = dbMain.conn(dbMain.LiveTestDBName)
+	if err != nil {
+		fmt.Println("failed to get test connection:", err)
+	}
+	dbMain.liveDbConn, err = dbMain.conn(dbMain.DbName)
+	if err != nil {
+		fmt.Println("failed to get live connection:", err)
+	}
+  {{ range $index, $table := .Tables}}
+  {{- if not $table.IsJoinTable -}}
+  {{- $tableName := $table.Name | plural | titleCase -}}
+  t.Run("{{$tableName}}", test{{$tableName}}Live)
+  {{end -}}
+  {{end}}
+
+}

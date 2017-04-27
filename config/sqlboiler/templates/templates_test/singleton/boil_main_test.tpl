@@ -1,14 +1,9 @@
 var flagDebugMode = flag.Bool("test.sqldebug", false, "Turns on debug mode for SQL statements")
 
 var (
-	dbMain tester
+	dbMain *pgTester
 )
 
-type tester interface {
-	setup() error
-	conn() (*sql.DB, error)
-	teardown() error
-}
 
 func TestMain(m *testing.M) {
 	if dbMain == nil {
@@ -17,6 +12,7 @@ func TestMain(m *testing.M) {
 	}
 
 	rand.Seed(time.Now().UnixNano())
+	dbNameRand = rand.New(rand.NewSource(time.Now().UnixNano()))
 	var err error
 
 	// Load configuration
@@ -27,7 +23,7 @@ func TestMain(m *testing.M) {
 	}
 
 	setConfigDefaults()
-	if err := validateConfig("{{.DriverName}}"); err != nil {
+	if err := validateConfig("postgres"); err != nil {
 		fmt.Println("failed to validate config", err)
 		os.Exit(-3)
 	}
@@ -36,22 +32,22 @@ func TestMain(m *testing.M) {
 	flag.Parse()
 	boil.DebugMode = *flagDebugMode
 
-	if err = dbMain.setup(); err != nil {
-		fmt.Println("Unable to execute setup:", err)
+	if err = dbMain.setupMain(); err != nil {
+		fmt.Println("Unable to execute setupMain:", err)
 		os.Exit(-4)
 	}
 
-  conn, err := dbMain.conn()
-  if err != nil {
-    fmt.Println("failed to get connection:", err)
-  }
+	dbMain.testDbConn, err = dbMain.conn(dbMain.TestDBName)
+	if err != nil {
+		fmt.Println("failed to get test connection:", err)
+	}
 
 	var code int
-	boil.SetDB(conn)
+	boil.SetDB(dbMain.testDbConn)
 	code = m.Run()
 
 	if err = dbMain.teardown(); err != nil {
-		fmt.Println("Unable to execute teardown:", err)
+		fmt.Println("Unable to execute test teardown:", err)
 		os.Exit(-5)
 	}
 

@@ -4,7 +4,9 @@
 
 package models
 
-import "testing"
+import (
+	"testing"
+)
 
 // This test suite runs each operation test in parallel.
 // Example, if your database has 3 tables, the suite will run:
@@ -1231,3 +1233,64 @@ func TestUpsert(t *testing.T) {
 	t.Run("Containers", testContainersUpsert)
 	t.Run("MeasureTexts", testMeasureTextsUpsert)
 }
+
+//func TestLive(t *testing.T) {
+//	if err := dbMain.setupLiveTest(); err != nil {
+//		fmt.Println("Unable to execute setupLiveTest:", err)
+//		os.Exit(-4)
+//	}
+//	var err error
+//	dbMain.liveTestDbConn, err = dbMain.conn(dbMain.LiveTestDBName)
+//	if err != nil {
+//		fmt.Println("failed to get test connection:", err)
+//	}
+//	dbMain.liveDbConn, err = dbMain.conn(dbMain.DbName)
+//	if err != nil {
+//		fmt.Println("failed to get live connection:", err)
+//	}
+//	t.Run("Tokens", testTokensLive)
+//	t.Run("Parties", testPartiesLive)
+//	t.Run("Categories", testCategoriesLive)
+//	t.Run("Authorizes", testAuthorizesLive)
+//	t.Run("KeywordUses", testKeywordUsesLive)
+//	t.Run("TagUses", testTagUsesLive)
+//	t.Run("Funders", testFundersLive)
+//	t.Run("Transcodes", testTranscodesLive)
+//	t.Run("Notifications", testNotificationsLive)
+//	t.Run("SlotReleases", testSlotReleasesLive)
+//	t.Run("Notices", testNoticesLive)
+//	t.Run("RecordMeasures", testRecordMeasuresLive)
+//	t.Run("PlayEvolutions", testPlayEvolutionsLive)
+//	t.Run("Notifies", testNotifiesLive)
+//	t.Run("PlayEvolutionsLocks", testPlayEvolutionsLocksLive)
+//	t.Run("SlotAssets", testSlotAssetsLive)
+//	t.Run("SlotRecords", testSlotRecordsLive)
+//	t.Run("Schemas", testSchemasLive)
+//	t.Run("Tags", testTagsLive)
+//	t.Run("Uploads", testUploadsLive)
+//	t.Run("Sessions", testSessionsLive)
+//	t.Run("VolumeLinks", testVolumeLinksLive)
+//	t.Run("VolumeFundings", testVolumeFundingsLive)
+//	t.Run("VolumeInclusions", testVolumeInclusionsLive)
+//	t.Run("VolumeOwners", testVolumeOwnersLive)
+//	t.Run("VolumeStates", testVolumeStatesLive)
+//	t.Run("VolumeCitations", testVolumeCitationsLive)
+//	t.Run("Records", testRecordsLive)
+//	t.Run("VolumeAccesses", testVolumeAccessesLive)
+//	t.Run("Formats", testFormatsLive)
+//	t.Run("Excerpts", testExcerptsLive)
+//	t.Run("AssetRevisions", testAssetRevisionsLive)
+//	t.Run("Metrics", testMetricsLive)
+//	t.Run("Comments", testCommentsLive)
+//	t.Run("Avatars", testAvatarsLive)
+//	t.Run("Assets", testAssetsLive)
+//	t.Run("Accounts", testAccountsLive)
+//	t.Run("Volumes", testVolumesLive)
+//	t.Run("MeasureDates", testMeasureDatesLive)
+//	t.Run("AccountTokens", testAccountTokensLive)
+//	t.Run("LoginTokens", testLoginTokensLive)
+//	t.Run("MeasureNumerics", testMeasureNumericsLive)
+//	t.Run("Containers", testContainersLive)
+//	t.Run("MeasureTexts", testMeasureTextsLive)
+//
+//}

@@ -26,6 +26,7 @@ func MustTx(transactor boil.Transactor, err error) boil.Transactor {
 
 var (
 	rgxPGFkey   = regexp.MustCompile(`(?m)^ALTER TABLE ONLY .*\n\s+ADD CONSTRAINT .*? FOREIGN KEY .*?;\n`)
+	rgxPGPkey   = regexp.MustCompile(`(?m)^ALTER TABLE ONLY .*\n\s+ADD CONSTRAINT .*? PRIMARY KEY .*?;\n`)
 	rgxPGCon    = regexp.MustCompile(`(?m)^ALTER TABLE ONLY .*\n\s+ADD CONSTRAINT .*?;\n`)
 	rgxPGConEx  = regexp.MustCompile(`(?m)^ALTER TABLE ONLY .*\n\s+ADD CONSTRAINT .*? EXCLUDE .*?;\n`)
 	rgxPGTrig   = regexp.MustCompile(`(?m)^CREATE TRIGGER .*?;\n`)
@@ -55,11 +56,10 @@ func (f *fKeyDestroyer) Read(b []byte) (int, error) {
 		newSchema := f.rgx.ReplaceAll(all, []byte{})
 		f.buf = bytes.NewBuffer(newSchema)
 	}
-
 	return f.buf.Read(b)
 }
 
-var rgxPGConstraint = regexp.MustCompile(`(?m)CHECK \((.*)\).*?\n`)
+var rgxCheckCon = regexp.MustCompile(`(?m)CHECK \((.*)\).*?\n`)
 
 func newConReplacer(regex *regexp.Regexp, reader io.Reader) io.Reader {
 	return &conDestroyer{
