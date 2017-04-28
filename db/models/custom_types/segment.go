@@ -29,472 +29,428 @@
 
 package custom_types
 
-import (
-	"database/sql/driver"
-	"fmt"
-	"strings"
-	"time"
-
-	log "github.com/databrary/databrary/logging"
-	"github.com/databrary/databrary/util"
-	//set "github.com/deckarep/golang-set"
-)
-
-const (
-	MIL_SEG_FORMAT = "15:04:05.000"
-	SEG_FORMAT     = "15:04:05"
-)
-
-type Segment struct {
-	bounds string
-	lower  *time.Time
-	upper  *time.Time
-}
-
-func (s *Segment) String() string {
-	if s.bounds == "" {
-		return "empty"
-	} else if s.Lower() == nil && s.Upper() != nil {
-		return fmt.Sprintf(`(,%s%c`, s.Upper().Format(MIL_SEG_FORMAT), s.bounds[1])
-	} else if s.Lower() != nil && s.Upper() == nil {
-		return fmt.Sprintf(`%c%s,)`, s.bounds[0], s.Lower().Format(MIL_SEG_FORMAT))
-	} else if s.Lower() == nil && s.Upper() == nil {
-		return fmt.Sprint(`(,)`)
-	} else {
-		return fmt.Sprintf(
-			`%c%s,%s%c`,
-			s.bounds[0],
-			s.Lower().Format(MIL_SEG_FORMAT),
-			s.Upper().Format(MIL_SEG_FORMAT),
-			s.bounds[1],
-		)
-	}
-}
-
-func NewSegment(lower *time.Time, upper *time.Time, bounds string) (Segment, error) {
-
-	//if !set.NewSetFromSlice([]interface{}(strings.Split(bounds,""))).IsSubset(set.NewSet("[","]","(",")")) {
-	//	errF := fmt.Sprintf("malformed bounds %s", bounds)
-	//	return Segment{}, log.LogAndError(errF)
-	//}
-	// empty -> bounds = "", lower = nil, upper = nil
-	if bounds == "" {
-		if lower != nil || upper != nil {
-			errF := fmt.Sprintf("empty segment with non-nil lower %s or upper %s", lower, upper)
-			return Segment{}, log.LogAndError(errF)
-		}
-		return Segment{bounds: bounds, lower: lower, upper: upper}, nil
-	}
-	// [a,b] -> bounds = "[]", lower = a, upper = b
-	// [a,b) -> bounds = "[)", lower = a, upper = b
-	// (a,b] -> bounds = "(]", lower = a, upper = b
-	// (a,b) -> bounds = "()", lower = a, upper = b
-	if lower != nil && upper != nil {
-		if !(upper.Sub(*lower).Nanoseconds() >= 0) {
-			return Segment{}, log.LogAndError(fmt.Sprintf("lower bound %s above upper bound %s", *lower, *upper))
-		}
-		// singleton check
-		if upper.Sub(*lower) == 0 && bounds != "[]" {
-			return Segment{}, log.LogAndError(fmt.Sprintf("wrong bounds %s for singleton", bounds))
-		}
-
-		return Segment{bounds: bounds, lower: lower, upper: upper}, nil
-	}
-	// (∞,a) -> bounds = "()", lower = nil, upper = a
-	// (∞,a] -> bounds = "(]", lower = nil, upper = a
-	// (∞,∞) -> bounds = "()", lower = nil, upper = nil
-	if lower == nil {
-		if bounds[0] != '(' {
-			return Segment{}, log.LogAndError(fmt.Sprintf("nil lower %s with wrong bound %b", lower, bounds[0]))
-		}
-		if upper == nil && bounds[1] != ')' {
-			return Segment{}, log.LogAndError(fmt.Sprintf("nil upper %s with wrong bound %b", upper, bounds[1]))
-		}
-		return Segment{bounds: bounds, lower: lower, upper: upper}, nil
-	}
-	// (a,∞) -> bounds = "()", lower = a, upper = nil
-	// [a,∞) -> bounds = "[)", lower = a, upper = nil
-	if upper == nil {
-		if bounds[1] != ')' {
-			return Segment{}, log.LogAndError(fmt.Sprintf("nil upper %s with wrong bound %b", upper, bounds[1]))
-		}
-		return Segment{bounds: bounds, lower: lower, upper: upper}, nil
-	}
-	log.Logger.Panic(fmt.Sprintf("unreachable edge case %s %s %s", lower, upper, bounds))
-	// unreachable
-	return Segment{}, nil
-}
-
-func (s *Segment) Lower() *time.Time {
-	if s.bounds == "" {
-		log.Logger.Panic(fmt.Sprintf("no Lower for empty segment %s", s))
-	}
-	return s.lower
-}
-
-func (s *Segment) Upper() *time.Time {
-	if s.bounds == "" {
-		log.Logger.Panic(fmt.Sprintf("no Upper for empty segment %s", s))
-	}
-	return s.upper
-}
-
-func (s *Segment) IsEmpty() bool {
-	return s.bounds == ""
-}
-
-func (s *Segment) IsInfLower() bool {
-	return s.Lower() == nil
-}
-
-func (s *Segment) IsInfUpper() bool {
-	return s.Upper() == nil
-}
-
-func (s *Segment) IsBounded() bool {
-	return !(s.IsInfLower() || s.IsInfUpper())
-}
-
-func (s *Segment) IncLower() bool {
-	if s.bounds != "" {
-		log.Logger.Panic(fmt.Sprintf("no Lower for empty segment %s", s))
-	}
-	return s.bounds[0] == '['
-}
-
-func (s *Segment) IncUpper() bool {
-	if s.bounds != "" {
-		log.Logger.Panic(fmt.Sprintf("no Upper for empty segment %s", s))
-	}
-	return s.bounds[1] == ']'
-}
-
-const (
-	lt = iota
-	eq
-	gt
-)
-
-// left to right
-func finiteOrder(s, t *time.Time) int {
-	diff := t.Sub(*s)
-	if diff > 0 {
-		return lt
-	} else if diff == 0 {
-		return eq
-	} else {
-		return gt
-	}
-}
-
-func (s *Segment) LowerLT(t *Segment) bool {
-	if s.IsInfLower() {
-		return true
-	}
-	if t.IsInfLower() {
-		return false
-	}
-
-	sl := s.Lower()
-	tl := t.Lower()
-	switch finiteOrder(sl, tl) {
-	case lt:
-		return true
-	case eq, gt:
-		return false
-	default:
-		return false
-	}
-}
-
-// eg (a,x] and (a,y]
-// or (a,x] and [a,y]
-// this is wrt the infimum of each interval
-// ie if the infima are equal then they're equal and hence LE
-func (s *Segment) LowerLE(t *Segment) bool {
-	if s.IsInfLower() {
-		return true
-	}
-	if t.IsInfLower() {
-		return false
-	}
-	sl := s.Lower()
-	tl := t.Lower()
-	return finiteOrder(sl, tl) != gt
-}
-
-func (s *Segment) LowerGE(t *Segment) bool {
-	return !s.LowerLT(t)
-}
-
-func (s *Segment) LowerGT(t *Segment) bool {
-	return !s.LowerLE(t)
-}
-
-func (s *Segment) UpperLT(t *Segment) bool {
-	if s.IsInfUpper() {
-		return false
-	}
-	if t.IsInfUpper() {
-		return true
-	}
-	su := s.Upper()
-	tu := t.Upper()
-	switch finiteOrder(su, tu) {
-	case lt:
-		return true
-	case eq, gt:
-		return false
-	default:
-		return false
-	}
-}
-
-func (s *Segment) UpperLE(t *Segment) bool {
-	if s.IsInfUpper() {
-		return false
-	}
-	if t.IsInfUpper() {
-		return true
-	}
-	su := s.Upper()
-	tu := s.Upper()
-	return finiteOrder(su, tu) != gt
-}
-
-func (s *Segment) UpperGE(t *Segment) bool {
-	return !s.UpperLT(t)
-}
-
-func (s *Segment) UpperGT(t *Segment) bool {
-	return !s.UpperLE(t)
-}
-
-func (s *Segment) Equal(t *Segment) bool {
-	zero := Segment{}
-	if *s == zero && *t == zero {
-		return true
-	}
-	eqTime := func(t1 *time.Time, t2 *time.Time) bool {
-		if t1 == nil {
-			return t2 == nil
-		}
-		if t2 == nil {
-			return false
-		}
-		return t1.Equal(*t2)
-	}
-	return s.bounds == t.bounds && eqTime(s.Lower(), t.Lower()) && eqTime(s.Upper(), t.Upper())
-}
-
-func (s *Segment) Contains(t *Segment) bool {
-	if s.IsEmpty() {
-		return false
-	}
-
-	if t.IsEmpty() || (s.IsInfUpper() && s.IsInfUpper()) {
-		return true
-	}
-	return s.LowerLE(t) && s.UpperGE(t)
-}
-
-func (s *Segment) Duration() time.Duration {
-	if !s.IsBounded() {
-		log.Logger.Panic(log.LogAndError(fmt.Sprintf("unbounded %s", s)))
-	}
-	sl := s.Lower()
-	su := s.Upper()
-	return su.Sub(*sl)
-}
-
-func (s *Segment) IsSingleton() bool {
-	return s.Upper().Sub(*s.Lower()) == 0 && s.IsBounded()
-}
-
-func (s *Segment) Shift(d time.Duration) {
-	// shifting (,) should have no effect
-	if !s.IsInfLower() {
-		newLower := s.lower.Add(d)
-		s.lower = &newLower
-	}
-	if !s.IsInfUpper() {
-		newUpper := s.upper.Add(d)
-		s.upper = &newUpper
-	}
-}
-
-func (s *Segment) Minus(t *Segment) time.Duration {
-	if !s.IsBounded() || !t.IsBounded() {
-		log.Logger.Panic(log.LogAndError(fmt.Sprintf("unbounded s %s or t %s", s, t)))
-	}
-	return s.Duration() - t.Duration()
-}
-
-//in go seconds are counted relative to January 1, year 1 00:00:00 UTC
-//while in postgres they're counted relative to the start of the epoch (unix epoch) i.e 0
-//so 00:00:00 is parsed as -31622400 seconds or 31622400000000000 nanoseconds (1 year before january 1 01.
-//EPOCHSHIFT shifts 00:00:00 forward by simply addding 31622400000000000 to time.Parse(00:00:00)
-const EPOCHSHIFT = time.Duration(31622400000000000)
-
-//func epochShift() time.Duration {
-//	timeAsString := "00:00:00"
-//	timeAsTime, _ := time.Parse(SEG_FORMAT, timeAsString)
-//	d := time.Duration(time.Time{}.Sub(timeAsTime).Nanoseconds())
-//	return d
+//import (
+//	"database/sql/driver"
+//	"fmt"
+//	"strings"
+//	"time"
+//
+//	"github.com/databrary/databrary/util"
+//	"github.com/pkg/errors"
+//	"log"
+//)
+//
+//const (
+//	MIL_SEG_FORMAT = "15:04:05.000"
+//	SEG_FORMAT     = "15:04:05"
+//)
+//
+//type Segment struct {
+//	bounds string
+//	lower  *time.Duration
+//	upper  *time.Duration
 //}
-
-func parseStringToTime(timeAsString string) (time.Time, error) {
-
-	// i'm using SEG_FORMAT here and MIL_SEG_FORMAT up there because
-	// for some reason this parses 00:18:34.15 correctly but i want
-	// to explicitly keep .000 when serializing to the db
-	timeAsTime, err := time.Parse(SEG_FORMAT, timeAsString)
-	timeAsTime = timeAsTime.Add(EPOCHSHIFT)
-	if err != nil {
-		return time.Time{}, log.LogAndError(fmt.Sprintf("couldn't parse %s as time. error %s", timeAsString, err))
-	}
-	return timeAsTime, nil
-}
-
-// [18:16:54,18:22:01.008)
-// note that milliseconds are optional
-func parseSegment(segment string) (time.Time, time.Time, error) {
-	trimmedSegmentString := segment[1 : len(segment)-1]
-	begin_endAsString := strings.Split(trimmedSegmentString, ",")
-	beginAsString, endAsString := begin_endAsString[0], begin_endAsString[1]
-
-	if len(beginAsString) == 0 && len(endAsString) == 0 {
-		// (,)
-		return time.Time{}, time.Time{}, nil
-	}
-	var (
-		endAsTime   time.Time
-		beginAsTime time.Time
-		err         error
-	)
-	if len(beginAsString) != 0 {
-		beginAsTime, err = parseStringToTime(beginAsString)
-	}
-	if err != nil {
-		return time.Time{}, time.Time{}, err
-	}
-	if len(endAsString) != 0 {
-		endAsTime, err = parseStringToTime(endAsString)
-	}
-	if err != nil {
-		return time.Time{}, time.Time{}, err
-	}
-
-	return beginAsTime, endAsTime, nil
-}
-
-// Scan implements the Scanner interface.
-func (s *Segment) Scan(value interface{}) error {
-	if value == nil {
-		// this only happens for notifications
-		return nil
-	}
-	segmentAsBytes, ok := value.([]byte)
-	if !ok {
-		return log.LogAndError(fmt.Sprintf("Could not convert %#v scanned Segment value to bytes", value))
-	}
-	segmentAsString := string(segmentAsBytes)
-	if segmentAsString == "empty" {
-		s.bounds = ""
-		s.lower = nil
-		s.upper = nil
-		return nil
-	}
-	if segmentAsString == "(,)" {
-		s.bounds = "()"
-		s.lower = nil
-		s.upper = nil
-		return nil
-	}
-	begin, end, err := parseSegment(segmentAsString)
-	if err != nil {
-		return log.LogAndError(fmt.Sprintf("Could not parse %v into string. error %s", value, err))
-	}
-	s.bounds = string(segmentAsString[0]) + string(segmentAsString[len(segmentAsString)-1])
-	s.lower = &begin
-	s.upper = &end
-
-	return nil
-}
-
-func (s Segment) Value() (driver.Value, error) {
-	// [00:18:34.15,00:22:46.909)
-	segAsString := s.String()
-	return []byte(segAsString), nil
-}
-
-type NullSegment struct {
-	Segment Segment
-	Valid   bool
-}
-
-func (ns *NullSegment) Scan(value interface{}) error {
-	if value == nil {
-		ns.Segment, ns.Valid = Segment{}, false
-		return nil
-	}
-
-	err := ns.Segment.Scan(value)
-	util.CheckOrFatalErr(err)
-	ns.Valid = true
-	return nil
-}
-
-func (ns NullSegment) Value() (driver.Value, error) {
-	if !ns.Valid {
-		return nil, nil
-	}
-	return ns.Segment.Value()
-}
-
-// this is not time.Duration but an alias for postgres interval hour to sec (3)
-type NullDuration struct {
-	time  time.Time
-	valid bool
-}
-
-func (d *NullDuration) Scan(value interface{}) error {
-	if value == nil {
-		d = &NullDuration{time.Time{}, false}
-		return nil
-	}
-	durationAsBytes, ok := value.([]byte)
-	if !ok {
-		return log.LogAndError(fmt.Sprintf("Could not convert %#v scanned Duration value to bytes", value))
-	}
-	durationAsString := string(durationAsBytes)
-	durationAsTime, err := parseStringToTime(durationAsString)
-	util.CheckOrFatalErr(err)
-	d.time, d.valid = durationAsTime, true
-	return nil
-}
-
-func (d NullDuration) Value() (driver.Value, error) {
-	if !d.valid {
-		return nil, nil
-	}
-	return []byte(d.time.Format(MIL_SEG_FORMAT)), nil
-}
-
-
-var times = []time.Time{
-	time.Date(2014, time.February, 3, 2, 0, 0, 0, time.UTC),
-	time.Date(2014, time.February, 3, 4, 0, 0, 0, time.UTC),
-	time.Date(2014, time.February, 3, 6, 0, 0, 0, time.UTC),
-	time.Date(2014, time.February, 3, 8, 0, 0, 0, time.UTC),
-}
-
-func SegmentRandom() Segment {
-	seg, _ := NewSegment(&times[0], &times[1], "[]")
-	return seg
-}
-
-func NullSegmentRandom() NullSegment {
-	seg := SegmentRandom()
-	return NullSegment{seg, true}
-}
+//
+//
+//func (s *Segment) String() string {
+//	if s.bounds == "" {
+//		return "empty"
+//	} else if s.Lower() == nil && s.Upper() != nil {
+//		return fmt.Sprintf(`(,%s%c`, s.Upper().Format(MIL_SEG_FORMAT), s.bounds[1])
+//	} else if s.Lower() != nil && s.Upper() == nil {
+//		return fmt.Sprintf(`%c%s,)`, s.bounds[0], s.Lower().Format(MIL_SEG_FORMAT))
+//	} else if s.Lower() == nil && s.Upper() == nil {
+//		return fmt.Sprint(`(,)`)
+//	} else {
+//		return fmt.Sprintf(
+//			`%c%s,%s%c`,
+//			s.bounds[0],
+//			s.Lower().Format(MIL_SEG_FORMAT),
+//			s.Upper().Format(MIL_SEG_FORMAT),
+//			s.bounds[1],
+//		)
+//	}
+//}
+//
+//func NewSegment(lower, upper *time.Duration, bounds string) (Segment, error) {
+//
+//	//if !set.NewSetFromSlice([]interface{}(strings.Split(bounds,""))).IsSubset(set.NewSet("[","]","(",")")) {
+//	//	errF := fmt.Sprintf("malformed bounds %s", bounds)
+//	//	return Segment{}, log.LogAndError(errF)
+//	//}
+//	// empty -> bounds = "", lower = nil, upper = nil
+//	if bounds == "" {
+//		if lower != nil || upper != nil {
+//			return Segment{}, errors.Errorf("empty segment with non-nil lower %s or upper %s", lower, upper)
+//		}
+//		return Segment{bounds: bounds, lower: lower, upper: upper}, nil
+//	}
+//	// [a,b] -> bounds = "[]", lower = a, upper = b
+//	// [a,b) -> bounds = "[)", lower = a, upper = b
+//	// (a,b] -> bounds = "(]", lower = a, upper = b
+//	// (a,b) -> bounds = "()", lower = a, upper = b
+//	if lower != nil && upper != nil {
+//		if !(*lower - *upper > 0) {
+//			return Segment{}, errors.Errorf(fmt.Sprintf("lower bound %s above upper bound %s", *lower, *upper))
+//		}
+//		// singleton check
+//		if *upper - *lower == 0 && bounds != "[]" {
+//			return Segment{}, errors.Errorf(fmt.Sprintf("wrong bounds %s for singleton", bounds))
+//		}
+//
+//		return Segment{bounds: bounds, lower: lower, upper: upper}, nil
+//	}
+//	// (∞,a) -> bounds = "()", lower = nil, upper = a
+//	// (∞,a] -> bounds = "(]", lower = nil, upper = a
+//	// (∞,∞) -> bounds = "()", lower = nil, upper = nil
+//	if lower == nil {
+//		if bounds[0] != '(' {
+//			return Segment{}, errors.Errorf(fmt.Sprintf("nil lower %s with wrong bound %b", lower, bounds[0]))
+//		}
+//		if upper == nil && bounds[1] != ')' {
+//			return Segment{}, errors.Errorf(fmt.Sprintf("nil upper %s with wrong bound %b", upper, bounds[1]))
+//		}
+//		return Segment{bounds: bounds, lower: lower, upper: upper}, nil
+//	}
+//	// (a,∞) -> bounds = "()", lower = a, upper = nil
+//	// [a,∞) -> bounds = "[)", lower = a, upper = nil
+//	if upper == nil {
+//		if bounds[1] != ')' {
+//			return Segment{}, errors.Errorf(fmt.Sprintf("nil upper %s with wrong bound %b", upper, bounds[1]))
+//		}
+//		return Segment{bounds: bounds, lower: lower, upper: upper}, nil
+//	}
+//	panic(fmt.Sprintf("unreachable edge case %s %s %s", lower, upper, bounds))
+//	// unreachable - just to satisfy compiler
+//	return Segment{}, nil
+//}
+//
+//func (s *Segment) Lower() *time.Duration {
+//	if s.bounds == "" {
+//		panic(fmt.Sprintf("no Lower for empty segment %s", s))
+//	}
+//	return s.lower
+//}
+//
+//func (s *Segment) Upper() *time.Duration {
+//	if s.bounds == "" {
+//		panic(fmt.Sprintf("no Upper for empty segment %s", s))
+//	}
+//	return s.upper
+//}
+//
+//func (s *Segment) IsEmpty() bool {
+//	return s.bounds == ""
+//}
+//
+//func (s *Segment) IsInfLower() bool {
+//	return s.Lower() == nil
+//}
+//
+//func (s *Segment) IsInfUpper() bool {
+//	return s.Upper() == nil
+//}
+//
+//func (s *Segment) IsBounded() bool {
+//	return !(s.IsInfLower() || s.IsInfUpper())
+//}
+//
+//func (s *Segment) IncLower() bool {
+//	if s.bounds != "" {
+//		panic(fmt.Sprintf("no Lower for empty segment %s", s))
+//	}
+//	return s.bounds[0] == '['
+//}
+//
+//func (s *Segment) IncUpper() bool {
+//	if s.bounds != "" {
+//		panic(fmt.Sprintf("no Upper for empty segment %s", s))
+//	}
+//	return s.bounds[1] == ']'
+//}
+//// strictly less than
+//func (s *Segment) LowerLT(t *Segment) bool {
+//	if s.IsInfLower() {
+//		return true
+//	}
+//	if t.IsInfLower() {
+//		return false
+//	}
+//	return *s.lower < *t.lower
+//}
+//
+//// eg (a,x] and (a,y]
+//// or (a,x] and [a,y]
+//// this is wrt the infimum of each interval
+//// ie if the infima are equal then they're equal and hence LE
+//func (s *Segment) LowerLE(t *Segment) bool {
+//	if s.IsInfLower() {
+//		return true
+//	}
+//	if t.IsInfLower() {
+//		return false
+//	}
+//	return *s.lower <= *t.lower
+//}
+//
+//func (s *Segment) LowerGE(t *Segment) bool {
+//	return !s.LowerLT(t)
+//}
+//
+//func (s *Segment) LowerGT(t *Segment) bool {
+//	return !s.LowerLE(t)
+//}
+//
+//func (s *Segment) UpperLT(t *Segment) bool {
+//	if s.IsInfUpper() {
+//		return false
+//	}
+//	if t.IsInfUpper() {
+//		return true
+//	}
+//	return *s.upper < *t.upper
+//}
+//
+//func (s *Segment) UpperLE(t *Segment) bool {
+//	if s.IsInfUpper() {
+//		return false
+//	}
+//	if t.IsInfUpper() {
+//		return true
+//	}
+//	return *s.upper <= *t.upper
+//}
+//
+//func (s *Segment) UpperGE(t *Segment) bool {
+//	return !s.UpperLT(t)
+//}
+//
+//func (s *Segment) UpperGT(t *Segment) bool {
+//	return !s.UpperLE(t)
+//}
+//
+//func (s *Segment) Equal(t *Segment) bool {
+//	zero := Segment{}
+//	if *s == zero && *t == zero {
+//		return true
+//	}
+//	eqTime := func(t1, t2 *time.Duration) bool {
+//		if t1 == nil {
+//			return t2 == nil
+//		}
+//		if t2 == nil {
+//			return false
+//		}
+//		return *t1 == *t2
+//	}
+//	return s.bounds == t.bounds && eqTime(s.lower, t.lower) && eqTime(s.upper, t.upper)
+//}
+//
+//func (s *Segment) Contains(t *Segment) bool {
+//	if s.IsEmpty() {
+//		return false
+//	}
+//	if t.IsEmpty() || (s.IsInfUpper() && s.IsInfUpper()) {
+//		return true
+//	}
+//	return s.LowerLE(t) && s.UpperGE(t)
+//}
+//
+//func (s *Segment) Duration() time.Duration {
+//	if !s.IsBounded() {
+//		panic(log.LogAndError(fmt.Sprintf("unbounded %s", s)))
+//	}
+//	return *s.upper - *s.lower
+//}
+//
+//func (s *Segment) IsSingleton() bool {
+//	return s.lower == s.upper && s.IsBounded()
+//}
+//
+//func (s *Segment) Shift(d time.Duration) {
+//	// shifting (,) should have no effect
+//	if !s.IsInfLower() {
+//		newLower := *s.lower + d
+//		s.lower = &newLower
+//	}
+//	if !s.IsInfUpper() {
+//		newUpper := *s.upper + d
+//		s.upper = &newUpper
+//	}
+//}
+//
+//func (s *Segment) Minus(t *Segment) time.Duration {
+//	if !s.IsBounded() || !t.IsBounded() {
+//		log.Logger.Panic(log.LogAndError(fmt.Sprintf("unbounded s %s or t %s", s, t)))
+//	}
+//	return s.Duration() - t.Duration()
+//}
+//
+////in go seconds are counted relative to January 1, year 1 00:00:00 UTC
+////while in postgres they're counted relative to the start of the epoch (unix epoch) i.e 0
+////so 00:00:00 is parsed as -31622400 seconds or 31622400000000000 nanoseconds (1 year before january 1 01.
+////EPOCHSHIFT shifts 00:00:00 forward by simply addding 31622400000000000 to time.Parse(00:00:00)
+//const EPOCHSHIFT = time.Duration(31622400000000000)
+//
+////func epochShift() time.Duration {
+////	timeAsString := "00:00:00"
+////	timeAsTime, _ := time.Parse(SEG_FORMAT, timeAsString)
+////	d := time.Duration(time.Time{}.Sub(timeAsTime).Nanoseconds())
+////	return d
+////}
+//
+//func parseStringToTime(timeAsString string) (time.Time, error) {
+//
+//	// i'm using SEG_FORMAT here and MIL_SEG_FORMAT up there because
+//	// for some reason this parses 00:18:34.15 correctly but i want
+//	// to explicitly keep .000 when serializing to the db
+//	timeAsTime, err := time.Parse(SEG_FORMAT, timeAsString)
+//	timeAsTime = timeAsTime.Add(EPOCHSHIFT)
+//	if err != nil {
+//		return time.Time{}, log.LogAndError(fmt.Sprintf("couldn't parse %s as time. error %s", timeAsString, err))
+//	}
+//	return timeAsTime, nil
+//}
+//
+//// [18:16:54,18:22:01.008)
+//// note that milliseconds are optional
+//func parseSegment(segment string) (time.Time, time.Time, error) {
+//	trimmedSegmentString := segment[1 : len(segment)-1]
+//	begin_endAsString := strings.Split(trimmedSegmentString, ",")
+//	beginAsString, endAsString := begin_endAsString[0], begin_endAsString[1]
+//
+//	if len(beginAsString) == 0 && len(endAsString) == 0 {
+//		// (,)
+//		return time.Time{}, time.Time{}, nil
+//	}
+//	var (
+//		endAsTime   time.Time
+//		beginAsTime time.Time
+//		err         error
+//	)
+//	if len(beginAsString) != 0 {
+//		beginAsTime, err = parseStringToTime(beginAsString)
+//	}
+//	if err != nil {
+//		return time.Time{}, time.Time{}, err
+//	}
+//	if len(endAsString) != 0 {
+//		endAsTime, err = parseStringToTime(endAsString)
+//	}
+//	if err != nil {
+//		return time.Time{}, time.Time{}, err
+//	}
+//
+//	return beginAsTime, endAsTime, nil
+//}
+//
+//// Scan implements the Scanner interface.
+//func (s *Segment) Scan(value interface{}) error {
+//	if value == nil {
+//		// this only happens for notifications
+//		return nil
+//	}
+//	segmentAsBytes, ok := value.([]byte)
+//	if !ok {
+//		return log.LogAndError(fmt.Sprintf("Could not convert %#v scanned Segment value to bytes", value))
+//	}
+//	segmentAsString := string(segmentAsBytes)
+//	if segmentAsString == "empty" {
+//		s.bounds = ""
+//		s.lower = nil
+//		s.upper = nil
+//		return nil
+//	}
+//	if segmentAsString == "(,)" {
+//		s.bounds = "()"
+//		s.lower = nil
+//		s.upper = nil
+//		return nil
+//	}
+//	begin, end, err := parseSegment(segmentAsString)
+//	if err != nil {
+//		return log.LogAndError(fmt.Sprintf("Could not parse %v into string. error %s", value, err))
+//	}
+//	s.bounds = string(segmentAsString[0]) + string(segmentAsString[len(segmentAsString)-1])
+//	s.lower = &begin
+//	s.upper = &end
+//
+//	return nil
+//}
+//
+//func (s Segment) Value() (driver.Value, error) {
+//	// [00:18:34.15,00:22:46.909)
+//	segAsString := s.String()
+//	return []byte(segAsString), nil
+//}
+//
+//type NullSegment struct {
+//	Segment Segment
+//	Valid   bool
+//}
+//
+//func (ns *NullSegment) Scan(value interface{}) error {
+//	if value == nil {
+//		ns.Segment, ns.Valid = Segment{}, false
+//		return nil
+//	}
+//
+//	err := ns.Segment.Scan(value)
+//	util.CheckOrFatalErr(err)
+//	ns.Valid = true
+//	return nil
+//}
+//
+//func (ns NullSegment) Value() (driver.Value, error) {
+//	if !ns.Valid {
+//		return nil, nil
+//	}
+//	return ns.Segment.Value()
+//}
+//
+//// this is not time.Duration but an alias for postgres interval hour to sec (3)
+//type NullDuration struct {
+//	time  time.Time
+//	valid bool
+//}
+//
+//func (d *NullDuration) Scan(value interface{}) error {
+//	if value == nil {
+//		d = &NullDuration{time.Time{}, false}
+//		return nil
+//	}
+//	durationAsBytes, ok := value.([]byte)
+//	if !ok {
+//		return log.LogAndError(fmt.Sprintf("Could not convert %#v scanned Duration value to bytes", value))
+//	}
+//	durationAsString := string(durationAsBytes)
+//	durationAsTime, err := parseStringToTime(durationAsString)
+//	util.CheckOrFatalErr(err)
+//	d.time, d.valid = durationAsTime, true
+//	return nil
+//}
+//
+//func (d NullDuration) Value() (driver.Value, error) {
+//	if !d.valid {
+//		return nil, nil
+//	}
+//	return []byte(d.time.Format(MIL_SEG_FORMAT)), nil
+//}
+//
+//
+//var times = []time.Time{
+//	time.Date(2014, time.February, 3, 2, 0, 0, 0, time.UTC),
+//	time.Date(2014, time.February, 3, 4, 0, 0, 0, time.UTC),
+//	time.Date(2014, time.February, 3, 6, 0, 0, 0, time.UTC),
+//	time.Date(2014, time.February, 3, 8, 0, 0, 0, time.UTC),
+//}
+//
+//func SegmentRandom() Segment {
+//	seg, _ := NewSegment(&times[0], &times[1], "[]")
+//	return seg
+//}
+//
+//func NullSegmentRandom() NullSegment {
+//	seg := SegmentRandom()
+//	return NullSegment{seg, true}
+//}
