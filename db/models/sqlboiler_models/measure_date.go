@@ -874,6 +874,10 @@ func (o *MeasureDate) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(measureDateColumns, measureDatePrimaryKeyColumns, whitelist)
+
+		if len(whitelist) == 0 {
+			wl = strmangle.SetComplement(wl, []string{"created_at"})
+		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update measure_date, could not build whitelist")
 		}

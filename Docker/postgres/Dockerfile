@@ -8,7 +8,7 @@ WORKDIR databrary
 # TODO: set this to databrary_go eventually
 ARG commit=origin/go_models
 RUN git remote update && git checkout $commit
-RUN make -C db/pgranges install
+RUN make -C pgranges install
 
 ADD init-user-db.sh /usr/local/src/databrary/init-user-db.sh
 RUN chmod 755 /usr/local/src/databrary/init-user-db.sh

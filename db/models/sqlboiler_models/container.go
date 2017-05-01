@@ -37,10 +37,10 @@ type Container struct {
 type containerR struct {
 	Volume           *Volume
 	TagUses          TagUseSlice
-	Notifications    NotificationSlice
 	SlotReleases     SlotReleaseSlice
 	SlotAssets       SlotAssetSlice
 	SlotRecords      SlotRecordSlice
+	Notifications    NotificationSlice
 	VolumeInclusions VolumeInclusionSlice
 	Comments         CommentSlice
 }
@@ -376,30 +376,6 @@ func (o *Container) TagUsesByFk(exec boil.Executor, mods ...qm.QueryMod) tagUseQ
 	return query
 }
 
-// NotificationsG retrieves all the notification's notification.
-func (o *Container) NotificationsG(mods ...qm.QueryMod) notificationQuery {
-	return o.NotificationsByFk(boil.GetDB(), mods...)
-}
-
-// Notifications retrieves all the notification's notification with an executor.
-func (o *Container) NotificationsByFk(exec boil.Executor, mods ...qm.QueryMod) notificationQuery {
-	queryMods := []qm.QueryMod{
-		qm.Select("\"a\".*"),
-	}
-
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"a\".\"container\"=?", o.ID),
-	)
-
-	query := Notifications(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"notification\" as \"a\"")
-	return query
-}
-
 // SlotReleasesG retrieves all the slot_release's slot release.
 func (o *Container) SlotReleasesG(mods ...qm.QueryMod) slotReleaseQuery {
 	return o.SlotReleasesByFk(boil.GetDB(), mods...)
@@ -469,6 +445,30 @@ func (o *Container) SlotRecordsByFk(exec boil.Executor, mods ...qm.QueryMod) slo
 
 	query := SlotRecords(exec, queryMods...)
 	queries.SetFrom(query.Query, "\"slot_record\" as \"a\"")
+	return query
+}
+
+// NotificationsG retrieves all the notification's notification.
+func (o *Container) NotificationsG(mods ...qm.QueryMod) notificationQuery {
+	return o.NotificationsByFk(boil.GetDB(), mods...)
+}
+
+// Notifications retrieves all the notification's notification with an executor.
+func (o *Container) NotificationsByFk(exec boil.Executor, mods ...qm.QueryMod) notificationQuery {
+	queryMods := []qm.QueryMod{
+		qm.Select("\"a\".*"),
+	}
+
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"a\".\"container\"=?", o.ID),
+	)
+
+	query := Notifications(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"notification\" as \"a\"")
 	return query
 }
 
@@ -662,78 +662,6 @@ func (containerL) LoadTagUses(e boil.Executor, singular bool, maybeContainer int
 		for _, local := range slice {
 			if local.ID == foreign.Container {
 				local.R.TagUses = append(local.R.TagUses, foreign)
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
-// LoadNotifications allows an eager lookup of values, cached into the
-// loaded structs of the objects.
-func (containerL) LoadNotifications(e boil.Executor, singular bool, maybeContainer interface{}) error {
-	var slice []*Container
-	var object *Container
-
-	count := 1
-	if singular {
-		object = maybeContainer.(*Container)
-	} else {
-		slice = *maybeContainer.(*ContainerSlice)
-		count = len(slice)
-	}
-
-	args := make([]interface{}, count)
-	if singular {
-		if object.R == nil {
-			object.R = &containerR{}
-		}
-		args[0] = object.ID
-	} else {
-		for i, obj := range slice {
-			if obj.R == nil {
-				obj.R = &containerR{}
-			}
-			args[i] = obj.ID
-		}
-	}
-
-	query := fmt.Sprintf(
-		"select * from \"notification\" where \"container\" in (%s)",
-		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
-	)
-	if boil.DebugMode {
-		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
-	}
-
-	results, err := e.Query(query, args...)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load notification")
-	}
-	defer results.Close()
-
-	var resultSlice []*Notification
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice notification")
-	}
-
-	if len(notificationAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(e); err != nil {
-				return err
-			}
-		}
-	}
-	if singular {
-		object.R.Notifications = resultSlice
-		return nil
-	}
-
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if local.ID == foreign.Container.Int {
-				local.R.Notifications = append(local.R.Notifications, foreign)
 				break
 			}
 		}
@@ -950,6 +878,78 @@ func (containerL) LoadSlotRecords(e boil.Executor, singular bool, maybeContainer
 		for _, local := range slice {
 			if local.ID == foreign.Container {
 				local.R.SlotRecords = append(local.R.SlotRecords, foreign)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadNotifications allows an eager lookup of values, cached into the
+// loaded structs of the objects.
+func (containerL) LoadNotifications(e boil.Executor, singular bool, maybeContainer interface{}) error {
+	var slice []*Container
+	var object *Container
+
+	count := 1
+	if singular {
+		object = maybeContainer.(*Container)
+	} else {
+		slice = *maybeContainer.(*ContainerSlice)
+		count = len(slice)
+	}
+
+	args := make([]interface{}, count)
+	if singular {
+		if object.R == nil {
+			object.R = &containerR{}
+		}
+		args[0] = object.ID
+	} else {
+		for i, obj := range slice {
+			if obj.R == nil {
+				obj.R = &containerR{}
+			}
+			args[i] = obj.ID
+		}
+	}
+
+	query := fmt.Sprintf(
+		"select * from \"notification\" where \"container\" in (%s)",
+		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
+	)
+	if boil.DebugMode {
+		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
+	}
+
+	results, err := e.Query(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load notification")
+	}
+	defer results.Close()
+
+	var resultSlice []*Notification
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice notification")
+	}
+
+	if len(notificationAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.Notifications = resultSlice
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.Container.Int {
+				local.R.Notifications = append(local.R.Notifications, foreign)
 				break
 			}
 		}
@@ -1262,227 +1262,6 @@ func (o *Container) AddTagUses(exec boil.Executor, insert bool, related ...*TagU
 	return nil
 }
 
-// AddNotificationsG adds the given related objects to the existing relationships
-// of the container, optionally inserting them as new records.
-// Appends related to o.R.Notifications.
-// Sets related.R.Container appropriately.
-// Uses the global database handle.
-func (o *Container) AddNotificationsG(insert bool, related ...*Notification) error {
-	return o.AddNotifications(boil.GetDB(), insert, related...)
-}
-
-// AddNotificationsP adds the given related objects to the existing relationships
-// of the container, optionally inserting them as new records.
-// Appends related to o.R.Notifications.
-// Sets related.R.Container appropriately.
-// Panics on error.
-func (o *Container) AddNotificationsP(exec boil.Executor, insert bool, related ...*Notification) {
-	if err := o.AddNotifications(exec, insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddNotificationsGP adds the given related objects to the existing relationships
-// of the container, optionally inserting them as new records.
-// Appends related to o.R.Notifications.
-// Sets related.R.Container appropriately.
-// Uses the global database handle and panics on error.
-func (o *Container) AddNotificationsGP(insert bool, related ...*Notification) {
-	if err := o.AddNotifications(boil.GetDB(), insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddNotifications adds the given related objects to the existing relationships
-// of the container, optionally inserting them as new records.
-// Appends related to o.R.Notifications.
-// Sets related.R.Container appropriately.
-func (o *Container) AddNotifications(exec boil.Executor, insert bool, related ...*Notification) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.Container.Int = o.ID
-			rel.Container.Valid = true
-			if err = rel.Insert(exec); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"notification\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"container"}),
-				strmangle.WhereClause("\"", "\"", 2, notificationPrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.ID}
-
-			if boil.DebugMode {
-				fmt.Fprintln(boil.DebugWriter, updateQuery)
-				fmt.Fprintln(boil.DebugWriter, values)
-			}
-
-			if _, err = exec.Exec(updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.Container.Int = o.ID
-			rel.Container.Valid = true
-		}
-	}
-
-	if o.R == nil {
-		o.R = &containerR{
-			Notifications: related,
-		}
-	} else {
-		o.R.Notifications = append(o.R.Notifications, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &notificationR{
-				Container: o,
-			}
-		} else {
-			rel.R.Container = o
-		}
-	}
-	return nil
-}
-
-// SetNotificationsG removes all previously related items of the
-// container replacing them completely with the passed
-// in related items, optionally inserting them as new records.
-// Sets o.R.Container's Notifications accordingly.
-// Replaces o.R.Notifications with related.
-// Sets related.R.Container's Notifications accordingly.
-// Uses the global database handle.
-func (o *Container) SetNotificationsG(insert bool, related ...*Notification) error {
-	return o.SetNotifications(boil.GetDB(), insert, related...)
-}
-
-// SetNotificationsP removes all previously related items of the
-// container replacing them completely with the passed
-// in related items, optionally inserting them as new records.
-// Sets o.R.Container's Notifications accordingly.
-// Replaces o.R.Notifications with related.
-// Sets related.R.Container's Notifications accordingly.
-// Panics on error.
-func (o *Container) SetNotificationsP(exec boil.Executor, insert bool, related ...*Notification) {
-	if err := o.SetNotifications(exec, insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// SetNotificationsGP removes all previously related items of the
-// container replacing them completely with the passed
-// in related items, optionally inserting them as new records.
-// Sets o.R.Container's Notifications accordingly.
-// Replaces o.R.Notifications with related.
-// Sets related.R.Container's Notifications accordingly.
-// Uses the global database handle and panics on error.
-func (o *Container) SetNotificationsGP(insert bool, related ...*Notification) {
-	if err := o.SetNotifications(boil.GetDB(), insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// SetNotifications removes all previously related items of the
-// container replacing them completely with the passed
-// in related items, optionally inserting them as new records.
-// Sets o.R.Container's Notifications accordingly.
-// Replaces o.R.Notifications with related.
-// Sets related.R.Container's Notifications accordingly.
-func (o *Container) SetNotifications(exec boil.Executor, insert bool, related ...*Notification) error {
-	query := "update \"notification\" set \"container\" = null where \"container\" = $1"
-	values := []interface{}{o.ID}
-	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, query)
-		fmt.Fprintln(boil.DebugWriter, values)
-	}
-
-	_, err := exec.Exec(query, values...)
-	if err != nil {
-		return errors.Wrap(err, "failed to remove relationships before set")
-	}
-
-	if o.R != nil {
-		for _, rel := range o.R.Notifications {
-			rel.Container.Valid = false
-			if rel.R == nil {
-				continue
-			}
-
-			rel.R.Container = nil
-		}
-
-		o.R.Notifications = nil
-	}
-	return o.AddNotifications(exec, insert, related...)
-}
-
-// RemoveNotificationsG relationships from objects passed in.
-// Removes related items from R.Notifications (uses pointer comparison, removal does not keep order)
-// Sets related.R.Container.
-// Uses the global database handle.
-func (o *Container) RemoveNotificationsG(related ...*Notification) error {
-	return o.RemoveNotifications(boil.GetDB(), related...)
-}
-
-// RemoveNotificationsP relationships from objects passed in.
-// Removes related items from R.Notifications (uses pointer comparison, removal does not keep order)
-// Sets related.R.Container.
-// Panics on error.
-func (o *Container) RemoveNotificationsP(exec boil.Executor, related ...*Notification) {
-	if err := o.RemoveNotifications(exec, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// RemoveNotificationsGP relationships from objects passed in.
-// Removes related items from R.Notifications (uses pointer comparison, removal does not keep order)
-// Sets related.R.Container.
-// Uses the global database handle and panics on error.
-func (o *Container) RemoveNotificationsGP(related ...*Notification) {
-	if err := o.RemoveNotifications(boil.GetDB(), related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// RemoveNotifications relationships from objects passed in.
-// Removes related items from R.Notifications (uses pointer comparison, removal does not keep order)
-// Sets related.R.Container.
-func (o *Container) RemoveNotifications(exec boil.Executor, related ...*Notification) error {
-	var err error
-	for _, rel := range related {
-		rel.Container.Valid = false
-		if rel.R != nil {
-			rel.R.Container = nil
-		}
-		if err = rel.Update(exec, "container"); err != nil {
-			return err
-		}
-	}
-	if o.R == nil {
-		return nil
-	}
-
-	for _, rel := range related {
-		for i, ri := range o.R.Notifications {
-			if rel != ri {
-				continue
-			}
-
-			ln := len(o.R.Notifications)
-			if ln > 1 && i < ln-1 {
-				o.R.Notifications[i] = o.R.Notifications[ln-1]
-			}
-			o.R.Notifications = o.R.Notifications[:ln-1]
-			break
-		}
-	}
-
-	return nil
-}
-
 // AddSlotReleasesG adds the given related objects to the existing relationships
 // of the container, optionally inserting them as new records.
 // Appends related to o.R.SlotReleases.
@@ -1732,6 +1511,227 @@ func (o *Container) AddSlotRecords(exec boil.Executor, insert bool, related ...*
 			rel.R.Container = o
 		}
 	}
+	return nil
+}
+
+// AddNotificationsG adds the given related objects to the existing relationships
+// of the container, optionally inserting them as new records.
+// Appends related to o.R.Notifications.
+// Sets related.R.Container appropriately.
+// Uses the global database handle.
+func (o *Container) AddNotificationsG(insert bool, related ...*Notification) error {
+	return o.AddNotifications(boil.GetDB(), insert, related...)
+}
+
+// AddNotificationsP adds the given related objects to the existing relationships
+// of the container, optionally inserting them as new records.
+// Appends related to o.R.Notifications.
+// Sets related.R.Container appropriately.
+// Panics on error.
+func (o *Container) AddNotificationsP(exec boil.Executor, insert bool, related ...*Notification) {
+	if err := o.AddNotifications(exec, insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddNotificationsGP adds the given related objects to the existing relationships
+// of the container, optionally inserting them as new records.
+// Appends related to o.R.Notifications.
+// Sets related.R.Container appropriately.
+// Uses the global database handle and panics on error.
+func (o *Container) AddNotificationsGP(insert bool, related ...*Notification) {
+	if err := o.AddNotifications(boil.GetDB(), insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddNotifications adds the given related objects to the existing relationships
+// of the container, optionally inserting them as new records.
+// Appends related to o.R.Notifications.
+// Sets related.R.Container appropriately.
+func (o *Container) AddNotifications(exec boil.Executor, insert bool, related ...*Notification) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.Container.Int = o.ID
+			rel.Container.Valid = true
+			if err = rel.Insert(exec); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"notification\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"container"}),
+				strmangle.WhereClause("\"", "\"", 2, notificationPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.DebugMode {
+				fmt.Fprintln(boil.DebugWriter, updateQuery)
+				fmt.Fprintln(boil.DebugWriter, values)
+			}
+
+			if _, err = exec.Exec(updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.Container.Int = o.ID
+			rel.Container.Valid = true
+		}
+	}
+
+	if o.R == nil {
+		o.R = &containerR{
+			Notifications: related,
+		}
+	} else {
+		o.R.Notifications = append(o.R.Notifications, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &notificationR{
+				Container: o,
+			}
+		} else {
+			rel.R.Container = o
+		}
+	}
+	return nil
+}
+
+// SetNotificationsG removes all previously related items of the
+// container replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.Container's Notifications accordingly.
+// Replaces o.R.Notifications with related.
+// Sets related.R.Container's Notifications accordingly.
+// Uses the global database handle.
+func (o *Container) SetNotificationsG(insert bool, related ...*Notification) error {
+	return o.SetNotifications(boil.GetDB(), insert, related...)
+}
+
+// SetNotificationsP removes all previously related items of the
+// container replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.Container's Notifications accordingly.
+// Replaces o.R.Notifications with related.
+// Sets related.R.Container's Notifications accordingly.
+// Panics on error.
+func (o *Container) SetNotificationsP(exec boil.Executor, insert bool, related ...*Notification) {
+	if err := o.SetNotifications(exec, insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// SetNotificationsGP removes all previously related items of the
+// container replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.Container's Notifications accordingly.
+// Replaces o.R.Notifications with related.
+// Sets related.R.Container's Notifications accordingly.
+// Uses the global database handle and panics on error.
+func (o *Container) SetNotificationsGP(insert bool, related ...*Notification) {
+	if err := o.SetNotifications(boil.GetDB(), insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// SetNotifications removes all previously related items of the
+// container replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.Container's Notifications accordingly.
+// Replaces o.R.Notifications with related.
+// Sets related.R.Container's Notifications accordingly.
+func (o *Container) SetNotifications(exec boil.Executor, insert bool, related ...*Notification) error {
+	query := "update \"notification\" set \"container\" = null where \"container\" = $1"
+	values := []interface{}{o.ID}
+	if boil.DebugMode {
+		fmt.Fprintln(boil.DebugWriter, query)
+		fmt.Fprintln(boil.DebugWriter, values)
+	}
+
+	_, err := exec.Exec(query, values...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove relationships before set")
+	}
+
+	if o.R != nil {
+		for _, rel := range o.R.Notifications {
+			rel.Container.Valid = false
+			if rel.R == nil {
+				continue
+			}
+
+			rel.R.Container = nil
+		}
+
+		o.R.Notifications = nil
+	}
+	return o.AddNotifications(exec, insert, related...)
+}
+
+// RemoveNotificationsG relationships from objects passed in.
+// Removes related items from R.Notifications (uses pointer comparison, removal does not keep order)
+// Sets related.R.Container.
+// Uses the global database handle.
+func (o *Container) RemoveNotificationsG(related ...*Notification) error {
+	return o.RemoveNotifications(boil.GetDB(), related...)
+}
+
+// RemoveNotificationsP relationships from objects passed in.
+// Removes related items from R.Notifications (uses pointer comparison, removal does not keep order)
+// Sets related.R.Container.
+// Panics on error.
+func (o *Container) RemoveNotificationsP(exec boil.Executor, related ...*Notification) {
+	if err := o.RemoveNotifications(exec, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// RemoveNotificationsGP relationships from objects passed in.
+// Removes related items from R.Notifications (uses pointer comparison, removal does not keep order)
+// Sets related.R.Container.
+// Uses the global database handle and panics on error.
+func (o *Container) RemoveNotificationsGP(related ...*Notification) {
+	if err := o.RemoveNotifications(boil.GetDB(), related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// RemoveNotifications relationships from objects passed in.
+// Removes related items from R.Notifications (uses pointer comparison, removal does not keep order)
+// Sets related.R.Container.
+func (o *Container) RemoveNotifications(exec boil.Executor, related ...*Notification) error {
+	var err error
+	for _, rel := range related {
+		rel.Container.Valid = false
+		if rel.R != nil {
+			rel.R.Container = nil
+		}
+		if err = rel.Update(exec, "container"); err != nil {
+			return err
+		}
+	}
+	if o.R == nil {
+		return nil
+	}
+
+	for _, rel := range related {
+		for i, ri := range o.R.Notifications {
+			if rel != ri {
+				continue
+			}
+
+			ln := len(o.R.Notifications)
+			if ln > 1 && i < ln-1 {
+				o.R.Notifications[i] = o.R.Notifications[ln-1]
+			}
+			o.R.Notifications = o.R.Notifications[:ln-1]
+			break
+		}
+	}
+
 	return nil
 }
 
@@ -2107,6 +2107,10 @@ func (o *Container) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(containerColumns, containerPrimaryKeyColumns, whitelist)
+
+		if len(whitelist) == 0 {
+			wl = strmangle.SetComplement(wl, []string{"created_at"})
+		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update container, could not build whitelist")
 		}

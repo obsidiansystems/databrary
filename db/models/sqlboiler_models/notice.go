@@ -33,8 +33,8 @@ type Notice struct {
 
 // noticeR is where relationships are stored.
 type noticeR struct {
-	Notifications NotificationSlice
 	Notifies      NotifySlice
+	Notifications NotificationSlice
 }
 
 // noticeL is where Load methods for each relationship are stored.
@@ -325,30 +325,6 @@ func (q noticeQuery) Exists() (bool, error) {
 	return count > 0, nil
 }
 
-// NotificationsG retrieves all the notification's notification.
-func (o *Notice) NotificationsG(mods ...qm.QueryMod) notificationQuery {
-	return o.NotificationsByFk(boil.GetDB(), mods...)
-}
-
-// Notifications retrieves all the notification's notification with an executor.
-func (o *Notice) NotificationsByFk(exec boil.Executor, mods ...qm.QueryMod) notificationQuery {
-	queryMods := []qm.QueryMod{
-		qm.Select("\"a\".*"),
-	}
-
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"a\".\"notice\"=?", o.ID),
-	)
-
-	query := Notifications(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"notification\" as \"a\"")
-	return query
-}
-
 // NotifiesG retrieves all the notify's notify.
 func (o *Notice) NotifiesG(mods ...qm.QueryMod) notifyQuery {
 	return o.NotifiesByFk(boil.GetDB(), mods...)
@@ -373,76 +349,28 @@ func (o *Notice) NotifiesByFk(exec boil.Executor, mods ...qm.QueryMod) notifyQue
 	return query
 }
 
-// LoadNotifications allows an eager lookup of values, cached into the
-// loaded structs of the objects.
-func (noticeL) LoadNotifications(e boil.Executor, singular bool, maybeNotice interface{}) error {
-	var slice []*Notice
-	var object *Notice
+// NotificationsG retrieves all the notification's notification.
+func (o *Notice) NotificationsG(mods ...qm.QueryMod) notificationQuery {
+	return o.NotificationsByFk(boil.GetDB(), mods...)
+}
 
-	count := 1
-	if singular {
-		object = maybeNotice.(*Notice)
-	} else {
-		slice = *maybeNotice.(*NoticeSlice)
-		count = len(slice)
+// Notifications retrieves all the notification's notification with an executor.
+func (o *Notice) NotificationsByFk(exec boil.Executor, mods ...qm.QueryMod) notificationQuery {
+	queryMods := []qm.QueryMod{
+		qm.Select("\"a\".*"),
 	}
 
-	args := make([]interface{}, count)
-	if singular {
-		if object.R == nil {
-			object.R = &noticeR{}
-		}
-		args[0] = object.ID
-	} else {
-		for i, obj := range slice {
-			if obj.R == nil {
-				obj.R = &noticeR{}
-			}
-			args[i] = obj.ID
-		}
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
 	}
 
-	query := fmt.Sprintf(
-		"select * from \"notification\" where \"notice\" in (%s)",
-		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
+	queryMods = append(queryMods,
+		qm.Where("\"a\".\"notice\"=?", o.ID),
 	)
-	if boil.DebugMode {
-		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
-	}
 
-	results, err := e.Query(query, args...)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load notification")
-	}
-	defer results.Close()
-
-	var resultSlice []*Notification
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice notification")
-	}
-
-	if len(notificationAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(e); err != nil {
-				return err
-			}
-		}
-	}
-	if singular {
-		object.R.Notifications = resultSlice
-		return nil
-	}
-
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if local.ID == foreign.Notice {
-				local.R.Notifications = append(local.R.Notifications, foreign)
-				break
-			}
-		}
-	}
-
-	return nil
+	query := Notifications(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"notification\" as \"a\"")
+	return query
 }
 
 // LoadNotifies allows an eager lookup of values, cached into the
@@ -517,87 +445,75 @@ func (noticeL) LoadNotifies(e boil.Executor, singular bool, maybeNotice interfac
 	return nil
 }
 
-// AddNotificationsG adds the given related objects to the existing relationships
-// of the notice, optionally inserting them as new records.
-// Appends related to o.R.Notifications.
-// Sets related.R.Notice appropriately.
-// Uses the global database handle.
-func (o *Notice) AddNotificationsG(insert bool, related ...*Notification) error {
-	return o.AddNotifications(boil.GetDB(), insert, related...)
-}
+// LoadNotifications allows an eager lookup of values, cached into the
+// loaded structs of the objects.
+func (noticeL) LoadNotifications(e boil.Executor, singular bool, maybeNotice interface{}) error {
+	var slice []*Notice
+	var object *Notice
 
-// AddNotificationsP adds the given related objects to the existing relationships
-// of the notice, optionally inserting them as new records.
-// Appends related to o.R.Notifications.
-// Sets related.R.Notice appropriately.
-// Panics on error.
-func (o *Notice) AddNotificationsP(exec boil.Executor, insert bool, related ...*Notification) {
-	if err := o.AddNotifications(exec, insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddNotificationsGP adds the given related objects to the existing relationships
-// of the notice, optionally inserting them as new records.
-// Appends related to o.R.Notifications.
-// Sets related.R.Notice appropriately.
-// Uses the global database handle and panics on error.
-func (o *Notice) AddNotificationsGP(insert bool, related ...*Notification) {
-	if err := o.AddNotifications(boil.GetDB(), insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddNotifications adds the given related objects to the existing relationships
-// of the notice, optionally inserting them as new records.
-// Appends related to o.R.Notifications.
-// Sets related.R.Notice appropriately.
-func (o *Notice) AddNotifications(exec boil.Executor, insert bool, related ...*Notification) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.Notice = o.ID
-			if err = rel.Insert(exec); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"notification\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"notice"}),
-				strmangle.WhereClause("\"", "\"", 2, notificationPrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.ID}
-
-			if boil.DebugMode {
-				fmt.Fprintln(boil.DebugWriter, updateQuery)
-				fmt.Fprintln(boil.DebugWriter, values)
-			}
-
-			if _, err = exec.Exec(updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.Notice = o.ID
-		}
-	}
-
-	if o.R == nil {
-		o.R = &noticeR{
-			Notifications: related,
-		}
+	count := 1
+	if singular {
+		object = maybeNotice.(*Notice)
 	} else {
-		o.R.Notifications = append(o.R.Notifications, related...)
+		slice = *maybeNotice.(*NoticeSlice)
+		count = len(slice)
 	}
 
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &notificationR{
-				Notice: o,
+	args := make([]interface{}, count)
+	if singular {
+		if object.R == nil {
+			object.R = &noticeR{}
+		}
+		args[0] = object.ID
+	} else {
+		for i, obj := range slice {
+			if obj.R == nil {
+				obj.R = &noticeR{}
 			}
-		} else {
-			rel.R.Notice = o
+			args[i] = obj.ID
 		}
 	}
+
+	query := fmt.Sprintf(
+		"select * from \"notification\" where \"notice\" in (%s)",
+		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
+	)
+	if boil.DebugMode {
+		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
+	}
+
+	results, err := e.Query(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load notification")
+	}
+	defer results.Close()
+
+	var resultSlice []*Notification
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice notification")
+	}
+
+	if len(notificationAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.Notifications = resultSlice
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.Notice {
+				local.R.Notifications = append(local.R.Notifications, foreign)
+				break
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -676,6 +592,90 @@ func (o *Notice) AddNotifies(exec boil.Executor, insert bool, related ...*Notify
 	for _, rel := range related {
 		if rel.R == nil {
 			rel.R = &notifyR{
+				Notice: o,
+			}
+		} else {
+			rel.R.Notice = o
+		}
+	}
+	return nil
+}
+
+// AddNotificationsG adds the given related objects to the existing relationships
+// of the notice, optionally inserting them as new records.
+// Appends related to o.R.Notifications.
+// Sets related.R.Notice appropriately.
+// Uses the global database handle.
+func (o *Notice) AddNotificationsG(insert bool, related ...*Notification) error {
+	return o.AddNotifications(boil.GetDB(), insert, related...)
+}
+
+// AddNotificationsP adds the given related objects to the existing relationships
+// of the notice, optionally inserting them as new records.
+// Appends related to o.R.Notifications.
+// Sets related.R.Notice appropriately.
+// Panics on error.
+func (o *Notice) AddNotificationsP(exec boil.Executor, insert bool, related ...*Notification) {
+	if err := o.AddNotifications(exec, insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddNotificationsGP adds the given related objects to the existing relationships
+// of the notice, optionally inserting them as new records.
+// Appends related to o.R.Notifications.
+// Sets related.R.Notice appropriately.
+// Uses the global database handle and panics on error.
+func (o *Notice) AddNotificationsGP(insert bool, related ...*Notification) {
+	if err := o.AddNotifications(boil.GetDB(), insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddNotifications adds the given related objects to the existing relationships
+// of the notice, optionally inserting them as new records.
+// Appends related to o.R.Notifications.
+// Sets related.R.Notice appropriately.
+func (o *Notice) AddNotifications(exec boil.Executor, insert bool, related ...*Notification) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.Notice = o.ID
+			if err = rel.Insert(exec); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"notification\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"notice"}),
+				strmangle.WhereClause("\"", "\"", 2, notificationPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.DebugMode {
+				fmt.Fprintln(boil.DebugWriter, updateQuery)
+				fmt.Fprintln(boil.DebugWriter, values)
+			}
+
+			if _, err = exec.Exec(updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.Notice = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &noticeR{
+			Notifications: related,
+		}
+	} else {
+		o.R.Notifications = append(o.R.Notifications, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &notificationR{
 				Notice: o,
 			}
 		} else {
@@ -889,6 +889,10 @@ func (o *Notice) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(noticeColumns, noticePrimaryKeyColumns, whitelist)
+
+		if len(whitelist) == 0 {
+			wl = strmangle.SetComplement(wl, []string{"created_at"})
+		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update notice, could not build whitelist")
 		}

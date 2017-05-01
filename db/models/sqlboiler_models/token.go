@@ -525,6 +525,10 @@ func (o *Token) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(tokenColumns, tokenPrimaryKeyColumns, whitelist)
+
+		if len(whitelist) == 0 {
+			wl = strmangle.SetComplement(wl, []string{"created_at"})
+		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update token, could not build whitelist")
 		}

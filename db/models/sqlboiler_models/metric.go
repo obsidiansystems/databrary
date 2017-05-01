@@ -42,10 +42,10 @@ type Metric struct {
 // metricR is where relationships are stored.
 type metricR struct {
 	Category        *Category
-	Volumes         VolumeSlice
 	Records         RecordSlice
 	MeasureDates    MeasureDateSlice
 	MeasureNumerics MeasureNumericSlice
+	Volumes         VolumeSlice
 	MeasureTexts    MeasureTextSlice
 }
 
@@ -356,31 +356,6 @@ func (o *Metric) CategoryByFk(exec boil.Executor, mods ...qm.QueryMod) categoryQ
 	return query
 }
 
-// VolumesG retrieves all the volume's volume.
-func (o *Metric) VolumesG(mods ...qm.QueryMod) volumeQuery {
-	return o.VolumesByFk(boil.GetDB(), mods...)
-}
-
-// Volumes retrieves all the volume's volume with an executor.
-func (o *Metric) VolumesByFk(exec boil.Executor, mods ...qm.QueryMod) volumeQuery {
-	queryMods := []qm.QueryMod{
-		qm.Select("\"a\".*"),
-	}
-
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.InnerJoin("\"volume_metric\" as \"b\" on \"a\".\"id\" = \"b\".\"volume\""),
-		qm.Where("\"b\".\"metric\"=?", o.ID),
-	)
-
-	query := Volumes(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"volume\" as \"a\"")
-	return query
-}
-
 // RecordsG retrieves all the record's record.
 func (o *Metric) RecordsG(mods ...qm.QueryMod) recordQuery {
 	return o.RecordsByFk(boil.GetDB(), mods...)
@@ -451,6 +426,31 @@ func (o *Metric) MeasureNumericsByFk(exec boil.Executor, mods ...qm.QueryMod) me
 
 	query := MeasureNumerics(exec, queryMods...)
 	queries.SetFrom(query.Query, "\"measure_numeric\" as \"a\"")
+	return query
+}
+
+// VolumesG retrieves all the volume's volume.
+func (o *Metric) VolumesG(mods ...qm.QueryMod) volumeQuery {
+	return o.VolumesByFk(boil.GetDB(), mods...)
+}
+
+// Volumes retrieves all the volume's volume with an executor.
+func (o *Metric) VolumesByFk(exec boil.Executor, mods ...qm.QueryMod) volumeQuery {
+	queryMods := []qm.QueryMod{
+		qm.Select("\"a\".*"),
+	}
+
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.InnerJoin("\"volume_metric\" as \"b\" on \"a\".\"id\" = \"b\".\"volume\""),
+		qm.Where("\"b\".\"metric\"=?", o.ID),
+	)
+
+	query := Volumes(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"volume\" as \"a\"")
 	return query
 }
 
@@ -548,94 +548,6 @@ func (metricL) LoadCategory(e boil.Executor, singular bool, maybeMetric interfac
 		for _, foreign := range resultSlice {
 			if local.Category == foreign.ID {
 				local.R.Category = foreign
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
-// LoadVolumes allows an eager lookup of values, cached into the
-// loaded structs of the objects.
-func (metricL) LoadVolumes(e boil.Executor, singular bool, maybeMetric interface{}) error {
-	var slice []*Metric
-	var object *Metric
-
-	count := 1
-	if singular {
-		object = maybeMetric.(*Metric)
-	} else {
-		slice = *maybeMetric.(*MetricSlice)
-		count = len(slice)
-	}
-
-	args := make([]interface{}, count)
-	if singular {
-		if object.R == nil {
-			object.R = &metricR{}
-		}
-		args[0] = object.ID
-	} else {
-		for i, obj := range slice {
-			if obj.R == nil {
-				obj.R = &metricR{}
-			}
-			args[i] = obj.ID
-		}
-	}
-
-	query := fmt.Sprintf(
-		"select \"a\".*, \"b\".\"metric\" from \"volume\" as \"a\" inner join \"volume_metric\" as \"b\" on \"a\".\"id\" = \"b\".\"volume\" where \"b\".\"metric\" in (%s)",
-		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
-	)
-	if boil.DebugMode {
-		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
-	}
-
-	results, err := e.Query(query, args...)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load volume")
-	}
-	defer results.Close()
-
-	var resultSlice []*Volume
-
-	var localJoinCols []int
-	for results.Next() {
-		one := new(Volume)
-		var localJoinCol int
-
-		err = results.Scan(&one.ID, &one.Name, &one.Body, &one.Alias, &one.Doi, &localJoinCol)
-		if err = results.Err(); err != nil {
-			return errors.Wrap(err, "failed to plebian-bind eager loaded slice volume")
-		}
-
-		resultSlice = append(resultSlice, one)
-		localJoinCols = append(localJoinCols, localJoinCol)
-	}
-
-	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "failed to plebian-bind eager loaded slice volume")
-	}
-
-	if len(volumeAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(e); err != nil {
-				return err
-			}
-		}
-	}
-	if singular {
-		object.R.Volumes = resultSlice
-		return nil
-	}
-
-	for i, foreign := range resultSlice {
-		localJoinCol := localJoinCols[i]
-		for _, local := range slice {
-			if local.ID == localJoinCol {
-				local.R.Volumes = append(local.R.Volumes, foreign)
 				break
 			}
 		}
@@ -876,6 +788,94 @@ func (metricL) LoadMeasureNumerics(e boil.Executor, singular bool, maybeMetric i
 	return nil
 }
 
+// LoadVolumes allows an eager lookup of values, cached into the
+// loaded structs of the objects.
+func (metricL) LoadVolumes(e boil.Executor, singular bool, maybeMetric interface{}) error {
+	var slice []*Metric
+	var object *Metric
+
+	count := 1
+	if singular {
+		object = maybeMetric.(*Metric)
+	} else {
+		slice = *maybeMetric.(*MetricSlice)
+		count = len(slice)
+	}
+
+	args := make([]interface{}, count)
+	if singular {
+		if object.R == nil {
+			object.R = &metricR{}
+		}
+		args[0] = object.ID
+	} else {
+		for i, obj := range slice {
+			if obj.R == nil {
+				obj.R = &metricR{}
+			}
+			args[i] = obj.ID
+		}
+	}
+
+	query := fmt.Sprintf(
+		"select \"a\".*, \"b\".\"metric\" from \"volume\" as \"a\" inner join \"volume_metric\" as \"b\" on \"a\".\"id\" = \"b\".\"volume\" where \"b\".\"metric\" in (%s)",
+		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
+	)
+	if boil.DebugMode {
+		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
+	}
+
+	results, err := e.Query(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load volume")
+	}
+	defer results.Close()
+
+	var resultSlice []*Volume
+
+	var localJoinCols []int
+	for results.Next() {
+		one := new(Volume)
+		var localJoinCol int
+
+		err = results.Scan(&one.ID, &one.Name, &one.Body, &one.Alias, &one.Doi, &localJoinCol)
+		if err = results.Err(); err != nil {
+			return errors.Wrap(err, "failed to plebian-bind eager loaded slice volume")
+		}
+
+		resultSlice = append(resultSlice, one)
+		localJoinCols = append(localJoinCols, localJoinCol)
+	}
+
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "failed to plebian-bind eager loaded slice volume")
+	}
+
+	if len(volumeAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.Volumes = resultSlice
+		return nil
+	}
+
+	for i, foreign := range resultSlice {
+		localJoinCol := localJoinCols[i]
+		for _, local := range slice {
+			if local.ID == localJoinCol {
+				local.R.Volumes = append(local.R.Volumes, foreign)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
 // LoadMeasureTexts allows an eager lookup of values, cached into the
 // loaded structs of the objects.
 func (metricL) LoadMeasureTexts(e boil.Executor, singular bool, maybeMetric interface{}) error {
@@ -1022,242 +1022,6 @@ func (o *Metric) SetCategory(exec boil.Executor, insert bool, related *Category)
 	}
 
 	return nil
-}
-
-// AddVolumesG adds the given related objects to the existing relationships
-// of the metric, optionally inserting them as new records.
-// Appends related to o.R.Volumes.
-// Sets related.R.Metrics appropriately.
-// Uses the global database handle.
-func (o *Metric) AddVolumesG(insert bool, related ...*Volume) error {
-	return o.AddVolumes(boil.GetDB(), insert, related...)
-}
-
-// AddVolumesP adds the given related objects to the existing relationships
-// of the metric, optionally inserting them as new records.
-// Appends related to o.R.Volumes.
-// Sets related.R.Metrics appropriately.
-// Panics on error.
-func (o *Metric) AddVolumesP(exec boil.Executor, insert bool, related ...*Volume) {
-	if err := o.AddVolumes(exec, insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddVolumesGP adds the given related objects to the existing relationships
-// of the metric, optionally inserting them as new records.
-// Appends related to o.R.Volumes.
-// Sets related.R.Metrics appropriately.
-// Uses the global database handle and panics on error.
-func (o *Metric) AddVolumesGP(insert bool, related ...*Volume) {
-	if err := o.AddVolumes(boil.GetDB(), insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddVolumes adds the given related objects to the existing relationships
-// of the metric, optionally inserting them as new records.
-// Appends related to o.R.Volumes.
-// Sets related.R.Metrics appropriately.
-func (o *Metric) AddVolumes(exec boil.Executor, insert bool, related ...*Volume) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			if err = rel.Insert(exec); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		}
-	}
-
-	for _, rel := range related {
-		query := "insert into \"volume_metric\" (\"metric\", \"volume\") values ($1, $2)"
-		values := []interface{}{o.ID, rel.ID}
-
-		if boil.DebugMode {
-			fmt.Fprintln(boil.DebugWriter, query)
-			fmt.Fprintln(boil.DebugWriter, values)
-		}
-
-		_, err = exec.Exec(query, values...)
-		if err != nil {
-			return errors.Wrap(err, "failed to insert into join table")
-		}
-	}
-	if o.R == nil {
-		o.R = &metricR{
-			Volumes: related,
-		}
-	} else {
-		o.R.Volumes = append(o.R.Volumes, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &volumeR{
-				Metrics: MetricSlice{o},
-			}
-		} else {
-			rel.R.Metrics = append(rel.R.Metrics, o)
-		}
-	}
-	return nil
-}
-
-// SetVolumesG removes all previously related items of the
-// metric replacing them completely with the passed
-// in related items, optionally inserting them as new records.
-// Sets o.R.Metrics's Volumes accordingly.
-// Replaces o.R.Volumes with related.
-// Sets related.R.Metrics's Volumes accordingly.
-// Uses the global database handle.
-func (o *Metric) SetVolumesG(insert bool, related ...*Volume) error {
-	return o.SetVolumes(boil.GetDB(), insert, related...)
-}
-
-// SetVolumesP removes all previously related items of the
-// metric replacing them completely with the passed
-// in related items, optionally inserting them as new records.
-// Sets o.R.Metrics's Volumes accordingly.
-// Replaces o.R.Volumes with related.
-// Sets related.R.Metrics's Volumes accordingly.
-// Panics on error.
-func (o *Metric) SetVolumesP(exec boil.Executor, insert bool, related ...*Volume) {
-	if err := o.SetVolumes(exec, insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// SetVolumesGP removes all previously related items of the
-// metric replacing them completely with the passed
-// in related items, optionally inserting them as new records.
-// Sets o.R.Metrics's Volumes accordingly.
-// Replaces o.R.Volumes with related.
-// Sets related.R.Metrics's Volumes accordingly.
-// Uses the global database handle and panics on error.
-func (o *Metric) SetVolumesGP(insert bool, related ...*Volume) {
-	if err := o.SetVolumes(boil.GetDB(), insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// SetVolumes removes all previously related items of the
-// metric replacing them completely with the passed
-// in related items, optionally inserting them as new records.
-// Sets o.R.Metrics's Volumes accordingly.
-// Replaces o.R.Volumes with related.
-// Sets related.R.Metrics's Volumes accordingly.
-func (o *Metric) SetVolumes(exec boil.Executor, insert bool, related ...*Volume) error {
-	query := "delete from \"volume_metric\" where \"metric\" = $1"
-	values := []interface{}{o.ID}
-	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, query)
-		fmt.Fprintln(boil.DebugWriter, values)
-	}
-
-	_, err := exec.Exec(query, values...)
-	if err != nil {
-		return errors.Wrap(err, "failed to remove relationships before set")
-	}
-
-	removeVolumesFromMetricsSlice(o, related)
-	if o.R != nil {
-		o.R.Volumes = nil
-	}
-	return o.AddVolumes(exec, insert, related...)
-}
-
-// RemoveVolumesG relationships from objects passed in.
-// Removes related items from R.Volumes (uses pointer comparison, removal does not keep order)
-// Sets related.R.Metrics.
-// Uses the global database handle.
-func (o *Metric) RemoveVolumesG(related ...*Volume) error {
-	return o.RemoveVolumes(boil.GetDB(), related...)
-}
-
-// RemoveVolumesP relationships from objects passed in.
-// Removes related items from R.Volumes (uses pointer comparison, removal does not keep order)
-// Sets related.R.Metrics.
-// Panics on error.
-func (o *Metric) RemoveVolumesP(exec boil.Executor, related ...*Volume) {
-	if err := o.RemoveVolumes(exec, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// RemoveVolumesGP relationships from objects passed in.
-// Removes related items from R.Volumes (uses pointer comparison, removal does not keep order)
-// Sets related.R.Metrics.
-// Uses the global database handle and panics on error.
-func (o *Metric) RemoveVolumesGP(related ...*Volume) {
-	if err := o.RemoveVolumes(boil.GetDB(), related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// RemoveVolumes relationships from objects passed in.
-// Removes related items from R.Volumes (uses pointer comparison, removal does not keep order)
-// Sets related.R.Metrics.
-func (o *Metric) RemoveVolumes(exec boil.Executor, related ...*Volume) error {
-	var err error
-	query := fmt.Sprintf(
-		"delete from \"volume_metric\" where \"metric\" = $1 and \"volume\" in (%s)",
-		strmangle.Placeholders(dialect.IndexPlaceholders, len(related), 2, 1),
-	)
-	values := []interface{}{o.ID}
-	for _, rel := range related {
-		values = append(values, rel.ID)
-	}
-
-	if boil.DebugMode {
-		fmt.Fprintln(boil.DebugWriter, query)
-		fmt.Fprintln(boil.DebugWriter, values)
-	}
-
-	_, err = exec.Exec(query, values...)
-	if err != nil {
-		return errors.Wrap(err, "failed to remove relationships before set")
-	}
-	removeVolumesFromMetricsSlice(o, related)
-	if o.R == nil {
-		return nil
-	}
-
-	for _, rel := range related {
-		for i, ri := range o.R.Volumes {
-			if rel != ri {
-				continue
-			}
-
-			ln := len(o.R.Volumes)
-			if ln > 1 && i < ln-1 {
-				o.R.Volumes[i] = o.R.Volumes[ln-1]
-			}
-			o.R.Volumes = o.R.Volumes[:ln-1]
-			break
-		}
-	}
-
-	return nil
-}
-
-func removeVolumesFromMetricsSlice(o *Metric, related []*Volume) {
-	for _, rel := range related {
-		if rel.R == nil {
-			continue
-		}
-		for i, ri := range rel.R.Metrics {
-			if o.ID != ri.ID {
-				continue
-			}
-
-			ln := len(rel.R.Metrics)
-			if ln > 1 && i < ln-1 {
-				rel.R.Metrics[i] = rel.R.Metrics[ln-1]
-			}
-			rel.R.Metrics = rel.R.Metrics[:ln-1]
-			break
-		}
-	}
 }
 
 // AddRecordsG adds the given related objects to the existing relationships
@@ -1664,6 +1428,242 @@ func (o *Metric) AddMeasureNumerics(exec boil.Executor, insert bool, related ...
 	return nil
 }
 
+// AddVolumesG adds the given related objects to the existing relationships
+// of the metric, optionally inserting them as new records.
+// Appends related to o.R.Volumes.
+// Sets related.R.Metrics appropriately.
+// Uses the global database handle.
+func (o *Metric) AddVolumesG(insert bool, related ...*Volume) error {
+	return o.AddVolumes(boil.GetDB(), insert, related...)
+}
+
+// AddVolumesP adds the given related objects to the existing relationships
+// of the metric, optionally inserting them as new records.
+// Appends related to o.R.Volumes.
+// Sets related.R.Metrics appropriately.
+// Panics on error.
+func (o *Metric) AddVolumesP(exec boil.Executor, insert bool, related ...*Volume) {
+	if err := o.AddVolumes(exec, insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddVolumesGP adds the given related objects to the existing relationships
+// of the metric, optionally inserting them as new records.
+// Appends related to o.R.Volumes.
+// Sets related.R.Metrics appropriately.
+// Uses the global database handle and panics on error.
+func (o *Metric) AddVolumesGP(insert bool, related ...*Volume) {
+	if err := o.AddVolumes(boil.GetDB(), insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddVolumes adds the given related objects to the existing relationships
+// of the metric, optionally inserting them as new records.
+// Appends related to o.R.Volumes.
+// Sets related.R.Metrics appropriately.
+func (o *Metric) AddVolumes(exec boil.Executor, insert bool, related ...*Volume) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			if err = rel.Insert(exec); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		}
+	}
+
+	for _, rel := range related {
+		query := "insert into \"volume_metric\" (\"metric\", \"volume\") values ($1, $2)"
+		values := []interface{}{o.ID, rel.ID}
+
+		if boil.DebugMode {
+			fmt.Fprintln(boil.DebugWriter, query)
+			fmt.Fprintln(boil.DebugWriter, values)
+		}
+
+		_, err = exec.Exec(query, values...)
+		if err != nil {
+			return errors.Wrap(err, "failed to insert into join table")
+		}
+	}
+	if o.R == nil {
+		o.R = &metricR{
+			Volumes: related,
+		}
+	} else {
+		o.R.Volumes = append(o.R.Volumes, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &volumeR{
+				Metrics: MetricSlice{o},
+			}
+		} else {
+			rel.R.Metrics = append(rel.R.Metrics, o)
+		}
+	}
+	return nil
+}
+
+// SetVolumesG removes all previously related items of the
+// metric replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.Metrics's Volumes accordingly.
+// Replaces o.R.Volumes with related.
+// Sets related.R.Metrics's Volumes accordingly.
+// Uses the global database handle.
+func (o *Metric) SetVolumesG(insert bool, related ...*Volume) error {
+	return o.SetVolumes(boil.GetDB(), insert, related...)
+}
+
+// SetVolumesP removes all previously related items of the
+// metric replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.Metrics's Volumes accordingly.
+// Replaces o.R.Volumes with related.
+// Sets related.R.Metrics's Volumes accordingly.
+// Panics on error.
+func (o *Metric) SetVolumesP(exec boil.Executor, insert bool, related ...*Volume) {
+	if err := o.SetVolumes(exec, insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// SetVolumesGP removes all previously related items of the
+// metric replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.Metrics's Volumes accordingly.
+// Replaces o.R.Volumes with related.
+// Sets related.R.Metrics's Volumes accordingly.
+// Uses the global database handle and panics on error.
+func (o *Metric) SetVolumesGP(insert bool, related ...*Volume) {
+	if err := o.SetVolumes(boil.GetDB(), insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// SetVolumes removes all previously related items of the
+// metric replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.Metrics's Volumes accordingly.
+// Replaces o.R.Volumes with related.
+// Sets related.R.Metrics's Volumes accordingly.
+func (o *Metric) SetVolumes(exec boil.Executor, insert bool, related ...*Volume) error {
+	query := "delete from \"volume_metric\" where \"metric\" = $1"
+	values := []interface{}{o.ID}
+	if boil.DebugMode {
+		fmt.Fprintln(boil.DebugWriter, query)
+		fmt.Fprintln(boil.DebugWriter, values)
+	}
+
+	_, err := exec.Exec(query, values...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove relationships before set")
+	}
+
+	removeVolumesFromMetricsSlice(o, related)
+	if o.R != nil {
+		o.R.Volumes = nil
+	}
+	return o.AddVolumes(exec, insert, related...)
+}
+
+// RemoveVolumesG relationships from objects passed in.
+// Removes related items from R.Volumes (uses pointer comparison, removal does not keep order)
+// Sets related.R.Metrics.
+// Uses the global database handle.
+func (o *Metric) RemoveVolumesG(related ...*Volume) error {
+	return o.RemoveVolumes(boil.GetDB(), related...)
+}
+
+// RemoveVolumesP relationships from objects passed in.
+// Removes related items from R.Volumes (uses pointer comparison, removal does not keep order)
+// Sets related.R.Metrics.
+// Panics on error.
+func (o *Metric) RemoveVolumesP(exec boil.Executor, related ...*Volume) {
+	if err := o.RemoveVolumes(exec, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// RemoveVolumesGP relationships from objects passed in.
+// Removes related items from R.Volumes (uses pointer comparison, removal does not keep order)
+// Sets related.R.Metrics.
+// Uses the global database handle and panics on error.
+func (o *Metric) RemoveVolumesGP(related ...*Volume) {
+	if err := o.RemoveVolumes(boil.GetDB(), related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// RemoveVolumes relationships from objects passed in.
+// Removes related items from R.Volumes (uses pointer comparison, removal does not keep order)
+// Sets related.R.Metrics.
+func (o *Metric) RemoveVolumes(exec boil.Executor, related ...*Volume) error {
+	var err error
+	query := fmt.Sprintf(
+		"delete from \"volume_metric\" where \"metric\" = $1 and \"volume\" in (%s)",
+		strmangle.Placeholders(dialect.IndexPlaceholders, len(related), 2, 1),
+	)
+	values := []interface{}{o.ID}
+	for _, rel := range related {
+		values = append(values, rel.ID)
+	}
+
+	if boil.DebugMode {
+		fmt.Fprintln(boil.DebugWriter, query)
+		fmt.Fprintln(boil.DebugWriter, values)
+	}
+
+	_, err = exec.Exec(query, values...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove relationships before set")
+	}
+	removeVolumesFromMetricsSlice(o, related)
+	if o.R == nil {
+		return nil
+	}
+
+	for _, rel := range related {
+		for i, ri := range o.R.Volumes {
+			if rel != ri {
+				continue
+			}
+
+			ln := len(o.R.Volumes)
+			if ln > 1 && i < ln-1 {
+				o.R.Volumes[i] = o.R.Volumes[ln-1]
+			}
+			o.R.Volumes = o.R.Volumes[:ln-1]
+			break
+		}
+	}
+
+	return nil
+}
+
+func removeVolumesFromMetricsSlice(o *Metric, related []*Volume) {
+	for _, rel := range related {
+		if rel.R == nil {
+			continue
+		}
+		for i, ri := range rel.R.Metrics {
+			if o.ID != ri.ID {
+				continue
+			}
+
+			ln := len(rel.R.Metrics)
+			if ln > 1 && i < ln-1 {
+				rel.R.Metrics[i] = rel.R.Metrics[ln-1]
+			}
+			rel.R.Metrics = rel.R.Metrics[:ln-1]
+			break
+		}
+	}
+}
+
 // AddMeasureTextsG adds the given related objects to the existing relationships
 // of the metric, optionally inserting them as new records.
 // Appends related to o.R.MeasureTexts.
@@ -1952,6 +1952,10 @@ func (o *Metric) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(metricColumns, metricPrimaryKeyColumns, whitelist)
+
+		if len(whitelist) == 0 {
+			wl = strmangle.SetComplement(wl, []string{"created_at"})
+		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update metric, could not build whitelist")
 		}

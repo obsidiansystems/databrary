@@ -574,91 +574,6 @@ func testMetricsInsertWhitelist(t *testing.T) {
 	}
 }
 
-func testMetricToManyVolumes(t *testing.T) {
-	var err error
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var a Metric
-	var b, c Volume
-
-	foreignBlacklist := volumeColumnsWithDefault
-	if err := randomize.Struct(seed, &b, volumeDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Volume struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &c, volumeDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Volume struct: %s", err)
-	}
-	localBlacklist := metricColumnsWithDefault
-	localBlacklist = append(localBlacklist, metricColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &a, metricDBTypes, false, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Metric struct: %s", err)
-	}
-	a.Release = custom_types.NullReleaseRandom()
-	a.Type = custom_types.DataTypeRandom()
-
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	_, err = tx.Exec("insert into \"volume_metric\" (\"metric\", \"volume\") values ($1, $2)", a.ID, b.ID)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = tx.Exec("insert into \"volume_metric\" (\"metric\", \"volume\") values ($1, $2)", a.ID, c.ID)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	volume, err := a.VolumesByFk(tx).All()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	bFound, cFound := false, false
-	for _, v := range volume {
-		if v.ID == b.ID {
-			bFound = true
-		}
-		if v.ID == c.ID {
-			cFound = true
-		}
-	}
-
-	if !bFound {
-		t.Error("expected to find b")
-	}
-	if !cFound {
-		t.Error("expected to find c")
-	}
-
-	slice := MetricSlice{&a}
-	if err = a.L.LoadVolumes(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.Volumes); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	a.R.Volumes = nil
-	if err = a.L.LoadVolumes(tx, true, &a); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.Volumes); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	if t.Failed() {
-		t.Logf("%#v", volume)
-	}
-}
-
 func testMetricToManyRecords(t *testing.T) {
 	var err error
 	tx := MustTx(boil.Begin())
@@ -900,6 +815,91 @@ func testMetricToManyMeasureNumerics(t *testing.T) {
 	}
 }
 
+func testMetricToManyVolumes(t *testing.T) {
+	var err error
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var a Metric
+	var b, c Volume
+
+	foreignBlacklist := volumeColumnsWithDefault
+	if err := randomize.Struct(seed, &b, volumeDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Volume struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, volumeDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Volume struct: %s", err)
+	}
+	localBlacklist := metricColumnsWithDefault
+	localBlacklist = append(localBlacklist, metricColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &a, metricDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Metric struct: %s", err)
+	}
+	a.Release = custom_types.NullReleaseRandom()
+	a.Type = custom_types.DataTypeRandom()
+
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = tx.Exec("insert into \"volume_metric\" (\"metric\", \"volume\") values ($1, $2)", a.ID, b.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = tx.Exec("insert into \"volume_metric\" (\"metric\", \"volume\") values ($1, $2)", a.ID, c.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	volume, err := a.VolumesByFk(tx).All()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range volume {
+		if v.ID == b.ID {
+			bFound = true
+		}
+		if v.ID == c.ID {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := MetricSlice{&a}
+	if err = a.L.LoadVolumes(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.Volumes); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.Volumes = nil
+	if err = a.L.LoadVolumes(tx, true, &a); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.Volumes); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", volume)
+	}
+}
+
 func testMetricToManyMeasureTexts(t *testing.T) {
 	var err error
 	tx := MustTx(boil.Begin())
@@ -975,255 +975,6 @@ func testMetricToManyMeasureTexts(t *testing.T) {
 
 	if t.Failed() {
 		t.Logf("%#v", measureText)
-	}
-}
-
-func testMetricToManyAddOpVolumes(t *testing.T) {
-	var err error
-
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	var a Metric
-	var b, c, d, e Volume
-
-	seed := randomize.NewSeed()
-	localComplelementList := strmangle.SetComplement(metricPrimaryKeyColumns, metricColumnsWithoutDefault)
-	localComplelementList = append(localComplelementList, metricColumnsWithCustom...)
-
-	if err = randomize.Struct(seed, &a, metricDBTypes, false, localComplelementList...); err != nil {
-		t.Fatal(err)
-	}
-	a.Release = custom_types.NullReleaseRandom()
-	a.Type = custom_types.DataTypeRandom()
-
-	foreignComplementList := strmangle.SetComplement(volumePrimaryKeyColumns, volumeColumnsWithoutDefault)
-
-	foreigners := []*Volume{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, volumeDBTypes, false, foreignComplementList...); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	foreignersSplitByInsertion := [][]*Volume{
-		{&b, &c},
-		{&d, &e},
-	}
-
-	for i, x := range foreignersSplitByInsertion {
-		err = a.AddVolumes(tx, i != 0, x...)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		first := x[0]
-		second := x[1]
-
-		if first.R.Metrics[0] != &a {
-			t.Error("relationship was not added properly to the slice")
-		}
-		if second.R.Metrics[0] != &a {
-			t.Error("relationship was not added properly to the slice")
-		}
-
-		if a.R.Volumes[i*2] != first {
-			t.Error("relationship struct slice not set to correct value")
-		}
-		if a.R.Volumes[i*2+1] != second {
-			t.Error("relationship struct slice not set to correct value")
-		}
-
-		count, err := a.VolumesByFk(tx).Count()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if want := int64((i + 1) * 2); count != want {
-			t.Error("want", want, "got", count)
-		}
-	}
-}
-
-func testMetricToManySetOpVolumes(t *testing.T) {
-	var err error
-
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	var a Metric
-	var b, c, d, e Volume
-
-	seed := randomize.NewSeed()
-	localComplelementList := strmangle.SetComplement(metricPrimaryKeyColumns, metricColumnsWithoutDefault)
-	localComplelementList = append(localComplelementList, metricColumnsWithCustom...)
-
-	if err = randomize.Struct(seed, &a, metricDBTypes, false, localComplelementList...); err != nil {
-		t.Fatal(err)
-	}
-	a.Release = custom_types.NullReleaseRandom()
-	a.Type = custom_types.DataTypeRandom()
-
-	foreignComplementList := strmangle.SetComplement(volumePrimaryKeyColumns, volumeColumnsWithoutDefault)
-
-	foreigners := []*Volume{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, volumeDBTypes, false, foreignComplementList...); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	if err = a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	err = a.SetVolumes(tx, false, &b, &c)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	count, err := a.VolumesByFk(tx).Count()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 2 {
-		t.Error("count was wrong:", count)
-	}
-
-	err = a.SetVolumes(tx, true, &d, &e)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	count, err = a.VolumesByFk(tx).Count()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 2 {
-		t.Error("count was wrong:", count)
-	}
-
-	// The following checks cannot be implemented since we have no handle
-	// to these when we call Set(). Leaving them here as wishful thinking
-	// and to let people know there's dragons.
-	//
-	// if len(b.R.Metrics) != 0 {
-	// 	t.Error("relationship was not removed properly from the slice")
-	// }
-	// if len(c.R.Metrics) != 0 {
-	// 	t.Error("relationship was not removed properly from the slice")
-	// }
-	if d.R.Metrics[0] != &a {
-		t.Error("relationship was not added properly to the slice")
-	}
-	if e.R.Metrics[0] != &a {
-		t.Error("relationship was not added properly to the slice")
-	}
-
-	if a.R.Volumes[0] != &d {
-		t.Error("relationship struct slice not set to correct value")
-	}
-	if a.R.Volumes[1] != &e {
-		t.Error("relationship struct slice not set to correct value")
-	}
-}
-
-func testMetricToManyRemoveOpVolumes(t *testing.T) {
-	var err error
-
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	var a Metric
-	var b, c, d, e Volume
-
-	seed := randomize.NewSeed()
-	localComplelementList := strmangle.SetComplement(metricPrimaryKeyColumns, metricColumnsWithoutDefault)
-	localComplelementList = append(localComplelementList, metricColumnsWithCustom...)
-
-	if err = randomize.Struct(seed, &a, metricDBTypes, false, localComplelementList...); err != nil {
-		t.Fatal(err)
-	}
-	a.Release = custom_types.NullReleaseRandom()
-	a.Type = custom_types.DataTypeRandom()
-
-	foreignComplementList := strmangle.SetComplement(volumePrimaryKeyColumns, volumeColumnsWithoutDefault)
-
-	foreigners := []*Volume{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, volumeDBTypes, false, foreignComplementList...); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	err = a.AddVolumes(tx, true, foreigners...)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	count, err := a.VolumesByFk(tx).Count()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 4 {
-		t.Error("count was wrong:", count)
-	}
-
-	err = a.RemoveVolumes(tx, foreigners[:2]...)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	count, err = a.VolumesByFk(tx).Count()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 2 {
-		t.Error("count was wrong:", count)
-	}
-
-	if len(b.R.Metrics) != 0 {
-		t.Error("relationship was not removed properly from the slice")
-	}
-	if len(c.R.Metrics) != 0 {
-		t.Error("relationship was not removed properly from the slice")
-	}
-	if d.R.Metrics[0] != &a {
-		t.Error("relationship was not added properly to the foreign struct")
-	}
-	if e.R.Metrics[0] != &a {
-		t.Error("relationship was not added properly to the foreign struct")
-	}
-
-	if len(a.R.Volumes) != 2 {
-		t.Error("should have preserved two relationships")
-	}
-
-	// Removal doesn't do a stable deletion for performance so we have to flip the order
-	if a.R.Volumes[1] != &d {
-		t.Error("relationship to d should have been preserved")
-	}
-	if a.R.Volumes[0] != &e {
-		t.Error("relationship to e should have been preserved")
 	}
 }
 
@@ -1640,6 +1391,255 @@ func testMetricToManyAddOpMeasureNumerics(t *testing.T) {
 		}
 	}
 }
+func testMetricToManyAddOpVolumes(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	var a Metric
+	var b, c, d, e Volume
+
+	seed := randomize.NewSeed()
+	localComplelementList := strmangle.SetComplement(metricPrimaryKeyColumns, metricColumnsWithoutDefault)
+	localComplelementList = append(localComplelementList, metricColumnsWithCustom...)
+
+	if err = randomize.Struct(seed, &a, metricDBTypes, false, localComplelementList...); err != nil {
+		t.Fatal(err)
+	}
+	a.Release = custom_types.NullReleaseRandom()
+	a.Type = custom_types.DataTypeRandom()
+
+	foreignComplementList := strmangle.SetComplement(volumePrimaryKeyColumns, volumeColumnsWithoutDefault)
+
+	foreigners := []*Volume{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, volumeDBTypes, false, foreignComplementList...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*Volume{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddVolumes(tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if first.R.Metrics[0] != &a {
+			t.Error("relationship was not added properly to the slice")
+		}
+		if second.R.Metrics[0] != &a {
+			t.Error("relationship was not added properly to the slice")
+		}
+
+		if a.R.Volumes[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.Volumes[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.VolumesByFk(tx).Count()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+
+func testMetricToManySetOpVolumes(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	var a Metric
+	var b, c, d, e Volume
+
+	seed := randomize.NewSeed()
+	localComplelementList := strmangle.SetComplement(metricPrimaryKeyColumns, metricColumnsWithoutDefault)
+	localComplelementList = append(localComplelementList, metricColumnsWithCustom...)
+
+	if err = randomize.Struct(seed, &a, metricDBTypes, false, localComplelementList...); err != nil {
+		t.Fatal(err)
+	}
+	a.Release = custom_types.NullReleaseRandom()
+	a.Type = custom_types.DataTypeRandom()
+
+	foreignComplementList := strmangle.SetComplement(volumePrimaryKeyColumns, volumeColumnsWithoutDefault)
+
+	foreigners := []*Volume{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, volumeDBTypes, false, foreignComplementList...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err = a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	err = a.SetVolumes(tx, false, &b, &c)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err := a.VolumesByFk(tx).Count()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	err = a.SetVolumes(tx, true, &d, &e)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err = a.VolumesByFk(tx).Count()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	// The following checks cannot be implemented since we have no handle
+	// to these when we call Set(). Leaving them here as wishful thinking
+	// and to let people know there's dragons.
+	//
+	// if len(b.R.Metrics) != 0 {
+	// 	t.Error("relationship was not removed properly from the slice")
+	// }
+	// if len(c.R.Metrics) != 0 {
+	// 	t.Error("relationship was not removed properly from the slice")
+	// }
+	if d.R.Metrics[0] != &a {
+		t.Error("relationship was not added properly to the slice")
+	}
+	if e.R.Metrics[0] != &a {
+		t.Error("relationship was not added properly to the slice")
+	}
+
+	if a.R.Volumes[0] != &d {
+		t.Error("relationship struct slice not set to correct value")
+	}
+	if a.R.Volumes[1] != &e {
+		t.Error("relationship struct slice not set to correct value")
+	}
+}
+
+func testMetricToManyRemoveOpVolumes(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	var a Metric
+	var b, c, d, e Volume
+
+	seed := randomize.NewSeed()
+	localComplelementList := strmangle.SetComplement(metricPrimaryKeyColumns, metricColumnsWithoutDefault)
+	localComplelementList = append(localComplelementList, metricColumnsWithCustom...)
+
+	if err = randomize.Struct(seed, &a, metricDBTypes, false, localComplelementList...); err != nil {
+		t.Fatal(err)
+	}
+	a.Release = custom_types.NullReleaseRandom()
+	a.Type = custom_types.DataTypeRandom()
+
+	foreignComplementList := strmangle.SetComplement(volumePrimaryKeyColumns, volumeColumnsWithoutDefault)
+
+	foreigners := []*Volume{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, volumeDBTypes, false, foreignComplementList...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	err = a.AddVolumes(tx, true, foreigners...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err := a.VolumesByFk(tx).Count()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 4 {
+		t.Error("count was wrong:", count)
+	}
+
+	err = a.RemoveVolumes(tx, foreigners[:2]...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err = a.VolumesByFk(tx).Count()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	if len(b.R.Metrics) != 0 {
+		t.Error("relationship was not removed properly from the slice")
+	}
+	if len(c.R.Metrics) != 0 {
+		t.Error("relationship was not removed properly from the slice")
+	}
+	if d.R.Metrics[0] != &a {
+		t.Error("relationship was not added properly to the foreign struct")
+	}
+	if e.R.Metrics[0] != &a {
+		t.Error("relationship was not added properly to the foreign struct")
+	}
+
+	if len(a.R.Volumes) != 2 {
+		t.Error("should have preserved two relationships")
+	}
+
+	// Removal doesn't do a stable deletion for performance so we have to flip the order
+	if a.R.Volumes[1] != &d {
+		t.Error("relationship to d should have been preserved")
+	}
+	if a.R.Volumes[0] != &e {
+		t.Error("relationship to e should have been preserved")
+	}
+}
+
 func testMetricToManyAddOpMeasureTexts(t *testing.T) {
 	var err error
 

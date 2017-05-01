@@ -103,6 +103,7 @@ func testAssetsDelete(t *testing.T) {
 	}
 
 	asset.Release = custom_types.NullReleaseRandom()
+	asset.Duration = custom_types.NullIntervalRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -135,6 +136,7 @@ func testAssetsQueryDeleteAll(t *testing.T) {
 	}
 
 	asset.Release = custom_types.NullReleaseRandom()
+	asset.Duration = custom_types.NullIntervalRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -167,6 +169,7 @@ func testAssetsSliceDeleteAll(t *testing.T) {
 	}
 
 	asset.Release = custom_types.NullReleaseRandom()
+	asset.Duration = custom_types.NullIntervalRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -200,6 +203,7 @@ func testAssetsExists(t *testing.T) {
 	}
 
 	asset.Release = custom_types.NullReleaseRandom()
+	asset.Duration = custom_types.NullIntervalRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -226,6 +230,7 @@ func testAssetsFind(t *testing.T) {
 	}
 
 	asset.Release = custom_types.NullReleaseRandom()
+	asset.Duration = custom_types.NullIntervalRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -253,6 +258,7 @@ func testAssetsBind(t *testing.T) {
 	}
 
 	asset.Release = custom_types.NullReleaseRandom()
+	asset.Duration = custom_types.NullIntervalRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -276,6 +282,7 @@ func testAssetsOne(t *testing.T) {
 	}
 
 	asset.Release = custom_types.NullReleaseRandom()
+	asset.Duration = custom_types.NullIntervalRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -307,6 +314,8 @@ func testAssetsAll(t *testing.T) {
 
 	assetOne.Release = custom_types.NullReleaseRandom()
 	assetTwo.Release = custom_types.NullReleaseRandom()
+	assetOne.Duration = custom_types.NullIntervalRandom()
+	assetTwo.Duration = custom_types.NullIntervalRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -344,6 +353,8 @@ func testAssetsCount(t *testing.T) {
 
 	assetOne.Release = custom_types.NullReleaseRandom()
 	assetTwo.Release = custom_types.NullReleaseRandom()
+	assetOne.Duration = custom_types.NullIntervalRandom()
+	assetTwo.Duration = custom_types.NullIntervalRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -420,6 +431,7 @@ func testAssetsHooks(t *testing.T) {
 	}
 
 	asset.Release = custom_types.NullReleaseRandom()
+	asset.Duration = custom_types.NullIntervalRandom()
 
 	empty := &Asset{}
 
@@ -515,6 +527,7 @@ func testAssetsInsert(t *testing.T) {
 	}
 
 	asset.Release = custom_types.NullReleaseRandom()
+	asset.Duration = custom_types.NullIntervalRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -543,6 +556,7 @@ func testAssetsInsertWhitelist(t *testing.T) {
 	}
 
 	asset.Release = custom_types.NullReleaseRandom()
+	asset.Duration = custom_types.NullIntervalRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -557,6 +571,63 @@ func testAssetsInsertWhitelist(t *testing.T) {
 
 	if count != 1 {
 		t.Error("want one record, got:", count)
+	}
+}
+
+func testAssetOneToOneAssetRevisionUsingOrigAssetRevision(t *testing.T) {
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var foreign AssetRevision
+	var local Asset
+
+	foreignBlacklist := assetRevisionColumnsWithDefault
+	if err := randomize.Struct(seed, &foreign, assetRevisionDBTypes, true, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize AssetRevision struct: %s", err)
+	}
+	localBlacklist := assetColumnsWithDefault
+	localBlacklist = append(localBlacklist, assetColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &local, assetDBTypes, true, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Asset struct: %s", err)
+	}
+	local.Release = custom_types.NullReleaseRandom()
+	local.Duration = custom_types.NullIntervalRandom()
+
+	if err := local.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	foreign.Orig = local.ID
+	if err := foreign.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := local.OrigAssetRevisionByFk(tx).One()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if check.Orig != foreign.Orig {
+		t.Errorf("want: %v, got %v", foreign.Orig, check.Orig)
+	}
+
+	slice := AssetSlice{&local}
+	if err = local.L.LoadOrigAssetRevision(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.OrigAssetRevision == nil {
+		t.Error("struct should have been eager loaded")
+	}
+
+	local.R.OrigAssetRevision = nil
+	if err = local.L.LoadOrigAssetRevision(tx, true, &local); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.OrigAssetRevision == nil {
+		t.Error("struct should have been eager loaded")
 	}
 }
 
@@ -584,6 +655,7 @@ func testAssetOneToOneTranscodeUsingTranscode(t *testing.T) {
 		t.Errorf("Unable to randomize Asset struct: %s", err)
 	}
 	local.Release = custom_types.NullReleaseRandom()
+	local.Duration = custom_types.NullIntervalRandom()
 
 	if err := local.Insert(tx); err != nil {
 		t.Fatal(err)
@@ -644,6 +716,7 @@ func testAssetOneToOneSlotAssetUsingSlotAsset(t *testing.T) {
 		t.Errorf("Unable to randomize Asset struct: %s", err)
 	}
 	local.Release = custom_types.NullReleaseRandom()
+	local.Duration = custom_types.NullIntervalRandom()
 
 	if err := local.Insert(tx); err != nil {
 		t.Fatal(err)
@@ -680,62 +753,70 @@ func testAssetOneToOneSlotAssetUsingSlotAsset(t *testing.T) {
 	}
 }
 
-func testAssetOneToOneAssetRevisionUsingOrigAssetRevision(t *testing.T) {
+func testAssetOneToOneSetOpAssetRevisionUsingOrigAssetRevision(t *testing.T) {
+	var err error
+
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
-
 	seed := randomize.NewSeed()
+	var a Asset
+	var b, c AssetRevision
 
-	var foreign AssetRevision
-	var local Asset
-
-	foreignBlacklist := assetRevisionColumnsWithDefault
-	if err := randomize.Struct(seed, &foreign, assetRevisionDBTypes, true, foreignBlacklist...); err != nil {
+	foreignBlacklist := strmangle.SetComplement(assetRevisionPrimaryKeyColumns, assetRevisionColumnsWithoutDefault)
+	if err := randomize.Struct(seed, &b, assetRevisionDBTypes, false, foreignBlacklist...); err != nil {
 		t.Errorf("Unable to randomize AssetRevision struct: %s", err)
 	}
-	localBlacklist := assetColumnsWithDefault
+	if err := randomize.Struct(seed, &c, assetRevisionDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize AssetRevision struct: %s", err)
+	}
+	localBlacklist := strmangle.SetComplement(assetPrimaryKeyColumns, assetColumnsWithoutDefault)
 	localBlacklist = append(localBlacklist, assetColumnsWithCustom...)
 
-	if err := randomize.Struct(seed, &local, assetDBTypes, true, localBlacklist...); err != nil {
+	if err := randomize.Struct(seed, &a, assetDBTypes, false, localBlacklist...); err != nil {
 		t.Errorf("Unable to randomize Asset struct: %s", err)
 	}
-	local.Release = custom_types.NullReleaseRandom()
+	a.Release = custom_types.NullReleaseRandom()
+	a.Duration = custom_types.NullIntervalRandom()
 
-	if err := local.Insert(tx); err != nil {
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(tx); err != nil {
 		t.Fatal(err)
 	}
 
-	foreign.Orig = local.ID
-	if err := foreign.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
+	for i, x := range []*AssetRevision{&b, &c} {
+		err = a.SetOrigAssetRevision(tx, i != 0, x)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	check, err := local.OrigAssetRevisionByFk(tx).One()
-	if err != nil {
-		t.Fatal(err)
-	}
+		if a.R.OrigAssetRevision != x {
+			t.Error("relationship struct not set to correct value")
+		}
+		if x.R.Orig != &a {
+			t.Error("failed to append to foreign relationship struct")
+		}
 
-	if check.Orig != foreign.Orig {
-		t.Errorf("want: %v, got %v", foreign.Orig, check.Orig)
-	}
+		if a.ID != x.Orig {
+			t.Error("foreign key was wrong value", a.ID)
+		}
 
-	slice := AssetSlice{&local}
-	if err = local.L.LoadOrigAssetRevision(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.OrigAssetRevision == nil {
-		t.Error("struct should have been eager loaded")
-	}
+		if exists, err := AssetRevisionExists(tx, x.Orig); err != nil {
+			t.Fatal(err)
+		} else if !exists {
+			t.Error("want 'x' to exist")
+		}
 
-	local.R.OrigAssetRevision = nil
-	if err = local.L.LoadOrigAssetRevision(tx, true, &local); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.OrigAssetRevision == nil {
-		t.Error("struct should have been eager loaded")
+		if a.ID != x.Orig {
+			t.Error("foreign key was wrong value", a.ID, x.Orig)
+		}
+
+		if err = x.Delete(tx); err != nil {
+			t.Fatal("failed to delete x", err)
+		}
 	}
 }
-
 func testAssetOneToOneSetOpTranscodeUsingTranscode(t *testing.T) {
 	var err error
 
@@ -764,6 +845,7 @@ func testAssetOneToOneSetOpTranscodeUsingTranscode(t *testing.T) {
 		t.Errorf("Unable to randomize Asset struct: %s", err)
 	}
 	a.Release = custom_types.NullReleaseRandom()
+	a.Duration = custom_types.NullIntervalRandom()
 
 	if err := a.Insert(tx); err != nil {
 		t.Fatal(err)
@@ -832,6 +914,7 @@ func testAssetOneToOneSetOpSlotAssetUsingSlotAsset(t *testing.T) {
 		t.Errorf("Unable to randomize Asset struct: %s", err)
 	}
 	a.Release = custom_types.NullReleaseRandom()
+	a.Duration = custom_types.NullIntervalRandom()
 
 	if err := a.Insert(tx); err != nil {
 		t.Fatal(err)
@@ -872,67 +955,160 @@ func testAssetOneToOneSetOpSlotAssetUsingSlotAsset(t *testing.T) {
 		}
 	}
 }
-func testAssetOneToOneSetOpAssetRevisionUsingOrigAssetRevision(t *testing.T) {
-	var err error
 
+func testAssetToManyAssetRevisions(t *testing.T) {
+	var err error
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
+
 	seed := randomize.NewSeed()
+
 	var a Asset
 	var b, c AssetRevision
 
-	foreignBlacklist := strmangle.SetComplement(assetRevisionPrimaryKeyColumns, assetRevisionColumnsWithoutDefault)
+	foreignBlacklist := assetRevisionColumnsWithDefault
 	if err := randomize.Struct(seed, &b, assetRevisionDBTypes, false, foreignBlacklist...); err != nil {
 		t.Errorf("Unable to randomize AssetRevision struct: %s", err)
 	}
 	if err := randomize.Struct(seed, &c, assetRevisionDBTypes, false, foreignBlacklist...); err != nil {
 		t.Errorf("Unable to randomize AssetRevision struct: %s", err)
 	}
-	localBlacklist := strmangle.SetComplement(assetPrimaryKeyColumns, assetColumnsWithoutDefault)
+	localBlacklist := assetColumnsWithDefault
 	localBlacklist = append(localBlacklist, assetColumnsWithCustom...)
 
 	if err := randomize.Struct(seed, &a, assetDBTypes, false, localBlacklist...); err != nil {
 		t.Errorf("Unable to randomize Asset struct: %s", err)
 	}
 	a.Release = custom_types.NullReleaseRandom()
+	a.Duration = custom_types.NullIntervalRandom()
 
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
+	b.Asset = a.ID
+	c.Asset = a.ID
 	if err = b.Insert(tx); err != nil {
 		t.Fatal(err)
 	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
 
-	for i, x := range []*AssetRevision{&b, &c} {
-		err = a.SetOrigAssetRevision(tx, i != 0, x)
-		if err != nil {
-			t.Fatal(err)
-		}
+	assetRevision, err := a.AssetRevisionsByFk(tx).All()
+	if err != nil {
+		t.Fatal(err)
+	}
 
-		if a.R.OrigAssetRevision != x {
-			t.Error("relationship struct not set to correct value")
+	bFound, cFound := false, false
+	for _, v := range assetRevision {
+		if v.Asset == b.Asset {
+			bFound = true
 		}
-		if x.R.Orig != &a {
-			t.Error("failed to append to foreign relationship struct")
+		if v.Asset == c.Asset {
+			cFound = true
 		}
+	}
 
-		if a.ID != x.Orig {
-			t.Error("foreign key was wrong value", a.ID)
-		}
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
 
-		if exists, err := AssetRevisionExists(tx, x.Orig); err != nil {
-			t.Fatal(err)
-		} else if !exists {
-			t.Error("want 'x' to exist")
-		}
+	slice := AssetSlice{&a}
+	if err = a.L.LoadAssetRevisions(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.AssetRevisions); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
 
-		if a.ID != x.Orig {
-			t.Error("foreign key was wrong value", a.ID, x.Orig)
-		}
+	a.R.AssetRevisions = nil
+	if err = a.L.LoadAssetRevisions(tx, true, &a); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.AssetRevisions); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
 
-		if err = x.Delete(tx); err != nil {
-			t.Fatal("failed to delete x", err)
+	if t.Failed() {
+		t.Logf("%#v", assetRevision)
+	}
+}
+
+func testAssetToManyAvatars(t *testing.T) {
+	var err error
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var a Asset
+	var b, c Avatar
+
+	foreignBlacklist := avatarColumnsWithDefault
+	if err := randomize.Struct(seed, &b, avatarDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Avatar struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, avatarDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Avatar struct: %s", err)
+	}
+	localBlacklist := assetColumnsWithDefault
+	localBlacklist = append(localBlacklist, assetColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &a, assetDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Asset struct: %s", err)
+	}
+	a.Release = custom_types.NullReleaseRandom()
+	a.Duration = custom_types.NullIntervalRandom()
+
+	b.Asset = a.ID
+	c.Asset = a.ID
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	avatar, err := a.AvatarsByFk(tx).All()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range avatar {
+		if v.Asset == b.Asset {
+			bFound = true
 		}
+		if v.Asset == c.Asset {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := AssetSlice{&a}
+	if err = a.L.LoadAvatars(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.Avatars); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.Avatars = nil
+	if err = a.L.LoadAvatars(tx, true, &a); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.Avatars); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", avatar)
 	}
 }
 
@@ -965,6 +1141,7 @@ func testAssetToManyOrigTranscodes(t *testing.T) {
 		t.Errorf("Unable to randomize Asset struct: %s", err)
 	}
 	a.Release = custom_types.NullReleaseRandom()
+	a.Duration = custom_types.NullIntervalRandom()
 
 	b.Orig = a.ID
 	c.Orig = a.ID
@@ -1053,6 +1230,7 @@ func testAssetToManyNotifications(t *testing.T) {
 		t.Errorf("Unable to randomize Asset struct: %s", err)
 	}
 	a.Release = custom_types.NullReleaseRandom()
+	a.Duration = custom_types.NullIntervalRandom()
 
 	b.Asset.Valid = true
 	c.Asset.Valid = true
@@ -1108,33 +1286,37 @@ func testAssetToManyNotifications(t *testing.T) {
 	}
 }
 
-func testAssetToManyAssetRevisions(t *testing.T) {
+func testAssetToManyAddOpAssetRevisions(t *testing.T) {
 	var err error
+
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
 
-	seed := randomize.NewSeed()
-
 	var a Asset
-	var b, c AssetRevision
+	var b, c, d, e AssetRevision
 
-	foreignBlacklist := assetRevisionColumnsWithDefault
-	if err := randomize.Struct(seed, &b, assetRevisionDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize AssetRevision struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &c, assetRevisionDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize AssetRevision struct: %s", err)
-	}
-	localBlacklist := assetColumnsWithDefault
-	localBlacklist = append(localBlacklist, assetColumnsWithCustom...)
+	seed := randomize.NewSeed()
+	localComplelementList := strmangle.SetComplement(assetPrimaryKeyColumns, assetColumnsWithoutDefault)
+	localComplelementList = append(localComplelementList, assetColumnsWithCustom...)
 
-	if err := randomize.Struct(seed, &a, assetDBTypes, false, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Asset struct: %s", err)
+	if err = randomize.Struct(seed, &a, assetDBTypes, false, localComplelementList...); err != nil {
+		t.Fatal(err)
 	}
 	a.Release = custom_types.NullReleaseRandom()
+	a.Duration = custom_types.NullIntervalRandom()
 
-	b.Asset = a.ID
-	c.Asset = a.ID
+	foreignComplementList := strmangle.SetComplement(assetRevisionPrimaryKeyColumns, assetRevisionColumnsWithoutDefault)
+
+	foreigners := []*AssetRevision{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, assetRevisionDBTypes, false, foreignComplementList...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
 	if err = b.Insert(tx); err != nil {
 		t.Fatal(err)
 	}
@@ -1142,76 +1324,81 @@ func testAssetToManyAssetRevisions(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	assetRevision, err := a.AssetRevisionsByFk(tx).All()
-	if err != nil {
-		t.Fatal(err)
+	foreignersSplitByInsertion := [][]*AssetRevision{
+		{&b, &c},
+		{&d, &e},
 	}
 
-	bFound, cFound := false, false
-	for _, v := range assetRevision {
-		if v.Asset == b.Asset {
-			bFound = true
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddAssetRevisions(tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
 		}
-		if v.Asset == c.Asset {
-			cFound = true
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.Asset {
+			t.Error("foreign key was wrong value", a.ID, first.Asset)
 		}
-	}
+		if a.ID != second.Asset {
+			t.Error("foreign key was wrong value", a.ID, second.Asset)
+		}
 
-	if !bFound {
-		t.Error("expected to find b")
-	}
-	if !cFound {
-		t.Error("expected to find c")
-	}
+		if first.R.Asset != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Asset != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
 
-	slice := AssetSlice{&a}
-	if err = a.L.LoadAssetRevisions(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.AssetRevisions); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
+		if a.R.AssetRevisions[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.AssetRevisions[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
 
-	a.R.AssetRevisions = nil
-	if err = a.L.LoadAssetRevisions(tx, true, &a); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.AssetRevisions); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	if t.Failed() {
-		t.Logf("%#v", assetRevision)
+		count, err := a.AssetRevisionsByFk(tx).Count()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
 	}
 }
-
-func testAssetToManyAvatars(t *testing.T) {
+func testAssetToManyAddOpAvatars(t *testing.T) {
 	var err error
+
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
 
-	seed := randomize.NewSeed()
-
 	var a Asset
-	var b, c Avatar
+	var b, c, d, e Avatar
 
-	foreignBlacklist := avatarColumnsWithDefault
-	if err := randomize.Struct(seed, &b, avatarDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Avatar struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &c, avatarDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Avatar struct: %s", err)
-	}
-	localBlacklist := assetColumnsWithDefault
-	localBlacklist = append(localBlacklist, assetColumnsWithCustom...)
+	seed := randomize.NewSeed()
+	localComplelementList := strmangle.SetComplement(assetPrimaryKeyColumns, assetColumnsWithoutDefault)
+	localComplelementList = append(localComplelementList, assetColumnsWithCustom...)
 
-	if err := randomize.Struct(seed, &a, assetDBTypes, false, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Asset struct: %s", err)
+	if err = randomize.Struct(seed, &a, assetDBTypes, false, localComplelementList...); err != nil {
+		t.Fatal(err)
 	}
 	a.Release = custom_types.NullReleaseRandom()
+	a.Duration = custom_types.NullIntervalRandom()
 
-	b.Asset = a.ID
-	c.Asset = a.ID
+	foreignComplementList := strmangle.SetComplement(avatarPrimaryKeyColumns, avatarColumnsWithoutDefault)
+
+	foreigners := []*Avatar{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, avatarDBTypes, false, foreignComplementList...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
 	if err = b.Insert(tx); err != nil {
 		t.Fatal(err)
 	}
@@ -1219,49 +1406,50 @@ func testAssetToManyAvatars(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	avatar, err := a.AvatarsByFk(tx).All()
-	if err != nil {
-		t.Fatal(err)
+	foreignersSplitByInsertion := [][]*Avatar{
+		{&b, &c},
+		{&d, &e},
 	}
 
-	bFound, cFound := false, false
-	for _, v := range avatar {
-		if v.Asset == b.Asset {
-			bFound = true
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddAvatars(tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
 		}
-		if v.Asset == c.Asset {
-			cFound = true
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.Asset {
+			t.Error("foreign key was wrong value", a.ID, first.Asset)
 		}
-	}
+		if a.ID != second.Asset {
+			t.Error("foreign key was wrong value", a.ID, second.Asset)
+		}
 
-	if !bFound {
-		t.Error("expected to find b")
-	}
-	if !cFound {
-		t.Error("expected to find c")
-	}
+		if first.R.Asset != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Asset != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
 
-	slice := AssetSlice{&a}
-	if err = a.L.LoadAvatars(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.Avatars); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
+		if a.R.Avatars[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.Avatars[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
 
-	a.R.Avatars = nil
-	if err = a.L.LoadAvatars(tx, true, &a); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.Avatars); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	if t.Failed() {
-		t.Logf("%#v", avatar)
+		count, err := a.AvatarsByFk(tx).Count()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
 	}
 }
-
 func testAssetToManyAddOpOrigTranscodes(t *testing.T) {
 	var err error
 
@@ -1279,6 +1467,7 @@ func testAssetToManyAddOpOrigTranscodes(t *testing.T) {
 		t.Fatal(err)
 	}
 	a.Release = custom_types.NullReleaseRandom()
+	a.Duration = custom_types.NullIntervalRandom()
 
 	foreignComplementList := strmangle.SetComplement(transcodePrimaryKeyColumns, transcodeColumnsWithoutDefault)
 	foreignComplementList = append(foreignComplementList, transcodeColumnsWithCustom...)
@@ -1363,6 +1552,7 @@ func testAssetToManyAddOpNotifications(t *testing.T) {
 		t.Fatal(err)
 	}
 	a.Release = custom_types.NullReleaseRandom()
+	a.Duration = custom_types.NullIntervalRandom()
 
 	foreignComplementList := strmangle.SetComplement(notificationPrimaryKeyColumns, notificationColumnsWithoutDefault)
 	foreignComplementList = append(foreignComplementList, notificationColumnsWithCustom...)
@@ -1451,6 +1641,7 @@ func testAssetToManySetOpNotifications(t *testing.T) {
 		t.Fatal(err)
 	}
 	a.Release = custom_types.NullReleaseRandom()
+	a.Duration = custom_types.NullIntervalRandom()
 
 	foreignComplementList := strmangle.SetComplement(notificationPrimaryKeyColumns, notificationColumnsWithoutDefault)
 	foreignComplementList = append(foreignComplementList, notificationColumnsWithCustom...)
@@ -1554,6 +1745,7 @@ func testAssetToManyRemoveOpNotifications(t *testing.T) {
 		t.Fatal(err)
 	}
 	a.Release = custom_types.NullReleaseRandom()
+	a.Duration = custom_types.NullIntervalRandom()
 
 	foreignComplementList := strmangle.SetComplement(notificationPrimaryKeyColumns, notificationColumnsWithoutDefault)
 	foreignComplementList = append(foreignComplementList, notificationColumnsWithCustom...)
@@ -1633,168 +1825,6 @@ func testAssetToManyRemoveOpNotifications(t *testing.T) {
 	}
 }
 
-func testAssetToManyAddOpAssetRevisions(t *testing.T) {
-	var err error
-
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	var a Asset
-	var b, c, d, e AssetRevision
-
-	seed := randomize.NewSeed()
-	localComplelementList := strmangle.SetComplement(assetPrimaryKeyColumns, assetColumnsWithoutDefault)
-	localComplelementList = append(localComplelementList, assetColumnsWithCustom...)
-
-	if err = randomize.Struct(seed, &a, assetDBTypes, false, localComplelementList...); err != nil {
-		t.Fatal(err)
-	}
-	a.Release = custom_types.NullReleaseRandom()
-
-	foreignComplementList := strmangle.SetComplement(assetRevisionPrimaryKeyColumns, assetRevisionColumnsWithoutDefault)
-
-	foreigners := []*AssetRevision{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, assetRevisionDBTypes, false, foreignComplementList...); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	foreignersSplitByInsertion := [][]*AssetRevision{
-		{&b, &c},
-		{&d, &e},
-	}
-
-	for i, x := range foreignersSplitByInsertion {
-		err = a.AddAssetRevisions(tx, i != 0, x...)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		first := x[0]
-		second := x[1]
-
-		if a.ID != first.Asset {
-			t.Error("foreign key was wrong value", a.ID, first.Asset)
-		}
-		if a.ID != second.Asset {
-			t.Error("foreign key was wrong value", a.ID, second.Asset)
-		}
-
-		if first.R.Asset != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-		if second.R.Asset != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-
-		if a.R.AssetRevisions[i*2] != first {
-			t.Error("relationship struct slice not set to correct value")
-		}
-		if a.R.AssetRevisions[i*2+1] != second {
-			t.Error("relationship struct slice not set to correct value")
-		}
-
-		count, err := a.AssetRevisionsByFk(tx).Count()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if want := int64((i + 1) * 2); count != want {
-			t.Error("want", want, "got", count)
-		}
-	}
-}
-func testAssetToManyAddOpAvatars(t *testing.T) {
-	var err error
-
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	var a Asset
-	var b, c, d, e Avatar
-
-	seed := randomize.NewSeed()
-	localComplelementList := strmangle.SetComplement(assetPrimaryKeyColumns, assetColumnsWithoutDefault)
-	localComplelementList = append(localComplelementList, assetColumnsWithCustom...)
-
-	if err = randomize.Struct(seed, &a, assetDBTypes, false, localComplelementList...); err != nil {
-		t.Fatal(err)
-	}
-	a.Release = custom_types.NullReleaseRandom()
-
-	foreignComplementList := strmangle.SetComplement(avatarPrimaryKeyColumns, avatarColumnsWithoutDefault)
-
-	foreigners := []*Avatar{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, avatarDBTypes, false, foreignComplementList...); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	foreignersSplitByInsertion := [][]*Avatar{
-		{&b, &c},
-		{&d, &e},
-	}
-
-	for i, x := range foreignersSplitByInsertion {
-		err = a.AddAvatars(tx, i != 0, x...)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		first := x[0]
-		second := x[1]
-
-		if a.ID != first.Asset {
-			t.Error("foreign key was wrong value", a.ID, first.Asset)
-		}
-		if a.ID != second.Asset {
-			t.Error("foreign key was wrong value", a.ID, second.Asset)
-		}
-
-		if first.R.Asset != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-		if second.R.Asset != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-
-		if a.R.Avatars[i*2] != first {
-			t.Error("relationship struct slice not set to correct value")
-		}
-		if a.R.Avatars[i*2+1] != second {
-			t.Error("relationship struct slice not set to correct value")
-		}
-
-		count, err := a.AvatarsByFk(tx).Count()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if want := int64((i + 1) * 2); count != want {
-			t.Error("want", want, "got", count)
-		}
-	}
-}
 func testAssetToOneFormatUsingFormat(t *testing.T) {
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -1815,6 +1845,7 @@ func testAssetToOneFormatUsingFormat(t *testing.T) {
 		t.Errorf("Unable to randomize Asset struct: %s", err)
 	}
 	local.Release = custom_types.NullReleaseRandom()
+	local.Duration = custom_types.NullIntervalRandom()
 
 	if err := foreign.Insert(tx); err != nil {
 		t.Fatal(err)
@@ -1871,6 +1902,7 @@ func testAssetToOneVolumeUsingVolume(t *testing.T) {
 		t.Errorf("Unable to randomize Asset struct: %s", err)
 	}
 	local.Release = custom_types.NullReleaseRandom()
+	local.Duration = custom_types.NullIntervalRandom()
 
 	if err := foreign.Insert(tx); err != nil {
 		t.Fatal(err)
@@ -1932,6 +1964,7 @@ func testAssetToOneSetOpFormatUsingFormat(t *testing.T) {
 		t.Errorf("Unable to randomize Asset struct: %s", err)
 	}
 	a.Release = custom_types.NullReleaseRandom()
+	a.Duration = custom_types.NullIntervalRandom()
 
 	if err := a.Insert(tx); err != nil {
 		t.Fatal(err)
@@ -1994,6 +2027,7 @@ func testAssetToOneSetOpVolumeUsingVolume(t *testing.T) {
 		t.Errorf("Unable to randomize Asset struct: %s", err)
 	}
 	a.Release = custom_types.NullReleaseRandom()
+	a.Duration = custom_types.NullIntervalRandom()
 
 	if err := a.Insert(tx); err != nil {
 		t.Fatal(err)
@@ -2042,6 +2076,7 @@ func testAssetsReload(t *testing.T) {
 	}
 
 	asset.Release = custom_types.NullReleaseRandom()
+	asset.Duration = custom_types.NullIntervalRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -2065,6 +2100,7 @@ func testAssetsReloadAll(t *testing.T) {
 	}
 
 	asset.Release = custom_types.NullReleaseRandom()
+	asset.Duration = custom_types.NullIntervalRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -2089,6 +2125,7 @@ func testAssetsSelect(t *testing.T) {
 	}
 
 	asset.Release = custom_types.NullReleaseRandom()
+	asset.Duration = custom_types.NullIntervalRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -2126,6 +2163,7 @@ func testAssetsUpdate(t *testing.T) {
 	}
 
 	asset.Release = custom_types.NullReleaseRandom()
+	asset.Duration = custom_types.NullIntervalRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -2150,6 +2188,7 @@ func testAssetsUpdate(t *testing.T) {
 	}
 
 	asset.Release = custom_types.NullReleaseRandom()
+	asset.Duration = custom_types.NullIntervalRandom()
 
 	if err = asset.Update(tx); err != nil {
 		t.Error(err)
@@ -2171,6 +2210,7 @@ func testAssetsSliceUpdateAll(t *testing.T) {
 	}
 
 	asset.Release = custom_types.NullReleaseRandom()
+	asset.Duration = custom_types.NullIntervalRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -2195,6 +2235,7 @@ func testAssetsSliceUpdateAll(t *testing.T) {
 	}
 
 	asset.Release = custom_types.NullReleaseRandom()
+	asset.Duration = custom_types.NullIntervalRandom()
 
 	// Remove Primary keys and unique columns from what we plan to update
 	var fields []string
@@ -2233,6 +2274,7 @@ func testAssetsUpsert(t *testing.T) {
 	}
 
 	asset.Release = custom_types.NullReleaseRandom()
+	asset.Duration = custom_types.NullIntervalRandom()
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -2258,6 +2300,7 @@ func testAssetsUpsert(t *testing.T) {
 	}
 
 	asset.Release = custom_types.NullReleaseRandom()
+	asset.Duration = custom_types.NullIntervalRandom()
 
 	if err = asset.Upsert(tx, true, nil, nil); err != nil {
 		t.Errorf("Unable to upsert Asset: %s", err)

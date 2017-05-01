@@ -875,6 +875,10 @@ func (o *VolumeInclusion) Update(exec boil.Executor, whitelist ...string) error 
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(volumeInclusionColumns, volumeInclusionPrimaryKeyColumns, whitelist)
+
+		if len(whitelist) == 0 {
+			wl = strmangle.SetComplement(wl, []string{"created_at"})
+		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update volume_inclusion, could not build whitelist")
 		}

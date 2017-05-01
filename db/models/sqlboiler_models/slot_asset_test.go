@@ -745,6 +745,7 @@ func testSlotAssetToOneAssetUsingAsset(t *testing.T) {
 		t.Errorf("Unable to randomize Asset struct: %s", err)
 	}
 	foreign.Release = custom_types.NullReleaseRandom()
+	foreign.Duration = custom_types.NullIntervalRandom()
 
 	localBlacklist := slotAssetColumnsWithDefault
 	localBlacklist = append(localBlacklist, slotAssetColumnsWithCustom...)
@@ -867,6 +868,8 @@ func testSlotAssetToOneSetOpAssetUsingAsset(t *testing.T) {
 	}
 	b.Release = custom_types.NullReleaseRandom()
 	c.Release = custom_types.NullReleaseRandom()
+	b.Duration = custom_types.NullIntervalRandom()
+	c.Duration = custom_types.NullIntervalRandom()
 
 	localBlacklist := strmangle.SetComplement(slotAssetPrimaryKeyColumns, slotAssetColumnsWithoutDefault)
 	localBlacklist = append(localBlacklist, slotAssetColumnsWithCustom...)

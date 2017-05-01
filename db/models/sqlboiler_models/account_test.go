@@ -649,6 +649,80 @@ func testAccountOneToOneSetOpLoginTokenUsingLoginToken(t *testing.T) {
 	}
 }
 
+func testAccountToManyAccountTokens(t *testing.T) {
+	var err error
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var a Account
+	var b, c AccountToken
+
+	foreignBlacklist := accountTokenColumnsWithDefault
+	if err := randomize.Struct(seed, &b, accountTokenDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize AccountToken struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, accountTokenDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize AccountToken struct: %s", err)
+	}
+	localBlacklist := accountColumnsWithDefault
+	if err := randomize.Struct(seed, &a, accountDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Account struct: %s", err)
+	}
+
+	b.Account = a.ID
+	c.Account = a.ID
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	accountToken, err := a.AccountTokensByFk(tx).All()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range accountToken {
+		if v.Account == b.Account {
+			bFound = true
+		}
+		if v.Account == c.Account {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := AccountSlice{&a}
+	if err = a.L.LoadAccountTokens(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.AccountTokens); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.AccountTokens = nil
+	if err = a.L.LoadAccountTokens(tx, true, &a); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.AccountTokens); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", accountToken)
+	}
+}
+
 func testAccountToManyWhoTagUses(t *testing.T) {
 	var err error
 	tx := MustTx(boil.Begin())
@@ -728,6 +802,80 @@ func testAccountToManyWhoTagUses(t *testing.T) {
 	}
 }
 
+func testAccountToManyUploads(t *testing.T) {
+	var err error
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var a Account
+	var b, c Upload
+
+	foreignBlacklist := uploadColumnsWithDefault
+	if err := randomize.Struct(seed, &b, uploadDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Upload struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, uploadDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Upload struct: %s", err)
+	}
+	localBlacklist := accountColumnsWithDefault
+	if err := randomize.Struct(seed, &a, accountDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Account struct: %s", err)
+	}
+
+	b.Account = a.ID
+	c.Account = a.ID
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	upload, err := a.UploadsByFk(tx).All()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range upload {
+		if v.Account == b.Account {
+			bFound = true
+		}
+		if v.Account == c.Account {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := AccountSlice{&a}
+	if err = a.L.LoadUploads(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.Uploads); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.Uploads = nil
+	if err = a.L.LoadUploads(tx, true, &a); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.Uploads); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", upload)
+	}
+}
+
 func testAccountToManyOwnerTranscodes(t *testing.T) {
 	var err error
 	tx := MustTx(boil.Begin())
@@ -804,6 +952,159 @@ func testAccountToManyOwnerTranscodes(t *testing.T) {
 
 	if t.Failed() {
 		t.Logf("%#v", transcode)
+	}
+}
+
+func testAccountToManyTargetNotifies(t *testing.T) {
+	var err error
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var a Account
+	var b, c Notify
+
+	foreignBlacklist := notifyColumnsWithDefault
+	foreignBlacklist = append(foreignBlacklist, notifyColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &b, notifyDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Notify struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, notifyDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Notify struct: %s", err)
+	}
+	b.Delivery = custom_types.NoticeDeliveryRandom()
+	c.Delivery = custom_types.NoticeDeliveryRandom()
+
+	localBlacklist := accountColumnsWithDefault
+	if err := randomize.Struct(seed, &a, accountDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Account struct: %s", err)
+	}
+
+	b.Target = a.ID
+	c.Target = a.ID
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	notify, err := a.TargetNotifiesByFk(tx).All()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range notify {
+		if v.Target == b.Target {
+			bFound = true
+		}
+		if v.Target == c.Target {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := AccountSlice{&a}
+	if err = a.L.LoadTargetNotifies(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.TargetNotifies); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.TargetNotifies = nil
+	if err = a.L.LoadTargetNotifies(tx, true, &a); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.TargetNotifies); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", notify)
+	}
+}
+
+func testAccountToManySessions(t *testing.T) {
+	var err error
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var a Account
+	var b, c Session
+
+	foreignBlacklist := sessionColumnsWithDefault
+	if err := randomize.Struct(seed, &b, sessionDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Session struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, sessionDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Session struct: %s", err)
+	}
+	localBlacklist := accountColumnsWithDefault
+	if err := randomize.Struct(seed, &a, accountDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Account struct: %s", err)
+	}
+
+	b.Account = a.ID
+	c.Account = a.ID
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	session, err := a.SessionsByFk(tx).All()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range session {
+		if v.Account == b.Account {
+			bFound = true
+		}
+		if v.Account == c.Account {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := AccountSlice{&a}
+	if err = a.L.LoadSessions(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.Sessions); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.Sessions = nil
+	if err = a.L.LoadSessions(tx, true, &a); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.Sessions); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", session)
 	}
 }
 
@@ -892,233 +1193,6 @@ func testAccountToManyTargetNotifications(t *testing.T) {
 	}
 }
 
-func testAccountToManyTargetNotifies(t *testing.T) {
-	var err error
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var a Account
-	var b, c Notify
-
-	foreignBlacklist := notifyColumnsWithDefault
-	foreignBlacklist = append(foreignBlacklist, notifyColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &b, notifyDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Notify struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &c, notifyDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Notify struct: %s", err)
-	}
-	b.Delivery = custom_types.NoticeDeliveryRandom()
-	c.Delivery = custom_types.NoticeDeliveryRandom()
-
-	localBlacklist := accountColumnsWithDefault
-	if err := randomize.Struct(seed, &a, accountDBTypes, false, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Account struct: %s", err)
-	}
-
-	b.Target = a.ID
-	c.Target = a.ID
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	notify, err := a.TargetNotifiesByFk(tx).All()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	bFound, cFound := false, false
-	for _, v := range notify {
-		if v.Target == b.Target {
-			bFound = true
-		}
-		if v.Target == c.Target {
-			cFound = true
-		}
-	}
-
-	if !bFound {
-		t.Error("expected to find b")
-	}
-	if !cFound {
-		t.Error("expected to find c")
-	}
-
-	slice := AccountSlice{&a}
-	if err = a.L.LoadTargetNotifies(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.TargetNotifies); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	a.R.TargetNotifies = nil
-	if err = a.L.LoadTargetNotifies(tx, true, &a); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.TargetNotifies); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	if t.Failed() {
-		t.Logf("%#v", notify)
-	}
-}
-
-func testAccountToManyUploads(t *testing.T) {
-	var err error
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var a Account
-	var b, c Upload
-
-	foreignBlacklist := uploadColumnsWithDefault
-	if err := randomize.Struct(seed, &b, uploadDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Upload struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &c, uploadDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Upload struct: %s", err)
-	}
-	localBlacklist := accountColumnsWithDefault
-	if err := randomize.Struct(seed, &a, accountDBTypes, false, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Account struct: %s", err)
-	}
-
-	b.Account = a.ID
-	c.Account = a.ID
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	upload, err := a.UploadsByFk(tx).All()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	bFound, cFound := false, false
-	for _, v := range upload {
-		if v.Account == b.Account {
-			bFound = true
-		}
-		if v.Account == c.Account {
-			cFound = true
-		}
-	}
-
-	if !bFound {
-		t.Error("expected to find b")
-	}
-	if !cFound {
-		t.Error("expected to find c")
-	}
-
-	slice := AccountSlice{&a}
-	if err = a.L.LoadUploads(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.Uploads); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	a.R.Uploads = nil
-	if err = a.L.LoadUploads(tx, true, &a); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.Uploads); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	if t.Failed() {
-		t.Logf("%#v", upload)
-	}
-}
-
-func testAccountToManySessions(t *testing.T) {
-	var err error
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var a Account
-	var b, c Session
-
-	foreignBlacklist := sessionColumnsWithDefault
-	if err := randomize.Struct(seed, &b, sessionDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Session struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &c, sessionDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Session struct: %s", err)
-	}
-	localBlacklist := accountColumnsWithDefault
-	if err := randomize.Struct(seed, &a, accountDBTypes, false, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Account struct: %s", err)
-	}
-
-	b.Account = a.ID
-	c.Account = a.ID
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	session, err := a.SessionsByFk(tx).All()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	bFound, cFound := false, false
-	for _, v := range session {
-		if v.Account == b.Account {
-			bFound = true
-		}
-		if v.Account == c.Account {
-			cFound = true
-		}
-	}
-
-	if !bFound {
-		t.Error("expected to find b")
-	}
-	if !cFound {
-		t.Error("expected to find c")
-	}
-
-	slice := AccountSlice{&a}
-	if err = a.L.LoadSessions(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.Sessions); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	a.R.Sessions = nil
-	if err = a.L.LoadSessions(tx, true, &a); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.Sessions); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	if t.Failed() {
-		t.Logf("%#v", session)
-	}
-}
-
 func testAccountToManyWhoComments(t *testing.T) {
 	var err error
 	tx := MustTx(boil.Begin())
@@ -1198,30 +1272,33 @@ func testAccountToManyWhoComments(t *testing.T) {
 	}
 }
 
-func testAccountToManyAccountTokens(t *testing.T) {
+func testAccountToManyAddOpAccountTokens(t *testing.T) {
 	var err error
+
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
 
-	seed := randomize.NewSeed()
-
 	var a Account
-	var b, c AccountToken
+	var b, c, d, e AccountToken
 
-	foreignBlacklist := accountTokenColumnsWithDefault
-	if err := randomize.Struct(seed, &b, accountTokenDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize AccountToken struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &c, accountTokenDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize AccountToken struct: %s", err)
-	}
-	localBlacklist := accountColumnsWithDefault
-	if err := randomize.Struct(seed, &a, accountDBTypes, false, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Account struct: %s", err)
+	seed := randomize.NewSeed()
+	localComplelementList := strmangle.SetComplement(accountPrimaryKeyColumns, accountColumnsWithoutDefault)
+	if err = randomize.Struct(seed, &a, accountDBTypes, false, localComplelementList...); err != nil {
+		t.Fatal(err)
 	}
 
-	b.Account = a.ID
-	c.Account = a.ID
+	foreignComplementList := strmangle.SetComplement(accountTokenPrimaryKeyColumns, accountTokenColumnsWithoutDefault)
+
+	foreigners := []*AccountToken{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, accountTokenDBTypes, false, foreignComplementList...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
 	if err = b.Insert(tx); err != nil {
 		t.Fatal(err)
 	}
@@ -1229,49 +1306,50 @@ func testAccountToManyAccountTokens(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	accountToken, err := a.AccountTokensByFk(tx).All()
-	if err != nil {
-		t.Fatal(err)
+	foreignersSplitByInsertion := [][]*AccountToken{
+		{&b, &c},
+		{&d, &e},
 	}
 
-	bFound, cFound := false, false
-	for _, v := range accountToken {
-		if v.Account == b.Account {
-			bFound = true
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddAccountTokens(tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
 		}
-		if v.Account == c.Account {
-			cFound = true
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.Account {
+			t.Error("foreign key was wrong value", a.ID, first.Account)
 		}
-	}
+		if a.ID != second.Account {
+			t.Error("foreign key was wrong value", a.ID, second.Account)
+		}
 
-	if !bFound {
-		t.Error("expected to find b")
-	}
-	if !cFound {
-		t.Error("expected to find c")
-	}
+		if first.R.Account != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Account != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
 
-	slice := AccountSlice{&a}
-	if err = a.L.LoadAccountTokens(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.AccountTokens); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
+		if a.R.AccountTokens[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.AccountTokens[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
 
-	a.R.AccountTokens = nil
-	if err = a.L.LoadAccountTokens(tx, true, &a); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.AccountTokens); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	if t.Failed() {
-		t.Logf("%#v", accountToken)
+		count, err := a.AccountTokensByFk(tx).Count()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
 	}
 }
-
 func testAccountToManyAddOpWhoTagUses(t *testing.T) {
 	var err error
 
@@ -1353,6 +1431,84 @@ func testAccountToManyAddOpWhoTagUses(t *testing.T) {
 		}
 	}
 }
+func testAccountToManyAddOpUploads(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	var a Account
+	var b, c, d, e Upload
+
+	seed := randomize.NewSeed()
+	localComplelementList := strmangle.SetComplement(accountPrimaryKeyColumns, accountColumnsWithoutDefault)
+	if err = randomize.Struct(seed, &a, accountDBTypes, false, localComplelementList...); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignComplementList := strmangle.SetComplement(uploadPrimaryKeyColumns, uploadColumnsWithoutDefault)
+
+	foreigners := []*Upload{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, uploadDBTypes, false, foreignComplementList...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*Upload{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddUploads(tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.Account {
+			t.Error("foreign key was wrong value", a.ID, first.Account)
+		}
+		if a.ID != second.Account {
+			t.Error("foreign key was wrong value", a.ID, second.Account)
+		}
+
+		if first.R.Account != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Account != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.Uploads[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.Uploads[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.UploadsByFk(tx).Count()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
 func testAccountToManyAddOpOwnerTranscodes(t *testing.T) {
 	var err error
 
@@ -1426,6 +1582,165 @@ func testAccountToManyAddOpOwnerTranscodes(t *testing.T) {
 		}
 
 		count, err := a.OwnerTranscodesByFk(tx).Count()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+func testAccountToManyAddOpTargetNotifies(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	var a Account
+	var b, c, d, e Notify
+
+	seed := randomize.NewSeed()
+	localComplelementList := strmangle.SetComplement(accountPrimaryKeyColumns, accountColumnsWithoutDefault)
+	if err = randomize.Struct(seed, &a, accountDBTypes, false, localComplelementList...); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignComplementList := strmangle.SetComplement(notifyPrimaryKeyColumns, notifyColumnsWithoutDefault)
+	foreignComplementList = append(foreignComplementList, notifyColumnsWithCustom...)
+
+	foreigners := []*Notify{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, notifyDBTypes, false, foreignComplementList...); err != nil {
+			t.Fatal(err)
+		}
+		x.Delivery = custom_types.NoticeDeliveryRandom()
+
+	}
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*Notify{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddTargetNotifies(tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.Target {
+			t.Error("foreign key was wrong value", a.ID, first.Target)
+		}
+		if a.ID != second.Target {
+			t.Error("foreign key was wrong value", a.ID, second.Target)
+		}
+
+		if first.R.Target != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Target != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.TargetNotifies[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.TargetNotifies[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.TargetNotifiesByFk(tx).Count()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+func testAccountToManyAddOpSessions(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	var a Account
+	var b, c, d, e Session
+
+	seed := randomize.NewSeed()
+	localComplelementList := strmangle.SetComplement(accountPrimaryKeyColumns, accountColumnsWithoutDefault)
+	if err = randomize.Struct(seed, &a, accountDBTypes, false, localComplelementList...); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignComplementList := strmangle.SetComplement(sessionPrimaryKeyColumns, sessionColumnsWithoutDefault)
+
+	foreigners := []*Session{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, sessionDBTypes, false, foreignComplementList...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*Session{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddSessions(tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.Account {
+			t.Error("foreign key was wrong value", a.ID, first.Account)
+		}
+		if a.ID != second.Account {
+			t.Error("foreign key was wrong value", a.ID, second.Account)
+		}
+
+		if first.R.Account != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Account != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.Sessions[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.Sessions[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.SessionsByFk(tx).Count()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1518,243 +1833,6 @@ func testAccountToManyAddOpTargetNotifications(t *testing.T) {
 		}
 	}
 }
-func testAccountToManyAddOpTargetNotifies(t *testing.T) {
-	var err error
-
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	var a Account
-	var b, c, d, e Notify
-
-	seed := randomize.NewSeed()
-	localComplelementList := strmangle.SetComplement(accountPrimaryKeyColumns, accountColumnsWithoutDefault)
-	if err = randomize.Struct(seed, &a, accountDBTypes, false, localComplelementList...); err != nil {
-		t.Fatal(err)
-	}
-
-	foreignComplementList := strmangle.SetComplement(notifyPrimaryKeyColumns, notifyColumnsWithoutDefault)
-	foreignComplementList = append(foreignComplementList, notifyColumnsWithCustom...)
-
-	foreigners := []*Notify{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, notifyDBTypes, false, foreignComplementList...); err != nil {
-			t.Fatal(err)
-		}
-		x.Delivery = custom_types.NoticeDeliveryRandom()
-
-	}
-
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	foreignersSplitByInsertion := [][]*Notify{
-		{&b, &c},
-		{&d, &e},
-	}
-
-	for i, x := range foreignersSplitByInsertion {
-		err = a.AddTargetNotifies(tx, i != 0, x...)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		first := x[0]
-		second := x[1]
-
-		if a.ID != first.Target {
-			t.Error("foreign key was wrong value", a.ID, first.Target)
-		}
-		if a.ID != second.Target {
-			t.Error("foreign key was wrong value", a.ID, second.Target)
-		}
-
-		if first.R.Target != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-		if second.R.Target != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-
-		if a.R.TargetNotifies[i*2] != first {
-			t.Error("relationship struct slice not set to correct value")
-		}
-		if a.R.TargetNotifies[i*2+1] != second {
-			t.Error("relationship struct slice not set to correct value")
-		}
-
-		count, err := a.TargetNotifiesByFk(tx).Count()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if want := int64((i + 1) * 2); count != want {
-			t.Error("want", want, "got", count)
-		}
-	}
-}
-func testAccountToManyAddOpUploads(t *testing.T) {
-	var err error
-
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	var a Account
-	var b, c, d, e Upload
-
-	seed := randomize.NewSeed()
-	localComplelementList := strmangle.SetComplement(accountPrimaryKeyColumns, accountColumnsWithoutDefault)
-	if err = randomize.Struct(seed, &a, accountDBTypes, false, localComplelementList...); err != nil {
-		t.Fatal(err)
-	}
-
-	foreignComplementList := strmangle.SetComplement(uploadPrimaryKeyColumns, uploadColumnsWithoutDefault)
-
-	foreigners := []*Upload{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, uploadDBTypes, false, foreignComplementList...); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	foreignersSplitByInsertion := [][]*Upload{
-		{&b, &c},
-		{&d, &e},
-	}
-
-	for i, x := range foreignersSplitByInsertion {
-		err = a.AddUploads(tx, i != 0, x...)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		first := x[0]
-		second := x[1]
-
-		if a.ID != first.Account {
-			t.Error("foreign key was wrong value", a.ID, first.Account)
-		}
-		if a.ID != second.Account {
-			t.Error("foreign key was wrong value", a.ID, second.Account)
-		}
-
-		if first.R.Account != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-		if second.R.Account != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-
-		if a.R.Uploads[i*2] != first {
-			t.Error("relationship struct slice not set to correct value")
-		}
-		if a.R.Uploads[i*2+1] != second {
-			t.Error("relationship struct slice not set to correct value")
-		}
-
-		count, err := a.UploadsByFk(tx).Count()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if want := int64((i + 1) * 2); count != want {
-			t.Error("want", want, "got", count)
-		}
-	}
-}
-func testAccountToManyAddOpSessions(t *testing.T) {
-	var err error
-
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	var a Account
-	var b, c, d, e Session
-
-	seed := randomize.NewSeed()
-	localComplelementList := strmangle.SetComplement(accountPrimaryKeyColumns, accountColumnsWithoutDefault)
-	if err = randomize.Struct(seed, &a, accountDBTypes, false, localComplelementList...); err != nil {
-		t.Fatal(err)
-	}
-
-	foreignComplementList := strmangle.SetComplement(sessionPrimaryKeyColumns, sessionColumnsWithoutDefault)
-
-	foreigners := []*Session{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, sessionDBTypes, false, foreignComplementList...); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	foreignersSplitByInsertion := [][]*Session{
-		{&b, &c},
-		{&d, &e},
-	}
-
-	for i, x := range foreignersSplitByInsertion {
-		err = a.AddSessions(tx, i != 0, x...)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		first := x[0]
-		second := x[1]
-
-		if a.ID != first.Account {
-			t.Error("foreign key was wrong value", a.ID, first.Account)
-		}
-		if a.ID != second.Account {
-			t.Error("foreign key was wrong value", a.ID, second.Account)
-		}
-
-		if first.R.Account != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-		if second.R.Account != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-
-		if a.R.Sessions[i*2] != first {
-			t.Error("relationship struct slice not set to correct value")
-		}
-		if a.R.Sessions[i*2+1] != second {
-			t.Error("relationship struct slice not set to correct value")
-		}
-
-		count, err := a.SessionsByFk(tx).Count()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if want := int64((i + 1) * 2); count != want {
-			t.Error("want", want, "got", count)
-		}
-	}
-}
 func testAccountToManyAddOpWhoComments(t *testing.T) {
 	var err error
 
@@ -1828,84 +1906,6 @@ func testAccountToManyAddOpWhoComments(t *testing.T) {
 		}
 
 		count, err := a.WhoCommentsByFk(tx).Count()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if want := int64((i + 1) * 2); count != want {
-			t.Error("want", want, "got", count)
-		}
-	}
-}
-func testAccountToManyAddOpAccountTokens(t *testing.T) {
-	var err error
-
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	var a Account
-	var b, c, d, e AccountToken
-
-	seed := randomize.NewSeed()
-	localComplelementList := strmangle.SetComplement(accountPrimaryKeyColumns, accountColumnsWithoutDefault)
-	if err = randomize.Struct(seed, &a, accountDBTypes, false, localComplelementList...); err != nil {
-		t.Fatal(err)
-	}
-
-	foreignComplementList := strmangle.SetComplement(accountTokenPrimaryKeyColumns, accountTokenColumnsWithoutDefault)
-
-	foreigners := []*AccountToken{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, accountTokenDBTypes, false, foreignComplementList...); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	foreignersSplitByInsertion := [][]*AccountToken{
-		{&b, &c},
-		{&d, &e},
-	}
-
-	for i, x := range foreignersSplitByInsertion {
-		err = a.AddAccountTokens(tx, i != 0, x...)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		first := x[0]
-		second := x[1]
-
-		if a.ID != first.Account {
-			t.Error("foreign key was wrong value", a.ID, first.Account)
-		}
-		if a.ID != second.Account {
-			t.Error("foreign key was wrong value", a.ID, second.Account)
-		}
-
-		if first.R.Account != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-		if second.R.Account != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-
-		if a.R.AccountTokens[i*2] != first {
-			t.Error("relationship struct slice not set to correct value")
-		}
-		if a.R.AccountTokens[i*2+1] != second {
-			t.Error("relationship struct slice not set to correct value")
-		}
-
-		count, err := a.AccountTokensByFk(tx).Count()
 		if err != nil {
 			t.Fatal(err)
 		}

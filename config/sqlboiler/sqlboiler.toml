@@ -4,7 +4,7 @@ blacklist=["authorize_valid", "authorize_view", "volume_access_view", "volume_ow
 [postgres]
 host = "localhost"
 dbname = "databrary"
-port = "5433"
+port = "5432"
 user = "postgres"
 pass = "mysecretpassword"
 sslmode = "disable"

@@ -37,17 +37,17 @@ type Volume struct {
 type volumeR struct {
 	VolumeOwner      *VolumeOwner
 	VolumeCitation   *VolumeCitation
-	Notifications    NotificationSlice
+	Assets           AssetSlice
+	Containers       ContainerSlice
 	Uploads          UploadSlice
+	Records          RecordSlice
+	Notifications    NotificationSlice
 	VolumeLinks      VolumeLinkSlice
 	VolumeFundings   VolumeFundingSlice
 	VolumeInclusions VolumeInclusionSlice
 	Metrics          MetricSlice
 	VolumeStates     VolumeStateSlice
-	Records          RecordSlice
 	VolumeAccesses   VolumeAccessSlice
-	Assets           AssetSlice
-	Containers       ContainerSlice
 }
 
 // volumeL is where Load methods for each relationship are stored.
@@ -376,13 +376,13 @@ func (o *Volume) VolumeCitationByFk(exec boil.Executor, mods ...qm.QueryMod) vol
 	return query
 }
 
-// NotificationsG retrieves all the notification's notification.
-func (o *Volume) NotificationsG(mods ...qm.QueryMod) notificationQuery {
-	return o.NotificationsByFk(boil.GetDB(), mods...)
+// AssetsG retrieves all the asset's asset.
+func (o *Volume) AssetsG(mods ...qm.QueryMod) assetQuery {
+	return o.AssetsByFk(boil.GetDB(), mods...)
 }
 
-// Notifications retrieves all the notification's notification with an executor.
-func (o *Volume) NotificationsByFk(exec boil.Executor, mods ...qm.QueryMod) notificationQuery {
+// Assets retrieves all the asset's asset with an executor.
+func (o *Volume) AssetsByFk(exec boil.Executor, mods ...qm.QueryMod) assetQuery {
 	queryMods := []qm.QueryMod{
 		qm.Select("\"a\".*"),
 	}
@@ -395,8 +395,32 @@ func (o *Volume) NotificationsByFk(exec boil.Executor, mods ...qm.QueryMod) noti
 		qm.Where("\"a\".\"volume\"=?", o.ID),
 	)
 
-	query := Notifications(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"notification\" as \"a\"")
+	query := Assets(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"asset\" as \"a\"")
+	return query
+}
+
+// ContainersG retrieves all the container's container.
+func (o *Volume) ContainersG(mods ...qm.QueryMod) containerQuery {
+	return o.ContainersByFk(boil.GetDB(), mods...)
+}
+
+// Containers retrieves all the container's container with an executor.
+func (o *Volume) ContainersByFk(exec boil.Executor, mods ...qm.QueryMod) containerQuery {
+	queryMods := []qm.QueryMod{
+		qm.Select("\"a\".*"),
+	}
+
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"a\".\"volume\"=?", o.ID),
+	)
+
+	query := Containers(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"container\" as \"a\"")
 	return query
 }
 
@@ -421,6 +445,54 @@ func (o *Volume) UploadsByFk(exec boil.Executor, mods ...qm.QueryMod) uploadQuer
 
 	query := Uploads(exec, queryMods...)
 	queries.SetFrom(query.Query, "\"upload\" as \"a\"")
+	return query
+}
+
+// RecordsG retrieves all the record's record.
+func (o *Volume) RecordsG(mods ...qm.QueryMod) recordQuery {
+	return o.RecordsByFk(boil.GetDB(), mods...)
+}
+
+// Records retrieves all the record's record with an executor.
+func (o *Volume) RecordsByFk(exec boil.Executor, mods ...qm.QueryMod) recordQuery {
+	queryMods := []qm.QueryMod{
+		qm.Select("\"a\".*"),
+	}
+
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"a\".\"volume\"=?", o.ID),
+	)
+
+	query := Records(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"record\" as \"a\"")
+	return query
+}
+
+// NotificationsG retrieves all the notification's notification.
+func (o *Volume) NotificationsG(mods ...qm.QueryMod) notificationQuery {
+	return o.NotificationsByFk(boil.GetDB(), mods...)
+}
+
+// Notifications retrieves all the notification's notification with an executor.
+func (o *Volume) NotificationsByFk(exec boil.Executor, mods ...qm.QueryMod) notificationQuery {
+	queryMods := []qm.QueryMod{
+		qm.Select("\"a\".*"),
+	}
+
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"a\".\"volume\"=?", o.ID),
+	)
+
+	query := Notifications(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"notification\" as \"a\"")
 	return query
 }
 
@@ -545,30 +617,6 @@ func (o *Volume) VolumeStatesByFk(exec boil.Executor, mods ...qm.QueryMod) volum
 	return query
 }
 
-// RecordsG retrieves all the record's record.
-func (o *Volume) RecordsG(mods ...qm.QueryMod) recordQuery {
-	return o.RecordsByFk(boil.GetDB(), mods...)
-}
-
-// Records retrieves all the record's record with an executor.
-func (o *Volume) RecordsByFk(exec boil.Executor, mods ...qm.QueryMod) recordQuery {
-	queryMods := []qm.QueryMod{
-		qm.Select("\"a\".*"),
-	}
-
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"a\".\"volume\"=?", o.ID),
-	)
-
-	query := Records(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"record\" as \"a\"")
-	return query
-}
-
 // VolumeAccessesG retrieves all the volume_access's volume access.
 func (o *Volume) VolumeAccessesG(mods ...qm.QueryMod) volumeAccessQuery {
 	return o.VolumeAccessesByFk(boil.GetDB(), mods...)
@@ -590,54 +638,6 @@ func (o *Volume) VolumeAccessesByFk(exec boil.Executor, mods ...qm.QueryMod) vol
 
 	query := VolumeAccesses(exec, queryMods...)
 	queries.SetFrom(query.Query, "\"volume_access\" as \"a\"")
-	return query
-}
-
-// AssetsG retrieves all the asset's asset.
-func (o *Volume) AssetsG(mods ...qm.QueryMod) assetQuery {
-	return o.AssetsByFk(boil.GetDB(), mods...)
-}
-
-// Assets retrieves all the asset's asset with an executor.
-func (o *Volume) AssetsByFk(exec boil.Executor, mods ...qm.QueryMod) assetQuery {
-	queryMods := []qm.QueryMod{
-		qm.Select("\"a\".*"),
-	}
-
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"a\".\"volume\"=?", o.ID),
-	)
-
-	query := Assets(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"asset\" as \"a\"")
-	return query
-}
-
-// ContainersG retrieves all the container's container.
-func (o *Volume) ContainersG(mods ...qm.QueryMod) containerQuery {
-	return o.ContainersByFk(boil.GetDB(), mods...)
-}
-
-// Containers retrieves all the container's container with an executor.
-func (o *Volume) ContainersByFk(exec boil.Executor, mods ...qm.QueryMod) containerQuery {
-	queryMods := []qm.QueryMod{
-		qm.Select("\"a\".*"),
-	}
-
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"a\".\"volume\"=?", o.ID),
-	)
-
-	query := Containers(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"container\" as \"a\"")
 	return query
 }
 
@@ -797,9 +797,9 @@ func (volumeL) LoadVolumeCitation(e boil.Executor, singular bool, maybeVolume in
 	return nil
 }
 
-// LoadNotifications allows an eager lookup of values, cached into the
+// LoadAssets allows an eager lookup of values, cached into the
 // loaded structs of the objects.
-func (volumeL) LoadNotifications(e boil.Executor, singular bool, maybeVolume interface{}) error {
+func (volumeL) LoadAssets(e boil.Executor, singular bool, maybeVolume interface{}) error {
 	var slice []*Volume
 	var object *Volume
 
@@ -827,7 +827,7 @@ func (volumeL) LoadNotifications(e boil.Executor, singular bool, maybeVolume int
 	}
 
 	query := fmt.Sprintf(
-		"select * from \"notification\" where \"volume\" in (%s)",
+		"select * from \"asset\" where \"volume\" in (%s)",
 		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
 	)
 	if boil.DebugMode {
@@ -836,16 +836,16 @@ func (volumeL) LoadNotifications(e boil.Executor, singular bool, maybeVolume int
 
 	results, err := e.Query(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "failed to eager load notification")
+		return errors.Wrap(err, "failed to eager load asset")
 	}
 	defer results.Close()
 
-	var resultSlice []*Notification
+	var resultSlice []*Asset
 	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice notification")
+		return errors.Wrap(err, "failed to bind eager loaded slice asset")
 	}
 
-	if len(notificationAfterSelectHooks) != 0 {
+	if len(assetAfterSelectHooks) != 0 {
 		for _, obj := range resultSlice {
 			if err := obj.doAfterSelectHooks(e); err != nil {
 				return err
@@ -853,14 +853,86 @@ func (volumeL) LoadNotifications(e boil.Executor, singular bool, maybeVolume int
 		}
 	}
 	if singular {
-		object.R.Notifications = resultSlice
+		object.R.Assets = resultSlice
 		return nil
 	}
 
 	for _, foreign := range resultSlice {
 		for _, local := range slice {
-			if local.ID == foreign.Volume.Int {
-				local.R.Notifications = append(local.R.Notifications, foreign)
+			if local.ID == foreign.Volume {
+				local.R.Assets = append(local.R.Assets, foreign)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadContainers allows an eager lookup of values, cached into the
+// loaded structs of the objects.
+func (volumeL) LoadContainers(e boil.Executor, singular bool, maybeVolume interface{}) error {
+	var slice []*Volume
+	var object *Volume
+
+	count := 1
+	if singular {
+		object = maybeVolume.(*Volume)
+	} else {
+		slice = *maybeVolume.(*VolumeSlice)
+		count = len(slice)
+	}
+
+	args := make([]interface{}, count)
+	if singular {
+		if object.R == nil {
+			object.R = &volumeR{}
+		}
+		args[0] = object.ID
+	} else {
+		for i, obj := range slice {
+			if obj.R == nil {
+				obj.R = &volumeR{}
+			}
+			args[i] = obj.ID
+		}
+	}
+
+	query := fmt.Sprintf(
+		"select * from \"container\" where \"volume\" in (%s)",
+		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
+	)
+	if boil.DebugMode {
+		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
+	}
+
+	results, err := e.Query(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load container")
+	}
+	defer results.Close()
+
+	var resultSlice []*Container
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice container")
+	}
+
+	if len(containerAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.Containers = resultSlice
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.Volume {
+				local.R.Containers = append(local.R.Containers, foreign)
 				break
 			}
 		}
@@ -933,6 +1005,150 @@ func (volumeL) LoadUploads(e boil.Executor, singular bool, maybeVolume interface
 		for _, local := range slice {
 			if local.ID == foreign.Volume {
 				local.R.Uploads = append(local.R.Uploads, foreign)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadRecords allows an eager lookup of values, cached into the
+// loaded structs of the objects.
+func (volumeL) LoadRecords(e boil.Executor, singular bool, maybeVolume interface{}) error {
+	var slice []*Volume
+	var object *Volume
+
+	count := 1
+	if singular {
+		object = maybeVolume.(*Volume)
+	} else {
+		slice = *maybeVolume.(*VolumeSlice)
+		count = len(slice)
+	}
+
+	args := make([]interface{}, count)
+	if singular {
+		if object.R == nil {
+			object.R = &volumeR{}
+		}
+		args[0] = object.ID
+	} else {
+		for i, obj := range slice {
+			if obj.R == nil {
+				obj.R = &volumeR{}
+			}
+			args[i] = obj.ID
+		}
+	}
+
+	query := fmt.Sprintf(
+		"select * from \"record\" where \"volume\" in (%s)",
+		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
+	)
+	if boil.DebugMode {
+		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
+	}
+
+	results, err := e.Query(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load record")
+	}
+	defer results.Close()
+
+	var resultSlice []*Record
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice record")
+	}
+
+	if len(recordAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.Records = resultSlice
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.Volume {
+				local.R.Records = append(local.R.Records, foreign)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadNotifications allows an eager lookup of values, cached into the
+// loaded structs of the objects.
+func (volumeL) LoadNotifications(e boil.Executor, singular bool, maybeVolume interface{}) error {
+	var slice []*Volume
+	var object *Volume
+
+	count := 1
+	if singular {
+		object = maybeVolume.(*Volume)
+	} else {
+		slice = *maybeVolume.(*VolumeSlice)
+		count = len(slice)
+	}
+
+	args := make([]interface{}, count)
+	if singular {
+		if object.R == nil {
+			object.R = &volumeR{}
+		}
+		args[0] = object.ID
+	} else {
+		for i, obj := range slice {
+			if obj.R == nil {
+				obj.R = &volumeR{}
+			}
+			args[i] = obj.ID
+		}
+	}
+
+	query := fmt.Sprintf(
+		"select * from \"notification\" where \"volume\" in (%s)",
+		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
+	)
+	if boil.DebugMode {
+		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
+	}
+
+	results, err := e.Query(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load notification")
+	}
+	defer results.Close()
+
+	var resultSlice []*Notification
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice notification")
+	}
+
+	if len(notificationAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.Notifications = resultSlice
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.Volume.Int {
+				local.R.Notifications = append(local.R.Notifications, foreign)
 				break
 			}
 		}
@@ -1317,78 +1533,6 @@ func (volumeL) LoadVolumeStates(e boil.Executor, singular bool, maybeVolume inte
 	return nil
 }
 
-// LoadRecords allows an eager lookup of values, cached into the
-// loaded structs of the objects.
-func (volumeL) LoadRecords(e boil.Executor, singular bool, maybeVolume interface{}) error {
-	var slice []*Volume
-	var object *Volume
-
-	count := 1
-	if singular {
-		object = maybeVolume.(*Volume)
-	} else {
-		slice = *maybeVolume.(*VolumeSlice)
-		count = len(slice)
-	}
-
-	args := make([]interface{}, count)
-	if singular {
-		if object.R == nil {
-			object.R = &volumeR{}
-		}
-		args[0] = object.ID
-	} else {
-		for i, obj := range slice {
-			if obj.R == nil {
-				obj.R = &volumeR{}
-			}
-			args[i] = obj.ID
-		}
-	}
-
-	query := fmt.Sprintf(
-		"select * from \"record\" where \"volume\" in (%s)",
-		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
-	)
-	if boil.DebugMode {
-		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
-	}
-
-	results, err := e.Query(query, args...)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load record")
-	}
-	defer results.Close()
-
-	var resultSlice []*Record
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice record")
-	}
-
-	if len(recordAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(e); err != nil {
-				return err
-			}
-		}
-	}
-	if singular {
-		object.R.Records = resultSlice
-		return nil
-	}
-
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if local.ID == foreign.Volume {
-				local.R.Records = append(local.R.Records, foreign)
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
 // LoadVolumeAccesses allows an eager lookup of values, cached into the
 // loaded structs of the objects.
 func (volumeL) LoadVolumeAccesses(e boil.Executor, singular bool, maybeVolume interface{}) error {
@@ -1453,150 +1597,6 @@ func (volumeL) LoadVolumeAccesses(e boil.Executor, singular bool, maybeVolume in
 		for _, local := range slice {
 			if local.ID == foreign.Volume {
 				local.R.VolumeAccesses = append(local.R.VolumeAccesses, foreign)
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
-// LoadAssets allows an eager lookup of values, cached into the
-// loaded structs of the objects.
-func (volumeL) LoadAssets(e boil.Executor, singular bool, maybeVolume interface{}) error {
-	var slice []*Volume
-	var object *Volume
-
-	count := 1
-	if singular {
-		object = maybeVolume.(*Volume)
-	} else {
-		slice = *maybeVolume.(*VolumeSlice)
-		count = len(slice)
-	}
-
-	args := make([]interface{}, count)
-	if singular {
-		if object.R == nil {
-			object.R = &volumeR{}
-		}
-		args[0] = object.ID
-	} else {
-		for i, obj := range slice {
-			if obj.R == nil {
-				obj.R = &volumeR{}
-			}
-			args[i] = obj.ID
-		}
-	}
-
-	query := fmt.Sprintf(
-		"select * from \"asset\" where \"volume\" in (%s)",
-		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
-	)
-	if boil.DebugMode {
-		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
-	}
-
-	results, err := e.Query(query, args...)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load asset")
-	}
-	defer results.Close()
-
-	var resultSlice []*Asset
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice asset")
-	}
-
-	if len(assetAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(e); err != nil {
-				return err
-			}
-		}
-	}
-	if singular {
-		object.R.Assets = resultSlice
-		return nil
-	}
-
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if local.ID == foreign.Volume {
-				local.R.Assets = append(local.R.Assets, foreign)
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
-// LoadContainers allows an eager lookup of values, cached into the
-// loaded structs of the objects.
-func (volumeL) LoadContainers(e boil.Executor, singular bool, maybeVolume interface{}) error {
-	var slice []*Volume
-	var object *Volume
-
-	count := 1
-	if singular {
-		object = maybeVolume.(*Volume)
-	} else {
-		slice = *maybeVolume.(*VolumeSlice)
-		count = len(slice)
-	}
-
-	args := make([]interface{}, count)
-	if singular {
-		if object.R == nil {
-			object.R = &volumeR{}
-		}
-		args[0] = object.ID
-	} else {
-		for i, obj := range slice {
-			if obj.R == nil {
-				obj.R = &volumeR{}
-			}
-			args[i] = obj.ID
-		}
-	}
-
-	query := fmt.Sprintf(
-		"select * from \"container\" where \"volume\" in (%s)",
-		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
-	)
-	if boil.DebugMode {
-		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
-	}
-
-	results, err := e.Query(query, args...)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load container")
-	}
-	defer results.Close()
-
-	var resultSlice []*Container
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice container")
-	}
-
-	if len(containerAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(e); err != nil {
-				return err
-			}
-		}
-	}
-	if singular {
-		object.R.Containers = resultSlice
-		return nil
-	}
-
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if local.ID == foreign.Volume {
-				local.R.Containers = append(local.R.Containers, foreign)
 				break
 			}
 		}
@@ -1759,6 +1759,342 @@ func (o *Volume) SetVolumeCitation(exec boil.Executor, insert bool, related *Vol
 		}
 	} else {
 		related.R.Volume = o
+	}
+	return nil
+}
+
+// AddAssetsG adds the given related objects to the existing relationships
+// of the volume, optionally inserting them as new records.
+// Appends related to o.R.Assets.
+// Sets related.R.Volume appropriately.
+// Uses the global database handle.
+func (o *Volume) AddAssetsG(insert bool, related ...*Asset) error {
+	return o.AddAssets(boil.GetDB(), insert, related...)
+}
+
+// AddAssetsP adds the given related objects to the existing relationships
+// of the volume, optionally inserting them as new records.
+// Appends related to o.R.Assets.
+// Sets related.R.Volume appropriately.
+// Panics on error.
+func (o *Volume) AddAssetsP(exec boil.Executor, insert bool, related ...*Asset) {
+	if err := o.AddAssets(exec, insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddAssetsGP adds the given related objects to the existing relationships
+// of the volume, optionally inserting them as new records.
+// Appends related to o.R.Assets.
+// Sets related.R.Volume appropriately.
+// Uses the global database handle and panics on error.
+func (o *Volume) AddAssetsGP(insert bool, related ...*Asset) {
+	if err := o.AddAssets(boil.GetDB(), insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddAssets adds the given related objects to the existing relationships
+// of the volume, optionally inserting them as new records.
+// Appends related to o.R.Assets.
+// Sets related.R.Volume appropriately.
+func (o *Volume) AddAssets(exec boil.Executor, insert bool, related ...*Asset) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.Volume = o.ID
+			if err = rel.Insert(exec); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"asset\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"volume"}),
+				strmangle.WhereClause("\"", "\"", 2, assetPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.DebugMode {
+				fmt.Fprintln(boil.DebugWriter, updateQuery)
+				fmt.Fprintln(boil.DebugWriter, values)
+			}
+
+			if _, err = exec.Exec(updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.Volume = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &volumeR{
+			Assets: related,
+		}
+	} else {
+		o.R.Assets = append(o.R.Assets, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &assetR{
+				Volume: o,
+			}
+		} else {
+			rel.R.Volume = o
+		}
+	}
+	return nil
+}
+
+// AddContainersG adds the given related objects to the existing relationships
+// of the volume, optionally inserting them as new records.
+// Appends related to o.R.Containers.
+// Sets related.R.Volume appropriately.
+// Uses the global database handle.
+func (o *Volume) AddContainersG(insert bool, related ...*Container) error {
+	return o.AddContainers(boil.GetDB(), insert, related...)
+}
+
+// AddContainersP adds the given related objects to the existing relationships
+// of the volume, optionally inserting them as new records.
+// Appends related to o.R.Containers.
+// Sets related.R.Volume appropriately.
+// Panics on error.
+func (o *Volume) AddContainersP(exec boil.Executor, insert bool, related ...*Container) {
+	if err := o.AddContainers(exec, insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddContainersGP adds the given related objects to the existing relationships
+// of the volume, optionally inserting them as new records.
+// Appends related to o.R.Containers.
+// Sets related.R.Volume appropriately.
+// Uses the global database handle and panics on error.
+func (o *Volume) AddContainersGP(insert bool, related ...*Container) {
+	if err := o.AddContainers(boil.GetDB(), insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddContainers adds the given related objects to the existing relationships
+// of the volume, optionally inserting them as new records.
+// Appends related to o.R.Containers.
+// Sets related.R.Volume appropriately.
+func (o *Volume) AddContainers(exec boil.Executor, insert bool, related ...*Container) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.Volume = o.ID
+			if err = rel.Insert(exec); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"container\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"volume"}),
+				strmangle.WhereClause("\"", "\"", 2, containerPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.DebugMode {
+				fmt.Fprintln(boil.DebugWriter, updateQuery)
+				fmt.Fprintln(boil.DebugWriter, values)
+			}
+
+			if _, err = exec.Exec(updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.Volume = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &volumeR{
+			Containers: related,
+		}
+	} else {
+		o.R.Containers = append(o.R.Containers, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &containerR{
+				Volume: o,
+			}
+		} else {
+			rel.R.Volume = o
+		}
+	}
+	return nil
+}
+
+// AddUploadsG adds the given related objects to the existing relationships
+// of the volume, optionally inserting them as new records.
+// Appends related to o.R.Uploads.
+// Sets related.R.Volume appropriately.
+// Uses the global database handle.
+func (o *Volume) AddUploadsG(insert bool, related ...*Upload) error {
+	return o.AddUploads(boil.GetDB(), insert, related...)
+}
+
+// AddUploadsP adds the given related objects to the existing relationships
+// of the volume, optionally inserting them as new records.
+// Appends related to o.R.Uploads.
+// Sets related.R.Volume appropriately.
+// Panics on error.
+func (o *Volume) AddUploadsP(exec boil.Executor, insert bool, related ...*Upload) {
+	if err := o.AddUploads(exec, insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddUploadsGP adds the given related objects to the existing relationships
+// of the volume, optionally inserting them as new records.
+// Appends related to o.R.Uploads.
+// Sets related.R.Volume appropriately.
+// Uses the global database handle and panics on error.
+func (o *Volume) AddUploadsGP(insert bool, related ...*Upload) {
+	if err := o.AddUploads(boil.GetDB(), insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddUploads adds the given related objects to the existing relationships
+// of the volume, optionally inserting them as new records.
+// Appends related to o.R.Uploads.
+// Sets related.R.Volume appropriately.
+func (o *Volume) AddUploads(exec boil.Executor, insert bool, related ...*Upload) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.Volume = o.ID
+			if err = rel.Insert(exec); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"upload\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"volume"}),
+				strmangle.WhereClause("\"", "\"", 2, uploadPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.Token}
+
+			if boil.DebugMode {
+				fmt.Fprintln(boil.DebugWriter, updateQuery)
+				fmt.Fprintln(boil.DebugWriter, values)
+			}
+
+			if _, err = exec.Exec(updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.Volume = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &volumeR{
+			Uploads: related,
+		}
+	} else {
+		o.R.Uploads = append(o.R.Uploads, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &uploadR{
+				Volume: o,
+			}
+		} else {
+			rel.R.Volume = o
+		}
+	}
+	return nil
+}
+
+// AddRecordsG adds the given related objects to the existing relationships
+// of the volume, optionally inserting them as new records.
+// Appends related to o.R.Records.
+// Sets related.R.Volume appropriately.
+// Uses the global database handle.
+func (o *Volume) AddRecordsG(insert bool, related ...*Record) error {
+	return o.AddRecords(boil.GetDB(), insert, related...)
+}
+
+// AddRecordsP adds the given related objects to the existing relationships
+// of the volume, optionally inserting them as new records.
+// Appends related to o.R.Records.
+// Sets related.R.Volume appropriately.
+// Panics on error.
+func (o *Volume) AddRecordsP(exec boil.Executor, insert bool, related ...*Record) {
+	if err := o.AddRecords(exec, insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddRecordsGP adds the given related objects to the existing relationships
+// of the volume, optionally inserting them as new records.
+// Appends related to o.R.Records.
+// Sets related.R.Volume appropriately.
+// Uses the global database handle and panics on error.
+func (o *Volume) AddRecordsGP(insert bool, related ...*Record) {
+	if err := o.AddRecords(boil.GetDB(), insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddRecords adds the given related objects to the existing relationships
+// of the volume, optionally inserting them as new records.
+// Appends related to o.R.Records.
+// Sets related.R.Volume appropriately.
+func (o *Volume) AddRecords(exec boil.Executor, insert bool, related ...*Record) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.Volume = o.ID
+			if err = rel.Insert(exec); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"record\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"volume"}),
+				strmangle.WhereClause("\"", "\"", 2, recordPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.DebugMode {
+				fmt.Fprintln(boil.DebugWriter, updateQuery)
+				fmt.Fprintln(boil.DebugWriter, values)
+			}
+
+			if _, err = exec.Exec(updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.Volume = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &volumeR{
+			Records: related,
+		}
+	} else {
+		o.R.Records = append(o.R.Records, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &recordR{
+				Volume: o,
+			}
+		} else {
+			rel.R.Volume = o
+		}
 	}
 	return nil
 }
@@ -1981,90 +2317,6 @@ func (o *Volume) RemoveNotifications(exec boil.Executor, related ...*Notificatio
 		}
 	}
 
-	return nil
-}
-
-// AddUploadsG adds the given related objects to the existing relationships
-// of the volume, optionally inserting them as new records.
-// Appends related to o.R.Uploads.
-// Sets related.R.Volume appropriately.
-// Uses the global database handle.
-func (o *Volume) AddUploadsG(insert bool, related ...*Upload) error {
-	return o.AddUploads(boil.GetDB(), insert, related...)
-}
-
-// AddUploadsP adds the given related objects to the existing relationships
-// of the volume, optionally inserting them as new records.
-// Appends related to o.R.Uploads.
-// Sets related.R.Volume appropriately.
-// Panics on error.
-func (o *Volume) AddUploadsP(exec boil.Executor, insert bool, related ...*Upload) {
-	if err := o.AddUploads(exec, insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddUploadsGP adds the given related objects to the existing relationships
-// of the volume, optionally inserting them as new records.
-// Appends related to o.R.Uploads.
-// Sets related.R.Volume appropriately.
-// Uses the global database handle and panics on error.
-func (o *Volume) AddUploadsGP(insert bool, related ...*Upload) {
-	if err := o.AddUploads(boil.GetDB(), insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddUploads adds the given related objects to the existing relationships
-// of the volume, optionally inserting them as new records.
-// Appends related to o.R.Uploads.
-// Sets related.R.Volume appropriately.
-func (o *Volume) AddUploads(exec boil.Executor, insert bool, related ...*Upload) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.Volume = o.ID
-			if err = rel.Insert(exec); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"upload\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"volume"}),
-				strmangle.WhereClause("\"", "\"", 2, uploadPrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.Token}
-
-			if boil.DebugMode {
-				fmt.Fprintln(boil.DebugWriter, updateQuery)
-				fmt.Fprintln(boil.DebugWriter, values)
-			}
-
-			if _, err = exec.Exec(updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.Volume = o.ID
-		}
-	}
-
-	if o.R == nil {
-		o.R = &volumeR{
-			Uploads: related,
-		}
-	} else {
-		o.R.Uploads = append(o.R.Uploads, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &uploadR{
-				Volume: o,
-			}
-		} else {
-			rel.R.Volume = o
-		}
-	}
 	return nil
 }
 
@@ -2640,90 +2892,6 @@ func (o *Volume) AddVolumeStates(exec boil.Executor, insert bool, related ...*Vo
 	return nil
 }
 
-// AddRecordsG adds the given related objects to the existing relationships
-// of the volume, optionally inserting them as new records.
-// Appends related to o.R.Records.
-// Sets related.R.Volume appropriately.
-// Uses the global database handle.
-func (o *Volume) AddRecordsG(insert bool, related ...*Record) error {
-	return o.AddRecords(boil.GetDB(), insert, related...)
-}
-
-// AddRecordsP adds the given related objects to the existing relationships
-// of the volume, optionally inserting them as new records.
-// Appends related to o.R.Records.
-// Sets related.R.Volume appropriately.
-// Panics on error.
-func (o *Volume) AddRecordsP(exec boil.Executor, insert bool, related ...*Record) {
-	if err := o.AddRecords(exec, insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddRecordsGP adds the given related objects to the existing relationships
-// of the volume, optionally inserting them as new records.
-// Appends related to o.R.Records.
-// Sets related.R.Volume appropriately.
-// Uses the global database handle and panics on error.
-func (o *Volume) AddRecordsGP(insert bool, related ...*Record) {
-	if err := o.AddRecords(boil.GetDB(), insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddRecords adds the given related objects to the existing relationships
-// of the volume, optionally inserting them as new records.
-// Appends related to o.R.Records.
-// Sets related.R.Volume appropriately.
-func (o *Volume) AddRecords(exec boil.Executor, insert bool, related ...*Record) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.Volume = o.ID
-			if err = rel.Insert(exec); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"record\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"volume"}),
-				strmangle.WhereClause("\"", "\"", 2, recordPrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.ID}
-
-			if boil.DebugMode {
-				fmt.Fprintln(boil.DebugWriter, updateQuery)
-				fmt.Fprintln(boil.DebugWriter, values)
-			}
-
-			if _, err = exec.Exec(updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.Volume = o.ID
-		}
-	}
-
-	if o.R == nil {
-		o.R = &volumeR{
-			Records: related,
-		}
-	} else {
-		o.R.Records = append(o.R.Records, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &recordR{
-				Volume: o,
-			}
-		} else {
-			rel.R.Volume = o
-		}
-	}
-	return nil
-}
-
 // AddVolumeAccessesG adds the given related objects to the existing relationships
 // of the volume, optionally inserting them as new records.
 // Appends related to o.R.VolumeAccesses.
@@ -2799,174 +2967,6 @@ func (o *Volume) AddVolumeAccesses(exec boil.Executor, insert bool, related ...*
 	for _, rel := range related {
 		if rel.R == nil {
 			rel.R = &volumeAccessR{
-				Volume: o,
-			}
-		} else {
-			rel.R.Volume = o
-		}
-	}
-	return nil
-}
-
-// AddAssetsG adds the given related objects to the existing relationships
-// of the volume, optionally inserting them as new records.
-// Appends related to o.R.Assets.
-// Sets related.R.Volume appropriately.
-// Uses the global database handle.
-func (o *Volume) AddAssetsG(insert bool, related ...*Asset) error {
-	return o.AddAssets(boil.GetDB(), insert, related...)
-}
-
-// AddAssetsP adds the given related objects to the existing relationships
-// of the volume, optionally inserting them as new records.
-// Appends related to o.R.Assets.
-// Sets related.R.Volume appropriately.
-// Panics on error.
-func (o *Volume) AddAssetsP(exec boil.Executor, insert bool, related ...*Asset) {
-	if err := o.AddAssets(exec, insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddAssetsGP adds the given related objects to the existing relationships
-// of the volume, optionally inserting them as new records.
-// Appends related to o.R.Assets.
-// Sets related.R.Volume appropriately.
-// Uses the global database handle and panics on error.
-func (o *Volume) AddAssetsGP(insert bool, related ...*Asset) {
-	if err := o.AddAssets(boil.GetDB(), insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddAssets adds the given related objects to the existing relationships
-// of the volume, optionally inserting them as new records.
-// Appends related to o.R.Assets.
-// Sets related.R.Volume appropriately.
-func (o *Volume) AddAssets(exec boil.Executor, insert bool, related ...*Asset) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.Volume = o.ID
-			if err = rel.Insert(exec); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"asset\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"volume"}),
-				strmangle.WhereClause("\"", "\"", 2, assetPrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.ID}
-
-			if boil.DebugMode {
-				fmt.Fprintln(boil.DebugWriter, updateQuery)
-				fmt.Fprintln(boil.DebugWriter, values)
-			}
-
-			if _, err = exec.Exec(updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.Volume = o.ID
-		}
-	}
-
-	if o.R == nil {
-		o.R = &volumeR{
-			Assets: related,
-		}
-	} else {
-		o.R.Assets = append(o.R.Assets, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &assetR{
-				Volume: o,
-			}
-		} else {
-			rel.R.Volume = o
-		}
-	}
-	return nil
-}
-
-// AddContainersG adds the given related objects to the existing relationships
-// of the volume, optionally inserting them as new records.
-// Appends related to o.R.Containers.
-// Sets related.R.Volume appropriately.
-// Uses the global database handle.
-func (o *Volume) AddContainersG(insert bool, related ...*Container) error {
-	return o.AddContainers(boil.GetDB(), insert, related...)
-}
-
-// AddContainersP adds the given related objects to the existing relationships
-// of the volume, optionally inserting them as new records.
-// Appends related to o.R.Containers.
-// Sets related.R.Volume appropriately.
-// Panics on error.
-func (o *Volume) AddContainersP(exec boil.Executor, insert bool, related ...*Container) {
-	if err := o.AddContainers(exec, insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddContainersGP adds the given related objects to the existing relationships
-// of the volume, optionally inserting them as new records.
-// Appends related to o.R.Containers.
-// Sets related.R.Volume appropriately.
-// Uses the global database handle and panics on error.
-func (o *Volume) AddContainersGP(insert bool, related ...*Container) {
-	if err := o.AddContainers(boil.GetDB(), insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddContainers adds the given related objects to the existing relationships
-// of the volume, optionally inserting them as new records.
-// Appends related to o.R.Containers.
-// Sets related.R.Volume appropriately.
-func (o *Volume) AddContainers(exec boil.Executor, insert bool, related ...*Container) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.Volume = o.ID
-			if err = rel.Insert(exec); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"container\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"volume"}),
-				strmangle.WhereClause("\"", "\"", 2, containerPrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.ID}
-
-			if boil.DebugMode {
-				fmt.Fprintln(boil.DebugWriter, updateQuery)
-				fmt.Fprintln(boil.DebugWriter, values)
-			}
-
-			if _, err = exec.Exec(updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.Volume = o.ID
-		}
-	}
-
-	if o.R == nil {
-		o.R = &volumeR{
-			Containers: related,
-		}
-	} else {
-		o.R.Containers = append(o.R.Containers, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &containerR{
 				Volume: o,
 			}
 		} else {
@@ -3180,6 +3180,10 @@ func (o *Volume) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(volumeColumns, volumePrimaryKeyColumns, whitelist)
+
+		if len(whitelist) == 0 {
+			wl = strmangle.SetComplement(wl, []string{"created_at"})
+		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update volume, could not build whitelist")
 		}

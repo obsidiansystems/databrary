@@ -5,7 +5,7 @@ level = "DEBUG" #PANIC FATAL ERROR WARN INFO DEBUB
 [database]
 addr = "localhost"
 db_name = "databrary"
-port = "5433"
+port = "5432"
 user = "postgres"
 pw = "mysecretpassword"
 

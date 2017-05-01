@@ -648,85 +648,6 @@ func testRecordOneToOneSetOpRecordMeasureUsingIDRecordMeasure(t *testing.T) {
 	}
 }
 
-func testRecordToManySlotRecords(t *testing.T) {
-	var err error
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var a Record
-	var b, c SlotRecord
-
-	foreignBlacklist := slotRecordColumnsWithDefault
-	foreignBlacklist = append(foreignBlacklist, slotRecordColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &b, slotRecordDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &c, slotRecordDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
-	}
-	b.Segment = custom_types.SegmentRandom()
-	c.Segment = custom_types.SegmentRandom()
-
-	localBlacklist := recordColumnsWithDefault
-	if err := randomize.Struct(seed, &a, recordDBTypes, false, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Record struct: %s", err)
-	}
-
-	b.Record = a.ID
-	c.Record = a.ID
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	slotRecord, err := a.SlotRecordsByFk(tx).All()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	bFound, cFound := false, false
-	for _, v := range slotRecord {
-		if v.Record == b.Record {
-			bFound = true
-		}
-		if v.Record == c.Record {
-			cFound = true
-		}
-	}
-
-	if !bFound {
-		t.Error("expected to find b")
-	}
-	if !cFound {
-		t.Error("expected to find c")
-	}
-
-	slice := RecordSlice{&a}
-	if err = a.L.LoadSlotRecords(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.SlotRecords); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	a.R.SlotRecords = nil
-	if err = a.L.LoadSlotRecords(tx, true, &a); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.SlotRecords); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	if t.Failed() {
-		t.Logf("%#v", slotRecord)
-	}
-}
-
 func testRecordToManyMetrics(t *testing.T) {
 	var err error
 	tx := MustTx(boil.Begin())
@@ -963,6 +884,85 @@ func testRecordToManyMeasureNumerics(t *testing.T) {
 	}
 }
 
+func testRecordToManySlotRecords(t *testing.T) {
+	var err error
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var a Record
+	var b, c SlotRecord
+
+	foreignBlacklist := slotRecordColumnsWithDefault
+	foreignBlacklist = append(foreignBlacklist, slotRecordColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &b, slotRecordDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, slotRecordDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize SlotRecord struct: %s", err)
+	}
+	b.Segment = custom_types.SegmentRandom()
+	c.Segment = custom_types.SegmentRandom()
+
+	localBlacklist := recordColumnsWithDefault
+	if err := randomize.Struct(seed, &a, recordDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Record struct: %s", err)
+	}
+
+	b.Record = a.ID
+	c.Record = a.ID
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	slotRecord, err := a.SlotRecordsByFk(tx).All()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range slotRecord {
+		if v.Record == b.Record {
+			bFound = true
+		}
+		if v.Record == c.Record {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := RecordSlice{&a}
+	if err = a.L.LoadSlotRecords(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.SlotRecords); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.SlotRecords = nil
+	if err = a.L.LoadSlotRecords(tx, true, &a); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.SlotRecords); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", slotRecord)
+	}
+}
+
 func testRecordToManyMeasureTexts(t *testing.T) {
 	var err error
 	tx := MustTx(boil.Begin())
@@ -1037,87 +1037,6 @@ func testRecordToManyMeasureTexts(t *testing.T) {
 	}
 }
 
-func testRecordToManyAddOpSlotRecords(t *testing.T) {
-	var err error
-
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	var a Record
-	var b, c, d, e SlotRecord
-
-	seed := randomize.NewSeed()
-	localComplelementList := strmangle.SetComplement(recordPrimaryKeyColumns, recordColumnsWithoutDefault)
-	if err = randomize.Struct(seed, &a, recordDBTypes, false, localComplelementList...); err != nil {
-		t.Fatal(err)
-	}
-
-	foreignComplementList := strmangle.SetComplement(slotRecordPrimaryKeyColumns, slotRecordColumnsWithoutDefault)
-	foreignComplementList = append(foreignComplementList, slotRecordColumnsWithCustom...)
-
-	foreigners := []*SlotRecord{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, slotRecordDBTypes, false, foreignComplementList...); err != nil {
-			t.Fatal(err)
-		}
-		x.Segment = custom_types.SegmentRandom()
-
-	}
-
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	foreignersSplitByInsertion := [][]*SlotRecord{
-		{&b, &c},
-		{&d, &e},
-	}
-
-	for i, x := range foreignersSplitByInsertion {
-		err = a.AddSlotRecords(tx, i != 0, x...)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		first := x[0]
-		second := x[1]
-
-		if a.ID != first.Record {
-			t.Error("foreign key was wrong value", a.ID, first.Record)
-		}
-		if a.ID != second.Record {
-			t.Error("foreign key was wrong value", a.ID, second.Record)
-		}
-
-		if first.R.Record != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-		if second.R.Record != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-
-		if a.R.SlotRecords[i*2] != first {
-			t.Error("relationship struct slice not set to correct value")
-		}
-		if a.R.SlotRecords[i*2+1] != second {
-			t.Error("relationship struct slice not set to correct value")
-		}
-
-		count, err := a.SlotRecordsByFk(tx).Count()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if want := int64((i + 1) * 2); count != want {
-			t.Error("want", want, "got", count)
-		}
-	}
-}
 func testRecordToManyAddOpMetrics(t *testing.T) {
 	var err error
 
@@ -1515,6 +1434,87 @@ func testRecordToManyAddOpMeasureNumerics(t *testing.T) {
 		}
 
 		count, err := a.MeasureNumericsByFk(tx).Count()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+func testRecordToManyAddOpSlotRecords(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	var a Record
+	var b, c, d, e SlotRecord
+
+	seed := randomize.NewSeed()
+	localComplelementList := strmangle.SetComplement(recordPrimaryKeyColumns, recordColumnsWithoutDefault)
+	if err = randomize.Struct(seed, &a, recordDBTypes, false, localComplelementList...); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignComplementList := strmangle.SetComplement(slotRecordPrimaryKeyColumns, slotRecordColumnsWithoutDefault)
+	foreignComplementList = append(foreignComplementList, slotRecordColumnsWithCustom...)
+
+	foreigners := []*SlotRecord{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, slotRecordDBTypes, false, foreignComplementList...); err != nil {
+			t.Fatal(err)
+		}
+		x.Segment = custom_types.SegmentRandom()
+
+	}
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*SlotRecord{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddSlotRecords(tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.Record {
+			t.Error("foreign key was wrong value", a.ID, first.Record)
+		}
+		if a.ID != second.Record {
+			t.Error("foreign key was wrong value", a.ID, second.Record)
+		}
+
+		if first.R.Record != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Record != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.SlotRecords[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.SlotRecords[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.SlotRecordsByFk(tx).Count()
 		if err != nil {
 			t.Fatal(err)
 		}

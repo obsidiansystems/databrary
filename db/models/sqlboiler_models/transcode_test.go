@@ -576,6 +576,7 @@ func testTranscodeToOneAssetUsingAsset(t *testing.T) {
 		t.Errorf("Unable to randomize Asset struct: %s", err)
 	}
 	foreign.Release = custom_types.NullReleaseRandom()
+	foreign.Duration = custom_types.NullIntervalRandom()
 
 	localBlacklist := transcodeColumnsWithDefault
 	localBlacklist = append(localBlacklist, transcodeColumnsWithCustom...)
@@ -636,6 +637,7 @@ func testTranscodeToOneAssetUsingOrig(t *testing.T) {
 		t.Errorf("Unable to randomize Asset struct: %s", err)
 	}
 	foreign.Release = custom_types.NullReleaseRandom()
+	foreign.Duration = custom_types.NullIntervalRandom()
 
 	localBlacklist := transcodeColumnsWithDefault
 	localBlacklist = append(localBlacklist, transcodeColumnsWithCustom...)
@@ -758,6 +760,8 @@ func testTranscodeToOneSetOpAssetUsingAsset(t *testing.T) {
 	}
 	b.Release = custom_types.NullReleaseRandom()
 	c.Release = custom_types.NullReleaseRandom()
+	b.Duration = custom_types.NullIntervalRandom()
+	c.Duration = custom_types.NullIntervalRandom()
 
 	localBlacklist := strmangle.SetComplement(transcodePrimaryKeyColumns, transcodeColumnsWithoutDefault)
 	localBlacklist = append(localBlacklist, transcodeColumnsWithCustom...)
@@ -821,6 +825,8 @@ func testTranscodeToOneSetOpAssetUsingOrig(t *testing.T) {
 	}
 	b.Release = custom_types.NullReleaseRandom()
 	c.Release = custom_types.NullReleaseRandom()
+	b.Duration = custom_types.NullIntervalRandom()
+	c.Duration = custom_types.NullIntervalRandom()
 
 	localBlacklist := strmangle.SetComplement(transcodePrimaryKeyColumns, transcodeColumnsWithoutDefault)
 	localBlacklist = append(localBlacklist, transcodeColumnsWithCustom...)

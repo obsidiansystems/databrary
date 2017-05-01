@@ -33,8 +33,8 @@ type Category struct {
 
 // categoryR is where relationships are stored.
 type categoryR struct {
-	Records RecordSlice
 	Metrics MetricSlice
+	Records RecordSlice
 }
 
 // categoryL is where Load methods for each relationship are stored.
@@ -325,30 +325,6 @@ func (q categoryQuery) Exists() (bool, error) {
 	return count > 0, nil
 }
 
-// RecordsG retrieves all the record's record.
-func (o *Category) RecordsG(mods ...qm.QueryMod) recordQuery {
-	return o.RecordsByFk(boil.GetDB(), mods...)
-}
-
-// Records retrieves all the record's record with an executor.
-func (o *Category) RecordsByFk(exec boil.Executor, mods ...qm.QueryMod) recordQuery {
-	queryMods := []qm.QueryMod{
-		qm.Select("\"a\".*"),
-	}
-
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"a\".\"category\"=?", o.ID),
-	)
-
-	query := Records(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"record\" as \"a\"")
-	return query
-}
-
 // MetricsG retrieves all the metric's metric.
 func (o *Category) MetricsG(mods ...qm.QueryMod) metricQuery {
 	return o.MetricsByFk(boil.GetDB(), mods...)
@@ -373,76 +349,28 @@ func (o *Category) MetricsByFk(exec boil.Executor, mods ...qm.QueryMod) metricQu
 	return query
 }
 
-// LoadRecords allows an eager lookup of values, cached into the
-// loaded structs of the objects.
-func (categoryL) LoadRecords(e boil.Executor, singular bool, maybeCategory interface{}) error {
-	var slice []*Category
-	var object *Category
+// RecordsG retrieves all the record's record.
+func (o *Category) RecordsG(mods ...qm.QueryMod) recordQuery {
+	return o.RecordsByFk(boil.GetDB(), mods...)
+}
 
-	count := 1
-	if singular {
-		object = maybeCategory.(*Category)
-	} else {
-		slice = *maybeCategory.(*CategorySlice)
-		count = len(slice)
+// Records retrieves all the record's record with an executor.
+func (o *Category) RecordsByFk(exec boil.Executor, mods ...qm.QueryMod) recordQuery {
+	queryMods := []qm.QueryMod{
+		qm.Select("\"a\".*"),
 	}
 
-	args := make([]interface{}, count)
-	if singular {
-		if object.R == nil {
-			object.R = &categoryR{}
-		}
-		args[0] = object.ID
-	} else {
-		for i, obj := range slice {
-			if obj.R == nil {
-				obj.R = &categoryR{}
-			}
-			args[i] = obj.ID
-		}
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
 	}
 
-	query := fmt.Sprintf(
-		"select * from \"record\" where \"category\" in (%s)",
-		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
+	queryMods = append(queryMods,
+		qm.Where("\"a\".\"category\"=?", o.ID),
 	)
-	if boil.DebugMode {
-		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
-	}
 
-	results, err := e.Query(query, args...)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load record")
-	}
-	defer results.Close()
-
-	var resultSlice []*Record
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice record")
-	}
-
-	if len(recordAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(e); err != nil {
-				return err
-			}
-		}
-	}
-	if singular {
-		object.R.Records = resultSlice
-		return nil
-	}
-
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if local.ID == foreign.Category {
-				local.R.Records = append(local.R.Records, foreign)
-				break
-			}
-		}
-	}
-
-	return nil
+	query := Records(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"record\" as \"a\"")
+	return query
 }
 
 // LoadMetrics allows an eager lookup of values, cached into the
@@ -517,87 +445,75 @@ func (categoryL) LoadMetrics(e boil.Executor, singular bool, maybeCategory inter
 	return nil
 }
 
-// AddRecordsG adds the given related objects to the existing relationships
-// of the category, optionally inserting them as new records.
-// Appends related to o.R.Records.
-// Sets related.R.Category appropriately.
-// Uses the global database handle.
-func (o *Category) AddRecordsG(insert bool, related ...*Record) error {
-	return o.AddRecords(boil.GetDB(), insert, related...)
-}
+// LoadRecords allows an eager lookup of values, cached into the
+// loaded structs of the objects.
+func (categoryL) LoadRecords(e boil.Executor, singular bool, maybeCategory interface{}) error {
+	var slice []*Category
+	var object *Category
 
-// AddRecordsP adds the given related objects to the existing relationships
-// of the category, optionally inserting them as new records.
-// Appends related to o.R.Records.
-// Sets related.R.Category appropriately.
-// Panics on error.
-func (o *Category) AddRecordsP(exec boil.Executor, insert bool, related ...*Record) {
-	if err := o.AddRecords(exec, insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddRecordsGP adds the given related objects to the existing relationships
-// of the category, optionally inserting them as new records.
-// Appends related to o.R.Records.
-// Sets related.R.Category appropriately.
-// Uses the global database handle and panics on error.
-func (o *Category) AddRecordsGP(insert bool, related ...*Record) {
-	if err := o.AddRecords(boil.GetDB(), insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddRecords adds the given related objects to the existing relationships
-// of the category, optionally inserting them as new records.
-// Appends related to o.R.Records.
-// Sets related.R.Category appropriately.
-func (o *Category) AddRecords(exec boil.Executor, insert bool, related ...*Record) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.Category = o.ID
-			if err = rel.Insert(exec); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"record\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"category"}),
-				strmangle.WhereClause("\"", "\"", 2, recordPrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.ID}
-
-			if boil.DebugMode {
-				fmt.Fprintln(boil.DebugWriter, updateQuery)
-				fmt.Fprintln(boil.DebugWriter, values)
-			}
-
-			if _, err = exec.Exec(updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.Category = o.ID
-		}
-	}
-
-	if o.R == nil {
-		o.R = &categoryR{
-			Records: related,
-		}
+	count := 1
+	if singular {
+		object = maybeCategory.(*Category)
 	} else {
-		o.R.Records = append(o.R.Records, related...)
+		slice = *maybeCategory.(*CategorySlice)
+		count = len(slice)
 	}
 
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &recordR{
-				Category: o,
+	args := make([]interface{}, count)
+	if singular {
+		if object.R == nil {
+			object.R = &categoryR{}
+		}
+		args[0] = object.ID
+	} else {
+		for i, obj := range slice {
+			if obj.R == nil {
+				obj.R = &categoryR{}
 			}
-		} else {
-			rel.R.Category = o
+			args[i] = obj.ID
 		}
 	}
+
+	query := fmt.Sprintf(
+		"select * from \"record\" where \"category\" in (%s)",
+		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
+	)
+	if boil.DebugMode {
+		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
+	}
+
+	results, err := e.Query(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load record")
+	}
+	defer results.Close()
+
+	var resultSlice []*Record
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice record")
+	}
+
+	if len(recordAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.Records = resultSlice
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.Category {
+				local.R.Records = append(local.R.Records, foreign)
+				break
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -676,6 +592,90 @@ func (o *Category) AddMetrics(exec boil.Executor, insert bool, related ...*Metri
 	for _, rel := range related {
 		if rel.R == nil {
 			rel.R = &metricR{
+				Category: o,
+			}
+		} else {
+			rel.R.Category = o
+		}
+	}
+	return nil
+}
+
+// AddRecordsG adds the given related objects to the existing relationships
+// of the category, optionally inserting them as new records.
+// Appends related to o.R.Records.
+// Sets related.R.Category appropriately.
+// Uses the global database handle.
+func (o *Category) AddRecordsG(insert bool, related ...*Record) error {
+	return o.AddRecords(boil.GetDB(), insert, related...)
+}
+
+// AddRecordsP adds the given related objects to the existing relationships
+// of the category, optionally inserting them as new records.
+// Appends related to o.R.Records.
+// Sets related.R.Category appropriately.
+// Panics on error.
+func (o *Category) AddRecordsP(exec boil.Executor, insert bool, related ...*Record) {
+	if err := o.AddRecords(exec, insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddRecordsGP adds the given related objects to the existing relationships
+// of the category, optionally inserting them as new records.
+// Appends related to o.R.Records.
+// Sets related.R.Category appropriately.
+// Uses the global database handle and panics on error.
+func (o *Category) AddRecordsGP(insert bool, related ...*Record) {
+	if err := o.AddRecords(boil.GetDB(), insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddRecords adds the given related objects to the existing relationships
+// of the category, optionally inserting them as new records.
+// Appends related to o.R.Records.
+// Sets related.R.Category appropriately.
+func (o *Category) AddRecords(exec boil.Executor, insert bool, related ...*Record) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.Category = o.ID
+			if err = rel.Insert(exec); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"record\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"category"}),
+				strmangle.WhereClause("\"", "\"", 2, recordPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.DebugMode {
+				fmt.Fprintln(boil.DebugWriter, updateQuery)
+				fmt.Fprintln(boil.DebugWriter, values)
+			}
+
+			if _, err = exec.Exec(updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.Category = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &categoryR{
+			Records: related,
+		}
+	} else {
+		o.R.Records = append(o.R.Records, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &recordR{
 				Category: o,
 			}
 		} else {
@@ -889,6 +889,10 @@ func (o *Category) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(categoryColumns, categoryPrimaryKeyColumns, whitelist)
+
+		if len(whitelist) == 0 {
+			wl = strmangle.SetComplement(wl, []string{"created_at"})
+		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update category, could not build whitelist")
 		}

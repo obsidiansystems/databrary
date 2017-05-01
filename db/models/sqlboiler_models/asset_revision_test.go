@@ -550,6 +550,7 @@ func testAssetRevisionToOneAssetUsingAsset(t *testing.T) {
 		t.Errorf("Unable to randomize Asset struct: %s", err)
 	}
 	foreign.Release = custom_types.NullReleaseRandom()
+	foreign.Duration = custom_types.NullIntervalRandom()
 
 	localBlacklist := assetRevisionColumnsWithDefault
 	if err := randomize.Struct(seed, &local, assetRevisionDBTypes, true, localBlacklist...); err != nil {
@@ -607,6 +608,7 @@ func testAssetRevisionToOneAssetUsingOrig(t *testing.T) {
 		t.Errorf("Unable to randomize Asset struct: %s", err)
 	}
 	foreign.Release = custom_types.NullReleaseRandom()
+	foreign.Duration = custom_types.NullIntervalRandom()
 
 	localBlacklist := assetRevisionColumnsWithDefault
 	if err := randomize.Struct(seed, &local, assetRevisionDBTypes, true, localBlacklist...); err != nil {
@@ -670,6 +672,8 @@ func testAssetRevisionToOneSetOpAssetUsingAsset(t *testing.T) {
 	}
 	b.Release = custom_types.NullReleaseRandom()
 	c.Release = custom_types.NullReleaseRandom()
+	b.Duration = custom_types.NullIntervalRandom()
+	c.Duration = custom_types.NullIntervalRandom()
 
 	localBlacklist := strmangle.SetComplement(assetRevisionPrimaryKeyColumns, assetRevisionColumnsWithoutDefault)
 	if err := randomize.Struct(seed, &a, assetRevisionDBTypes, false, localBlacklist...); err != nil {
@@ -734,6 +738,8 @@ func testAssetRevisionToOneSetOpAssetUsingOrig(t *testing.T) {
 	}
 	b.Release = custom_types.NullReleaseRandom()
 	c.Release = custom_types.NullReleaseRandom()
+	b.Duration = custom_types.NullIntervalRandom()
+	c.Duration = custom_types.NullIntervalRandom()
 
 	localBlacklist := strmangle.SetComplement(assetRevisionPrimaryKeyColumns, assetRevisionColumnsWithoutDefault)
 	if err := randomize.Struct(seed, &a, assetRevisionDBTypes, false, localBlacklist...); err != nil {

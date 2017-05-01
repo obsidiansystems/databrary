@@ -5,8 +5,6 @@ import (
 	"database/sql/driver"
 	"errors"
 	"net"
-
-	"github.com/databrary/databrary/logging"
 )
 
 // A wrapper for transferring Inet values back and forth easily.
@@ -16,7 +14,7 @@ type Inet net.IP
 func (i *Inet) Scan(value interface{}) error {
 	*i = Inet(net.IP{})
 	if value == nil {
-		return logging.LogAndError("scanned NULL Inet (did you mean to use NullInet?)")
+		return errors.New("scanned NULL Inet (did you mean to use NullInet?)")
 	}
 	ipAsBytes, ok := value.([]byte)
 	if !ok {
@@ -24,7 +22,7 @@ func (i *Inet) Scan(value interface{}) error {
 	}
 	parsedIP := net.ParseIP(string(ipAsBytes))
 	if parsedIP == nil {
-		return logging.LogAndError("parsed NULL ip (did you mean to use NullInet?)")
+		return errors.New("parsed NULL ip (did you mean to use NullInet?)")
 	}
 	*i = Inet(parsedIP)
 	return nil
@@ -34,9 +32,9 @@ func (i *Inet) Scan(value interface{}) error {
 // or i.IP is nil the database column value will be set to NULL.
 func (i Inet) Value() (driver.Value, error) {
 	if i == nil {
-		return nil, logging.LogAndError("value nil Inet (did you mean to use NullInet?)")
+		return nil, errors.New("value nil Inet (did you mean to use NullInet?)")
 	}
-	return []byte(i), nil
+	return net.IP(i).String(), nil
 }
 
 type NullInet struct {

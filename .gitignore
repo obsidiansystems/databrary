@@ -3,3 +3,5 @@
 .idea
 *.swp
 config/databrary_prod.toml
+vendor
+data.sql

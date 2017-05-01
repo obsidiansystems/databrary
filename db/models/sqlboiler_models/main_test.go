@@ -73,6 +73,7 @@ func (p *pgTester) setupMain() error {
 	dumpCmd.Env = append(os.Environ(), p.pgEnv()...)
 	createCmd := exec.Command("psql", p.TestDBName)
 	createCmd.Env = append(os.Environ(), p.pgEnv()...)
+
 	r, w := io.Pipe()
 	dumpCmd.Stdout = w
 	fkDestroyer := newFKeyDestroyer(rgxPGFkey, r)

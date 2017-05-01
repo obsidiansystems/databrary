@@ -550,6 +550,7 @@ func testAvatarToOneAssetUsingAsset(t *testing.T) {
 		t.Errorf("Unable to randomize Asset struct: %s", err)
 	}
 	foreign.Release = custom_types.NullReleaseRandom()
+	foreign.Duration = custom_types.NullIntervalRandom()
 
 	localBlacklist := avatarColumnsWithDefault
 	if err := randomize.Struct(seed, &local, avatarDBTypes, true, localBlacklist...); err != nil {
@@ -666,6 +667,8 @@ func testAvatarToOneSetOpAssetUsingAsset(t *testing.T) {
 	}
 	b.Release = custom_types.NullReleaseRandom()
 	c.Release = custom_types.NullReleaseRandom()
+	b.Duration = custom_types.NullIntervalRandom()
+	c.Duration = custom_types.NullIntervalRandom()
 
 	localBlacklist := strmangle.SetComplement(avatarPrimaryKeyColumns, avatarColumnsWithoutDefault)
 	if err := randomize.Struct(seed, &a, avatarDBTypes, false, localBlacklist...); err != nil {

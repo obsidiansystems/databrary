@@ -555,6 +555,8 @@ func testFormatToManyAssets(t *testing.T) {
 	}
 	b.Release = custom_types.NullReleaseRandom()
 	c.Release = custom_types.NullReleaseRandom()
+	b.Duration = custom_types.NullIntervalRandom()
+	c.Duration = custom_types.NullIntervalRandom()
 
 	localBlacklist := formatColumnsWithDefault
 	if err := randomize.Struct(seed, &a, formatDBTypes, false, localBlacklist...); err != nil {
@@ -637,6 +639,7 @@ func testFormatToManyAddOpAssets(t *testing.T) {
 			t.Fatal(err)
 		}
 		x.Release = custom_types.NullReleaseRandom()
+		x.Duration = custom_types.NullIntervalRandom()
 
 	}
 

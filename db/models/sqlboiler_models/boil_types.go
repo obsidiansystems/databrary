@@ -47,14 +47,12 @@ func makeCacheKey(wl, nzDefaults []string) string {
 	return str
 }
 
-// Enum values for permission
+// Enum values for release
 const (
-	PermissionNONE   = "NONE"
-	PermissionPUBLIC = "PUBLIC"
-	PermissionSHARED = "SHARED"
-	PermissionREAD   = "READ"
-	PermissionEDIT   = "EDIT"
-	PermissionADMIN  = "ADMIN"
+	ReleasePRIVATE  = "PRIVATE"
+	ReleaseSHARED   = "SHARED"
+	ReleaseEXCERPTS = "EXCERPTS"
+	ReleasePUBLIC   = "PUBLIC"
 )
 
 // Enum values for notice_delivery
@@ -66,18 +64,20 @@ const (
 	NoticeDeliveryAsync  = "async"
 )
 
-// Enum values for release
-const (
-	ReleasePRIVATE  = "PRIVATE"
-	ReleaseSHARED   = "SHARED"
-	ReleaseEXCERPTS = "EXCERPTS"
-	ReleasePUBLIC   = "PUBLIC"
-)
-
 // Enum values for data_type
 const (
 	DataTypeText    = "text"
 	DataTypeNumeric = "numeric"
 	DataTypeDate    = "date"
 	DataTypeVoid    = "void"
+)
+
+// Enum values for permission
+const (
+	PermissionNONE   = "NONE"
+	PermissionPUBLIC = "PUBLIC"
+	PermissionSHARED = "SHARED"
+	PermissionREAD   = "READ"
+	PermissionEDIT   = "EDIT"
+	PermissionADMIN  = "ADMIN"
 )
