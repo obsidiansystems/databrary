@@ -30,7 +30,7 @@ func InitLgr(conf *viper.Viper) *logrus.Logger {
 	Logger.Level = lvl
 
 	// roratelogs config
-	writer, err := rotatelogs.New(
+	writer := rotatelogs.New(
 		log_path+".%Y%m%d%H%M", // rotation pattern
 		rotatelogs.WithLinkName(log_path),
 		rotatelogs.WithRotationTime(time.Duration(86400)*time.Second), // rotate once a day
