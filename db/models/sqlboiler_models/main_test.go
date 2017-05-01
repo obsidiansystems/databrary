@@ -73,7 +73,6 @@ func (p *pgTester) setupMain() error {
 	dumpCmd.Env = append(os.Environ(), p.pgEnv()...)
 	createCmd := exec.Command("psql", p.TestDBName)
 	createCmd.Env = append(os.Environ(), p.pgEnv()...)
-
 	r, w := io.Pipe()
 	dumpCmd.Stdout = w
 	fkDestroyer := newFKeyDestroyer(rgxPGFkey, r)
@@ -89,9 +88,8 @@ func (p *pgTester) setupMain() error {
 	if err = createCmd.Start(); err != nil {
 		return errors.Wrap(err, "failed to start psql command")
 	}
-
+	// if this breaks your pg_dump and pg server might be version mismatched
 	if err = dumpCmd.Wait(); err != nil {
-		fmt.Println(err)
 		return errors.Wrap(err, "failed to wait for pg_dump command")
 	}
 

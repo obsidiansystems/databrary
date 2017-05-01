@@ -53,7 +53,7 @@ func TestMain(m *testing.M) {
 	boil.DebugMode = *flagDebugMode
 
 	if err = dbMain.setupMain(); err != nil {
-		fmt.Println("Unable to execute setupMain:", err)
+		fmt.Println(fmt.Sprintf("Unable to execute setupMain: %+v", err))
 		os.Exit(-4)
 	}
 
