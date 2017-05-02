@@ -87,7 +87,15 @@ func (i *Interval) Scan(value interface{}) error {
 	chunks := strings.Split(intervalAsString, ":")
 	hoursAsString := chunks[0]
 	isNeg := hoursAsString[0] == '-'
-	hours, err := strconv.Atoi(hoursAsString[1:])
+	var (
+		err   error
+		hours int
+	)
+	if isNeg {
+		hours, err = strconv.Atoi(hoursAsString[1:])
+	} else {
+		hours, err = strconv.Atoi(hoursAsString)
+	}
 	if err != nil {
 		return errors.Wrapf(err, "failed to convert %s to int hours", chunks[0])
 	}

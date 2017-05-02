@@ -54,8 +54,8 @@ type metricL struct{}
 
 var (
 	metricColumns               = []string{"id", "category", "name", "release", "type", "options", "assumed", "description", "required"}
-	metricColumnsWithoutDefault = []string{"category", "name", "release", "type", "options", "assumed", "description", "required"}
-	metricColumnsWithDefault    = []string{"id"}
+	metricColumnsWithoutDefault = []string{"category", "name", "release", "type", "assumed", "description", "required"}
+	metricColumnsWithDefault    = []string{"id", "options"}
 	metricColumnsWithCustom     = []string{"release", "type"}
 
 	metricPrimaryKeyColumns = []string{"id"}

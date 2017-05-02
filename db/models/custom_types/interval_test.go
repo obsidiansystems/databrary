@@ -3,6 +3,7 @@ package custom_types
 import (
 	"testing"
 
+	"fmt"
 	"github.com/databrary/databrary/config"
 	"github.com/databrary/databrary/db"
 	"github.com/jmoiron/sqlx"
@@ -66,6 +67,10 @@ func testIntervalNonNull(t *testing.T) {
 	testBidirectional("-1.0005s", NewInterval(d))
 	d, _ = time.ParseDuration("1.0005s")
 	testBidirectional("1.0005s", NewInterval(d))
+
+	i := Interval{}
+	i.Scan([]byte("16:00:00.216"))
+	fmt.Println(i)
 }
 
 func testNullInterval(t *testing.T) {
