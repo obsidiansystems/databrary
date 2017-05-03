@@ -23,12 +23,12 @@ import (
 
 // VolumeInclusion is an object representing the database table.
 type VolumeInclusion struct {
-	Container int                  `boil:"container" json:"volumeInclusion_container"`
-	Segment   custom_types.Segment `boil:"segment" json:"volumeInclusion_segment"`
-	Volume    int                  `boil:"volume" json:"volumeInclusion_volume"`
+	Container int                  `db:"container" json:"volumeInclusion_container"`
+	Segment   custom_types.Segment `db:"segment" json:"volumeInclusion_segment"`
+	Volume    int                  `db:"volume" json:"volumeInclusion_volume"`
 
-	R *volumeInclusionR `boil:"-" json:"-"`
-	L volumeInclusionL  `boil:"-" json:"-"`
+	R *volumeInclusionR `db:"-" json:"-"`
+	L volumeInclusionL  `db:"-" json:"-"`
 }
 
 // volumeInclusionR is where relationships are stored.

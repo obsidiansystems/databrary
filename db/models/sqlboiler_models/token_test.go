@@ -50,7 +50,7 @@ func testTokensLive(t *testing.T) {
 		t.Fatalf("failed to commit transaction: ", err)
 	}
 	bf := &bytes.Buffer{}
-	dumpCmd := exec.Command("pg_dump", "--data-only", dbMain.DbName, "-t", "token")
+	dumpCmd := exec.Command("psql", `-c "COPY (SELECT * FROM token) TO STDOUT" -d `, dbMain.DbName)
 	dumpCmd.Env = append(os.Environ(), dbMain.pgEnv()...)
 	dumpCmd.Stdout = bf
 	err = dumpCmd.Start()
@@ -62,7 +62,7 @@ func testTokensLive(t *testing.T) {
 		t.Fatalf("failed to wait dump from live db because of %s", err)
 	}
 	bg := &bytes.Buffer{}
-	dumpCmd = exec.Command("pg_dump", "--data-only", dbMain.LiveTestDBName, "-t", "token")
+	dumpCmd = exec.Command("psql", `-c "COPY (SELECT * FROM token) TO STDOUT" -d `, dbMain.LiveTestDBName)
 	dumpCmd.Env = append(os.Environ(), dbMain.pgEnv()...)
 	dumpCmd.Stdout = bg
 	err = dumpCmd.Start()

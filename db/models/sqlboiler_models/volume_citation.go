@@ -23,13 +23,13 @@ import (
 
 // VolumeCitation is an object representing the database table.
 type VolumeCitation struct {
-	Volume int         `boil:"volume" json:"volumeCitation_volume"`
-	Head   string      `boil:"head" json:"volumeCitation_head"`
-	URL    null.String `boil:"url" json:"volumeCitation_url,omitempty"`
-	Year   null.Int16  `boil:"year" json:"volumeCitation_year,omitempty"`
+	Volume int         `db:"volume" json:"volumeCitation_volume"`
+	Head   string      `db:"head" json:"volumeCitation_head"`
+	URL    null.String `db:"url" json:"volumeCitation_url,omitempty"`
+	Year   null.Int16  `db:"year" json:"volumeCitation_year,omitempty"`
 
-	R *volumeCitationR `boil:"-" json:"-"`
-	L volumeCitationL  `boil:"-" json:"-"`
+	R *volumeCitationR `db:"-" json:"-"`
+	L volumeCitationL  `db:"-" json:"-"`
 }
 
 // volumeCitationR is where relationships are stored.

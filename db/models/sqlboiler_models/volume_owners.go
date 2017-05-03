@@ -23,11 +23,11 @@ import (
 
 // VolumeOwner is an object representing the database table.
 type VolumeOwner struct {
-	Volume int               `boil:"volume" json:"volumeOwner_volume"`
-	Owners types.StringArray `boil:"owners" json:"volumeOwner_owners"`
+	Volume int               `db:"volume" json:"volumeOwner_volume"`
+	Owners types.StringArray `db:"owners" json:"volumeOwner_owners"`
 
-	R *volumeOwnerR `boil:"-" json:"-"`
-	L volumeOwnerL  `boil:"-" json:"-"`
+	R *volumeOwnerR `db:"-" json:"-"`
+	L volumeOwnerL  `db:"-" json:"-"`
 }
 
 // volumeOwnerR is where relationships are stored.

@@ -23,13 +23,13 @@ import (
 
 // KeywordUse is an object representing the database table.
 type KeywordUse struct {
-	Container int                  `boil:"container" json:"keywordUse_container"`
-	Segment   custom_types.Segment `boil:"segment" json:"keywordUse_segment"`
-	Tag       int                  `boil:"tag" json:"keywordUse_tag"`
-	Who       int                  `boil:"who" json:"keywordUse_who"`
+	Container int                  `db:"container" json:"keywordUse_container"`
+	Segment   custom_types.Segment `db:"segment" json:"keywordUse_segment"`
+	Tag       int                  `db:"tag" json:"keywordUse_tag"`
+	Who       int                  `db:"who" json:"keywordUse_who"`
 
-	R *keywordUseR `boil:"-" json:"-"`
-	L keywordUseL  `boil:"-" json:"-"`
+	R *keywordUseR `db:"-" json:"-"`
+	L keywordUseL  `db:"-" json:"-"`
 }
 
 // keywordUseR is where relationships are stored.

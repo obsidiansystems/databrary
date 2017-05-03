@@ -23,12 +23,12 @@ import (
 
 // Notify is an object representing the database table.
 type Notify struct {
-	Target   int                         `boil:"target" json:"notify_target"`
-	Notice   int16                       `boil:"notice" json:"notify_notice"`
-	Delivery custom_types.NoticeDelivery `boil:"delivery" json:"notify_delivery"`
+	Target   int                         `db:"target" json:"notify_target"`
+	Notice   int16                       `db:"notice" json:"notify_notice"`
+	Delivery custom_types.NoticeDelivery `db:"delivery" json:"notify_delivery"`
 
-	R *notifyR `boil:"-" json:"-"`
-	L notifyL  `boil:"-" json:"-"`
+	R *notifyR `db:"-" json:"-"`
+	L notifyL  `db:"-" json:"-"`
 }
 
 // notifyR is where relationships are stored.

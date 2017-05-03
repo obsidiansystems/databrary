@@ -23,12 +23,12 @@ import (
 
 // Account is an object representing the database table.
 type Account struct {
-	ID       int         `boil:"id" json:"account_id"`
-	Email    string      `boil:"email" json:"account_email"`
-	Password null.String `boil:"password" json:"account_password,omitempty"`
+	ID       int         `db:"id" json:"account_id"`
+	Email    string      `db:"email" json:"account_email"`
+	Password null.String `db:"password" json:"account_password,omitempty"`
 
-	R *accountR `boil:"-" json:"-"`
-	L accountL  `boil:"-" json:"-"`
+	R *accountR `db:"-" json:"-"`
+	L accountL  `db:"-" json:"-"`
 }
 
 // accountR is where relationships are stored.

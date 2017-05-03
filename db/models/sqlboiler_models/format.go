@@ -23,13 +23,13 @@ import (
 
 // Format is an object representing the database table.
 type Format struct {
-	ID        int16             `boil:"id" json:"format_id"`
-	Mimetype  string            `boil:"mimetype" json:"format_mimetype"`
-	Extension types.StringArray `boil:"extension" json:"format_extension"`
-	Name      string            `boil:"name" json:"format_name"`
+	ID        int16             `db:"id" json:"format_id"`
+	Mimetype  string            `db:"mimetype" json:"format_mimetype"`
+	Extension types.StringArray `db:"extension" json:"format_extension"`
+	Name      string            `db:"name" json:"format_name"`
 
-	R *formatR `boil:"-" json:"-"`
-	L formatL  `boil:"-" json:"-"`
+	R *formatR `db:"-" json:"-"`
+	L formatL  `db:"-" json:"-"`
 }
 
 // formatR is where relationships are stored.

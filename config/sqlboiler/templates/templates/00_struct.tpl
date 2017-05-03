@@ -8,12 +8,12 @@
 // {{$modelName}} is an object representing the database table.
 type {{$modelName}} struct {
 	{{range $column := .Table.Columns -}}
-	{{titleCase $column.Name}} {{$column.Type}} `{{generateTags $dot.Tags $column.Name}}boil:"{{$column.Name}}" json:"{{$modelNameCamel}}_{{ $column.Name}}{{if $column.Nullable}},omitempty{{end}}"`
+	{{titleCase $column.Name}} {{$column.Type}} `{{generateTags $dot.Tags $column.Name}}db:"{{$column.Name}}" json:"{{$modelNameCamel}}_{{ $column.Name}}{{if $column.Nullable}},omitempty{{end}}"`
 	{{end -}}
 	{{- if .Table.IsJoinTable -}}
 	{{- else}}
-	R *{{$modelNameCamel}}R `{{generateIgnoreTags $dot.Tags}}boil:"-" json:"-"`
-	L {{$modelNameCamel}}L `{{generateIgnoreTags $dot.Tags}}boil:"-" json:"-"`
+	R *{{$modelNameCamel}}R `{{generateIgnoreTags $dot.Tags}}db:"-" json:"-"`
+	L {{$modelNameCamel}}L `{{generateIgnoreTags $dot.Tags}}db:"-" json:"-"`
 	{{end -}}
 }
 

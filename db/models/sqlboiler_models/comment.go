@@ -24,16 +24,16 @@ import (
 
 // Comment is an object representing the database table.
 type Comment struct {
-	Container int                  `boil:"container" json:"comment_container"`
-	Segment   custom_types.Segment `boil:"segment" json:"comment_segment"`
-	ID        int                  `boil:"id" json:"comment_id"`
-	Who       int                  `boil:"who" json:"comment_who"`
-	Time      time.Time            `boil:"time" json:"comment_time"`
-	Text      string               `boil:"text" json:"comment_text"`
-	Parent    null.Int             `boil:"parent" json:"comment_parent,omitempty"`
+	Container int                  `db:"container" json:"comment_container"`
+	Segment   custom_types.Segment `db:"segment" json:"comment_segment"`
+	ID        int                  `db:"id" json:"comment_id"`
+	Who       int                  `db:"who" json:"comment_who"`
+	Time      time.Time            `db:"time" json:"comment_time"`
+	Text      string               `db:"text" json:"comment_text"`
+	Parent    null.Int             `db:"parent" json:"comment_parent,omitempty"`
 
-	R *commentR `boil:"-" json:"-"`
-	L commentL  `boil:"-" json:"-"`
+	R *commentR `db:"-" json:"-"`
+	L commentL  `db:"-" json:"-"`
 }
 
 // commentR is where relationships are stored.

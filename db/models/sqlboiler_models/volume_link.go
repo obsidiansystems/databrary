@@ -22,12 +22,12 @@ import (
 
 // VolumeLink is an object representing the database table.
 type VolumeLink struct {
-	Volume int    `boil:"volume" json:"volumeLink_volume"`
-	Head   string `boil:"head" json:"volumeLink_head"`
-	URL    string `boil:"url" json:"volumeLink_url"`
+	Volume int    `db:"volume" json:"volumeLink_volume"`
+	Head   string `db:"head" json:"volumeLink_head"`
+	URL    string `db:"url" json:"volumeLink_url"`
 
-	R *volumeLinkR `boil:"-" json:"-"`
-	L volumeLinkL  `boil:"-" json:"-"`
+	R *volumeLinkR `db:"-" json:"-"`
+	L volumeLinkL  `db:"-" json:"-"`
 }
 
 // volumeLinkR is where relationships are stored.

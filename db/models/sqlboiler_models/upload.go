@@ -22,15 +22,15 @@ import (
 
 // Upload is an object representing the database table.
 type Upload struct {
-	Token    string    `boil:"token" json:"upload_token"`
-	Expires  time.Time `boil:"expires" json:"upload_expires"`
-	Account  int       `boil:"account" json:"upload_account"`
-	Volume   int       `boil:"volume" json:"upload_volume"`
-	Filename string    `boil:"filename" json:"upload_filename"`
-	Size     int64     `boil:"size" json:"upload_size"`
+	Token    string    `db:"token" json:"upload_token"`
+	Expires  time.Time `db:"expires" json:"upload_expires"`
+	Account  int       `db:"account" json:"upload_account"`
+	Volume   int       `db:"volume" json:"upload_volume"`
+	Filename string    `db:"filename" json:"upload_filename"`
+	Size     int64     `db:"size" json:"upload_size"`
 
-	R *uploadR `boil:"-" json:"-"`
-	L uploadL  `boil:"-" json:"-"`
+	R *uploadR `db:"-" json:"-"`
+	L uploadL  `db:"-" json:"-"`
 }
 
 // uploadR is where relationships are stored.

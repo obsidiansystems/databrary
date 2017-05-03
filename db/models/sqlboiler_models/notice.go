@@ -23,12 +23,12 @@ import (
 
 // Notice is an object representing the database table.
 type Notice struct {
-	ID       int16                       `boil:"id" json:"notice_id"`
-	Name     string                      `boil:"name" json:"notice_name"`
-	Delivery custom_types.NoticeDelivery `boil:"delivery" json:"notice_delivery"`
+	ID       int16                       `db:"id" json:"notice_id"`
+	Name     string                      `db:"name" json:"notice_name"`
+	Delivery custom_types.NoticeDelivery `db:"delivery" json:"notice_delivery"`
 
-	R *noticeR `boil:"-" json:"-"`
-	L noticeL  `boil:"-" json:"-"`
+	R *noticeR `db:"-" json:"-"`
+	L noticeL  `db:"-" json:"-"`
 }
 
 // noticeR is where relationships are stored.

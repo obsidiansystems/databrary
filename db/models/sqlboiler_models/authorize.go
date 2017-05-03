@@ -24,14 +24,14 @@ import (
 
 // Authorize is an object representing the database table.
 type Authorize struct {
-	Child   int                     `boil:"child" json:"authorize_child"`
-	Parent  int                     `boil:"parent" json:"authorize_parent"`
-	Site    custom_types.Permission `boil:"site" json:"authorize_site"`
-	Member  custom_types.Permission `boil:"member" json:"authorize_member"`
-	Expires null.Time               `boil:"expires" json:"authorize_expires,omitempty"`
+	Child   int                     `db:"child" json:"authorize_child"`
+	Parent  int                     `db:"parent" json:"authorize_parent"`
+	Site    custom_types.Permission `db:"site" json:"authorize_site"`
+	Member  custom_types.Permission `db:"member" json:"authorize_member"`
+	Expires null.Time               `db:"expires" json:"authorize_expires,omitempty"`
 
-	R *authorizeR `boil:"-" json:"-"`
-	L authorizeL  `boil:"-" json:"-"`
+	R *authorizeR `db:"-" json:"-"`
+	L authorizeL  `db:"-" json:"-"`
 }
 
 // authorizeR is where relationships are stored.

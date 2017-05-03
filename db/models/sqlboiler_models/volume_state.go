@@ -23,13 +23,13 @@ import (
 
 // VolumeState is an object representing the database table.
 type VolumeState struct {
-	Volume int        `boil:"volume" json:"volumeState_volume"`
-	Key    string     `boil:"key" json:"volumeState_key"`
-	Value  types.JSON `boil:"value" json:"volumeState_value"`
-	Public bool       `boil:"public" json:"volumeState_public"`
+	Volume int        `db:"volume" json:"volumeState_volume"`
+	Key    string     `db:"key" json:"volumeState_key"`
+	Value  types.JSON `db:"value" json:"volumeState_value"`
+	Public bool       `db:"public" json:"volumeState_public"`
 
-	R *volumeStateR `boil:"-" json:"-"`
-	L volumeStateL  `boil:"-" json:"-"`
+	R *volumeStateR `db:"-" json:"-"`
+	L volumeStateL  `db:"-" json:"-"`
 }
 
 // volumeStateR is where relationships are stored.

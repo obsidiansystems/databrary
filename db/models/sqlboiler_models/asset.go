@@ -24,17 +24,17 @@ import (
 
 // Asset is an object representing the database table.
 type Asset struct {
-	ID       int                       `boil:"id" json:"asset_id"`
-	Volume   int                       `boil:"volume" json:"asset_volume"`
-	Format   int16                     `boil:"format" json:"asset_format"`
-	Release  custom_types.NullRelease  `boil:"release" json:"asset_release,omitempty"`
-	Duration custom_types.NullInterval `boil:"duration" json:"asset_duration,omitempty"`
-	Name     null.String               `boil:"name" json:"asset_name,omitempty"`
-	Sha1     null.Bytes                `boil:"sha1" json:"asset_sha1,omitempty"`
-	Size     null.Int64                `boil:"size" json:"asset_size,omitempty"`
+	ID       int                       `db:"id" json:"asset_id"`
+	Volume   int                       `db:"volume" json:"asset_volume"`
+	Format   int16                     `db:"format" json:"asset_format"`
+	Release  custom_types.NullRelease  `db:"release" json:"asset_release,omitempty"`
+	Duration custom_types.NullInterval `db:"duration" json:"asset_duration,omitempty"`
+	Name     null.String               `db:"name" json:"asset_name,omitempty"`
+	Sha1     null.Bytes                `db:"sha1" json:"asset_sha1,omitempty"`
+	Size     null.Int64                `db:"size" json:"asset_size,omitempty"`
 
-	R *assetR `boil:"-" json:"-"`
-	L assetL  `boil:"-" json:"-"`
+	R *assetR `db:"-" json:"-"`
+	L assetL  `db:"-" json:"-"`
 }
 
 // assetR is where relationships are stored.

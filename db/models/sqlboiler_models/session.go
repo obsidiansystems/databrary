@@ -22,14 +22,14 @@ import (
 
 // Session is an object representing the database table.
 type Session struct {
-	Token     string    `boil:"token" json:"session_token"`
-	Expires   time.Time `boil:"expires" json:"session_expires"`
-	Account   int       `boil:"account" json:"session_account"`
-	Verf      string    `boil:"verf" json:"session_verf"`
-	Superuser bool      `boil:"superuser" json:"session_superuser"`
+	Token     string    `db:"token" json:"session_token"`
+	Expires   time.Time `db:"expires" json:"session_expires"`
+	Account   int       `db:"account" json:"session_account"`
+	Verf      string    `db:"verf" json:"session_verf"`
+	Superuser bool      `db:"superuser" json:"session_superuser"`
 
-	R *sessionR `boil:"-" json:"-"`
-	L sessionL  `boil:"-" json:"-"`
+	R *sessionR `db:"-" json:"-"`
+	L sessionL  `db:"-" json:"-"`
 }
 
 // sessionR is where relationships are stored.

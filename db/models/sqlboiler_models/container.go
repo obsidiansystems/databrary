@@ -23,14 +23,14 @@ import (
 
 // Container is an object representing the database table.
 type Container struct {
-	ID     int         `boil:"id" json:"container_id"`
-	Volume int         `boil:"volume" json:"container_volume"`
-	Top    bool        `boil:"top" json:"container_top"`
-	Name   null.String `boil:"name" json:"container_name,omitempty"`
-	Date   null.Time   `boil:"date" json:"container_date,omitempty"`
+	ID     int         `db:"id" json:"container_id"`
+	Volume int         `db:"volume" json:"container_volume"`
+	Top    bool        `db:"top" json:"container_top"`
+	Name   null.String `db:"name" json:"container_name,omitempty"`
+	Date   null.Time   `db:"date" json:"container_date,omitempty"`
 
-	R *containerR `boil:"-" json:"-"`
-	L containerL  `boil:"-" json:"-"`
+	R *containerR `db:"-" json:"-"`
+	L containerL  `db:"-" json:"-"`
 }
 
 // containerR is where relationships are stored.

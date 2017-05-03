@@ -22,11 +22,11 @@ import (
 
 // Tag is an object representing the database table.
 type Tag struct {
-	ID   int    `boil:"id" json:"tag_id"`
-	Name string `boil:"name" json:"tag_name"`
+	ID   int    `db:"id" json:"tag_id"`
+	Name string `db:"name" json:"tag_name"`
 
-	R *tagR `boil:"-" json:"-"`
-	L tagL  `boil:"-" json:"-"`
+	R *tagR `db:"-" json:"-"`
+	L tagL  `db:"-" json:"-"`
 }
 
 // tagR is where relationships are stored.

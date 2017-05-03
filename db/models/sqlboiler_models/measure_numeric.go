@@ -22,12 +22,12 @@ import (
 
 // MeasureNumeric is an object representing the database table.
 type MeasureNumeric struct {
-	Record int     `boil:"record" json:"measureNumeric_record"`
-	Metric int     `boil:"metric" json:"measureNumeric_metric"`
-	Datum  float64 `boil:"datum" json:"measureNumeric_datum"`
+	Record int     `db:"record" json:"measureNumeric_record"`
+	Metric int     `db:"metric" json:"measureNumeric_metric"`
+	Datum  float64 `db:"datum" json:"measureNumeric_datum"`
 
-	R *measureNumericR `boil:"-" json:"-"`
-	L measureNumericL  `boil:"-" json:"-"`
+	R *measureNumericR `db:"-" json:"-"`
+	L measureNumericL  `db:"-" json:"-"`
 }
 
 // measureNumericR is where relationships are stored.

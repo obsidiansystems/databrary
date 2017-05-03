@@ -23,14 +23,14 @@ import (
 
 // Volume is an object representing the database table.
 type Volume struct {
-	ID    int         `boil:"id" json:"volume_id"`
-	Name  string      `boil:"name" json:"volume_name"`
-	Body  null.String `boil:"body" json:"volume_body,omitempty"`
-	Alias null.String `boil:"alias" json:"volume_alias,omitempty"`
-	Doi   null.String `boil:"doi" json:"volume_doi,omitempty"`
+	ID    int         `db:"id" json:"volume_id"`
+	Name  string      `db:"name" json:"volume_name"`
+	Body  null.String `db:"body" json:"volume_body,omitempty"`
+	Alias null.String `db:"alias" json:"volume_alias,omitempty"`
+	Doi   null.String `db:"doi" json:"volume_doi,omitempty"`
 
-	R *volumeR `boil:"-" json:"-"`
-	L volumeL  `boil:"-" json:"-"`
+	R *volumeR `db:"-" json:"-"`
+	L volumeL  `db:"-" json:"-"`
 }
 
 // volumeR is where relationships are stored.

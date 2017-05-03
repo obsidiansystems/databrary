@@ -22,11 +22,11 @@ import (
 
 // Avatar is an object representing the database table.
 type Avatar struct {
-	Party int `boil:"party" json:"avatar_party"`
-	Asset int `boil:"asset" json:"avatar_asset"`
+	Party int `db:"party" json:"avatar_party"`
+	Asset int `db:"asset" json:"avatar_asset"`
 
-	R *avatarR `boil:"-" json:"-"`
-	L avatarL  `boil:"-" json:"-"`
+	R *avatarR `db:"-" json:"-"`
+	L avatarL  `db:"-" json:"-"`
 }
 
 // avatarR is where relationships are stored.

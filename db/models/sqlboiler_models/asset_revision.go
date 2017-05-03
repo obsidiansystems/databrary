@@ -22,11 +22,11 @@ import (
 
 // AssetRevision is an object representing the database table.
 type AssetRevision struct {
-	Orig  int `boil:"orig" json:"assetRevision_orig"`
-	Asset int `boil:"asset" json:"assetRevision_asset"`
+	Orig  int `db:"orig" json:"assetRevision_orig"`
+	Asset int `db:"asset" json:"assetRevision_asset"`
 
-	R *assetRevisionR `boil:"-" json:"-"`
-	L assetRevisionL  `boil:"-" json:"-"`
+	R *assetRevisionR `db:"-" json:"-"`
+	L assetRevisionL  `db:"-" json:"-"`
 }
 
 // assetRevisionR is where relationships are stored.

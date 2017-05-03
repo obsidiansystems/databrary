@@ -23,12 +23,12 @@ import (
 
 // SlotRelease is an object representing the database table.
 type SlotRelease struct {
-	Container int                  `boil:"container" json:"slotRelease_container"`
-	Segment   custom_types.Segment `boil:"segment" json:"slotRelease_segment"`
-	Release   custom_types.Release `boil:"release" json:"slotRelease_release"`
+	Container int                  `db:"container" json:"slotRelease_container"`
+	Segment   custom_types.Segment `db:"segment" json:"slotRelease_segment"`
+	Release   custom_types.Release `db:"release" json:"slotRelease_release"`
 
-	R *slotReleaseR `boil:"-" json:"-"`
-	L slotReleaseL  `boil:"-" json:"-"`
+	R *slotReleaseR `db:"-" json:"-"`
+	L slotReleaseL  `db:"-" json:"-"`
 }
 
 // slotReleaseR is where relationships are stored.

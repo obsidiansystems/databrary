@@ -23,12 +23,12 @@ import (
 
 // SlotAsset is an object representing the database table.
 type SlotAsset struct {
-	Container int                  `boil:"container" json:"slotAsset_container"`
-	Segment   custom_types.Segment `boil:"segment" json:"slotAsset_segment"`
-	Asset     int                  `boil:"asset" json:"slotAsset_asset"`
+	Container int                  `db:"container" json:"slotAsset_container"`
+	Segment   custom_types.Segment `db:"segment" json:"slotAsset_segment"`
+	Asset     int                  `db:"asset" json:"slotAsset_asset"`
 
-	R *slotAssetR `boil:"-" json:"-"`
-	L slotAssetL  `boil:"-" json:"-"`
+	R *slotAssetR `db:"-" json:"-"`
+	L slotAssetL  `db:"-" json:"-"`
 }
 
 // slotAssetR is where relationships are stored.

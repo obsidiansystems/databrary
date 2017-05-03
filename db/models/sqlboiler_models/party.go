@@ -23,15 +23,15 @@ import (
 
 // Party is an object representing the database table.
 type Party struct {
-	ID          int         `boil:"id" json:"party_id"`
-	Name        string      `boil:"name" json:"party_name"`
-	Prename     null.String `boil:"prename" json:"party_prename,omitempty"`
-	Orcid       null.String `boil:"orcid" json:"party_orcid,omitempty"`
-	Affiliation null.String `boil:"affiliation" json:"party_affiliation,omitempty"`
-	URL         null.String `boil:"url" json:"party_url,omitempty"`
+	ID          int         `db:"id" json:"party_id"`
+	Name        string      `db:"name" json:"party_name"`
+	Prename     null.String `db:"prename" json:"party_prename,omitempty"`
+	Orcid       null.String `db:"orcid" json:"party_orcid,omitempty"`
+	Affiliation null.String `db:"affiliation" json:"party_affiliation,omitempty"`
+	URL         null.String `db:"url" json:"party_url,omitempty"`
 
-	R *partyR `boil:"-" json:"-"`
-	L partyL  `boil:"-" json:"-"`
+	R *partyR `db:"-" json:"-"`
+	L partyL  `db:"-" json:"-"`
 }
 
 // partyR is where relationships are stored.

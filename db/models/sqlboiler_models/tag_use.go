@@ -23,13 +23,13 @@ import (
 
 // TagUse is an object representing the database table.
 type TagUse struct {
-	Container int                  `boil:"container" json:"tagUse_container"`
-	Segment   custom_types.Segment `boil:"segment" json:"tagUse_segment"`
-	Tag       int                  `boil:"tag" json:"tagUse_tag"`
-	Who       int                  `boil:"who" json:"tagUse_who"`
+	Container int                  `db:"container" json:"tagUse_container"`
+	Segment   custom_types.Segment `db:"segment" json:"tagUse_segment"`
+	Tag       int                  `db:"tag" json:"tagUse_tag"`
+	Who       int                  `db:"who" json:"tagUse_who"`
 
-	R *tagUseR `boil:"-" json:"-"`
-	L tagUseL  `boil:"-" json:"-"`
+	R *tagUseR `db:"-" json:"-"`
+	L tagUseL  `db:"-" json:"-"`
 }
 
 // tagUseR is where relationships are stored.

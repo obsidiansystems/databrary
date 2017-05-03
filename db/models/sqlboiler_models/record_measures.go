@@ -23,13 +23,13 @@ import (
 
 // RecordMeasure is an object representing the database table.
 type RecordMeasure struct {
-	ID       int               `boil:"id" json:"recordMeasure_id"`
-	Volume   int               `boil:"volume" json:"recordMeasure_volume"`
-	Category int16             `boil:"category" json:"recordMeasure_category"`
-	Measures types.StringArray `boil:"measures" json:"recordMeasure_measures"`
+	ID       int               `db:"id" json:"recordMeasure_id"`
+	Volume   int               `db:"volume" json:"recordMeasure_volume"`
+	Category int16             `db:"category" json:"recordMeasure_category"`
+	Measures types.StringArray `db:"measures" json:"recordMeasure_measures"`
 
-	R *recordMeasureR `boil:"-" json:"-"`
-	L recordMeasureL  `boil:"-" json:"-"`
+	R *recordMeasureR `db:"-" json:"-"`
+	L recordMeasureL  `db:"-" json:"-"`
 }
 
 // recordMeasureR is where relationships are stored.

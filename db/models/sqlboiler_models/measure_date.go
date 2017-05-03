@@ -22,12 +22,12 @@ import (
 
 // MeasureDate is an object representing the database table.
 type MeasureDate struct {
-	Record int       `boil:"record" json:"measureDate_record"`
-	Metric int       `boil:"metric" json:"measureDate_metric"`
-	Datum  time.Time `boil:"datum" json:"measureDate_datum"`
+	Record int       `db:"record" json:"measureDate_record"`
+	Metric int       `db:"metric" json:"measureDate_metric"`
+	Datum  time.Time `db:"datum" json:"measureDate_datum"`
 
-	R *measureDateR `boil:"-" json:"-"`
-	L measureDateL  `boil:"-" json:"-"`
+	R *measureDateR `db:"-" json:"-"`
+	L measureDateL  `db:"-" json:"-"`
 }
 
 // measureDateR is where relationships are stored.

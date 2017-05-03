@@ -23,12 +23,12 @@ import (
 
 // Excerpt is an object representing the database table.
 type Excerpt struct {
-	Asset   int                      `boil:"asset" json:"excerpt_asset"`
-	Segment custom_types.Segment     `boil:"segment" json:"excerpt_segment"`
-	Release custom_types.NullRelease `boil:"release" json:"excerpt_release,omitempty"`
+	Asset   int                      `db:"asset" json:"excerpt_asset"`
+	Segment custom_types.Segment     `db:"segment" json:"excerpt_segment"`
+	Release custom_types.NullRelease `db:"release" json:"excerpt_release,omitempty"`
 
-	R *excerptR `boil:"-" json:"-"`
-	L excerptL  `boil:"-" json:"-"`
+	R *excerptR `db:"-" json:"-"`
+	L excerptL  `db:"-" json:"-"`
 }
 
 // excerptR is where relationships are stored.

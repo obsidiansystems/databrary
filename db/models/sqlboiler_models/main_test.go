@@ -89,8 +89,9 @@ func (p *pgTester) setupMain() error {
 	if err = createCmd.Start(); err != nil {
 		return errors.Wrap(err, "failed to start psql command")
 	}
-	// if this breaks your pg_dump and pg server might be version mismatched
+
 	if err = dumpCmd.Wait(); err != nil {
+		fmt.Println(err)
 		return errors.Wrap(err, "failed to wait for pg_dump command")
 	}
 

@@ -25,18 +25,18 @@ import (
 
 // Metric is an object representing the database table.
 type Metric struct {
-	ID          int                      `boil:"id" json:"metric_id"`
-	Category    int16                    `boil:"category" json:"metric_category"`
-	Name        string                   `boil:"name" json:"metric_name"`
-	Release     custom_types.NullRelease `boil:"release" json:"metric_release,omitempty"`
-	Type        custom_types.DataType    `boil:"type" json:"metric_type"`
-	Options     types.StringArray        `boil:"options" json:"metric_options,omitempty"`
-	Assumed     null.String              `boil:"assumed" json:"metric_assumed,omitempty"`
-	Description null.String              `boil:"description" json:"metric_description,omitempty"`
-	Required    null.Bool                `boil:"required" json:"metric_required,omitempty"`
+	ID          int                      `db:"id" json:"metric_id"`
+	Category    int16                    `db:"category" json:"metric_category"`
+	Name        string                   `db:"name" json:"metric_name"`
+	Release     custom_types.NullRelease `db:"release" json:"metric_release,omitempty"`
+	Type        custom_types.DataType    `db:"type" json:"metric_type"`
+	Options     types.StringArray        `db:"options" json:"metric_options"`
+	Assumed     null.String              `db:"assumed" json:"metric_assumed,omitempty"`
+	Description null.String              `db:"description" json:"metric_description,omitempty"`
+	Required    null.Bool                `db:"required" json:"metric_required,omitempty"`
 
-	R *metricR `boil:"-" json:"-"`
-	L metricL  `boil:"-" json:"-"`
+	R *metricR `db:"-" json:"-"`
+	L metricL  `db:"-" json:"-"`
 }
 
 // metricR is where relationships are stored.

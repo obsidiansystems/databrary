@@ -22,13 +22,13 @@ import (
 
 // LoginToken is an object representing the database table.
 type LoginToken struct {
-	Token    string    `boil:"token" json:"loginToken_token"`
-	Expires  time.Time `boil:"expires" json:"loginToken_expires"`
-	Account  int       `boil:"account" json:"loginToken_account"`
-	Password bool      `boil:"password" json:"loginToken_password"`
+	Token    string    `db:"token" json:"loginToken_token"`
+	Expires  time.Time `db:"expires" json:"loginToken_expires"`
+	Account  int       `db:"account" json:"loginToken_account"`
+	Password bool      `db:"password" json:"loginToken_password"`
 
-	R *loginTokenR `boil:"-" json:"-"`
-	L loginTokenL  `boil:"-" json:"-"`
+	R *loginTokenR `db:"-" json:"-"`
+	L loginTokenL  `db:"-" json:"-"`
 }
 
 // loginTokenR is where relationships are stored.

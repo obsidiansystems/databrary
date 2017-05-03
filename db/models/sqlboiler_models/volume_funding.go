@@ -23,12 +23,12 @@ import (
 
 // VolumeFunding is an object representing the database table.
 type VolumeFunding struct {
-	Volume int               `boil:"volume" json:"volumeFunding_volume"`
-	Funder int64             `boil:"funder" json:"volumeFunding_funder"`
-	Awards types.StringArray `boil:"awards" json:"volumeFunding_awards"`
+	Volume int               `db:"volume" json:"volumeFunding_volume"`
+	Funder int64             `db:"funder" json:"volumeFunding_funder"`
+	Awards types.StringArray `db:"awards" json:"volumeFunding_awards"`
 
-	R *volumeFundingR `boil:"-" json:"-"`
-	L volumeFundingL  `boil:"-" json:"-"`
+	R *volumeFundingR `db:"-" json:"-"`
+	L volumeFundingL  `db:"-" json:"-"`
 }
 
 // volumeFundingR is where relationships are stored.

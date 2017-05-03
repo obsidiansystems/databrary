@@ -22,12 +22,12 @@ import (
 
 // MeasureText is an object representing the database table.
 type MeasureText struct {
-	Record int    `boil:"record" json:"measureText_record"`
-	Metric int    `boil:"metric" json:"measureText_metric"`
-	Datum  string `boil:"datum" json:"measureText_datum"`
+	Record int    `db:"record" json:"measureText_record"`
+	Metric int    `db:"metric" json:"measureText_metric"`
+	Datum  string `db:"datum" json:"measureText_datum"`
 
-	R *measureTextR `boil:"-" json:"-"`
-	L measureTextL  `boil:"-" json:"-"`
+	R *measureTextR `db:"-" json:"-"`
+	L measureTextL  `db:"-" json:"-"`
 }
 
 // measureTextR is where relationships are stored.

@@ -25,17 +25,17 @@ import (
 
 // Transcode is an object representing the database table.
 type Transcode struct {
-	Orig    int                  `boil:"orig" json:"transcode_orig"`
-	Asset   int                  `boil:"asset" json:"transcode_asset"`
-	Owner   int                  `boil:"owner" json:"transcode_owner"`
-	Segment custom_types.Segment `boil:"segment" json:"transcode_segment"`
-	Options types.StringArray    `boil:"options" json:"transcode_options"`
-	Start   null.Time            `boil:"start" json:"transcode_start,omitempty"`
-	Process null.Int             `boil:"process" json:"transcode_process,omitempty"`
-	Log     null.String          `boil:"log" json:"transcode_log,omitempty"`
+	Orig    int                  `db:"orig" json:"transcode_orig"`
+	Asset   int                  `db:"asset" json:"transcode_asset"`
+	Owner   int                  `db:"owner" json:"transcode_owner"`
+	Segment custom_types.Segment `db:"segment" json:"transcode_segment"`
+	Options types.StringArray    `db:"options" json:"transcode_options"`
+	Start   null.Time            `db:"start" json:"transcode_start,omitempty"`
+	Process null.Int             `db:"process" json:"transcode_process,omitempty"`
+	Log     null.String          `db:"log" json:"transcode_log,omitempty"`
 
-	R *transcodeR `boil:"-" json:"-"`
-	L transcodeL  `boil:"-" json:"-"`
+	R *transcodeR `db:"-" json:"-"`
+	L transcodeL  `db:"-" json:"-"`
 }
 
 // transcodeR is where relationships are stored.

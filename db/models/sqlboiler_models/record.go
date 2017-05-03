@@ -22,12 +22,12 @@ import (
 
 // Record is an object representing the database table.
 type Record struct {
-	ID       int   `boil:"id" json:"record_id"`
-	Volume   int   `boil:"volume" json:"record_volume"`
-	Category int16 `boil:"category" json:"record_category"`
+	ID       int   `db:"id" json:"record_id"`
+	Volume   int   `db:"volume" json:"record_volume"`
+	Category int16 `db:"category" json:"record_category"`
 
-	R *recordR `boil:"-" json:"-"`
-	L recordL  `boil:"-" json:"-"`
+	R *recordR `db:"-" json:"-"`
+	L recordL  `db:"-" json:"-"`
 }
 
 // recordR is where relationships are stored.

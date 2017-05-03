@@ -23,12 +23,12 @@ import (
 
 // Category is an object representing the database table.
 type Category struct {
-	ID          int16       `boil:"id" json:"category_id"`
-	Name        string      `boil:"name" json:"category_name"`
-	Description null.String `boil:"description" json:"category_description,omitempty"`
+	ID          int16       `db:"id" json:"category_id"`
+	Name        string      `db:"name" json:"category_name"`
+	Description null.String `db:"description" json:"category_description,omitempty"`
 
-	R *categoryR `boil:"-" json:"-"`
-	L categoryL  `boil:"-" json:"-"`
+	R *categoryR `db:"-" json:"-"`
+	L categoryL  `db:"-" json:"-"`
 }
 
 // categoryR is where relationships are stored.

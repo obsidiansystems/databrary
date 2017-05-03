@@ -24,24 +24,24 @@ import (
 
 // Notification is an object representing the database table.
 type Notification struct {
-	ID         int                         `boil:"id" json:"notification_id"`
-	Target     int                         `boil:"target" json:"notification_target"`
-	Notice     int16                       `boil:"notice" json:"notification_notice"`
-	Time       time.Time                   `boil:"time" json:"notification_time"`
-	Delivered  custom_types.NoticeDelivery `boil:"delivered" json:"notification_delivered"`
-	Agent      int                         `boil:"agent" json:"notification_agent"`
-	Party      null.Int                    `boil:"party" json:"notification_party,omitempty"`
-	Volume     null.Int                    `boil:"volume" json:"notification_volume,omitempty"`
-	Permission custom_types.NullPermission `boil:"permission" json:"notification_permission,omitempty"`
-	Container  null.Int                    `boil:"container" json:"notification_container,omitempty"`
-	Segment    custom_types.NullSegment    `boil:"segment" json:"notification_segment,omitempty"`
-	Asset      null.Int                    `boil:"asset" json:"notification_asset,omitempty"`
-	Release    custom_types.NullRelease    `boil:"release" json:"notification_release,omitempty"`
-	Comment    null.Int                    `boil:"comment" json:"notification_comment,omitempty"`
-	Tag        null.Int                    `boil:"tag" json:"notification_tag,omitempty"`
+	ID         int                         `db:"id" json:"notification_id"`
+	Target     int                         `db:"target" json:"notification_target"`
+	Notice     int16                       `db:"notice" json:"notification_notice"`
+	Time       time.Time                   `db:"time" json:"notification_time"`
+	Delivered  custom_types.NoticeDelivery `db:"delivered" json:"notification_delivered"`
+	Agent      int                         `db:"agent" json:"notification_agent"`
+	Party      null.Int                    `db:"party" json:"notification_party,omitempty"`
+	Volume     null.Int                    `db:"volume" json:"notification_volume,omitempty"`
+	Permission custom_types.NullPermission `db:"permission" json:"notification_permission,omitempty"`
+	Container  null.Int                    `db:"container" json:"notification_container,omitempty"`
+	Segment    custom_types.NullSegment    `db:"segment" json:"notification_segment,omitempty"`
+	Asset      null.Int                    `db:"asset" json:"notification_asset,omitempty"`
+	Release    custom_types.NullRelease    `db:"release" json:"notification_release,omitempty"`
+	Comment    null.Int                    `db:"comment" json:"notification_comment,omitempty"`
+	Tag        null.Int                    `db:"tag" json:"notification_tag,omitempty"`
 
-	R *notificationR `boil:"-" json:"-"`
-	L notificationL  `boil:"-" json:"-"`
+	R *notificationR `db:"-" json:"-"`
+	L notificationL  `db:"-" json:"-"`
 }
 
 // notificationR is where relationships are stored.

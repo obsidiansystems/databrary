@@ -24,14 +24,14 @@ import (
 
 // VolumeAccess is an object representing the database table.
 type VolumeAccess struct {
-	Volume     int                     `boil:"volume" json:"volumeAccess_volume"`
-	Party      int                     `boil:"party" json:"volumeAccess_party"`
-	Individual custom_types.Permission `boil:"individual" json:"volumeAccess_individual"`
-	Children   custom_types.Permission `boil:"children" json:"volumeAccess_children"`
-	Sort       null.Int16              `boil:"sort" json:"volumeAccess_sort,omitempty"`
+	Volume     int                     `db:"volume" json:"volumeAccess_volume"`
+	Party      int                     `db:"party" json:"volumeAccess_party"`
+	Individual custom_types.Permission `db:"individual" json:"volumeAccess_individual"`
+	Children   custom_types.Permission `db:"children" json:"volumeAccess_children"`
+	Sort       null.Int16              `db:"sort" json:"volumeAccess_sort,omitempty"`
 
-	R *volumeAccessR `boil:"-" json:"-"`
-	L volumeAccessL  `boil:"-" json:"-"`
+	R *volumeAccessR `db:"-" json:"-"`
+	L volumeAccessL  `db:"-" json:"-"`
 }
 
 // volumeAccessR is where relationships are stored.

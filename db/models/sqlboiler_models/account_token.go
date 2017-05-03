@@ -22,12 +22,12 @@ import (
 
 // AccountToken is an object representing the database table.
 type AccountToken struct {
-	Token   string    `boil:"token" json:"accountToken_token"`
-	Expires time.Time `boil:"expires" json:"accountToken_expires"`
-	Account int       `boil:"account" json:"accountToken_account"`
+	Token   string    `db:"token" json:"accountToken_token"`
+	Expires time.Time `db:"expires" json:"accountToken_expires"`
+	Account int       `db:"account" json:"accountToken_account"`
 
-	R *accountTokenR `boil:"-" json:"-"`
-	L accountTokenL  `boil:"-" json:"-"`
+	R *accountTokenR `db:"-" json:"-"`
+	L accountTokenL  `db:"-" json:"-"`
 }
 
 // accountTokenR is where relationships are stored.

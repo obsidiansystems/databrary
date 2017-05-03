@@ -23,12 +23,12 @@ import (
 
 // SlotRecord is an object representing the database table.
 type SlotRecord struct {
-	Container int                  `boil:"container" json:"slotRecord_container"`
-	Segment   custom_types.Segment `boil:"segment" json:"slotRecord_segment"`
-	Record    int                  `boil:"record" json:"slotRecord_record"`
+	Container int                  `db:"container" json:"slotRecord_container"`
+	Segment   custom_types.Segment `db:"segment" json:"slotRecord_segment"`
+	Record    int                  `db:"record" json:"slotRecord_record"`
 
-	R *slotRecordR `boil:"-" json:"-"`
-	L slotRecordL  `boil:"-" json:"-"`
+	R *slotRecordR `db:"-" json:"-"`
+	L slotRecordL  `db:"-" json:"-"`
 }
 
 // slotRecordR is where relationships are stored.

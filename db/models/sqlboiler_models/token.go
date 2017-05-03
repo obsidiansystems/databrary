@@ -22,11 +22,11 @@ import (
 
 // Token is an object representing the database table.
 type Token struct {
-	Token   string    `boil:"token" json:"token_token"`
-	Expires time.Time `boil:"expires" json:"token_expires"`
+	Token   string    `db:"token" json:"token_token"`
+	Expires time.Time `db:"expires" json:"token_expires"`
 
-	R *tokenR `boil:"-" json:"-"`
-	L tokenL  `boil:"-" json:"-"`
+	R *tokenR `db:"-" json:"-"`
+	L tokenL  `db:"-" json:"-"`
 }
 
 // tokenR is where relationships are stored.

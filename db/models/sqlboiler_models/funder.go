@@ -22,11 +22,11 @@ import (
 
 // Funder is an object representing the database table.
 type Funder struct {
-	FundrefID int64  `boil:"fundref_id" json:"funder_fundref_id"`
-	Name      string `boil:"name" json:"funder_name"`
+	FundrefID int64  `db:"fundref_id" json:"funder_fundref_id"`
+	Name      string `db:"name" json:"funder_name"`
 
-	R *funderR `boil:"-" json:"-"`
-	L funderL  `boil:"-" json:"-"`
+	R *funderR `db:"-" json:"-"`
+	L funderL  `db:"-" json:"-"`
 }
 
 // funderR is where relationships are stored.
