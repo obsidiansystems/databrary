@@ -7,11 +7,12 @@ import (
 	"net"
 	"testing"
 
+	"os"
+	"path/filepath"
+
 	"github.com/databrary/databrary/config"
 	"github.com/databrary/databrary/db"
 	"github.com/jmoiron/sqlx"
-	"os"
-	"path/filepath"
 )
 
 var connInet *sqlx.DB

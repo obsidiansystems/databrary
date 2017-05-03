@@ -67,11 +67,8 @@ func (s Segment) String() string {
 
 func NewSegment(lower, upper *Interval, bounds string) (Segment, error) {
 
-	//if !set.NewSetFromSlice([]interface{}(strings.Split(bounds,""))).IsSubset(set.NewSet("[","]","(",")")) {
-	//	errF := fmt.Sprintf("malformed bounds %s", bounds)
-	//	return Segment{}, log.LogAndError(errF)
-	//}
 	// empty -> bounds = "", lower = nil, upper = nil
+	// note empty is not the same as null
 	if bounds == "" {
 		if lower != nil || upper != nil {
 			return Segment{}, errors.Errorf("empty segment with non-nil lower %s or upper %s", lower, upper)
@@ -114,20 +111,20 @@ func NewSegment(lower, upper *Interval, bounds string) (Segment, error) {
 		return Segment{bounds: bounds, lower: lower, upper: upper}, nil
 	}
 	panic(fmt.Sprintf("unreachable edge case %s %s %s", lower, upper, bounds))
-	// unreachable - just to satisfy compiler
+	//unreachable - just to satisfy compiler
 	return Segment{}, nil
 }
 
 func (s *Segment) Lower() *Interval {
 	if s.bounds == "" {
-		panic(fmt.Sprintf("no Lower for empty segment %s", s))
+		errors.Errorf("no Lower for empty segment %s", s)
 	}
 	return s.lower
 }
 
 func (s *Segment) Upper() *Interval {
 	if s.bounds == "" {
-		panic(fmt.Sprintf("no Upper for empty segment %s", s))
+		errors.Errorf("no Upper for empty segment %s", s)
 	}
 	return s.upper
 }
@@ -150,14 +147,14 @@ func (s *Segment) IsBounded() bool {
 
 func (s *Segment) IncLower() bool {
 	if s.bounds != "" {
-		panic(fmt.Sprintf("no Lower for empty segment %s", s))
+		errors.Errorf("no Lower for empty segment %s", s)
 	}
 	return s.bounds[0] == '['
 }
 
 func (s *Segment) IncUpper() bool {
 	if s.bounds != "" {
-		panic(fmt.Sprintf("no Upper for empty segment %s", s))
+		errors.Errorf("no Upper for empty segment %s", s)
 	}
 	return s.bounds[1] == ']'
 }

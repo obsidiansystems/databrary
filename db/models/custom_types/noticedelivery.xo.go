@@ -99,7 +99,7 @@ func (nd *NoticeDelivery) Scan(src interface{}) error {
 
 type NullNoticeDelivery struct {
 	NoticeDelivery NoticeDelivery
-	Valid bool
+	Valid          bool
 }
 
 func (nv *NullNoticeDelivery) Scan(value interface{}) error {

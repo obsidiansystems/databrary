@@ -90,7 +90,7 @@ func (dt *DataType) Scan(src interface{}) error {
 
 type NullDataType struct {
 	DataType DataType
-	Valid bool
+	Valid    bool
 }
 
 func (nv *NullDataType) Scan(value interface{}) error {

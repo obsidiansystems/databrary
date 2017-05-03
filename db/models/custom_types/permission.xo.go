@@ -106,10 +106,9 @@ func (p *Permission) Scan(src interface{}) error {
 	return p.UnmarshalText(buf)
 }
 
-
 type NullPermission struct {
 	Permission Permission
-	Valid bool
+	Valid      bool
 }
 
 func (nv *NullPermission) Scan(value interface{}) error {

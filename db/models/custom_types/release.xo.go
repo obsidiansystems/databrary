@@ -90,7 +90,7 @@ func (r *Release) Scan(src interface{}) error {
 
 type NullRelease struct {
 	Release Release
-	Valid bool
+	Valid   bool
 }
 
 func (nv *NullRelease) Scan(value interface{}) error {

@@ -3,10 +3,11 @@ package custom_types
 import (
 	"database/sql/driver"
 	"fmt"
-	"github.com/pkg/errors"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 type Interval struct {
@@ -41,6 +42,13 @@ func NewInterval(d time.Duration) Interval {
 	}
 	return Interval{time.Duration(nanos)}
 
+}
+
+// convenience method
+func NewIntervalFromString(inter string) Interval {
+	i := Interval{}
+	i.Scan([]byte(inter))
+	return i
 }
 
 func (i Interval) LT(j Interval) bool {
