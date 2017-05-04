@@ -76,15 +76,17 @@ type (
 
 // Cache for insert, update and upsert
 var (
-	assetType                 = reflect.TypeOf(&Asset{})
-	assetMapping              = queries.MakeStructMapping(assetType)
+	assetType    = reflect.TypeOf(&Asset{})
+	assetMapping = queries.MakeStructMapping(assetType)
+
 	assetPrimaryKeyMapping, _ = queries.BindMapping(assetType, assetMapping, assetPrimaryKeyColumns)
-	assetInsertCacheMut       sync.RWMutex
-	assetInsertCache          = make(map[string]insertCache)
-	assetUpdateCacheMut       sync.RWMutex
-	assetUpdateCache          = make(map[string]updateCache)
-	assetUpsertCacheMut       sync.RWMutex
-	assetUpsertCache          = make(map[string]insertCache)
+
+	assetInsertCacheMut sync.RWMutex
+	assetInsertCache    = make(map[string]insertCache)
+	assetUpdateCacheMut sync.RWMutex
+	assetUpdateCache    = make(map[string]updateCache)
+	assetUpsertCacheMut sync.RWMutex
+	assetUpsertCache    = make(map[string]insertCache)
 )
 
 var (
@@ -2273,10 +2275,6 @@ func (o *Asset) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(assetColumns, assetPrimaryKeyColumns, whitelist)
-
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update asset, could not build whitelist")
 		}

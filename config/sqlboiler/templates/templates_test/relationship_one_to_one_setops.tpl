@@ -1,3 +1,4 @@
+{{ if not .Table.IsView }}
 {{- $hasCustom := .Table.HasCustom -}}
 {{- if .Table.IsJoinTable -}}
 {{- else -}}
@@ -177,3 +178,4 @@ func test{{$txt.LocalTable.NameGo}}OneToOneRemoveOp{{$txt.ForeignTable.NameGo}}U
 {{end -}}{{/* end if foreign key nullable */}}
 {{- end -}}{{/* range */}}
 {{- end -}}{{/* join table */}}
+{{end}}

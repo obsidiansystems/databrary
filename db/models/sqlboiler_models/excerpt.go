@@ -62,15 +62,17 @@ type (
 
 // Cache for insert, update and upsert
 var (
-	excerptType                 = reflect.TypeOf(&Excerpt{})
-	excerptMapping              = queries.MakeStructMapping(excerptType)
+	excerptType    = reflect.TypeOf(&Excerpt{})
+	excerptMapping = queries.MakeStructMapping(excerptType)
+
 	excerptPrimaryKeyMapping, _ = queries.BindMapping(excerptType, excerptMapping, excerptPrimaryKeyColumns)
-	excerptInsertCacheMut       sync.RWMutex
-	excerptInsertCache          = make(map[string]insertCache)
-	excerptUpdateCacheMut       sync.RWMutex
-	excerptUpdateCache          = make(map[string]updateCache)
-	excerptUpsertCacheMut       sync.RWMutex
-	excerptUpsertCache          = make(map[string]insertCache)
+
+	excerptInsertCacheMut sync.RWMutex
+	excerptInsertCache    = make(map[string]insertCache)
+	excerptUpdateCacheMut sync.RWMutex
+	excerptUpdateCache    = make(map[string]updateCache)
+	excerptUpsertCacheMut sync.RWMutex
+	excerptUpsertCache    = make(map[string]insertCache)
 )
 
 var (
@@ -701,10 +703,6 @@ func (o *Excerpt) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(excerptColumns, excerptPrimaryKeyColumns, whitelist)
-
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update excerpt, could not build whitelist")
 		}

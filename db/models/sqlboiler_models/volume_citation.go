@@ -63,15 +63,17 @@ type (
 
 // Cache for insert, update and upsert
 var (
-	volumeCitationType                 = reflect.TypeOf(&VolumeCitation{})
-	volumeCitationMapping              = queries.MakeStructMapping(volumeCitationType)
+	volumeCitationType    = reflect.TypeOf(&VolumeCitation{})
+	volumeCitationMapping = queries.MakeStructMapping(volumeCitationType)
+
 	volumeCitationPrimaryKeyMapping, _ = queries.BindMapping(volumeCitationType, volumeCitationMapping, volumeCitationPrimaryKeyColumns)
-	volumeCitationInsertCacheMut       sync.RWMutex
-	volumeCitationInsertCache          = make(map[string]insertCache)
-	volumeCitationUpdateCacheMut       sync.RWMutex
-	volumeCitationUpdateCache          = make(map[string]updateCache)
-	volumeCitationUpsertCacheMut       sync.RWMutex
-	volumeCitationUpsertCache          = make(map[string]insertCache)
+
+	volumeCitationInsertCacheMut sync.RWMutex
+	volumeCitationInsertCache    = make(map[string]insertCache)
+	volumeCitationUpdateCacheMut sync.RWMutex
+	volumeCitationUpdateCache    = make(map[string]updateCache)
+	volumeCitationUpsertCacheMut sync.RWMutex
+	volumeCitationUpsertCache    = make(map[string]insertCache)
 )
 
 var (
@@ -702,10 +704,6 @@ func (o *VolumeCitation) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(volumeCitationColumns, volumeCitationPrimaryKeyColumns, whitelist)
-
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update volume_citation, could not build whitelist")
 		}

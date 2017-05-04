@@ -182,6 +182,7 @@ func testAccountTokensSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testAccountTokensExists(t *testing.T) {
 	t.Parallel()
 
@@ -206,6 +207,7 @@ func testAccountTokensExists(t *testing.T) {
 		t.Errorf("Expected AccountTokenExistsG to return true, but got false.")
 	}
 }
+
 func testAccountTokensFind(t *testing.T) {
 	t.Parallel()
 
@@ -231,6 +233,7 @@ func testAccountTokensFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testAccountTokensBind(t *testing.T) {
 	t.Parallel()
 
@@ -645,6 +648,7 @@ func testAccountTokenToOneSetOpAccountUsingAccount(t *testing.T) {
 		}
 	}
 }
+
 func testAccountTokensReload(t *testing.T) {
 	t.Parallel()
 
@@ -688,6 +692,7 @@ func testAccountTokensReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testAccountTokensSelect(t *testing.T) {
 	t.Parallel()
 
@@ -816,6 +821,7 @@ func testAccountTokensSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testAccountTokensUpsert(t *testing.T) {
 	t.Parallel()
 

@@ -71,15 +71,17 @@ type (
 
 // Cache for insert, update and upsert
 var (
-	partyType                 = reflect.TypeOf(&Party{})
-	partyMapping              = queries.MakeStructMapping(partyType)
+	partyType    = reflect.TypeOf(&Party{})
+	partyMapping = queries.MakeStructMapping(partyType)
+
 	partyPrimaryKeyMapping, _ = queries.BindMapping(partyType, partyMapping, partyPrimaryKeyColumns)
-	partyInsertCacheMut       sync.RWMutex
-	partyInsertCache          = make(map[string]insertCache)
-	partyUpdateCacheMut       sync.RWMutex
-	partyUpdateCache          = make(map[string]updateCache)
-	partyUpsertCacheMut       sync.RWMutex
-	partyUpsertCache          = make(map[string]insertCache)
+
+	partyInsertCacheMut sync.RWMutex
+	partyInsertCache    = make(map[string]insertCache)
+	partyUpdateCacheMut sync.RWMutex
+	partyUpdateCache    = make(map[string]updateCache)
+	partyUpsertCacheMut sync.RWMutex
+	partyUpsertCache    = make(map[string]insertCache)
 )
 
 var (
@@ -1926,10 +1928,6 @@ func (o *Party) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(partyColumns, partyPrimaryKeyColumns, whitelist)
-
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update party, could not build whitelist")
 		}

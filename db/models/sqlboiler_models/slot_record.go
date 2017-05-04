@@ -63,15 +63,17 @@ type (
 
 // Cache for insert, update and upsert
 var (
-	slotRecordType                 = reflect.TypeOf(&SlotRecord{})
-	slotRecordMapping              = queries.MakeStructMapping(slotRecordType)
+	slotRecordType    = reflect.TypeOf(&SlotRecord{})
+	slotRecordMapping = queries.MakeStructMapping(slotRecordType)
+
 	slotRecordPrimaryKeyMapping, _ = queries.BindMapping(slotRecordType, slotRecordMapping, slotRecordPrimaryKeyColumns)
-	slotRecordInsertCacheMut       sync.RWMutex
-	slotRecordInsertCache          = make(map[string]insertCache)
-	slotRecordUpdateCacheMut       sync.RWMutex
-	slotRecordUpdateCache          = make(map[string]updateCache)
-	slotRecordUpsertCacheMut       sync.RWMutex
-	slotRecordUpsertCache          = make(map[string]insertCache)
+
+	slotRecordInsertCacheMut sync.RWMutex
+	slotRecordInsertCache    = make(map[string]insertCache)
+	slotRecordUpdateCacheMut sync.RWMutex
+	slotRecordUpdateCache    = make(map[string]updateCache)
+	slotRecordUpsertCacheMut sync.RWMutex
+	slotRecordUpsertCache    = make(map[string]insertCache)
 )
 
 var (
@@ -875,10 +877,6 @@ func (o *SlotRecord) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(slotRecordColumns, slotRecordPrimaryKeyColumns, whitelist)
-
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update slot_record, could not build whitelist")
 		}

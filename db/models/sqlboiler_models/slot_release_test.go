@@ -192,6 +192,7 @@ func testSlotReleasesSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testSlotReleasesExists(t *testing.T) {
 	t.Parallel()
 
@@ -219,6 +220,7 @@ func testSlotReleasesExists(t *testing.T) {
 		t.Errorf("Expected SlotReleaseExistsG to return true, but got false.")
 	}
 }
+
 func testSlotReleasesFind(t *testing.T) {
 	t.Parallel()
 
@@ -247,6 +249,7 @@ func testSlotReleasesFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testSlotReleasesBind(t *testing.T) {
 	t.Parallel()
 
@@ -690,6 +693,7 @@ func testSlotReleaseToOneSetOpContainerUsingContainer(t *testing.T) {
 
 	}
 }
+
 func testSlotReleasesReload(t *testing.T) {
 	t.Parallel()
 
@@ -739,6 +743,7 @@ func testSlotReleasesReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testSlotReleasesSelect(t *testing.T) {
 	t.Parallel()
 
@@ -884,6 +889,7 @@ func testSlotReleasesSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testSlotReleasesUpsert(t *testing.T) {
 	t.Parallel()
 

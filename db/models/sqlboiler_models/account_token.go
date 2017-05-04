@@ -61,15 +61,17 @@ type (
 
 // Cache for insert, update and upsert
 var (
-	accountTokenType                 = reflect.TypeOf(&AccountToken{})
-	accountTokenMapping              = queries.MakeStructMapping(accountTokenType)
+	accountTokenType    = reflect.TypeOf(&AccountToken{})
+	accountTokenMapping = queries.MakeStructMapping(accountTokenType)
+
 	accountTokenPrimaryKeyMapping, _ = queries.BindMapping(accountTokenType, accountTokenMapping, accountTokenPrimaryKeyColumns)
-	accountTokenInsertCacheMut       sync.RWMutex
-	accountTokenInsertCache          = make(map[string]insertCache)
-	accountTokenUpdateCacheMut       sync.RWMutex
-	accountTokenUpdateCache          = make(map[string]updateCache)
-	accountTokenUpsertCacheMut       sync.RWMutex
-	accountTokenUpsertCache          = make(map[string]insertCache)
+
+	accountTokenInsertCacheMut sync.RWMutex
+	accountTokenInsertCache    = make(map[string]insertCache)
+	accountTokenUpdateCacheMut sync.RWMutex
+	accountTokenUpdateCache    = make(map[string]updateCache)
+	accountTokenUpsertCacheMut sync.RWMutex
+	accountTokenUpsertCache    = make(map[string]insertCache)
 )
 
 var (
@@ -700,10 +702,6 @@ func (o *AccountToken) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(accountTokenColumns, accountTokenPrimaryKeyColumns, whitelist)
-
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update account_token, could not build whitelist")
 		}

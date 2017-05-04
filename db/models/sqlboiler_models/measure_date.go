@@ -62,15 +62,17 @@ type (
 
 // Cache for insert, update and upsert
 var (
-	measureDateType                 = reflect.TypeOf(&MeasureDate{})
-	measureDateMapping              = queries.MakeStructMapping(measureDateType)
+	measureDateType    = reflect.TypeOf(&MeasureDate{})
+	measureDateMapping = queries.MakeStructMapping(measureDateType)
+
 	measureDatePrimaryKeyMapping, _ = queries.BindMapping(measureDateType, measureDateMapping, measureDatePrimaryKeyColumns)
-	measureDateInsertCacheMut       sync.RWMutex
-	measureDateInsertCache          = make(map[string]insertCache)
-	measureDateUpdateCacheMut       sync.RWMutex
-	measureDateUpdateCache          = make(map[string]updateCache)
-	measureDateUpsertCacheMut       sync.RWMutex
-	measureDateUpsertCache          = make(map[string]insertCache)
+
+	measureDateInsertCacheMut sync.RWMutex
+	measureDateInsertCache    = make(map[string]insertCache)
+	measureDateUpdateCacheMut sync.RWMutex
+	measureDateUpdateCache    = make(map[string]updateCache)
+	measureDateUpsertCacheMut sync.RWMutex
+	measureDateUpsertCache    = make(map[string]insertCache)
 )
 
 var (
@@ -874,10 +876,6 @@ func (o *MeasureDate) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(measureDateColumns, measureDatePrimaryKeyColumns, whitelist)
-
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update measure_date, could not build whitelist")
 		}

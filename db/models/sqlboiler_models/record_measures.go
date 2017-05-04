@@ -63,15 +63,17 @@ type (
 
 // Cache for insert, update and upsert
 var (
-	recordMeasureType                 = reflect.TypeOf(&RecordMeasure{})
-	recordMeasureMapping              = queries.MakeStructMapping(recordMeasureType)
+	recordMeasureType    = reflect.TypeOf(&RecordMeasure{})
+	recordMeasureMapping = queries.MakeStructMapping(recordMeasureType)
+
 	recordMeasurePrimaryKeyMapping, _ = queries.BindMapping(recordMeasureType, recordMeasureMapping, recordMeasurePrimaryKeyColumns)
-	recordMeasureInsertCacheMut       sync.RWMutex
-	recordMeasureInsertCache          = make(map[string]insertCache)
-	recordMeasureUpdateCacheMut       sync.RWMutex
-	recordMeasureUpdateCache          = make(map[string]updateCache)
-	recordMeasureUpsertCacheMut       sync.RWMutex
-	recordMeasureUpsertCache          = make(map[string]insertCache)
+
+	recordMeasureInsertCacheMut sync.RWMutex
+	recordMeasureInsertCache    = make(map[string]insertCache)
+	recordMeasureUpdateCacheMut sync.RWMutex
+	recordMeasureUpdateCache    = make(map[string]updateCache)
+	recordMeasureUpsertCacheMut sync.RWMutex
+	recordMeasureUpsertCache    = make(map[string]insertCache)
 )
 
 var (
@@ -702,10 +704,6 @@ func (o *RecordMeasure) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(recordMeasureColumns, recordMeasurePrimaryKeyColumns, whitelist)
-
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update record_measures, could not build whitelist")
 		}

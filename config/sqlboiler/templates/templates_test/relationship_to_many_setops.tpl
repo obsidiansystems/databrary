@@ -1,3 +1,4 @@
+{{ if not .Table.IsView }}
 {{- if .Table.IsJoinTable -}}
 {{- else -}}
 	{{- $dot := . -}}
@@ -386,3 +387,4 @@ func test{{$txt.LocalTable.NameGo}}ToManyRemoveOp{{$txt.Function.Name}}(t *testi
 {{end -}}
 {{- end -}}{{- /* range relationships */ -}}
 {{- end -}}{{- /* outer if join table */ -}}
+{{end}}

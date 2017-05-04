@@ -76,15 +76,17 @@ type (
 
 // Cache for insert, update and upsert
 var (
-	volumeType                 = reflect.TypeOf(&Volume{})
-	volumeMapping              = queries.MakeStructMapping(volumeType)
+	volumeType    = reflect.TypeOf(&Volume{})
+	volumeMapping = queries.MakeStructMapping(volumeType)
+
 	volumePrimaryKeyMapping, _ = queries.BindMapping(volumeType, volumeMapping, volumePrimaryKeyColumns)
-	volumeInsertCacheMut       sync.RWMutex
-	volumeInsertCache          = make(map[string]insertCache)
-	volumeUpdateCacheMut       sync.RWMutex
-	volumeUpdateCache          = make(map[string]updateCache)
-	volumeUpsertCacheMut       sync.RWMutex
-	volumeUpsertCache          = make(map[string]insertCache)
+
+	volumeInsertCacheMut sync.RWMutex
+	volumeInsertCache    = make(map[string]insertCache)
+	volumeUpdateCacheMut sync.RWMutex
+	volumeUpdateCache    = make(map[string]updateCache)
+	volumeUpsertCacheMut sync.RWMutex
+	volumeUpsertCache    = make(map[string]insertCache)
 )
 
 var (
@@ -3180,10 +3182,6 @@ func (o *Volume) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(volumeColumns, volumePrimaryKeyColumns, whitelist)
-
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update volume, could not build whitelist")
 		}

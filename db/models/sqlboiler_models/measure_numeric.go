@@ -62,15 +62,17 @@ type (
 
 // Cache for insert, update and upsert
 var (
-	measureNumericType                 = reflect.TypeOf(&MeasureNumeric{})
-	measureNumericMapping              = queries.MakeStructMapping(measureNumericType)
+	measureNumericType    = reflect.TypeOf(&MeasureNumeric{})
+	measureNumericMapping = queries.MakeStructMapping(measureNumericType)
+
 	measureNumericPrimaryKeyMapping, _ = queries.BindMapping(measureNumericType, measureNumericMapping, measureNumericPrimaryKeyColumns)
-	measureNumericInsertCacheMut       sync.RWMutex
-	measureNumericInsertCache          = make(map[string]insertCache)
-	measureNumericUpdateCacheMut       sync.RWMutex
-	measureNumericUpdateCache          = make(map[string]updateCache)
-	measureNumericUpsertCacheMut       sync.RWMutex
-	measureNumericUpsertCache          = make(map[string]insertCache)
+
+	measureNumericInsertCacheMut sync.RWMutex
+	measureNumericInsertCache    = make(map[string]insertCache)
+	measureNumericUpdateCacheMut sync.RWMutex
+	measureNumericUpdateCache    = make(map[string]updateCache)
+	measureNumericUpsertCacheMut sync.RWMutex
+	measureNumericUpsertCache    = make(map[string]insertCache)
 )
 
 var (
@@ -874,10 +876,6 @@ func (o *MeasureNumeric) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(measureNumericColumns, measureNumericPrimaryKeyColumns, whitelist)
-
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update measure_numeric, could not build whitelist")
 		}

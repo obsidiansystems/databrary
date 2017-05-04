@@ -55,6 +55,16 @@ const (
 	ReleasePUBLIC   = "PUBLIC"
 )
 
+// Enum values for permission
+const (
+	PermissionNONE   = "NONE"
+	PermissionPUBLIC = "PUBLIC"
+	PermissionSHARED = "SHARED"
+	PermissionREAD   = "READ"
+	PermissionEDIT   = "EDIT"
+	PermissionADMIN  = "ADMIN"
+)
+
 // Enum values for notice_delivery
 const (
 	NoticeDeliveryNone   = "none"
@@ -70,14 +80,4 @@ const (
 	DataTypeNumeric = "numeric"
 	DataTypeDate    = "date"
 	DataTypeVoid    = "void"
-)
-
-// Enum values for permission
-const (
-	PermissionNONE   = "NONE"
-	PermissionPUBLIC = "PUBLIC"
-	PermissionSHARED = "SHARED"
-	PermissionREAD   = "READ"
-	PermissionEDIT   = "EDIT"
-	PermissionADMIN  = "ADMIN"
 )

@@ -71,15 +71,17 @@ type (
 
 // Cache for insert, update and upsert
 var (
-	containerType                 = reflect.TypeOf(&Container{})
-	containerMapping              = queries.MakeStructMapping(containerType)
+	containerType    = reflect.TypeOf(&Container{})
+	containerMapping = queries.MakeStructMapping(containerType)
+
 	containerPrimaryKeyMapping, _ = queries.BindMapping(containerType, containerMapping, containerPrimaryKeyColumns)
-	containerInsertCacheMut       sync.RWMutex
-	containerInsertCache          = make(map[string]insertCache)
-	containerUpdateCacheMut       sync.RWMutex
-	containerUpdateCache          = make(map[string]updateCache)
-	containerUpsertCacheMut       sync.RWMutex
-	containerUpsertCache          = make(map[string]insertCache)
+
+	containerInsertCacheMut sync.RWMutex
+	containerInsertCache    = make(map[string]insertCache)
+	containerUpdateCacheMut sync.RWMutex
+	containerUpdateCache    = make(map[string]updateCache)
+	containerUpsertCacheMut sync.RWMutex
+	containerUpsertCache    = make(map[string]insertCache)
 )
 
 var (
@@ -2107,10 +2109,6 @@ func (o *Container) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(containerColumns, containerPrimaryKeyColumns, whitelist)
-
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update container, could not build whitelist")
 		}

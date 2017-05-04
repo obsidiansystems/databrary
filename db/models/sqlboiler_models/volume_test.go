@@ -183,6 +183,7 @@ func testVolumesSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testVolumesExists(t *testing.T) {
 	t.Parallel()
 
@@ -207,6 +208,7 @@ func testVolumesExists(t *testing.T) {
 		t.Errorf("Expected VolumeExistsG to return true, but got false.")
 	}
 }
+
 func testVolumesFind(t *testing.T) {
 	t.Parallel()
 
@@ -232,6 +234,7 @@ func testVolumesFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testVolumesBind(t *testing.T) {
 	t.Parallel()
 
@@ -2905,6 +2908,7 @@ func testVolumesReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testVolumesSelect(t *testing.T) {
 	t.Parallel()
 
@@ -3033,6 +3037,7 @@ func testVolumesSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testVolumesUpsert(t *testing.T) {
 	t.Parallel()
 

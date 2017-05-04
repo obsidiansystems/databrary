@@ -183,6 +183,7 @@ func testMeasureNumericsSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testMeasureNumericsExists(t *testing.T) {
 	t.Parallel()
 
@@ -207,6 +208,7 @@ func testMeasureNumericsExists(t *testing.T) {
 		t.Errorf("Expected MeasureNumericExistsG to return true, but got false.")
 	}
 }
+
 func testMeasureNumericsFind(t *testing.T) {
 	t.Parallel()
 
@@ -232,6 +234,7 @@ func testMeasureNumericsFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testMeasureNumericsBind(t *testing.T) {
 	t.Parallel()
 
@@ -762,6 +765,7 @@ func testMeasureNumericToOneSetOpRecordUsingRecord(t *testing.T) {
 
 	}
 }
+
 func testMeasureNumericsReload(t *testing.T) {
 	t.Parallel()
 
@@ -805,6 +809,7 @@ func testMeasureNumericsReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testMeasureNumericsSelect(t *testing.T) {
 	t.Parallel()
 
@@ -933,6 +938,7 @@ func testMeasureNumericsSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testMeasureNumericsUpsert(t *testing.T) {
 	t.Parallel()
 

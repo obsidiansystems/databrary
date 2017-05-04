@@ -182,6 +182,7 @@ func testUploadsSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testUploadsExists(t *testing.T) {
 	t.Parallel()
 
@@ -206,6 +207,7 @@ func testUploadsExists(t *testing.T) {
 		t.Errorf("Expected UploadExistsG to return true, but got false.")
 	}
 }
+
 func testUploadsFind(t *testing.T) {
 	t.Parallel()
 
@@ -231,6 +233,7 @@ func testUploadsFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testUploadsBind(t *testing.T) {
 	t.Parallel()
 
@@ -757,6 +760,7 @@ func testUploadToOneSetOpVolumeUsingVolume(t *testing.T) {
 		}
 	}
 }
+
 func testUploadsReload(t *testing.T) {
 	t.Parallel()
 
@@ -800,6 +804,7 @@ func testUploadsReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testUploadsSelect(t *testing.T) {
 	t.Parallel()
 
@@ -928,6 +933,7 @@ func testUploadsSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testUploadsUpsert(t *testing.T) {
 	t.Parallel()
 

@@ -183,6 +183,7 @@ func testFormatsSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testFormatsExists(t *testing.T) {
 	t.Parallel()
 
@@ -207,6 +208,7 @@ func testFormatsExists(t *testing.T) {
 		t.Errorf("Expected FormatExistsG to return true, but got false.")
 	}
 }
+
 func testFormatsFind(t *testing.T) {
 	t.Parallel()
 
@@ -232,6 +234,7 @@ func testFormatsFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testFormatsBind(t *testing.T) {
 	t.Parallel()
 
@@ -741,6 +744,7 @@ func testFormatsReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testFormatsSelect(t *testing.T) {
 	t.Parallel()
 
@@ -869,6 +873,7 @@ func testFormatsSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testFormatsUpsert(t *testing.T) {
 	t.Parallel()
 

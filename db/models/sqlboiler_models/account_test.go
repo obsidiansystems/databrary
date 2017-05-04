@@ -183,6 +183,7 @@ func testAccountsSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testAccountsExists(t *testing.T) {
 	t.Parallel()
 
@@ -207,6 +208,7 @@ func testAccountsExists(t *testing.T) {
 		t.Errorf("Expected AccountExistsG to return true, but got false.")
 	}
 }
+
 func testAccountsFind(t *testing.T) {
 	t.Parallel()
 
@@ -232,6 +234,7 @@ func testAccountsFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testAccountsBind(t *testing.T) {
 	t.Parallel()
 
@@ -1914,6 +1917,7 @@ func testAccountToManyAddOpWhoComments(t *testing.T) {
 		}
 	}
 }
+
 func testAccountToOnePartyUsingID(t *testing.T) {
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -2022,6 +2026,7 @@ func testAccountToOneSetOpPartyUsingID(t *testing.T) {
 
 	}
 }
+
 func testAccountsReload(t *testing.T) {
 	t.Parallel()
 
@@ -2065,6 +2070,7 @@ func testAccountsReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testAccountsSelect(t *testing.T) {
 	t.Parallel()
 
@@ -2193,6 +2199,7 @@ func testAccountsSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testAccountsUpsert(t *testing.T) {
 	t.Parallel()
 

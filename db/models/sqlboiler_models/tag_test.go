@@ -183,6 +183,7 @@ func testTagsSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testTagsExists(t *testing.T) {
 	t.Parallel()
 
@@ -207,6 +208,7 @@ func testTagsExists(t *testing.T) {
 		t.Errorf("Expected TagExistsG to return true, but got false.")
 	}
 }
+
 func testTagsFind(t *testing.T) {
 	t.Parallel()
 
@@ -232,6 +234,7 @@ func testTagsFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testTagsBind(t *testing.T) {
 	t.Parallel()
 
@@ -1102,6 +1105,7 @@ func testTagsReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testTagsSelect(t *testing.T) {
 	t.Parallel()
 
@@ -1230,6 +1234,7 @@ func testTagsSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testTagsUpsert(t *testing.T) {
 	t.Parallel()
 

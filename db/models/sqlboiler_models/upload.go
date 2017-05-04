@@ -65,15 +65,17 @@ type (
 
 // Cache for insert, update and upsert
 var (
-	uploadType                 = reflect.TypeOf(&Upload{})
-	uploadMapping              = queries.MakeStructMapping(uploadType)
+	uploadType    = reflect.TypeOf(&Upload{})
+	uploadMapping = queries.MakeStructMapping(uploadType)
+
 	uploadPrimaryKeyMapping, _ = queries.BindMapping(uploadType, uploadMapping, uploadPrimaryKeyColumns)
-	uploadInsertCacheMut       sync.RWMutex
-	uploadInsertCache          = make(map[string]insertCache)
-	uploadUpdateCacheMut       sync.RWMutex
-	uploadUpdateCache          = make(map[string]updateCache)
-	uploadUpsertCacheMut       sync.RWMutex
-	uploadUpsertCache          = make(map[string]insertCache)
+
+	uploadInsertCacheMut sync.RWMutex
+	uploadInsertCache    = make(map[string]insertCache)
+	uploadUpdateCacheMut sync.RWMutex
+	uploadUpdateCache    = make(map[string]updateCache)
+	uploadUpsertCacheMut sync.RWMutex
+	uploadUpsertCache    = make(map[string]insertCache)
 )
 
 var (
@@ -877,10 +879,6 @@ func (o *Upload) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(uploadColumns, uploadPrimaryKeyColumns, whitelist)
-
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update upload, could not build whitelist")
 		}

@@ -1,8 +1,10 @@
+{{ if not .Table.IsView }}
 {{- $tableNameSingular := .Table.Name | singular | titleCase -}}
 {{- $varNameSingular := .Table.Name | singular | camelCase -}}
 {{- $colDefs := sqlColDefinitions .Table.Columns .Table.PKey.Columns -}}
 {{- $pkNames := $colDefs.Names | stringMap .StringFuncs.camelCase | stringMap .StringFuncs.replaceReserved -}}
 {{- $pkArgs := joinSlices " " $pkNames $colDefs.Types | join ", "}}
+
 // Find{{$tableNameSingular}}G retrieves a single record by ID.
 func Find{{$tableNameSingular}}G({{$pkArgs}}, selectCols ...string) (*{{$tableNameSingular}}, error) {
 	return Find{{$tableNameSingular}}(boil.GetDB(), {{$pkNames | join ", "}}, selectCols...)
@@ -17,6 +19,8 @@ func Find{{$tableNameSingular}}GP({{$pkArgs}}, selectCols ...string) *{{$tableNa
 
 	return retobj
 }
+
+
 
 // Find{{$tableNameSingular}} retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
@@ -53,3 +57,4 @@ func Find{{$tableNameSingular}}P(exec boil.Executor, {{$pkArgs}}, selectCols ...
 
 	return retobj
 }
+{{ end }}

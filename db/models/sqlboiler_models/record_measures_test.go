@@ -182,6 +182,7 @@ func testRecordMeasuresSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testRecordMeasuresExists(t *testing.T) {
 	t.Parallel()
 
@@ -206,6 +207,7 @@ func testRecordMeasuresExists(t *testing.T) {
 		t.Errorf("Expected RecordMeasureExistsG to return true, but got false.")
 	}
 }
+
 func testRecordMeasuresFind(t *testing.T) {
 	t.Parallel()
 
@@ -231,6 +233,7 @@ func testRecordMeasuresFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testRecordMeasuresBind(t *testing.T) {
 	t.Parallel()
 
@@ -641,6 +644,7 @@ func testRecordMeasureToOneSetOpRecordUsingID(t *testing.T) {
 
 	}
 }
+
 func testRecordMeasuresReload(t *testing.T) {
 	t.Parallel()
 
@@ -684,6 +688,7 @@ func testRecordMeasuresReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testRecordMeasuresSelect(t *testing.T) {
 	t.Parallel()
 
@@ -812,6 +817,7 @@ func testRecordMeasuresSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testRecordMeasuresUpsert(t *testing.T) {
 	t.Parallel()
 

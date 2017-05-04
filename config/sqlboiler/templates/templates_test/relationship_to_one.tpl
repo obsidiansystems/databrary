@@ -1,3 +1,4 @@
+{{ if not .Table.IsView }}
 {{- if .Table.IsJoinTable -}}
 {{- else -}}
 	{{- $dot := . -}}
@@ -90,3 +91,4 @@ func test{{$txt.LocalTable.NameGo}}ToOne{{$txt.ForeignTable.NameGo}}Using{{$txt.
 
 {{end -}}{{/* range */}}
 {{- end -}}{{/* join table */}}
+{{end}}

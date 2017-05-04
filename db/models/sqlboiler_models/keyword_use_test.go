@@ -189,6 +189,7 @@ func testKeywordUsesSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testKeywordUsesExists(t *testing.T) {
 	t.Parallel()
 
@@ -215,6 +216,7 @@ func testKeywordUsesExists(t *testing.T) {
 		t.Errorf("Expected KeywordUseExistsG to return true, but got false.")
 	}
 }
+
 func testKeywordUsesFind(t *testing.T) {
 	t.Parallel()
 
@@ -242,6 +244,7 @@ func testKeywordUsesFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testKeywordUsesBind(t *testing.T) {
 	t.Parallel()
 
@@ -607,6 +610,7 @@ func testKeywordUsesReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testKeywordUsesSelect(t *testing.T) {
 	t.Parallel()
 
@@ -747,6 +751,7 @@ func testKeywordUsesSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testKeywordUsesUpsert(t *testing.T) {
 	t.Parallel()
 

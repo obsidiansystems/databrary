@@ -63,15 +63,17 @@ type (
 
 // Cache for insert, update and upsert
 var (
-	volumeInclusionType                 = reflect.TypeOf(&VolumeInclusion{})
-	volumeInclusionMapping              = queries.MakeStructMapping(volumeInclusionType)
+	volumeInclusionType    = reflect.TypeOf(&VolumeInclusion{})
+	volumeInclusionMapping = queries.MakeStructMapping(volumeInclusionType)
+
 	volumeInclusionPrimaryKeyMapping, _ = queries.BindMapping(volumeInclusionType, volumeInclusionMapping, volumeInclusionPrimaryKeyColumns)
-	volumeInclusionInsertCacheMut       sync.RWMutex
-	volumeInclusionInsertCache          = make(map[string]insertCache)
-	volumeInclusionUpdateCacheMut       sync.RWMutex
-	volumeInclusionUpdateCache          = make(map[string]updateCache)
-	volumeInclusionUpsertCacheMut       sync.RWMutex
-	volumeInclusionUpsertCache          = make(map[string]insertCache)
+
+	volumeInclusionInsertCacheMut sync.RWMutex
+	volumeInclusionInsertCache    = make(map[string]insertCache)
+	volumeInclusionUpdateCacheMut sync.RWMutex
+	volumeInclusionUpdateCache    = make(map[string]updateCache)
+	volumeInclusionUpsertCacheMut sync.RWMutex
+	volumeInclusionUpsertCache    = make(map[string]insertCache)
 )
 
 var (
@@ -875,10 +877,6 @@ func (o *VolumeInclusion) Update(exec boil.Executor, whitelist ...string) error 
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(volumeInclusionColumns, volumeInclusionPrimaryKeyColumns, whitelist)
-
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update volume_inclusion, could not build whitelist")
 		}

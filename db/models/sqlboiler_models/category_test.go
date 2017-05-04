@@ -183,6 +183,7 @@ func testCategoriesSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testCategoriesExists(t *testing.T) {
 	t.Parallel()
 
@@ -207,6 +208,7 @@ func testCategoriesExists(t *testing.T) {
 		t.Errorf("Expected CategoryExistsG to return true, but got false.")
 	}
 }
+
 func testCategoriesFind(t *testing.T) {
 	t.Parallel()
 
@@ -232,6 +234,7 @@ func testCategoriesFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testCategoriesBind(t *testing.T) {
 	t.Parallel()
 
@@ -893,6 +896,7 @@ func testCategoriesReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testCategoriesSelect(t *testing.T) {
 	t.Parallel()
 
@@ -1021,6 +1025,7 @@ func testCategoriesSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testCategoriesUpsert(t *testing.T) {
 	t.Parallel()
 

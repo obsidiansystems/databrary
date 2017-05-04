@@ -183,6 +183,7 @@ func testContainersSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testContainersExists(t *testing.T) {
 	t.Parallel()
 
@@ -207,6 +208,7 @@ func testContainersExists(t *testing.T) {
 		t.Errorf("Expected ContainerExistsG to return true, but got false.")
 	}
 }
+
 func testContainersFind(t *testing.T) {
 	t.Parallel()
 
@@ -232,6 +234,7 @@ func testContainersFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testContainersBind(t *testing.T) {
 	t.Parallel()
 
@@ -1862,6 +1865,7 @@ func testContainerToManyAddOpComments(t *testing.T) {
 		}
 	}
 }
+
 func testContainerToOneVolumeUsingVolume(t *testing.T) {
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -1974,6 +1978,7 @@ func testContainerToOneSetOpVolumeUsingVolume(t *testing.T) {
 		}
 	}
 }
+
 func testContainersReload(t *testing.T) {
 	t.Parallel()
 
@@ -2017,6 +2022,7 @@ func testContainersReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testContainersSelect(t *testing.T) {
 	t.Parallel()
 
@@ -2145,6 +2151,7 @@ func testContainersSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testContainersUpsert(t *testing.T) {
 	t.Parallel()
 

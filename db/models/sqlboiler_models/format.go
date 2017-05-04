@@ -63,15 +63,17 @@ type (
 
 // Cache for insert, update and upsert
 var (
-	formatType                 = reflect.TypeOf(&Format{})
-	formatMapping              = queries.MakeStructMapping(formatType)
+	formatType    = reflect.TypeOf(&Format{})
+	formatMapping = queries.MakeStructMapping(formatType)
+
 	formatPrimaryKeyMapping, _ = queries.BindMapping(formatType, formatMapping, formatPrimaryKeyColumns)
-	formatInsertCacheMut       sync.RWMutex
-	formatInsertCache          = make(map[string]insertCache)
-	formatUpdateCacheMut       sync.RWMutex
-	formatUpdateCache          = make(map[string]updateCache)
-	formatUpsertCacheMut       sync.RWMutex
-	formatUpsertCache          = make(map[string]insertCache)
+
+	formatInsertCacheMut sync.RWMutex
+	formatInsertCache    = make(map[string]insertCache)
+	formatUpdateCacheMut sync.RWMutex
+	formatUpdateCache    = make(map[string]updateCache)
+	formatUpsertCacheMut sync.RWMutex
+	formatUpsertCache    = make(map[string]insertCache)
 )
 
 var (
@@ -709,10 +711,6 @@ func (o *Format) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(formatColumns, formatPrimaryKeyColumns, whitelist)
-
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update format, could not build whitelist")
 		}

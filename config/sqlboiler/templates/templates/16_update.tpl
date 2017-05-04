@@ -1,3 +1,4 @@
+{{ if not .Table.IsView }}
 {{- $tableNameSingular := .Table.Name | singular | titleCase -}}
 {{- $varNameSingular := .Table.Name | singular | camelCase -}}
 {{- $schemaTable := .Table.Name | .SchemaTable}}
@@ -177,3 +178,4 @@ func (o {{$tableNameSingular}}Slice) UpdateAll(exec boil.Executor, cols M) error
 
 	return nil
 }
+{{end}}

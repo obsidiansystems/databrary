@@ -65,15 +65,17 @@ type (
 
 // Cache for insert, update and upsert
 var (
-	tagUseType                 = reflect.TypeOf(&TagUse{})
-	tagUseMapping              = queries.MakeStructMapping(tagUseType)
+	tagUseType    = reflect.TypeOf(&TagUse{})
+	tagUseMapping = queries.MakeStructMapping(tagUseType)
+
 	tagUsePrimaryKeyMapping, _ = queries.BindMapping(tagUseType, tagUseMapping, tagUsePrimaryKeyColumns)
-	tagUseInsertCacheMut       sync.RWMutex
-	tagUseInsertCache          = make(map[string]insertCache)
-	tagUseUpdateCacheMut       sync.RWMutex
-	tagUseUpdateCache          = make(map[string]updateCache)
-	tagUseUpsertCacheMut       sync.RWMutex
-	tagUseUpsertCache          = make(map[string]insertCache)
+
+	tagUseInsertCacheMut sync.RWMutex
+	tagUseInsertCache    = make(map[string]insertCache)
+	tagUseUpdateCacheMut sync.RWMutex
+	tagUseUpdateCache    = make(map[string]updateCache)
+	tagUseUpsertCacheMut sync.RWMutex
+	tagUseUpsertCache    = make(map[string]insertCache)
 )
 
 var (
@@ -1050,10 +1052,6 @@ func (o *TagUse) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(tagUseColumns, tagUsePrimaryKeyColumns, whitelist)
-
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update tag_use, could not build whitelist")
 		}

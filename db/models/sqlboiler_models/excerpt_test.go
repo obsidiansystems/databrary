@@ -192,6 +192,7 @@ func testExcerptsSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testExcerptsExists(t *testing.T) {
 	t.Parallel()
 
@@ -219,6 +220,7 @@ func testExcerptsExists(t *testing.T) {
 		t.Errorf("Expected ExcerptExistsG to return true, but got false.")
 	}
 }
+
 func testExcerptsFind(t *testing.T) {
 	t.Parallel()
 
@@ -247,6 +249,7 @@ func testExcerptsFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testExcerptsBind(t *testing.T) {
 	t.Parallel()
 
@@ -699,6 +702,7 @@ func testExcerptToOneSetOpSlotAssetUsingAsset(t *testing.T) {
 
 	}
 }
+
 func testExcerptsReload(t *testing.T) {
 	t.Parallel()
 
@@ -748,6 +752,7 @@ func testExcerptsReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testExcerptsSelect(t *testing.T) {
 	t.Parallel()
 
@@ -893,6 +898,7 @@ func testExcerptsSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testExcerptsUpsert(t *testing.T) {
 	t.Parallel()
 

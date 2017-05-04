@@ -71,15 +71,17 @@ type (
 
 // Cache for insert, update and upsert
 var (
-	transcodeType                 = reflect.TypeOf(&Transcode{})
-	transcodeMapping              = queries.MakeStructMapping(transcodeType)
+	transcodeType    = reflect.TypeOf(&Transcode{})
+	transcodeMapping = queries.MakeStructMapping(transcodeType)
+
 	transcodePrimaryKeyMapping, _ = queries.BindMapping(transcodeType, transcodeMapping, transcodePrimaryKeyColumns)
-	transcodeInsertCacheMut       sync.RWMutex
-	transcodeInsertCache          = make(map[string]insertCache)
-	transcodeUpdateCacheMut       sync.RWMutex
-	transcodeUpdateCache          = make(map[string]updateCache)
-	transcodeUpsertCacheMut       sync.RWMutex
-	transcodeUpsertCache          = make(map[string]insertCache)
+
+	transcodeInsertCacheMut sync.RWMutex
+	transcodeInsertCache    = make(map[string]insertCache)
+	transcodeUpdateCacheMut sync.RWMutex
+	transcodeUpdateCache    = make(map[string]updateCache)
+	transcodeUpsertCacheMut sync.RWMutex
+	transcodeUpsertCache    = make(map[string]insertCache)
 )
 
 var (
@@ -1056,10 +1058,6 @@ func (o *Transcode) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(transcodeColumns, transcodePrimaryKeyColumns, whitelist)
-
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update transcode, could not build whitelist")
 		}

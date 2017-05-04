@@ -182,6 +182,7 @@ func testVolumeLinksSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testVolumeLinksExists(t *testing.T) {
 	t.Parallel()
 
@@ -206,6 +207,7 @@ func testVolumeLinksExists(t *testing.T) {
 		t.Errorf("Expected VolumeLinkExistsG to return true, but got false.")
 	}
 }
+
 func testVolumeLinksFind(t *testing.T) {
 	t.Parallel()
 
@@ -231,6 +233,7 @@ func testVolumeLinksFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testVolumeLinksBind(t *testing.T) {
 	t.Parallel()
 
@@ -641,6 +644,7 @@ func testVolumeLinkToOneSetOpVolumeUsingVolume(t *testing.T) {
 
 	}
 }
+
 func testVolumeLinksReload(t *testing.T) {
 	t.Parallel()
 
@@ -684,6 +688,7 @@ func testVolumeLinksReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testVolumeLinksSelect(t *testing.T) {
 	t.Parallel()
 
@@ -812,6 +817,7 @@ func testVolumeLinksSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testVolumeLinksUpsert(t *testing.T) {
 	t.Parallel()
 

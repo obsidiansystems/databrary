@@ -63,15 +63,17 @@ type (
 
 // Cache for insert, update and upsert
 var (
-	categoryType                 = reflect.TypeOf(&Category{})
-	categoryMapping              = queries.MakeStructMapping(categoryType)
+	categoryType    = reflect.TypeOf(&Category{})
+	categoryMapping = queries.MakeStructMapping(categoryType)
+
 	categoryPrimaryKeyMapping, _ = queries.BindMapping(categoryType, categoryMapping, categoryPrimaryKeyColumns)
-	categoryInsertCacheMut       sync.RWMutex
-	categoryInsertCache          = make(map[string]insertCache)
-	categoryUpdateCacheMut       sync.RWMutex
-	categoryUpdateCache          = make(map[string]updateCache)
-	categoryUpsertCacheMut       sync.RWMutex
-	categoryUpsertCache          = make(map[string]insertCache)
+
+	categoryInsertCacheMut sync.RWMutex
+	categoryInsertCache    = make(map[string]insertCache)
+	categoryUpdateCacheMut sync.RWMutex
+	categoryUpdateCache    = make(map[string]updateCache)
+	categoryUpsertCacheMut sync.RWMutex
+	categoryUpsertCache    = make(map[string]insertCache)
 )
 
 var (
@@ -889,10 +891,6 @@ func (o *Category) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(categoryColumns, categoryPrimaryKeyColumns, whitelist)
-
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update category, could not build whitelist")
 		}

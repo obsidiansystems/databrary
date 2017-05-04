@@ -1,3 +1,4 @@
+{{ if not .Table.IsView }}
 {{- $tableNameSingular := .Table.Name | singular | titleCase -}}
 {{- $tableNamePlural := .Table.Name | plural | titleCase -}}
 {{- $varNamePlural := .Table.Name | plural | camelCase -}}
@@ -22,3 +23,4 @@ func test{{$tableNamePlural}}Find(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+{{end}}

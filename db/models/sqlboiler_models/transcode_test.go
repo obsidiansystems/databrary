@@ -189,6 +189,7 @@ func testTranscodesSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testTranscodesExists(t *testing.T) {
 	t.Parallel()
 
@@ -215,6 +216,7 @@ func testTranscodesExists(t *testing.T) {
 		t.Errorf("Expected TranscodeExistsG to return true, but got false.")
 	}
 }
+
 func testTranscodesFind(t *testing.T) {
 	t.Parallel()
 
@@ -242,6 +244,7 @@ func testTranscodesFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testTranscodesBind(t *testing.T) {
 	t.Parallel()
 
@@ -934,6 +937,7 @@ func testTranscodeToOneSetOpAccountUsingOwner(t *testing.T) {
 		}
 	}
 }
+
 func testTranscodesReload(t *testing.T) {
 	t.Parallel()
 
@@ -981,6 +985,7 @@ func testTranscodesReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testTranscodesSelect(t *testing.T) {
 	t.Parallel()
 
@@ -1121,6 +1126,7 @@ func testTranscodesSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testTranscodesUpsert(t *testing.T) {
 	t.Parallel()
 

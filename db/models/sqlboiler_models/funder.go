@@ -60,15 +60,17 @@ type (
 
 // Cache for insert, update and upsert
 var (
-	funderType                 = reflect.TypeOf(&Funder{})
-	funderMapping              = queries.MakeStructMapping(funderType)
+	funderType    = reflect.TypeOf(&Funder{})
+	funderMapping = queries.MakeStructMapping(funderType)
+
 	funderPrimaryKeyMapping, _ = queries.BindMapping(funderType, funderMapping, funderPrimaryKeyColumns)
-	funderInsertCacheMut       sync.RWMutex
-	funderInsertCache          = make(map[string]insertCache)
-	funderUpdateCacheMut       sync.RWMutex
-	funderUpdateCache          = make(map[string]updateCache)
-	funderUpsertCacheMut       sync.RWMutex
-	funderUpsertCache          = make(map[string]insertCache)
+
+	funderInsertCacheMut sync.RWMutex
+	funderInsertCache    = make(map[string]insertCache)
+	funderUpdateCacheMut sync.RWMutex
+	funderUpdateCache    = make(map[string]updateCache)
+	funderUpsertCacheMut sync.RWMutex
+	funderUpsertCache    = make(map[string]insertCache)
 )
 
 var (
@@ -706,10 +708,6 @@ func (o *Funder) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(funderColumns, funderPrimaryKeyColumns, whitelist)
-
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update funder, could not build whitelist")
 		}

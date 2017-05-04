@@ -7,9 +7,9 @@ var (
 	{{$varNameSingular}}ColumnsWithoutDefault = []string{{"{"}}{{.Table.Columns | filterColumnsByDefault false | columnNames | stringMap .StringFuncs.quoteWrap | join ","}}{{"}"}}
 	{{$varNameSingular}}ColumnsWithDefault    = []string{{"{"}}{{.Table.Columns | filterColumnsByDefault true | columnNames | stringMap .StringFuncs.quoteWrap | join ","}}{{"}"}}
 	{{$varNameSingular}}ColumnsWithCustom    = []string{{"{"}}{{.Table.Columns | filterColumnsByCustom | columnNames | stringMap .StringFuncs.quoteWrap | join ","}}{{"}"}}
-
+    {{ if not .Table.IsView }}
 	{{$varNameSingular}}PrimaryKeyColumns     = []string{{"{"}}{{.Table.PKey.Columns | stringMap .StringFuncs.quoteWrap | join ", "}}{{"}"}}
-
+    {{ end }}
 )
 
 type (
@@ -30,7 +30,9 @@ type (
 var (
 	{{$varNameSingular}}Type = reflect.TypeOf(&{{$tableNameSingular}}{})
 	{{$varNameSingular}}Mapping = queries.MakeStructMapping({{$varNameSingular}}Type)
+	{{ if not .Table.IsView }}
 	{{$varNameSingular}}PrimaryKeyMapping, _ = queries.BindMapping({{$varNameSingular}}Type, {{$varNameSingular}}Mapping, {{$varNameSingular}}PrimaryKeyColumns)
+	{{ end }}
 	{{$varNameSingular}}InsertCacheMut sync.RWMutex
 	{{$varNameSingular}}InsertCache = make(map[string]insertCache)
 	{{$varNameSingular}}UpdateCacheMut sync.RWMutex

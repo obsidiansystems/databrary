@@ -5,7 +5,7 @@
 {{- $tableNameSingular := .Table.Name | singular -}}
 {{- $modelName := $tableNameSingular | titleCase -}}
 {{- $modelNameCamel := $tableNameSingular | camelCase -}}
-// {{$modelName}} is an object representing the database table.
+// {{$modelName}} is an object representing the database {{if not .Table.IsView }}table{{else}}view{{end}}.
 type {{$modelName}} struct {
 	{{range $column := .Table.Columns -}}
 	{{titleCase $column.Name}} {{$column.Type}} `{{generateTags $dot.Tags $column.Name}}db:"{{$column.Name}}" json:"{{$modelNameCamel}}_{{ $column.Name}}{{if $column.Nullable}},omitempty{{end}}"`

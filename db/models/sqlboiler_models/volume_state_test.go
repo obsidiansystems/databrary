@@ -182,6 +182,7 @@ func testVolumeStatesSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testVolumeStatesExists(t *testing.T) {
 	t.Parallel()
 
@@ -206,6 +207,7 @@ func testVolumeStatesExists(t *testing.T) {
 		t.Errorf("Expected VolumeStateExistsG to return true, but got false.")
 	}
 }
+
 func testVolumeStatesFind(t *testing.T) {
 	t.Parallel()
 
@@ -231,6 +233,7 @@ func testVolumeStatesFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testVolumeStatesBind(t *testing.T) {
 	t.Parallel()
 
@@ -641,6 +644,7 @@ func testVolumeStateToOneSetOpVolumeUsingVolume(t *testing.T) {
 
 	}
 }
+
 func testVolumeStatesReload(t *testing.T) {
 	t.Parallel()
 
@@ -684,6 +688,7 @@ func testVolumeStatesReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testVolumeStatesSelect(t *testing.T) {
 	t.Parallel()
 
@@ -812,6 +817,7 @@ func testVolumeStatesSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testVolumeStatesUpsert(t *testing.T) {
 	t.Parallel()
 

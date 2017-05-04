@@ -189,6 +189,7 @@ func testVolumeInclusionsSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testVolumeInclusionsExists(t *testing.T) {
 	t.Parallel()
 
@@ -215,6 +216,7 @@ func testVolumeInclusionsExists(t *testing.T) {
 		t.Errorf("Expected VolumeInclusionExistsG to return true, but got false.")
 	}
 }
+
 func testVolumeInclusionsFind(t *testing.T) {
 	t.Parallel()
 
@@ -242,6 +244,7 @@ func testVolumeInclusionsFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testVolumeInclusionsBind(t *testing.T) {
 	t.Parallel()
 
@@ -788,6 +791,7 @@ func testVolumeInclusionToOneSetOpVolumeUsingVolume(t *testing.T) {
 
 	}
 }
+
 func testVolumeInclusionsReload(t *testing.T) {
 	t.Parallel()
 
@@ -835,6 +839,7 @@ func testVolumeInclusionsReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testVolumeInclusionsSelect(t *testing.T) {
 	t.Parallel()
 
@@ -975,6 +980,7 @@ func testVolumeInclusionsSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testVolumeInclusionsUpsert(t *testing.T) {
 	t.Parallel()
 

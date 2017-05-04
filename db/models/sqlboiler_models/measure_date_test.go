@@ -183,6 +183,7 @@ func testMeasureDatesSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testMeasureDatesExists(t *testing.T) {
 	t.Parallel()
 
@@ -207,6 +208,7 @@ func testMeasureDatesExists(t *testing.T) {
 		t.Errorf("Expected MeasureDateExistsG to return true, but got false.")
 	}
 }
+
 func testMeasureDatesFind(t *testing.T) {
 	t.Parallel()
 
@@ -232,6 +234,7 @@ func testMeasureDatesFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testMeasureDatesBind(t *testing.T) {
 	t.Parallel()
 
@@ -762,6 +765,7 @@ func testMeasureDateToOneSetOpRecordUsingRecord(t *testing.T) {
 
 	}
 }
+
 func testMeasureDatesReload(t *testing.T) {
 	t.Parallel()
 
@@ -805,6 +809,7 @@ func testMeasureDatesReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testMeasureDatesSelect(t *testing.T) {
 	t.Parallel()
 
@@ -933,6 +938,7 @@ func testMeasureDatesSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testMeasureDatesUpsert(t *testing.T) {
 	t.Parallel()
 

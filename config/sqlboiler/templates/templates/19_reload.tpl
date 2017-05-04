@@ -1,3 +1,4 @@
+{{ if not .Table.IsView }}
 {{- $tableNameSingular := .Table.Name | singular | titleCase -}}
 {{- $varNameSingular := .Table.Name | singular | camelCase -}}
 {{- $varNamePlural := .Table.Name | plural | camelCase -}}
@@ -96,3 +97,4 @@ func (o *{{$tableNameSingular}}Slice) ReloadAll(exec boil.Executor) error {
 
 	return nil
 }
+{{end}}

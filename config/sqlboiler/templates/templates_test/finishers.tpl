@@ -1,3 +1,4 @@
+{{ if not .Table.IsView }}
 {{- $tableNameSingular := .Table.Name | singular | titleCase -}}
 {{- $tableNamePlural := .Table.Name | plural | titleCase -}}
 {{- $varNamePlural := .Table.Name | plural | camelCase -}}
@@ -83,4 +84,4 @@ func test{{$tableNamePlural}}Count(t *testing.T) {
 		t.Error("want 2 records, got:", count)
 	}
 }
-
+{{end}}

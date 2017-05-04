@@ -1,3 +1,4 @@
+{{ if not .Table.IsView }}
 {{- $tableNameSingular := .Table.Name | singular | titleCase -}}
 {{- $tableNamePlural := .Table.Name | plural | titleCase -}}
 {{- $varNamePlural := .Table.Name | plural | camelCase -}}
@@ -104,3 +105,4 @@ func test{{$tableNamePlural}}SliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+{{end}}

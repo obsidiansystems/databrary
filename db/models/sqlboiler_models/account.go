@@ -71,15 +71,17 @@ type (
 
 // Cache for insert, update and upsert
 var (
-	accountType                 = reflect.TypeOf(&Account{})
-	accountMapping              = queries.MakeStructMapping(accountType)
+	accountType    = reflect.TypeOf(&Account{})
+	accountMapping = queries.MakeStructMapping(accountType)
+
 	accountPrimaryKeyMapping, _ = queries.BindMapping(accountType, accountMapping, accountPrimaryKeyColumns)
-	accountInsertCacheMut       sync.RWMutex
-	accountInsertCache          = make(map[string]insertCache)
-	accountUpdateCacheMut       sync.RWMutex
-	accountUpdateCache          = make(map[string]updateCache)
-	accountUpsertCacheMut       sync.RWMutex
-	accountUpsertCache          = make(map[string]insertCache)
+
+	accountInsertCacheMut sync.RWMutex
+	accountInsertCache    = make(map[string]insertCache)
+	accountUpdateCacheMut sync.RWMutex
+	accountUpdateCache    = make(map[string]updateCache)
+	accountUpsertCacheMut sync.RWMutex
+	accountUpsertCache    = make(map[string]insertCache)
 )
 
 var (
@@ -2326,10 +2328,6 @@ func (o *Account) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(accountColumns, accountPrimaryKeyColumns, whitelist)
-
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update account, could not build whitelist")
 		}

@@ -182,6 +182,7 @@ func testVolumeFundingsSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testVolumeFundingsExists(t *testing.T) {
 	t.Parallel()
 
@@ -206,6 +207,7 @@ func testVolumeFundingsExists(t *testing.T) {
 		t.Errorf("Expected VolumeFundingExistsG to return true, but got false.")
 	}
 }
+
 func testVolumeFundingsFind(t *testing.T) {
 	t.Parallel()
 
@@ -231,6 +233,7 @@ func testVolumeFundingsFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testVolumeFundingsBind(t *testing.T) {
 	t.Parallel()
 
@@ -749,6 +752,7 @@ func testVolumeFundingToOneSetOpVolumeUsingVolume(t *testing.T) {
 
 	}
 }
+
 func testVolumeFundingsReload(t *testing.T) {
 	t.Parallel()
 
@@ -792,6 +796,7 @@ func testVolumeFundingsReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testVolumeFundingsSelect(t *testing.T) {
 	t.Parallel()
 
@@ -920,6 +925,7 @@ func testVolumeFundingsSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testVolumeFundingsUpsert(t *testing.T) {
 	t.Parallel()
 

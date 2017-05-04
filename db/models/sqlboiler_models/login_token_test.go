@@ -182,6 +182,7 @@ func testLoginTokensSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testLoginTokensExists(t *testing.T) {
 	t.Parallel()
 
@@ -206,6 +207,7 @@ func testLoginTokensExists(t *testing.T) {
 		t.Errorf("Expected LoginTokenExistsG to return true, but got false.")
 	}
 }
+
 func testLoginTokensFind(t *testing.T) {
 	t.Parallel()
 
@@ -231,6 +233,7 @@ func testLoginTokensFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testLoginTokensBind(t *testing.T) {
 	t.Parallel()
 
@@ -645,6 +648,7 @@ func testLoginTokenToOneSetOpAccountUsingAccount(t *testing.T) {
 		}
 	}
 }
+
 func testLoginTokensReload(t *testing.T) {
 	t.Parallel()
 
@@ -688,6 +692,7 @@ func testLoginTokensReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testLoginTokensSelect(t *testing.T) {
 	t.Parallel()
 
@@ -816,6 +821,7 @@ func testLoginTokensSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testLoginTokensUpsert(t *testing.T) {
 	t.Parallel()
 

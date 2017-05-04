@@ -850,9 +850,9 @@ CREATE VIEW audit."measure_date" AS
 	SELECT * FROM audit.measure;
 CREATE TRIGGER "measure_i" INSTEAD OF INSERT ON audit."measure_date" FOR EACH ROW EXECUTE PROCEDURE audit."measure_i" ();
 
-CREATE VIEW "measures" ("record", "measures") AS
+CREATE VIEW "record_measures_view" ("record", "measures") AS
 	SELECT record, array_agg(metric || ':' || datum ORDER BY metric) FROM measure GROUP BY record;
-COMMENT ON VIEW "measures" IS 'All measures for each record aggregated into a single array.';
+COMMENT ON VIEW "record_measures_view" IS 'All measures for each record aggregated into a single array.';
 
 CREATE TABLE "record_measures" (
 	"id" integer NOT NULL Primary Key References "record" ON UPDATE CASCADE ON DELETE CASCADE,

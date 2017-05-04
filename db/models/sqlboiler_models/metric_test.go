@@ -192,6 +192,7 @@ func testMetricsSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testMetricsExists(t *testing.T) {
 	t.Parallel()
 
@@ -219,6 +220,7 @@ func testMetricsExists(t *testing.T) {
 		t.Errorf("Expected MetricExistsG to return true, but got false.")
 	}
 }
+
 func testMetricsFind(t *testing.T) {
 	t.Parallel()
 
@@ -247,6 +249,7 @@ func testMetricsFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testMetricsBind(t *testing.T) {
 	t.Parallel()
 
@@ -1722,6 +1725,7 @@ func testMetricToManyAddOpMeasureTexts(t *testing.T) {
 		}
 	}
 }
+
 func testMetricToOneCategoryUsingCategory(t *testing.T) {
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -1842,6 +1846,7 @@ func testMetricToOneSetOpCategoryUsingCategory(t *testing.T) {
 		}
 	}
 }
+
 func testMetricsReload(t *testing.T) {
 	t.Parallel()
 
@@ -1891,6 +1896,7 @@ func testMetricsReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testMetricsSelect(t *testing.T) {
 	t.Parallel()
 
@@ -2036,6 +2042,7 @@ func testMetricsSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testMetricsUpsert(t *testing.T) {
 	t.Parallel()
 

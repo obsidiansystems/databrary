@@ -1,3 +1,4 @@
+{{ if not .Table.IsView }}
 {{- if .Table.IsJoinTable -}}
 {{- else -}}
 	{{- $dot := . }}
@@ -132,3 +133,4 @@ func test{{$txt.LocalTable.NameGo}}ToMany{{$txt.Function.Name}}(t *testing.T) {
 
 {{end -}}{{- /* range */ -}}
 {{- end -}}{{- /* outer if join table */ -}}
+{{end}}

@@ -189,6 +189,7 @@ func testNoticesSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testNoticesExists(t *testing.T) {
 	t.Parallel()
 
@@ -215,6 +216,7 @@ func testNoticesExists(t *testing.T) {
 		t.Errorf("Expected NoticeExistsG to return true, but got false.")
 	}
 }
+
 func testNoticesFind(t *testing.T) {
 	t.Parallel()
 
@@ -242,6 +244,7 @@ func testNoticesFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testNoticesBind(t *testing.T) {
 	t.Parallel()
 
@@ -949,6 +952,7 @@ func testNoticesReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testNoticesSelect(t *testing.T) {
 	t.Parallel()
 
@@ -1089,6 +1093,7 @@ func testNoticesSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testNoticesUpsert(t *testing.T) {
 	t.Parallel()
 

@@ -189,6 +189,7 @@ func testCommentsSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testCommentsExists(t *testing.T) {
 	t.Parallel()
 
@@ -215,6 +216,7 @@ func testCommentsExists(t *testing.T) {
 		t.Errorf("Expected CommentExistsG to return true, but got false.")
 	}
 }
+
 func testCommentsFind(t *testing.T) {
 	t.Parallel()
 
@@ -242,6 +244,7 @@ func testCommentsFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testCommentsBind(t *testing.T) {
 	t.Parallel()
 
@@ -1729,6 +1732,7 @@ func testCommentToOneSetOpAccountUsingWho(t *testing.T) {
 		}
 	}
 }
+
 func testCommentsReload(t *testing.T) {
 	t.Parallel()
 
@@ -1776,6 +1780,7 @@ func testCommentsReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testCommentsSelect(t *testing.T) {
 	t.Parallel()
 
@@ -1916,6 +1921,7 @@ func testCommentsSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testCommentsUpsert(t *testing.T) {
 	t.Parallel()
 

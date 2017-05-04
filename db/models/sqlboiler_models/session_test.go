@@ -182,6 +182,7 @@ func testSessionsSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testSessionsExists(t *testing.T) {
 	t.Parallel()
 
@@ -206,6 +207,7 @@ func testSessionsExists(t *testing.T) {
 		t.Errorf("Expected SessionExistsG to return true, but got false.")
 	}
 }
+
 func testSessionsFind(t *testing.T) {
 	t.Parallel()
 
@@ -231,6 +233,7 @@ func testSessionsFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testSessionsBind(t *testing.T) {
 	t.Parallel()
 
@@ -645,6 +648,7 @@ func testSessionToOneSetOpAccountUsingAccount(t *testing.T) {
 		}
 	}
 }
+
 func testSessionsReload(t *testing.T) {
 	t.Parallel()
 
@@ -688,6 +692,7 @@ func testSessionsReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testSessionsSelect(t *testing.T) {
 	t.Parallel()
 
@@ -816,6 +821,7 @@ func testSessionsSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testSessionsUpsert(t *testing.T) {
 	t.Parallel()
 

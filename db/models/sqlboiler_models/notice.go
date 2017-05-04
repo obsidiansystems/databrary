@@ -63,15 +63,17 @@ type (
 
 // Cache for insert, update and upsert
 var (
-	noticeType                 = reflect.TypeOf(&Notice{})
-	noticeMapping              = queries.MakeStructMapping(noticeType)
+	noticeType    = reflect.TypeOf(&Notice{})
+	noticeMapping = queries.MakeStructMapping(noticeType)
+
 	noticePrimaryKeyMapping, _ = queries.BindMapping(noticeType, noticeMapping, noticePrimaryKeyColumns)
-	noticeInsertCacheMut       sync.RWMutex
-	noticeInsertCache          = make(map[string]insertCache)
-	noticeUpdateCacheMut       sync.RWMutex
-	noticeUpdateCache          = make(map[string]updateCache)
-	noticeUpsertCacheMut       sync.RWMutex
-	noticeUpsertCache          = make(map[string]insertCache)
+
+	noticeInsertCacheMut sync.RWMutex
+	noticeInsertCache    = make(map[string]insertCache)
+	noticeUpdateCacheMut sync.RWMutex
+	noticeUpdateCache    = make(map[string]updateCache)
+	noticeUpsertCacheMut sync.RWMutex
+	noticeUpsertCache    = make(map[string]insertCache)
 )
 
 var (
@@ -889,10 +891,6 @@ func (o *Notice) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(noticeColumns, noticePrimaryKeyColumns, whitelist)
-
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update notice, could not build whitelist")
 		}

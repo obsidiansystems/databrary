@@ -192,6 +192,7 @@ func testAuthorizesSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testAuthorizesExists(t *testing.T) {
 	t.Parallel()
 
@@ -219,6 +220,7 @@ func testAuthorizesExists(t *testing.T) {
 		t.Errorf("Expected AuthorizeExistsG to return true, but got false.")
 	}
 }
+
 func testAuthorizesFind(t *testing.T) {
 	t.Parallel()
 
@@ -247,6 +249,7 @@ func testAuthorizesFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testAuthorizesBind(t *testing.T) {
 	t.Parallel()
 
@@ -806,6 +809,7 @@ func testAuthorizeToOneSetOpPartyUsingParent(t *testing.T) {
 
 	}
 }
+
 func testAuthorizesReload(t *testing.T) {
 	t.Parallel()
 
@@ -855,6 +859,7 @@ func testAuthorizesReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testAuthorizesSelect(t *testing.T) {
 	t.Parallel()
 
@@ -1000,6 +1005,7 @@ func testAuthorizesSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testAuthorizesUpsert(t *testing.T) {
 	t.Parallel()
 

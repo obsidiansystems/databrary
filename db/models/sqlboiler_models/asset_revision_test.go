@@ -183,6 +183,7 @@ func testAssetRevisionsSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testAssetRevisionsExists(t *testing.T) {
 	t.Parallel()
 
@@ -207,6 +208,7 @@ func testAssetRevisionsExists(t *testing.T) {
 		t.Errorf("Expected AssetRevisionExistsG to return true, but got false.")
 	}
 }
+
 func testAssetRevisionsFind(t *testing.T) {
 	t.Parallel()
 
@@ -232,6 +234,7 @@ func testAssetRevisionsFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testAssetRevisionsBind(t *testing.T) {
 	t.Parallel()
 
@@ -778,6 +781,7 @@ func testAssetRevisionToOneSetOpAssetUsingOrig(t *testing.T) {
 
 	}
 }
+
 func testAssetRevisionsReload(t *testing.T) {
 	t.Parallel()
 
@@ -821,6 +825,7 @@ func testAssetRevisionsReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testAssetRevisionsSelect(t *testing.T) {
 	t.Parallel()
 
@@ -949,6 +954,7 @@ func testAssetRevisionsSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testAssetRevisionsUpsert(t *testing.T) {
 	t.Parallel()
 

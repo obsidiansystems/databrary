@@ -62,15 +62,17 @@ type (
 
 // Cache for insert, update and upsert
 var (
-	measureTextType                 = reflect.TypeOf(&MeasureText{})
-	measureTextMapping              = queries.MakeStructMapping(measureTextType)
+	measureTextType    = reflect.TypeOf(&MeasureText{})
+	measureTextMapping = queries.MakeStructMapping(measureTextType)
+
 	measureTextPrimaryKeyMapping, _ = queries.BindMapping(measureTextType, measureTextMapping, measureTextPrimaryKeyColumns)
-	measureTextInsertCacheMut       sync.RWMutex
-	measureTextInsertCache          = make(map[string]insertCache)
-	measureTextUpdateCacheMut       sync.RWMutex
-	measureTextUpdateCache          = make(map[string]updateCache)
-	measureTextUpsertCacheMut       sync.RWMutex
-	measureTextUpsertCache          = make(map[string]insertCache)
+
+	measureTextInsertCacheMut sync.RWMutex
+	measureTextInsertCache    = make(map[string]insertCache)
+	measureTextUpdateCacheMut sync.RWMutex
+	measureTextUpdateCache    = make(map[string]updateCache)
+	measureTextUpsertCacheMut sync.RWMutex
+	measureTextUpsertCache    = make(map[string]insertCache)
 )
 
 var (
@@ -874,10 +876,6 @@ func (o *MeasureText) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(measureTextColumns, measureTextPrimaryKeyColumns, whitelist)
-
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update measure_text, could not build whitelist")
 		}

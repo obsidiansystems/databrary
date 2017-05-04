@@ -182,6 +182,7 @@ func testFundersSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testFundersExists(t *testing.T) {
 	t.Parallel()
 
@@ -206,6 +207,7 @@ func testFundersExists(t *testing.T) {
 		t.Errorf("Expected FunderExistsG to return true, but got false.")
 	}
 }
+
 func testFundersFind(t *testing.T) {
 	t.Parallel()
 
@@ -231,6 +233,7 @@ func testFundersFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testFundersBind(t *testing.T) {
 	t.Parallel()
 
@@ -729,6 +732,7 @@ func testFundersReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testFundersSelect(t *testing.T) {
 	t.Parallel()
 
@@ -857,6 +861,7 @@ func testFundersSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testFundersUpsert(t *testing.T) {
 	t.Parallel()
 

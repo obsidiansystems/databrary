@@ -189,6 +189,7 @@ func testSlotRecordsSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testSlotRecordsExists(t *testing.T) {
 	t.Parallel()
 
@@ -215,6 +216,7 @@ func testSlotRecordsExists(t *testing.T) {
 		t.Errorf("Expected SlotRecordExistsG to return true, but got false.")
 	}
 }
+
 func testSlotRecordsFind(t *testing.T) {
 	t.Parallel()
 
@@ -242,6 +244,7 @@ func testSlotRecordsFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testSlotRecordsBind(t *testing.T) {
 	t.Parallel()
 
@@ -788,6 +791,7 @@ func testSlotRecordToOneSetOpRecordUsingRecord(t *testing.T) {
 
 	}
 }
+
 func testSlotRecordsReload(t *testing.T) {
 	t.Parallel()
 
@@ -835,6 +839,7 @@ func testSlotRecordsReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testSlotRecordsSelect(t *testing.T) {
 	t.Parallel()
 
@@ -975,6 +980,7 @@ func testSlotRecordsSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testSlotRecordsUpsert(t *testing.T) {
 	t.Parallel()
 

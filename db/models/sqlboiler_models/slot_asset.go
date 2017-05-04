@@ -64,15 +64,17 @@ type (
 
 // Cache for insert, update and upsert
 var (
-	slotAssetType                 = reflect.TypeOf(&SlotAsset{})
-	slotAssetMapping              = queries.MakeStructMapping(slotAssetType)
+	slotAssetType    = reflect.TypeOf(&SlotAsset{})
+	slotAssetMapping = queries.MakeStructMapping(slotAssetType)
+
 	slotAssetPrimaryKeyMapping, _ = queries.BindMapping(slotAssetType, slotAssetMapping, slotAssetPrimaryKeyColumns)
-	slotAssetInsertCacheMut       sync.RWMutex
-	slotAssetInsertCache          = make(map[string]insertCache)
-	slotAssetUpdateCacheMut       sync.RWMutex
-	slotAssetUpdateCache          = make(map[string]updateCache)
-	slotAssetUpsertCacheMut       sync.RWMutex
-	slotAssetUpsertCache          = make(map[string]insertCache)
+
+	slotAssetInsertCacheMut sync.RWMutex
+	slotAssetInsertCache    = make(map[string]insertCache)
+	slotAssetUpdateCacheMut sync.RWMutex
+	slotAssetUpdateCache    = make(map[string]updateCache)
+	slotAssetUpsertCacheMut sync.RWMutex
+	slotAssetUpsertCache    = make(map[string]insertCache)
 )
 
 var (
@@ -1056,10 +1058,6 @@ func (o *SlotAsset) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(slotAssetColumns, slotAssetPrimaryKeyColumns, whitelist)
-
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update slot_asset, could not build whitelist")
 		}

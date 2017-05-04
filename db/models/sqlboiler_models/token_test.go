@@ -182,6 +182,7 @@ func testTokensSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testTokensExists(t *testing.T) {
 	t.Parallel()
 
@@ -206,6 +207,7 @@ func testTokensExists(t *testing.T) {
 		t.Errorf("Expected TokenExistsG to return true, but got false.")
 	}
 }
+
 func testTokensFind(t *testing.T) {
 	t.Parallel()
 
@@ -231,6 +233,7 @@ func testTokensFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testTokensBind(t *testing.T) {
 	t.Parallel()
 
@@ -576,6 +579,7 @@ func testTokensReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testTokensSelect(t *testing.T) {
 	t.Parallel()
 
@@ -704,6 +708,7 @@ func testTokensSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testTokensUpsert(t *testing.T) {
 	t.Parallel()
 

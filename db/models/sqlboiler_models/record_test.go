@@ -183,6 +183,7 @@ func testRecordsSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testRecordsExists(t *testing.T) {
 	t.Parallel()
 
@@ -207,6 +208,7 @@ func testRecordsExists(t *testing.T) {
 		t.Errorf("Expected RecordExistsG to return true, but got false.")
 	}
 }
+
 func testRecordsFind(t *testing.T) {
 	t.Parallel()
 
@@ -232,6 +234,7 @@ func testRecordsFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testRecordsBind(t *testing.T) {
 	t.Parallel()
 
@@ -1601,6 +1604,7 @@ func testRecordToManyAddOpMeasureTexts(t *testing.T) {
 		}
 	}
 }
+
 func testRecordToOneCategoryUsingCategory(t *testing.T) {
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -1825,6 +1829,7 @@ func testRecordToOneSetOpVolumeUsingVolume(t *testing.T) {
 		}
 	}
 }
+
 func testRecordsReload(t *testing.T) {
 	t.Parallel()
 
@@ -1868,6 +1873,7 @@ func testRecordsReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testRecordsSelect(t *testing.T) {
 	t.Parallel()
 
@@ -1996,6 +2002,7 @@ func testRecordsSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testRecordsUpsert(t *testing.T) {
 	t.Parallel()
 

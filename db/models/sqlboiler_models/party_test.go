@@ -183,6 +183,7 @@ func testPartiesSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testPartiesExists(t *testing.T) {
 	t.Parallel()
 
@@ -207,6 +208,7 @@ func testPartiesExists(t *testing.T) {
 		t.Errorf("Expected PartyExistsG to return true, but got false.")
 	}
 }
+
 func testPartiesFind(t *testing.T) {
 	t.Parallel()
 
@@ -232,6 +234,7 @@ func testPartiesFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testPartiesBind(t *testing.T) {
 	t.Parallel()
 
@@ -1828,6 +1831,7 @@ func testPartiesReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testPartiesSelect(t *testing.T) {
 	t.Parallel()
 
@@ -1956,6 +1960,7 @@ func testPartiesSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testPartiesUpsert(t *testing.T) {
 	t.Parallel()
 

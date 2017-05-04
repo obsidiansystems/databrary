@@ -1,0 +1,1 @@
+ALTER VIEW measures RENAME to record_measures_view;

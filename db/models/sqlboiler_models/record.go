@@ -68,15 +68,17 @@ type (
 
 // Cache for insert, update and upsert
 var (
-	recordType                 = reflect.TypeOf(&Record{})
-	recordMapping              = queries.MakeStructMapping(recordType)
+	recordType    = reflect.TypeOf(&Record{})
+	recordMapping = queries.MakeStructMapping(recordType)
+
 	recordPrimaryKeyMapping, _ = queries.BindMapping(recordType, recordMapping, recordPrimaryKeyColumns)
-	recordInsertCacheMut       sync.RWMutex
-	recordInsertCache          = make(map[string]insertCache)
-	recordUpdateCacheMut       sync.RWMutex
-	recordUpdateCache          = make(map[string]updateCache)
-	recordUpsertCacheMut       sync.RWMutex
-	recordUpsertCache          = make(map[string]insertCache)
+
+	recordInsertCacheMut sync.RWMutex
+	recordInsertCache    = make(map[string]insertCache)
+	recordUpdateCacheMut sync.RWMutex
+	recordUpdateCache    = make(map[string]updateCache)
+	recordUpsertCacheMut sync.RWMutex
+	recordUpsertCache    = make(map[string]insertCache)
 )
 
 var (
@@ -2125,10 +2127,6 @@ func (o *Record) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(recordColumns, recordPrimaryKeyColumns, whitelist)
-
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update record, could not build whitelist")
 		}

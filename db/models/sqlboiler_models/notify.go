@@ -63,15 +63,17 @@ type (
 
 // Cache for insert, update and upsert
 var (
-	notifyType                 = reflect.TypeOf(&Notify{})
-	notifyMapping              = queries.MakeStructMapping(notifyType)
+	notifyType    = reflect.TypeOf(&Notify{})
+	notifyMapping = queries.MakeStructMapping(notifyType)
+
 	notifyPrimaryKeyMapping, _ = queries.BindMapping(notifyType, notifyMapping, notifyPrimaryKeyColumns)
-	notifyInsertCacheMut       sync.RWMutex
-	notifyInsertCache          = make(map[string]insertCache)
-	notifyUpdateCacheMut       sync.RWMutex
-	notifyUpdateCache          = make(map[string]updateCache)
-	notifyUpsertCacheMut       sync.RWMutex
-	notifyUpsertCache          = make(map[string]insertCache)
+
+	notifyInsertCacheMut sync.RWMutex
+	notifyInsertCache    = make(map[string]insertCache)
+	notifyUpdateCacheMut sync.RWMutex
+	notifyUpdateCache    = make(map[string]updateCache)
+	notifyUpsertCacheMut sync.RWMutex
+	notifyUpsertCache    = make(map[string]insertCache)
 )
 
 var (
@@ -875,10 +877,6 @@ func (o *Notify) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(notifyColumns, notifyPrimaryKeyColumns, whitelist)
-
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update notify, could not build whitelist")
 		}

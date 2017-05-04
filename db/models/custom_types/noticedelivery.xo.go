@@ -128,3 +128,8 @@ func NoticeDeliveryRandom() NoticeDelivery {
 	return NoticeDeliveryAsync
 
 }
+
+func NullNoticeDeliveryRandom() NullNoticeDelivery {
+	return NullNoticeDelivery{NoticeDeliveryAsync, true}
+
+}

@@ -66,15 +66,17 @@ type (
 
 // Cache for insert, update and upsert
 var (
-	authorizeType                 = reflect.TypeOf(&Authorize{})
-	authorizeMapping              = queries.MakeStructMapping(authorizeType)
+	authorizeType    = reflect.TypeOf(&Authorize{})
+	authorizeMapping = queries.MakeStructMapping(authorizeType)
+
 	authorizePrimaryKeyMapping, _ = queries.BindMapping(authorizeType, authorizeMapping, authorizePrimaryKeyColumns)
-	authorizeInsertCacheMut       sync.RWMutex
-	authorizeInsertCache          = make(map[string]insertCache)
-	authorizeUpdateCacheMut       sync.RWMutex
-	authorizeUpdateCache          = make(map[string]updateCache)
-	authorizeUpsertCacheMut       sync.RWMutex
-	authorizeUpsertCache          = make(map[string]insertCache)
+
+	authorizeInsertCacheMut sync.RWMutex
+	authorizeInsertCache    = make(map[string]insertCache)
+	authorizeUpdateCacheMut sync.RWMutex
+	authorizeUpdateCache    = make(map[string]updateCache)
+	authorizeUpsertCacheMut sync.RWMutex
+	authorizeUpsertCache    = make(map[string]insertCache)
 )
 
 var (
@@ -878,10 +880,6 @@ func (o *Authorize) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(authorizeColumns, authorizePrimaryKeyColumns, whitelist)
-
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update authorize, could not build whitelist")
 		}

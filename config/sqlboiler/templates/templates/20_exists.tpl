@@ -1,3 +1,4 @@
+{{ if not .Table.IsView }}
 {{- $tableNameSingular := .Table.Name | singular | titleCase -}}
 {{- $colDefs := sqlColDefinitions .Table.Columns .Table.PKey.Columns -}}
 {{- $pkNames := $colDefs.Names | stringMap .StringFuncs.camelCase | stringMap .StringFuncs.replaceReserved -}}
@@ -48,3 +49,4 @@ func {{$tableNameSingular}}ExistsP(exec boil.Executor, {{$pkArgs}}) bool {
 
 	return e
 }
+{{end}}

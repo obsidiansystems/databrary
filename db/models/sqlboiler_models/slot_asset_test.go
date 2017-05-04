@@ -189,6 +189,7 @@ func testSlotAssetsSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testSlotAssetsExists(t *testing.T) {
 	t.Parallel()
 
@@ -215,6 +216,7 @@ func testSlotAssetsExists(t *testing.T) {
 		t.Errorf("Expected SlotAssetExistsG to return true, but got false.")
 	}
 }
+
 func testSlotAssetsFind(t *testing.T) {
 	t.Parallel()
 
@@ -242,6 +244,7 @@ func testSlotAssetsFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testSlotAssetsBind(t *testing.T) {
 	t.Parallel()
 
@@ -729,6 +732,7 @@ func testSlotAssetToManyAddOpAssetExcerpts(t *testing.T) {
 		}
 	}
 }
+
 func testSlotAssetToOneAssetUsingAsset(t *testing.T) {
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -973,6 +977,7 @@ func testSlotAssetToOneSetOpContainerUsingContainer(t *testing.T) {
 		}
 	}
 }
+
 func testSlotAssetsReload(t *testing.T) {
 	t.Parallel()
 
@@ -1020,6 +1025,7 @@ func testSlotAssetsReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testSlotAssetsSelect(t *testing.T) {
 	t.Parallel()
 
@@ -1160,6 +1166,7 @@ func testSlotAssetsSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testSlotAssetsUpsert(t *testing.T) {
 	t.Parallel()
 

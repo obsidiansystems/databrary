@@ -189,6 +189,7 @@ func testTagUsesSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testTagUsesExists(t *testing.T) {
 	t.Parallel()
 
@@ -215,6 +216,7 @@ func testTagUsesExists(t *testing.T) {
 		t.Errorf("Expected TagUseExistsG to return true, but got false.")
 	}
 }
+
 func testTagUsesFind(t *testing.T) {
 	t.Parallel()
 
@@ -242,6 +244,7 @@ func testTagUsesFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testTagUsesBind(t *testing.T) {
 	t.Parallel()
 
@@ -902,6 +905,7 @@ func testTagUseToOneSetOpAccountUsingWho(t *testing.T) {
 
 	}
 }
+
 func testTagUsesReload(t *testing.T) {
 	t.Parallel()
 
@@ -949,6 +953,7 @@ func testTagUsesReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testTagUsesSelect(t *testing.T) {
 	t.Parallel()
 
@@ -1089,6 +1094,7 @@ func testTagUsesSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testTagUsesUpsert(t *testing.T) {
 	t.Parallel()
 

@@ -62,15 +62,17 @@ type (
 
 // Cache for insert, update and upsert
 var (
-	loginTokenType                 = reflect.TypeOf(&LoginToken{})
-	loginTokenMapping              = queries.MakeStructMapping(loginTokenType)
+	loginTokenType    = reflect.TypeOf(&LoginToken{})
+	loginTokenMapping = queries.MakeStructMapping(loginTokenType)
+
 	loginTokenPrimaryKeyMapping, _ = queries.BindMapping(loginTokenType, loginTokenMapping, loginTokenPrimaryKeyColumns)
-	loginTokenInsertCacheMut       sync.RWMutex
-	loginTokenInsertCache          = make(map[string]insertCache)
-	loginTokenUpdateCacheMut       sync.RWMutex
-	loginTokenUpdateCache          = make(map[string]updateCache)
-	loginTokenUpsertCacheMut       sync.RWMutex
-	loginTokenUpsertCache          = make(map[string]insertCache)
+
+	loginTokenInsertCacheMut sync.RWMutex
+	loginTokenInsertCache    = make(map[string]insertCache)
+	loginTokenUpdateCacheMut sync.RWMutex
+	loginTokenUpdateCache    = make(map[string]updateCache)
+	loginTokenUpsertCacheMut sync.RWMutex
+	loginTokenUpsertCache    = make(map[string]insertCache)
 )
 
 var (
@@ -701,10 +703,6 @@ func (o *LoginToken) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(loginTokenColumns, loginTokenPrimaryKeyColumns, whitelist)
-
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update login_token, could not build whitelist")
 		}

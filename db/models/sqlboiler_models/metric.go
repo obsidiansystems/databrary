@@ -75,15 +75,17 @@ type (
 
 // Cache for insert, update and upsert
 var (
-	metricType                 = reflect.TypeOf(&Metric{})
-	metricMapping              = queries.MakeStructMapping(metricType)
+	metricType    = reflect.TypeOf(&Metric{})
+	metricMapping = queries.MakeStructMapping(metricType)
+
 	metricPrimaryKeyMapping, _ = queries.BindMapping(metricType, metricMapping, metricPrimaryKeyColumns)
-	metricInsertCacheMut       sync.RWMutex
-	metricInsertCache          = make(map[string]insertCache)
-	metricUpdateCacheMut       sync.RWMutex
-	metricUpdateCache          = make(map[string]updateCache)
-	metricUpsertCacheMut       sync.RWMutex
-	metricUpsertCache          = make(map[string]insertCache)
+
+	metricInsertCacheMut sync.RWMutex
+	metricInsertCache    = make(map[string]insertCache)
+	metricUpdateCacheMut sync.RWMutex
+	metricUpdateCache    = make(map[string]updateCache)
+	metricUpsertCacheMut sync.RWMutex
+	metricUpsertCache    = make(map[string]insertCache)
 )
 
 var (
@@ -1952,10 +1954,6 @@ func (o *Metric) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(metricColumns, metricPrimaryKeyColumns, whitelist)
-
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update metric, could not build whitelist")
 		}

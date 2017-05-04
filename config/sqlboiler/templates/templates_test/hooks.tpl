@@ -1,3 +1,4 @@
+{{ if not .Table.IsView }}
 {{- if not .NoHooks -}}
 {{- $tableNameSingular := .Table.Name | singular | titleCase -}}
 {{- $tableNamePlural := .Table.Name | plural | titleCase -}}
@@ -137,3 +138,4 @@ func test{{$tableNamePlural}}Hooks(t *testing.T) {
 	{{$varNameSingular}}AfterUpsertHooks = []{{$tableNameSingular}}Hook{}
 }
 {{- end}}
+{{end}}

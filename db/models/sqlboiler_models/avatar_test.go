@@ -183,6 +183,7 @@ func testAvatarsSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testAvatarsExists(t *testing.T) {
 	t.Parallel()
 
@@ -207,6 +208,7 @@ func testAvatarsExists(t *testing.T) {
 		t.Errorf("Expected AvatarExistsG to return true, but got false.")
 	}
 }
+
 func testAvatarsFind(t *testing.T) {
 	t.Parallel()
 
@@ -232,6 +234,7 @@ func testAvatarsFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testAvatarsBind(t *testing.T) {
 	t.Parallel()
 
@@ -766,6 +769,7 @@ func testAvatarToOneSetOpPartyUsingParty(t *testing.T) {
 
 	}
 }
+
 func testAvatarsReload(t *testing.T) {
 	t.Parallel()
 
@@ -809,6 +813,7 @@ func testAvatarsReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testAvatarsSelect(t *testing.T) {
 	t.Parallel()
 
@@ -937,6 +942,7 @@ func testAvatarsSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testAvatarsUpsert(t *testing.T) {
 	t.Parallel()
 

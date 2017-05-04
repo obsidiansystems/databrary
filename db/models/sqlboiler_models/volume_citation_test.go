@@ -182,6 +182,7 @@ func testVolumeCitationsSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testVolumeCitationsExists(t *testing.T) {
 	t.Parallel()
 
@@ -206,6 +207,7 @@ func testVolumeCitationsExists(t *testing.T) {
 		t.Errorf("Expected VolumeCitationExistsG to return true, but got false.")
 	}
 }
+
 func testVolumeCitationsFind(t *testing.T) {
 	t.Parallel()
 
@@ -231,6 +233,7 @@ func testVolumeCitationsFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testVolumeCitationsBind(t *testing.T) {
 	t.Parallel()
 
@@ -641,6 +644,7 @@ func testVolumeCitationToOneSetOpVolumeUsingVolume(t *testing.T) {
 
 	}
 }
+
 func testVolumeCitationsReload(t *testing.T) {
 	t.Parallel()
 
@@ -684,6 +688,7 @@ func testVolumeCitationsReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testVolumeCitationsSelect(t *testing.T) {
 	t.Parallel()
 
@@ -812,6 +817,7 @@ func testVolumeCitationsSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testVolumeCitationsUpsert(t *testing.T) {
 	t.Parallel()
 

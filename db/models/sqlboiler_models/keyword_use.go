@@ -62,15 +62,17 @@ type (
 
 // Cache for insert, update and upsert
 var (
-	keywordUseType                 = reflect.TypeOf(&KeywordUse{})
-	keywordUseMapping              = queries.MakeStructMapping(keywordUseType)
+	keywordUseType    = reflect.TypeOf(&KeywordUse{})
+	keywordUseMapping = queries.MakeStructMapping(keywordUseType)
+
 	keywordUsePrimaryKeyMapping, _ = queries.BindMapping(keywordUseType, keywordUseMapping, keywordUsePrimaryKeyColumns)
-	keywordUseInsertCacheMut       sync.RWMutex
-	keywordUseInsertCache          = make(map[string]insertCache)
-	keywordUseUpdateCacheMut       sync.RWMutex
-	keywordUseUpdateCache          = make(map[string]updateCache)
-	keywordUseUpsertCacheMut       sync.RWMutex
-	keywordUseUpsertCache          = make(map[string]insertCache)
+
+	keywordUseInsertCacheMut sync.RWMutex
+	keywordUseInsertCache    = make(map[string]insertCache)
+	keywordUseUpdateCacheMut sync.RWMutex
+	keywordUseUpdateCache    = make(map[string]updateCache)
+	keywordUseUpsertCacheMut sync.RWMutex
+	keywordUseUpsertCache    = make(map[string]insertCache)
 )
 
 var (
@@ -528,10 +530,6 @@ func (o *KeywordUse) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(keywordUseColumns, keywordUsePrimaryKeyColumns, whitelist)
-
-		if len(whitelist) == 0 {
-			wl = strmangle.SetComplement(wl, []string{"created_at"})
-		}
 		if len(wl) == 0 {
 			return errors.New("models: unable to update keyword_use, could not build whitelist")
 		}

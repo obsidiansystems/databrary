@@ -192,6 +192,7 @@ func testAssetsSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testAssetsExists(t *testing.T) {
 	t.Parallel()
 
@@ -219,6 +220,7 @@ func testAssetsExists(t *testing.T) {
 		t.Errorf("Expected AssetExistsG to return true, but got false.")
 	}
 }
+
 func testAssetsFind(t *testing.T) {
 	t.Parallel()
 
@@ -247,6 +249,7 @@ func testAssetsFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testAssetsBind(t *testing.T) {
 	t.Parallel()
 
@@ -2065,6 +2068,7 @@ func testAssetToOneSetOpVolumeUsingVolume(t *testing.T) {
 		}
 	}
 }
+
 func testAssetsReload(t *testing.T) {
 	t.Parallel()
 
@@ -2114,6 +2118,7 @@ func testAssetsReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testAssetsSelect(t *testing.T) {
 	t.Parallel()
 
@@ -2259,6 +2264,7 @@ func testAssetsSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testAssetsUpsert(t *testing.T) {
 	t.Parallel()
 

@@ -183,6 +183,7 @@ func testMeasureTextsSliceDeleteAll(t *testing.T) {
 		t.Error("want zero records, got:", count)
 	}
 }
+
 func testMeasureTextsExists(t *testing.T) {
 	t.Parallel()
 
@@ -207,6 +208,7 @@ func testMeasureTextsExists(t *testing.T) {
 		t.Errorf("Expected MeasureTextExistsG to return true, but got false.")
 	}
 }
+
 func testMeasureTextsFind(t *testing.T) {
 	t.Parallel()
 
@@ -232,6 +234,7 @@ func testMeasureTextsFind(t *testing.T) {
 		t.Error("want a record, got nil")
 	}
 }
+
 func testMeasureTextsBind(t *testing.T) {
 	t.Parallel()
 
@@ -762,6 +765,7 @@ func testMeasureTextToOneSetOpRecordUsingRecord(t *testing.T) {
 
 	}
 }
+
 func testMeasureTextsReload(t *testing.T) {
 	t.Parallel()
 
@@ -805,6 +809,7 @@ func testMeasureTextsReloadAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testMeasureTextsSelect(t *testing.T) {
 	t.Parallel()
 
@@ -933,6 +938,7 @@ func testMeasureTextsSliceUpdateAll(t *testing.T) {
 		t.Error(err)
 	}
 }
+
 func testMeasureTextsUpsert(t *testing.T) {
 	t.Parallel()
 
