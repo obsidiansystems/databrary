@@ -684,7 +684,7 @@ CREATE TABLE "metric" (
 	"name" varchar(64) NOT NULL,
 	"release" release,
 	"type" data_type NOT NULL,
-	"options" text[],
+	"options" text[] DEFAULT '{}' NOT NULL,
 	"assumed" text,
 	"description" text,
 	"required" boolean,
