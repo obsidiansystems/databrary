@@ -1,4 +1,4 @@
-{{ if not .Table.IsView }}
+{{ if .Table.HasPrimaryKey }}
 {{- $tableNameSingular := .Table.Name | singular | titleCase -}}
 {{- $colDefs := sqlColDefinitions .Table.Columns .Table.PKey.Columns -}}
 {{- $pkNames := $colDefs.Names | stringMap .StringFuncs.camelCase | stringMap .StringFuncs.replaceReserved -}}

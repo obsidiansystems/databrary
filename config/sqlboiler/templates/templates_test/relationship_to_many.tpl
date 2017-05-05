@@ -1,4 +1,4 @@
-{{ if not .Table.IsView }}
+{{ if .Table.HasPrimaryKey }}
 {{- if .Table.IsJoinTable -}}
 {{- else -}}
 	{{- $dot := . }}

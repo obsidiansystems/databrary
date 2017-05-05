@@ -1,4 +1,4 @@
-{{ if not .Table.IsView }}
+{{ if .Table.HasPrimaryKey }}
 {{- $tableNameSingular := .Table.Name | singular | titleCase -}}
 {{- $tableNamePlural := .Table.Name | plural | titleCase -}}
 {{- $varNamePlural := .Table.Name | plural | camelCase -}}

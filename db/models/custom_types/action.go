@@ -32,7 +32,8 @@ func (act *Action) Scan(value interface{}) error {
 		return logging.LogAndError("scanned NULL action (did you mean to use NullAction)")
 	}
 	if val, err := driver.String.ConvertValue(value); err == nil {
-		*act = val.(Action)
+		valAsString := string(val.([]byte))
+		*act = Action(valAsString)
 		if !ALLACTIONS.Contains(*act) {
 			return logging.LogAndErrorf("invalid Action %#v", *act)
 		}
@@ -46,7 +47,7 @@ func (act Action) Value() (driver.Value, error) {
 	if !ALLACTIONS.Contains(act) {
 		return nil, logging.LogAndErrorf("invalid Action %#v", act)
 	}
-	return act, nil
+	return []byte(string(act)), nil
 }
 
 type NullAction struct {

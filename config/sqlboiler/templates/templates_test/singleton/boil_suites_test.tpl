@@ -7,7 +7,7 @@
 // Separating the tests thusly grants avoidance of Postgres deadlocks.
 func TestParent(t *testing.T) {
   {{- range $index, $table := .Tables}}
-  {{- if (or ($table.IsJoinTable) ($table.IsView)) -}}
+  {{- if (or ($table.IsJoinTable) (not ($table.HasPrimaryKey))) -}}
   {{- else -}}
   {{- $tableName := $table.Name | plural | titleCase -}}
   t.Run("{{$tableName}}", test{{$tableName}})
@@ -17,7 +17,7 @@ func TestParent(t *testing.T) {
 
 func TestDelete(t *testing.T) {
   {{- range $index, $table := .Tables}}
-  {{- if (or ($table.IsJoinTable) ($table.IsView)) -}}
+  {{- if (or ($table.IsJoinTable) (not ($table.HasPrimaryKey))) -}}
   {{- else -}}
   {{- $tableName := $table.Name | plural | titleCase -}}
   t.Run("{{$tableName}}", test{{$tableName}}Delete)
@@ -27,7 +27,7 @@ func TestDelete(t *testing.T) {
 
 func TestQueryDeleteAll(t *testing.T) {
   {{- range $index, $table := .Tables}}
-  {{- if (or ($table.IsJoinTable) ($table.IsView)) -}}
+  {{- if (or ($table.IsJoinTable) (not ($table.HasPrimaryKey))) -}}
   {{- else -}}
   {{- $tableName := $table.Name | plural | titleCase -}}
   t.Run("{{$tableName}}", test{{$tableName}}QueryDeleteAll)
@@ -37,7 +37,7 @@ func TestQueryDeleteAll(t *testing.T) {
 
 func TestSliceDeleteAll(t *testing.T) {
   {{- range $index, $table := .Tables}}
-  {{- if (or ($table.IsJoinTable) ($table.IsView)) -}}
+  {{- if (or ($table.IsJoinTable) (not ($table.HasPrimaryKey))) -}}
   {{- else -}}
   {{- $tableName := $table.Name | plural | titleCase -}}
   t.Run("{{$tableName}}", test{{$tableName}}SliceDeleteAll)
@@ -47,7 +47,7 @@ func TestSliceDeleteAll(t *testing.T) {
 
 func TestExists(t *testing.T) {
   {{- range $index, $table := .Tables}}
-  {{- if (or ($table.IsJoinTable) ($table.IsView)) -}}
+  {{- if (or ($table.IsJoinTable) (not ($table.HasPrimaryKey))) -}}
   {{- else -}}
   {{- $tableName := $table.Name | plural | titleCase -}}
   t.Run("{{$tableName}}", test{{$tableName}}Exists)
@@ -57,7 +57,7 @@ func TestExists(t *testing.T) {
 
 func TestFind(t *testing.T) {
   {{- range $index, $table := .Tables}}
-  {{- if (or ($table.IsJoinTable) ($table.IsView)) -}}
+  {{- if (or ($table.IsJoinTable) (not ($table.HasPrimaryKey))) -}}
   {{- else -}}
   {{- $tableName := $table.Name | plural | titleCase -}}
   t.Run("{{$tableName}}", test{{$tableName}}Find)
@@ -67,7 +67,7 @@ func TestFind(t *testing.T) {
 
 func TestBind(t *testing.T) {
   {{- range $index, $table := .Tables}}
-  {{- if (or ($table.IsJoinTable) ($table.IsView)) -}}
+  {{- if (or ($table.IsJoinTable) (not ($table.HasPrimaryKey))) -}}
   {{- else -}}
   {{- $tableName := $table.Name | plural | titleCase -}}
   t.Run("{{$tableName}}", test{{$tableName}}Bind)
@@ -77,7 +77,7 @@ func TestBind(t *testing.T) {
 
 func TestOne(t *testing.T) {
   {{- range $index, $table := .Tables}}
-  {{- if (or ($table.IsJoinTable) ($table.IsView)) -}}
+  {{- if (or ($table.IsJoinTable) (not ($table.HasPrimaryKey))) -}}
   {{- else -}}
   {{- $tableName := $table.Name | plural | titleCase -}}
   t.Run("{{$tableName}}", test{{$tableName}}One)
@@ -87,7 +87,7 @@ func TestOne(t *testing.T) {
 
 func TestAll(t *testing.T) {
   {{- range $index, $table := .Tables}}
-  {{- if (or ($table.IsJoinTable) ($table.IsView)) -}}
+  {{- if (or ($table.IsJoinTable) (not ($table.HasPrimaryKey))) -}}
   {{- else -}}
   {{- $tableName := $table.Name | plural | titleCase -}}
   t.Run("{{$tableName}}", test{{$tableName}}All)
@@ -97,7 +97,7 @@ func TestAll(t *testing.T) {
 
 func TestCount(t *testing.T) {
   {{- range $index, $table := .Tables}}
-  {{- if (or ($table.IsJoinTable) ($table.IsView)) -}}
+  {{- if (or ($table.IsJoinTable) (not ($table.HasPrimaryKey))) -}}
   {{- else -}}
   {{- $tableName := $table.Name | plural | titleCase -}}
   t.Run("{{$tableName}}", test{{$tableName}}Count)
@@ -108,7 +108,7 @@ func TestCount(t *testing.T) {
 {{if not .NoHooks -}}
 func TestHooks(t *testing.T) {
   {{- range $index, $table := .Tables}}
-  {{- if (or ($table.IsJoinTable) ($table.IsView)) -}}
+  {{- if (or ($table.IsJoinTable) (not ($table.HasPrimaryKey))) -}}
   {{- else -}}
   {{- $tableName := $table.Name | plural | titleCase -}}
   t.Run("{{$tableName}}", test{{$tableName}}Hooks)
@@ -119,7 +119,7 @@ func TestHooks(t *testing.T) {
 
 func TestInsert(t *testing.T) {
   {{- range $index, $table := .Tables}}
-  {{- if (or ($table.IsJoinTable) ($table.IsView)) -}}
+  {{- if (or ($table.IsJoinTable) (not ($table.HasPrimaryKey))) -}}
   {{- else -}}
   {{- $tableName := $table.Name | plural | titleCase -}}
   t.Run("{{$tableName}}", test{{$tableName}}Insert)
@@ -132,7 +132,7 @@ func TestInsert(t *testing.T) {
 // or deadlocks can occur.
 func TestToOne(t *testing.T) {
 {{- range $index, $table := .Tables}}
-  {{- if (or ($table.IsJoinTable) ($table.IsView)) -}}
+  {{- if (or ($table.IsJoinTable) (not ($table.HasPrimaryKey))) -}}
   {{- else -}}
     {{- range $table.FKeys -}}
       {{- $txt := txtsFromFKey $dot.Tables $table . -}}
@@ -160,7 +160,7 @@ func TestOneToOne(t *testing.T) {
 // or deadlocks can occur.
 func TestToMany(t *testing.T) {
   {{- range $index, $table := .Tables}}
-    {{- if (or ($table.IsJoinTable) ($table.IsView)) -}}
+    {{- if (or ($table.IsJoinTable) (not ($table.HasPrimaryKey))) -}}
     {{- else -}}
       {{- range $table.ToManyRelationships -}}
         {{- $txt := txtsFromToMany $dot.Tables $table . -}}
@@ -174,7 +174,7 @@ func TestToMany(t *testing.T) {
 // or deadlocks can occur.
 func TestToOneSet(t *testing.T) {
 {{- range $index, $table := .Tables}}
-  {{- if (or ($table.IsJoinTable) ($table.IsView)) -}}
+  {{- if (or ($table.IsJoinTable) (not ($table.HasPrimaryKey))) -}}
   {{- else -}}
     {{- range $table.FKeys -}}
       {{- $txt := txtsFromFKey $dot.Tables $table . -}}
@@ -188,7 +188,7 @@ func TestToOneSet(t *testing.T) {
 // or deadlocks can occur.
 func TestToOneRemove(t *testing.T) {
 {{- range $index, $table := .Tables}}
-  {{- if (or ($table.IsJoinTable) ($table.IsView)) -}}
+  {{- if (or ($table.IsJoinTable) (not ($table.HasPrimaryKey))) -}}
   {{- else -}}
     {{- range $table.FKeys -}}
       {{- $txt := txtsFromFKey $dot.Tables $table . -}}
@@ -234,7 +234,7 @@ func TestOneToOneRemove(t *testing.T) {
 // or deadlocks can occur.
 func TestToManyAdd(t *testing.T) {
   {{- range $index, $table := .Tables}}
-    {{- if (or ($table.IsJoinTable) ($table.IsView)) -}}
+    {{- if (or ($table.IsJoinTable) (not ($table.HasPrimaryKey))) -}}
     {{- else -}}
       {{- range $table.ToManyRelationships -}}
         {{- $txt := txtsFromToMany $dot.Tables $table . -}}
@@ -248,7 +248,7 @@ func TestToManyAdd(t *testing.T) {
 // or deadlocks can occur.
 func TestToManySet(t *testing.T) {
   {{- range $index, $table := .Tables}}
-    {{- if (or ($table.IsJoinTable) ($table.IsView)) -}}
+    {{- if (or ($table.IsJoinTable) (not ($table.HasPrimaryKey))) -}}
     {{- else -}}
       {{- range $table.ToManyRelationships -}}
         {{- if not (or .ForeignColumnNullable .ToJoinTable)}}
@@ -265,7 +265,7 @@ func TestToManySet(t *testing.T) {
 // or deadlocks can occur.
 func TestToManyRemove(t *testing.T) {
   {{- range $index, $table := .Tables}}
-    {{- if (or ($table.IsJoinTable) ($table.IsView)) -}}
+    {{- if (or ($table.IsJoinTable) (not ($table.HasPrimaryKey))) -}}
     {{- else -}}
       {{- range $table.ToManyRelationships -}}
         {{- if not (or .ForeignColumnNullable .ToJoinTable)}}
@@ -280,7 +280,7 @@ func TestToManyRemove(t *testing.T) {
 
 func TestReload(t *testing.T) {
   {{- range $index, $table := .Tables}}
-  {{- if (or ($table.IsJoinTable) ($table.IsView)) -}}
+  {{- if (or ($table.IsJoinTable) (not ($table.HasPrimaryKey))) -}}
   {{- else -}}
   {{- $tableName := $table.Name | plural | titleCase -}}
   t.Run("{{$tableName}}", test{{$tableName}}Reload)
@@ -290,7 +290,7 @@ func TestReload(t *testing.T) {
 
 func TestReloadAll(t *testing.T) {
   {{- range $index, $table := .Tables}}
-  {{- if (or ($table.IsJoinTable) ($table.IsView)) -}}
+  {{- if (or ($table.IsJoinTable) (not ($table.HasPrimaryKey))) -}}
   {{- else -}}
   {{- $tableName := $table.Name | plural | titleCase -}}
   t.Run("{{$tableName}}", test{{$tableName}}ReloadAll)
@@ -300,7 +300,7 @@ func TestReloadAll(t *testing.T) {
 
 func TestSelect(t *testing.T) {
   {{- range $index, $table := .Tables}}
-  {{- if (or ($table.IsJoinTable) ($table.IsView)) -}}
+  {{- if (or ($table.IsJoinTable) (not ($table.HasPrimaryKey))) -}}
   {{- else -}}
   {{- $tableName := $table.Name | plural | titleCase -}}
   t.Run("{{$tableName}}", test{{$tableName}}Select)
@@ -310,7 +310,7 @@ func TestSelect(t *testing.T) {
 
 func TestUpdate(t *testing.T) {
   {{- range $index, $table := .Tables}}
-  {{- if (or ($table.IsJoinTable) ($table.IsView)) -}}
+  {{- if (or ($table.IsJoinTable) (not ($table.HasPrimaryKey))) -}}
   {{- else -}}
   {{- $tableName := $table.Name | plural | titleCase -}}
   t.Run("{{$tableName}}", test{{$tableName}}Update)
@@ -320,7 +320,7 @@ func TestUpdate(t *testing.T) {
 
 func TestSliceUpdateAll(t *testing.T) {
   {{- range $index, $table := .Tables}}
-  {{- if (or ($table.IsJoinTable) ($table.IsView)) -}}
+  {{- if (or ($table.IsJoinTable) (not ($table.HasPrimaryKey))) -}}
   {{- else -}}
   {{- $tableName := $table.Name | plural | titleCase -}}
   t.Run("{{$tableName}}", test{{$tableName}}SliceUpdateAll)
@@ -330,7 +330,7 @@ func TestSliceUpdateAll(t *testing.T) {
 
 func TestUpsert(t *testing.T) {
   {{- range $index, $table := .Tables}}
-  {{- if (or ($table.IsJoinTable) ($table.IsView)) -}}
+  {{- if (or ($table.IsJoinTable) (not ($table.HasPrimaryKey))) -}}
   {{- else -}}
   {{- $tableName := $table.Name | plural | titleCase -}}
   t.Run("{{$tableName}}", test{{$tableName}}Upsert)
