@@ -1,0 +1,7 @@
+ALTER TABLE public.party
+  ALTER COLUMN orcid TYPE VARCHAR(16);
+ALTER TABLE public.token
+  ALTER COLUMN token TYPE VARCHAR(32);
+ALTER TABLE public.session
+  ALTER COLUMN verf TYPE VARCHAR(16);
+

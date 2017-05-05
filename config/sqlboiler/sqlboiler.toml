@@ -1,0 +1,13 @@
+#schema="public"
+schema="audit"
+#schema="ingest"
+# these are all views except the last (which is a deprecated index for searching using postgres
+#blacklist=["authorize_valid", "authorize_view", "volume_access_view", "volume_owners_view", "slot", "asset_replace", "measure", "measures", "volume_text", "notify_view", "volume_text_idx"]
+#blacklist=["slot", "asset_replace", "volume_text_idx", "volume_text"]
+[postgres]
+host = "localhost"
+dbname = "databrary"
+port = "5432"
+user = "postgres"
+pass = "mysecretpassword"
+sslmode = "disable"

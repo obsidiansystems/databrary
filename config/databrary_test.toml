@@ -1,0 +1,13 @@
+[log]
+path = "/tmp/databrary_log"
+level = "DEBUG" #PANIC FATAL ERROR WARN INFO DEBUB
+
+[database]
+host = "localhost"
+dbname = "databrary"
+port = "5432"
+user = "postgres"
+password = "mysecretpassword"
+sslmode = "disable"
+schema = "/home/maksim/dev_projects/go/src/github.com/databrary/databrary/db/schema/master_sql"
+
