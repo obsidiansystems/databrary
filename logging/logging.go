@@ -1,16 +1,16 @@
 package logging
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/lestrrat/go-file-rotatelogs"
+	"github.com/pkg/errors"
+	"github.com/pressly/chi/middleware"
 	"github.com/rifflock/lfshook"
 	"github.com/spf13/viper"
 	"net/http"
-	"github.com/pressly/chi/middleware"
 )
 
 var Logger *logrus.Logger
@@ -56,21 +56,35 @@ func InitLgr(conf *viper.Viper) *logrus.Logger {
 }
 
 func LogAndError(msg string) error {
-	Logger.Error(msg)
-	return errors.New(msg)
+	err := errors.New(msg)
+	return LogWrapAndError(err, msg)
+}
+
+func LogWrapAndError(err error, msg string) error {
+	if err != nil {
+		err = errors.Wrap(err, msg)
+	} else {
+		err = errors.New(msg)
+	}
+	Logger.Debugf("%+v", err)
+	Logger.Errorf("%v", err)
+	return err
+}
+
+func LogWrapAndFatal(err error, msg string) {
+	if err != nil {
+		err = errors.Wrap(err, msg)
+	} else {
+		err = errors.New(msg)
+	}
+	Logger.Debugf("%+v", err)
+	Logger.Fatalf("%v", err)
 }
 
 func LogAndErrorf(format string, args ...interface{}) error {
 	Logger.Errorf(format, args...)
 	msg := fmt.Sprintf(format, args...)
 	return errors.New(msg)
-}
-
-func LogAndHTTPWriteErrorf(w http.ResponseWriter, format string, args ...interface{}) {
-	_, e := w.Write([]byte(LogAndErrorf(format, args...).Error()))
-	if e != nil {
-		LogAndErrorf("couldn't write: %+v", e)
-	}
 }
 
 func NewStructuredLogger(logger *logrus.Logger) func(next http.Handler) http.Handler {
@@ -117,7 +131,7 @@ type StructuredLoggerEntry struct {
 
 func (l *StructuredLoggerEntry) Write(status, bytes int, elapsed time.Duration) {
 	l.Logger = l.Logger.WithFields(logrus.Fields{
-		"resp_status":     status, "resp_bytes_length": bytes,
+		"resp_status": status, "resp_bytes_length": bytes,
 		"resp_elasped_ms": float64(elapsed.Nanoseconds()) / 1000000.0,
 	})
 

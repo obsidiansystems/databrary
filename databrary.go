@@ -11,12 +11,12 @@ import (
 
 	"github.com/databrary/databrary/config"
 	log "github.com/databrary/databrary/logging"
+	"github.com/databrary/databrary/routes"
+	"github.com/databrary/databrary/services/sessions"
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/middleware"
 	"github.com/unrolled/secure" // or "gopkg.in/unrolled/secure.v1"
 	"gopkg.in/alecthomas/kingpin.v2"
-	"github.com/databrary/databrary/routes"
-	"github.com/databrary/databrary/services/sessions"
 )
 
 var (
@@ -38,10 +38,6 @@ func init() {
 	sessions.InitStore(config.GetConf())
 
 }
-
-var myHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("hello world"))
-})
 
 func main() {
 	// New permissions middleware
@@ -68,11 +64,11 @@ func main() {
 	r.Use(middleware.RealIP)
 	r.Use(log.NewStructuredLogger(log.Logger))
 	r.Use(middleware.Recoverer)
-	//r.Use(secureMiddleware.Handler)
+	//r.Use(secureMiddleware.Handler) // TODO turn back on
 	r.Use(middleware.Timeout(60 * time.Second))
-
+	r.Use(routes.Session)
 	r.Mount("/api", routes.Api())
-	r.With(routes.IfLoggedIn).Get("/profile", routes.GetProfile)
+	r.With(routes.IsLoggedIn).Get("/profile", routes.GetProfile)
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("nothing here yet"))
 	})
@@ -81,6 +77,7 @@ func main() {
 		log.LogAndErrorf("couldn't serve: %+v", err)
 	}
 
+	// TODO use ssl
 	//go http.ListenAndServe(":3444", secureMiddleware.Handler(myHandler))
 	//GOPATH := os.Getenv("GOPATH")
 	//certPath := filepath.Join(GOPATH, conf.GetString("ssl.cert"))

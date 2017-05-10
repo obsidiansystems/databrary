@@ -1,10 +1,10 @@
 package sessions
 
 import (
+	"fmt"
+	"github.com/boj/redistore"
 	"github.com/gorilla/sessions"
 	"github.com/spf13/viper"
-	"github.com/boj/redistore"
-	"fmt"
 )
 
 var store sessions.Store
