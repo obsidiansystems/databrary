@@ -1,14 +1,14 @@
 package routes
 
 import (
-	"net/http"
-	"fmt"
-	public_models "github.com/databrary/databrary/db/models/sqlboiler_models/public"
-	"github.com/databrary/databrary/db"
-	conf "github.com/databrary/databrary/config"
-	"github.com/databrary/databrary/util"
 	"encoding/json"
+	"fmt"
+	conf "github.com/databrary/databrary/config"
+	"github.com/databrary/databrary/db"
+	public_models "github.com/databrary/databrary/db/models/sqlboiler_models/public"
+	"github.com/databrary/databrary/util"
 	"github.com/gorilla/mux"
+	"net/http"
 	"strconv"
 )
 

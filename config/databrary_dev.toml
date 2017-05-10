@@ -9,4 +9,18 @@ port = "5432"
 user = "postgres"
 password = "mysecretpassword"
 sslmode = "disable"
-schema = "/home/maksim/dev_projects/go/src/github.com/databrary/databrary/db/schema/master_sql"
+schema = "src/github.com/databrary/databrary/db/schema/master_sql"
+
+[ssl]
+cert = "src/github.com/databrary/databrary/config/ssl/cert.pem"
+key = "src/github.com/databrary/databrary/config/ssl/key.pem"
+
+[redis]
+port = "6379"
+password = "mysecretpassword"
+secret = "mysecret"
+size = 10
+
+[cookie]
+hash_key = "hashkey"
+block_key = "blockkey"
