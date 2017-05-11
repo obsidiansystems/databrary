@@ -16,7 +16,7 @@ cert = "src/github.com/databrary/databrary/config/ssl/cert.pem"
 key = "src/github.com/databrary/databrary/config/ssl/key.pem"
 
 [redis]
-port = "6379"
+address = "localhost:6379"
 password = "mysecretpassword"
 secret = "mysecret"
 size = 10

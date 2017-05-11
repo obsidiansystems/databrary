@@ -7,7 +7,9 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/databrary/databrary/logging"
+	"encoding/json"
+	"github.com/databrary/databrary/logging"
+	"net/http"
 )
 
 var (
@@ -30,8 +32,8 @@ func CheckOrFatalErr(e error) {
 	if e != nil {
 		// trim the top the 3 lines of the stack because they're inside debug.Stack()
 		stack := strings.Split(string(debug.Stack()), "\n")[3:]
-		log.Logger.Print(strings.Join(stack, "\n"))
-		log.Logger.Fatal(e)
+		logging.Logger.Print(strings.Join(stack, "\n"))
+		logging.Logger.Fatal(e)
 	}
 }
 
@@ -52,4 +54,30 @@ func Date(t time.Time) time.Time {
 
 func Today() time.Time {
 	return Date(Now())
+}
+
+func JsonErrorResponse(w http.ResponseWriter, code int, err error, msgf string, args ...interface{}) {
+	var msg string
+	if len(args) > 0 {
+		msg = fmt.Sprintf(msgf, args...)
+	} else {
+		msg = msgf
+	}
+	w.WriteHeader(code)
+	WriteJSONResp(w, "error", logging.LogWrapAndError(err, msg).Error())
+}
+
+func WriteJSONResp(w http.ResponseWriter, status string, msg interface{}) error {
+	resp := JSONResponse{
+		status,
+		msg,
+	}
+	j, _ := json.Marshal(resp)
+	_, err := w.Write(j)
+	return err
+}
+
+type JSONResponse struct {
+	Status  string      `json:"status"`
+	Payload interface{} `json:"payload"`
 }

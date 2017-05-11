@@ -1,25 +1,24 @@
 package sessions
 
 import (
-	"fmt"
-	"github.com/boj/redistore"
-	"github.com/gorilla/sessions"
-	"github.com/spf13/viper"
+	"github.com/garyburd/redigo/redis"
+	"github.com/databrary/databrary/config"
+	"github.com/alexedwards/scs/engine/redisstore"
 )
 
-var store sessions.Store
-
-func InitStore(conf *viper.Viper) error {
-	var err error
-	store, err = redistore.NewRediStore(
-		10,
-		"tcp",
-		fmt.Sprintf(":%s", conf.GetString("redis.port")),
-		conf.GetString("redis.password"),
-		[]byte(conf.GetString("secret")))
-	return err
-}
-
-func GetStore() sessions.Store {
-	return store
+func NewRedisPool() *redis.Pool {
+	redisstore.Prefix = "databrary:session:"
+	conf := config.GetConf()
+	passwordOption := redis.DialPassword(conf.GetString("redis.password"))
+	pool := &redis.Pool{
+		MaxIdle: 10,
+		Dial: func() (redis.Conn, error) {
+			return redis.Dial(
+				"tcp",
+				conf.GetString("redis.address"),
+				passwordOption,
+			)
+		},
+	}
+	return pool
 }

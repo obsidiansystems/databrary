@@ -17,6 +17,7 @@ import (
 	"github.com/pressly/chi/middleware"
 	"github.com/unrolled/secure" // or "gopkg.in/unrolled/secure.v1"
 	"gopkg.in/alecthomas/kingpin.v2"
+	"fmt"
 )
 
 var (
@@ -30,12 +31,13 @@ func init() {
 	// cmd line flags
 	kingpin.Version("0.0.0")
 	kingpin.Parse()
-	config_path, err := filepath.Abs(*config_path)
-	if err != nil {
+
+	if config_path, err := filepath.Abs(*config_path); err != nil {
 		panic("command line config file path error")
+	} else {
+		log.InitLgr(config.InitConf(config_path))
 	}
-	log.InitLgr(config.InitConf(config_path))
-	sessions.InitStore(config.GetConf())
+
 
 }
 
@@ -66,14 +68,18 @@ func main() {
 	r.Use(middleware.Recoverer)
 	//r.Use(secureMiddleware.Handler) // TODO turn back on
 	r.Use(middleware.Timeout(60 * time.Second))
-	r.Use(routes.Session)
+	r.Use(sessions.NewSessionManager())
+
+
+
 	r.Mount("/api", routes.Api())
 	r.With(routes.IsLoggedIn).Get("/profile", routes.GetProfile)
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("nothing here yet"))
 	})
-
-	if err := http.ListenAndServe(":3444", r); err != nil {
+	addr := "localhost:3444"
+	fmt.Printf("seriving on http://%s/", addr)
+	if err := http.ListenAndServe(addr, r); err != nil {
 		log.LogAndErrorf("couldn't serve: %+v", err)
 	}
 
