@@ -7,17 +7,17 @@ import (
 	//"fmt"
 	"os"
 	"path/filepath"
-	"time"
 
+	"fmt"
 	"github.com/databrary/databrary/config"
 	log "github.com/databrary/databrary/logging"
 	"github.com/databrary/databrary/routes"
 	"github.com/databrary/databrary/services/sessions"
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/middleware"
+	"github.com/rs/cors"
 	"github.com/unrolled/secure" // or "gopkg.in/unrolled/secure.v1"
 	"gopkg.in/alecthomas/kingpin.v2"
-	"fmt"
 )
 
 var (
@@ -37,7 +37,6 @@ func init() {
 	} else {
 		log.InitLgr(config.InitConf(config_path))
 	}
-
 
 }
 
@@ -67,10 +66,17 @@ func main() {
 	r.Use(log.NewStructuredLogger(log.Logger))
 	r.Use(middleware.Recoverer)
 	//r.Use(secureMiddleware.Handler) // TODO turn back on
-	r.Use(middleware.Timeout(60 * time.Second))
+	//r.Use(middleware.Timeout(60 * time.Second))
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowCredentials: true,
+		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization"},
+		Debug:            true,
+	})
+
+	r.Use(c.Handler)
 	r.Use(sessions.NewSessionManager())
-
-
 
 	r.Mount("/api", routes.Api())
 	r.With(routes.IsLoggedIn).Get("/profile", routes.GetProfile)

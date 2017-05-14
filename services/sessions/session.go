@@ -3,16 +3,23 @@ package sessions
 import (
 	"net/http"
 
-	"github.com/alexedwards/scs/engine/redisstore"
+	"github.com/alexedwards/scs/engine/cookiestore"
 	"github.com/alexedwards/scs/session"
-	"time"
 	"github.com/databrary/databrary/util"
+	"time"
+)
+
+var (
+	ContextName = "databrary.session"
+	CookieName  = "databrary.session.token"
 )
 
 func NewSessionManager() func(http.Handler) http.Handler {
-	session.ContextName = "databrary.session"
-	session.CookieName = "databrary.session.token"
-	engine := redisstore.New(NewRedisPool())
+	session.ContextName = ContextName
+	session.CookieName = CookieName
+	//keyset, _ := cookiestore.NewKeyset([]byte("57443a4c052350a44638835d64fd66822f813319"), []byte(""))
+	keyset, _ := cookiestore.NewUnencryptedKeyset([]byte("57443a4c052350a44638835d64fd66822f813319"))
+	engine := cookiestore.New(keyset)
 	return session.Manage(engine,
 		// IdleTimeout sets the maximum length of time a session can be inactive
 		// before it expires. By default IdleTimeout is not set (i.e. there is

@@ -2,14 +2,14 @@ package routes
 
 import (
 	"encoding/json"
+	"github.com/alexedwards/scs/session"
 	"github.com/databrary/databrary/config"
 	"github.com/databrary/databrary/db"
 	public_models "github.com/databrary/databrary/db/models/sqlboiler_models/public"
+	"github.com/databrary/databrary/util"
 	"github.com/jmoiron/sqlx"
 	"github.com/vattle/sqlboiler/queries/qm"
 	"net/http"
-	"github.com/alexedwards/scs/session"
-	"github.com/databrary/databrary/util"
 )
 
 func GetLogin(w http.ResponseWriter, r *http.Request) {
