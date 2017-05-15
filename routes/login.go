@@ -69,25 +69,6 @@ func PostLogin(w http.ResponseWriter, r *http.Request) {
 	util.WriteJSONResp(w, "ok", "logged in")
 }
 
-func PostLogout(w http.ResponseWriter, r *http.Request) {
-	var err error
-	// check if already logged out
-	if loggedIn, err := session.GetBool(r, "logged_in"); !loggedIn || err != nil {
-		// just in case
-		session.Clear(r)
-		util.JsonErrorResponse(w, http.StatusAlreadyReported, err, "already logged out")
-		return
-	}
-	err = session.Clear(r)
-	err = session.Save(w, r)
-	if err != nil {
-		util.JsonErrorResponse(w, http.StatusInternalServerError, err, "couldn't clear session")
-		return
-	}
-
-	util.WriteJSONResp(w, "ok", "logged out")
-}
-
 func IsLoggedIn(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
