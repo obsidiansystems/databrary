@@ -11,13 +11,19 @@ import (
 	"fmt"
 	"github.com/databrary/databrary/config"
 	log "github.com/databrary/databrary/logging"
-	"github.com/databrary/databrary/routes"
+	//"github.com/databrary/databrary/routes"
 	"github.com/databrary/databrary/services/sessions"
+	//"github.com/gorilla/sessions"
 	"github.com/pressly/chi"
-	"github.com/pressly/chi/middleware"
-	"github.com/rs/cors"
+	//"github.com/pressly/chi/middleware"
+	//"github.com/rs/cors"
 	"github.com/unrolled/secure" // or "gopkg.in/unrolled/secure.v1"
 	"gopkg.in/alecthomas/kingpin.v2"
+	"github.com/databrary/databrary/db"
+	"github.com/databrary/databrary/routes"
+	"github.com/pressly/chi/middleware"
+	"github.com/rs/cors"
+	"time"
 )
 
 var (
@@ -38,11 +44,12 @@ func init() {
 		log.InitLgr(config.InitConf(config_path))
 	}
 
+	db.InitDB(config.GetConf())
 }
 
 func main() {
 	// New permissions middleware
-	//conf := config.GetConf()
+	conf := config.GetConf()
 	secureMiddleware := secure.New(secure.Options{
 		AllowedHosts:          []string{"localhost:3000", "localhost:3444"},
 		HostsProxyHeaders:     []string{"X-Forwarded-Host"},
@@ -59,14 +66,14 @@ func main() {
 		PublicKey:             `pin-sha256="base64+primary=="; pin-sha256="base64+backup=="; max-age=5184000; includeSubdomains; report-uri="https://www.example.com/hpkp-report"`,
 		IsDevelopment:         true,
 	})
-	_ = secureMiddleware
+	//_ = secureMiddleware
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(log.NewStructuredLogger(log.Logger))
 	r.Use(middleware.Recoverer)
-	//r.Use(secureMiddleware.Handler) // TODO turn back on
-	//r.Use(middleware.Timeout(60 * time.Second))
+	r.Use(secureMiddleware.Handler) // TODO turn back on
+	r.Use(middleware.Timeout(60 * time.Second))
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},
 		AllowCredentials: true,
@@ -77,23 +84,24 @@ func main() {
 
 	r.Use(c.Handler)
 	r.Use(sessions.NewSessionManager())
-
+	//
 	r.Mount("/api", routes.Api())
-	r.With(routes.IsLoggedIn).Get("/profile", routes.GetProfile)
+	r.With(routes.IsLoggedInHandler).Get("/profile", routes.GetProfile)
+
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("nothing here yet"))
 	})
 	addr := "localhost:3444"
-	fmt.Printf("seriving on http://%s/", addr)
-	if err := http.ListenAndServe(addr, r); err != nil {
-		log.LogAndErrorf("couldn't serve: %+v", err)
-	}
+	fmt.Printf("seriving on https://%s/", addr)
+	//if err := http.ListenAndServe(addr, r); err != nil {
+	//	log.LogAndErrorf("couldn't serve: %+v", err)
+	//}
 
 	// TODO use ssl
 	//go http.ListenAndServe(":3444", secureMiddleware.Handler(myHandler))
-	//GOPATH := os.Getenv("GOPATH")
-	//certPath := filepath.Join(GOPATH, conf.GetString("ssl.cert"))
-	//keyPath := filepath.Join(GOPATH, conf.GetString("ssl.key"))
-	//err := http.ListenAndServeTLS(":3000", certPath, keyPath, r)
-	//fmt.Println(err)
+	GOPATH := os.Getenv("GOPATH")
+	certPath := filepath.Join(GOPATH, conf.GetString("ssl.cert"))
+	keyPath := filepath.Join(GOPATH, conf.GetString("ssl.key"))
+	err := http.ListenAndServeTLS(addr, certPath, keyPath, r)
+	fmt.Println(err)
 }

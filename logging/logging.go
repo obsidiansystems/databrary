@@ -87,6 +87,12 @@ func LogAndErrorf(format string, args ...interface{}) error {
 	return errors.New(msg)
 }
 
+func LogAndInfof(format string, args ...interface{}) string {
+	Logger.Infof(format, args...)
+	msg := fmt.Sprintf(format, args...)
+	return msg
+}
+
 func NewStructuredLogger(logger *logrus.Logger) func(next http.Handler) http.Handler {
 	return middleware.RequestLogger(&StructuredLogger{logger})
 }
