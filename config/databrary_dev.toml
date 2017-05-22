@@ -24,3 +24,8 @@ size = 10
 [cookie]
 hash_key = "hashkey"
 block_key = "blockkey"
+
+[address]
+scheme = "https"
+domain = "localhost"
+port = "3444"

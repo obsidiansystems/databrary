@@ -3,17 +3,19 @@ package routes
 import (
 	"net/http"
 
-	"github.com/databrary/scs/session"
 	"github.com/databrary/databrary/db"
 	public_models "github.com/databrary/databrary/db/models/sqlboiler_models/public"
 	"github.com/databrary/databrary/logging"
 	"github.com/databrary/databrary/util"
+	"github.com/databrary/scs/session"
 	"github.com/pkg/errors"
 	"github.com/vattle/sqlboiler/queries/qm"
 	"golang.org/x/crypto/bcrypt"
 )
 
-type loggedInPayload struct{ LoggedIn bool `json:"logged_in"` }
+type loggedInPayload struct {
+	LoggedIn bool `json:"logged_in"`
+}
 
 func PostLogin(w http.ResponseWriter, r *http.Request) {
 	var (

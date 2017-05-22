@@ -2,6 +2,8 @@ package routes
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/databrary/databrary/config"
 	"github.com/databrary/databrary/db"
 	public_models "github.com/databrary/databrary/db/models/sqlboiler_models/public"
 	"github.com/databrary/databrary/util"
@@ -17,7 +19,8 @@ func GetLogin(w http.ResponseWriter, r *http.Request) {
 		util.JsonErrorResponse(w, http.StatusNotModified, err, "already logged in")
 		return
 	}
-	w.Write([]byte(`<html>
+	scheme, addr, port := config.GetConf().Get("address.scheme"), config.GetConf().GetString("address.domain"), config.GetConf().GetInt("address.port")
+	w.Write([]byte(fmt.Sprintf(`<html>
 			<head>
 			<script
 				src="https://code.jquery.com/jquery-3.2.1.min.js"
@@ -32,7 +35,7 @@ func GetLogin(w http.ResponseWriter, r *http.Request) {
 				}
 				function submit(ev) {
 					ev.preventDefault();
-					var endpoint = 'http://localhost:3444/api/user/login';
+					var endpoint = '%s://%s:%d/api/user/login';
 					$.ajax({
 						type: "POST",
 						url: endpoint,
@@ -53,7 +56,7 @@ func GetLogin(w http.ResponseWriter, r *http.Request) {
 					<input type="password" name="password" placeholder="password" id="password">
 					<input type="submit" value="Submit">
 			</form>
-		</html>`))
+		</html>`, scheme, addr, port)))
 }
 
 func GetProfile(w http.ResponseWriter, r *http.Request) {

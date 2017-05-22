@@ -8,9 +8,9 @@ import (
 
 	"time"
 
+	"github.com/databrary/databrary/config"
 	"github.com/databrary/databrary/util"
 	"github.com/databrary/scs/session"
-	"github.com/databrary/databrary/config"
 )
 
 var (
