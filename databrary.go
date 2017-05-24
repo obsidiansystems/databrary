@@ -50,7 +50,7 @@ func init() {
 		panic(err.Error())
 	}
 
-	redis.InitPool(config.GetConf())
+	redis.InitRedisStore(config.GetConf())
 }
 
 func main() {

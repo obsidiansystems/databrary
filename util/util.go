@@ -37,23 +37,9 @@ func CheckOrFatalErr(e error) {
 	}
 }
 
-func PrintReps(stuff ...interface{}) {
-	for _, v := range stuff {
-		fmt.Printf("%#v\n", v)
-	}
-}
-
 func Now() time.Time {
 	// postgres rounds
 	return time.Now().Round(time.Microsecond)
-}
-
-func Date(t time.Time) time.Time {
-	return t.Truncate(24 * time.Hour)
-}
-
-func Today() time.Time {
-	return Date(Now())
 }
 
 func JsonErrorResponse(w http.ResponseWriter, code int, err error, msgf string, args ...interface{}) {
@@ -77,8 +63,4 @@ func WriteJSONResp(w http.ResponseWriter, status string, msg interface{}) error 
 type JSONResponse struct {
 	Status  string      `json:"status"`
 	Payload interface{} `json:"payload"`
-}
-
-func MakeMillisecondTimestamp(t time.Time) int64 {
-	return t.UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond))
 }

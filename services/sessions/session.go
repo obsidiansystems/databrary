@@ -3,11 +3,8 @@ package sessions
 import (
 	"net/http"
 
-	"github.com/databrary/scs/engine/redisstore"
-
 	"time"
 
-	"github.com/databrary/databrary/config"
 	"github.com/databrary/databrary/services/redis"
 	"github.com/databrary/databrary/util"
 	"github.com/databrary/scs/session"
@@ -16,21 +13,17 @@ import (
 var (
 	ContextName = "databrary.session"
 	CookieName  = "databrary.session.token"
-	Prefix      = ContextName
 )
 
 func NewSessionManager() func(http.Handler) http.Handler {
-	conf := config.GetConf()
 	session.ContextName = ContextName
 	session.CookieName = CookieName
-	redisstore.Prefix = Prefix + ":"
-	pool, err := redis.GetPool(conf)
+
+	redisEngine, err := redis.GetRedisStore()
 	if err != nil {
 		panic(err.Error())
 	}
-
-	engine := redisstore.New(pool)
-	return session.Manage(engine,
+	return session.Manage(redisEngine,
 		session.Lifetime(7*24*time.Hour),
 		session.Persist(false),
 		//session.Domain("example.org"),  // Domain is not set by default.

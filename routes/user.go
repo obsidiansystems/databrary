@@ -276,7 +276,13 @@ func ResetPasswordEmail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token := fmt.Sprintf("databrary.auth:%s", string(b))
-	err = redis.Save(token, payload, time.Now().AddDate(0, 0, 1))
+	redisStore, err := redis.GetRedisStore()
+	if err != nil {
+		logging.LogAndWrapError(err, IpWrapMsg(r, "couldn't open redis conn"))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	err = redisStore.Save(token, payload, time.Now().AddDate(0, 0, 1))
 
 	if err != nil {
 		logging.LogAndWrapError(err, IpWrapMsg(r, "couldn't save auth token %s with paylod %s", token, string(payload)))
@@ -332,7 +338,13 @@ func ResetPasswordToken(w http.ResponseWriter, r *http.Request) {
 
 	redisToken := fmt.Sprintf("databrary.auth:%s", string(b))
 	// reuse b
-	b, exists, err := redis.Find(redisToken)
+	redisStore, err := redis.GetRedisStore()
+	if err != nil {
+		logging.LogAndWrapError(err, IpWrapMsg(r, "couldn't open redis conn"))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	b, exists, err := redisStore.Find(redisToken)
 
 	if err != nil {
 		logging.LogAndWrapError(err, IpWrapMsg(r, "couldn't fetch redis data"))
@@ -411,7 +423,7 @@ func ResetPasswordToken(w http.ResponseWriter, r *http.Request) {
 		logging.WrapErrorAndLogWarn(err, IpWrapMsg(r, "couldn't send email", ac.Email))
 	}
 
-	err = redis.Delete(redisToken)
+	err = redisStore.Delete(redisToken)
 
 	if err != nil {
 		logging.WrapErrorAndLogWarn(err, "couldn't remove data %s from redis", redisToken)
