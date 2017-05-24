@@ -78,3 +78,7 @@ type JSONResponse struct {
 	Status  string      `json:"status"`
 	Payload interface{} `json:"payload"`
 }
+
+func MakeMillisecondTimestamp(t time.Time) int64 {
+	return t.UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond))
+}

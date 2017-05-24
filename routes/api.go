@@ -30,8 +30,9 @@ func user(r chi.Router) {
 	r.With(rateLimiter.RateLimit).Post("/logout", PostLogOut)
 	r.With(rateLimiter.RateLimit).Get("/login", GetLogin)
 
-	//r.Post("/logout", PostLogout)
-	//r.Get("/logout", PostLogout) // TODO remove only should be post
+	r.With(rateLimiter.RateLimit).Post("/reset-password/email", ResetPasswordEmail)
+	r.With(rateLimiter.RateLimit).Post("/reset-password/token", ResetPasswordToken)
+
 }
 
 //func adminRouter() http.Handler {

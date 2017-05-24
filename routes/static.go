@@ -19,7 +19,7 @@ func GetLogin(w http.ResponseWriter, r *http.Request) {
 		util.JsonErrorResponse(w, http.StatusNotModified, err, "already logged in")
 		return
 	}
-	scheme, addr, port := config.GetConf().Get("address.scheme"), config.GetConf().GetString("address.domain"), config.GetConf().GetInt("address.port")
+	scheme, addr, port := config.GetConf().Get("address.scheme"), config.GetConf().GetString("address.domain"), config.GetConf().GetString("address.backend_port")
 	w.Write([]byte(fmt.Sprintf(`<html>
 			<head>
 			<script
@@ -35,7 +35,7 @@ func GetLogin(w http.ResponseWriter, r *http.Request) {
 				}
 				function submit(ev) {
 					ev.preventDefault();
-					var endpoint = '%s://%s:%d/api/user/login';
+					var endpoint = '%s://%s:%s/api/user/login';
 					$.ajax({
 						type: "POST",
 						url: endpoint,
