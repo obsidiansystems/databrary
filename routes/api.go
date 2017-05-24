@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"github.com/databrary/databrary/logging"
 	"github.com/pressly/chi"
 	"gopkg.in/throttled/throttled.v2"
@@ -13,7 +14,7 @@ func init() {
 	var err error
 	rateLimiter, err = NewRateLimiter()
 	if err != nil {
-		logging.LogWrapAndFatal(err, "couldn't create rate limiter")
+		logging.WrapErrorAndLogFatal(err, "couldn't create rate limiter")
 	}
 }
 
@@ -23,6 +24,16 @@ func Api() http.Handler {
 	r.Route("/user", user)
 	r.With(rateLimiter.RateLimit).Get("/loggedin", IsLoggedInEndpoint)
 	return r
+}
+
+func IpWrapMsg(r *http.Request, msgf string, args ...interface{}) string {
+	var msg string
+	if len(args) > 0 {
+		msg = fmt.Sprintf(msgf, args...)
+	} else {
+		msg = msgf
+	}
+	return fmt.Sprintf("from ip %#v : %s", r.RemoteAddr, msg)
 }
 
 func user(r chi.Router) {

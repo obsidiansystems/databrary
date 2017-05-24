@@ -57,31 +57,52 @@ func InitLgr(conf *viper.Viper) *logrus.Logger {
 
 func LogAndError(msg string) error {
 	err := errors.New(msg)
-	return LogWrapAndError(err, msg)
+	return LogAndWrapError(err, msg)
 }
 
-func LogWrapAndError(err error, msg string) error {
+func buildError(err error, msgf string, args []interface{}) error {
+	var msg string
+	if len(args) > 0 {
+		msg = fmt.Sprintf(msgf, args...)
+	} else {
+		msg = msgf
+	}
+
 	if err != nil {
 		err = errors.Wrap(err, msg)
 	} else {
 		err = errors.New(msg)
 	}
+	return err
+}
+
+func LogAndWrapError(err error, msgf string, args ...interface{}) error {
+	err = buildError(err, msgf, args)
 	Logger.Debugf("%+v", err)
 	Logger.Errorf("%v", err)
 	return err
 }
 
-func LogWrapAndFatal(err error, msg string) {
-	if err != nil {
-		err = errors.Wrap(err, msg)
-	} else {
-		err = errors.New(msg)
-	}
+func WrapErrorAndLogWarn(err error, msgf string, args ...interface{}) {
+	err = buildError(err, msgf, args)
+	Logger.Debugf("%+v", err)
+	Logger.Warnf("%v", err)
+}
+
+func WrapErrorAndLogInfo(err error, msgf string, args ...interface{}) {
+	err = buildError(err, msgf, args)
+	Logger.Debugf("%+v", err)
+	Logger.Infof("%v", err)
+}
+
+func WrapErrorAndLogFatal(err error, msgf string, args ...interface{}) {
+	err = buildError(err, msgf, args)
 	Logger.Debugf("%+v", err)
 	Logger.Fatalf("%v", err)
 }
 
 func LogAndErrorf(format string, args ...interface{}) error {
+	Logger.Debugf(format, args...)
 	Logger.Errorf(format, args...)
 	msg := fmt.Sprintf(format, args...)
 	return errors.New(msg)
@@ -92,6 +113,8 @@ func LogAndInfof(format string, args ...interface{}) string {
 	msg := fmt.Sprintf(format, args...)
 	return msg
 }
+
+// stolen from somewhere...?
 
 func NewStructuredLogger(logger *logrus.Logger) func(next http.Handler) http.Handler {
 	return middleware.RequestLogger(&StructuredLogger{logger})

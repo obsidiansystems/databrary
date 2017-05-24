@@ -5,6 +5,7 @@ import (
 	"github.com/databrary/databrary/config"
 	"github.com/matcornic/hermes"
 	"gopkg.in/gomail.v2"
+	"os"
 )
 
 var herm hermes.Hermes
@@ -90,7 +91,8 @@ func sendEmail(body, subject, toAddress string) error {
 	m.SetHeader("To", toAddress)
 	m.SetHeader("Subject", subject)
 	m.SetBody("text/html", body)
-	d := gomail.NewDialer("smtp.gmail.com", 587, "maksim.levental@gmail.com", "6bx-!n&qdeZk4wb")
+
+	d := gomail.NewDialer("smtp.gmail.com", 587, "maksim.levental@gmail.com", os.Getenv("GMAILPASSWORD"))
 
 	err := d.DialAndSend(m)
 	return err

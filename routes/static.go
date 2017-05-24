@@ -6,6 +6,7 @@ import (
 	"github.com/databrary/databrary/config"
 	"github.com/databrary/databrary/db"
 	public_models "github.com/databrary/databrary/db/models/sqlboiler_models/public"
+	"github.com/databrary/databrary/logging"
 	"github.com/databrary/databrary/util"
 	"github.com/databrary/scs/session"
 	"github.com/jmoiron/sqlx"
@@ -68,22 +69,31 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if conn, err = db.GetDbConn(); err != nil {
-		util.JsonErrorResponse(w, http.StatusInternalServerError, err, "couldn't open db conn")
+		logging.LogAndWrapError(err, IpWrapMsg(r, "couldn't open db conn"))
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	if accountId, err = session.GetInt(r, "account_id"); err != nil {
-		util.JsonErrorResponse(w, http.StatusInternalServerError, err, "couldn't find account %d", accountId)
+		logging.LogAndWrapError(err, IpWrapMsg(r, "couldn't find account %d", accountId))
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
 	qrm := qm.Where("id = $1", accountId)
+
 	if p, err = public_models.Parties(conn, qrm).One(); err != nil {
-		util.JsonErrorResponse(w, http.StatusInternalServerError, err, "couldn't find party %d", accountId)
+		logging.LogAndWrapError(err, IpWrapMsg(r, "couldn't find party %d", accountId))
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
 	j, err := json.Marshal(p)
+
 	if err != nil {
-		util.JsonErrorResponse(w, http.StatusInternalServerError, err, "couldn't marshal account %d", accountId)
+		logging.LogAndWrapError(err, IpWrapMsg(r, "couldn't marshal account %d", accountId))
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
 	util.WriteJSONResp(w, "ok", string(j))
 }
