@@ -5,6 +5,8 @@ import (
 
 	"time"
 
+	"github.com/Sirupsen/logrus"
+	log "github.com/databrary/databrary/logging"
 	"github.com/databrary/databrary/services/redis"
 	"github.com/databrary/databrary/util"
 	"github.com/databrary/scs/session"
@@ -26,14 +28,18 @@ func NewSessionManager() func(http.Handler) http.Handler {
 	return session.Manage(redisEngine,
 		session.Lifetime(7*24*time.Hour),
 		session.Persist(false),
-		//session.Domain("example.org"),  // Domain is not set by default.
+		//session.Domain("example.org"),  // Domain is not set by default. TODO
 		session.HttpOnly(true), // HttpOnly attribute is true by default.
-		//session.Path("/account"),       // Path is set to "/" by default.
-		session.Secure(false), //TODO // Secure attribute is false by default.
+		session.Secure(false),  //TODO // Secure attribute is false by default.
 		session.ErrorFunc(SessionError),
 	)
 }
 
 func SessionError(w http.ResponseWriter, r *http.Request, err error) {
-	util.JsonErrorResponse(w, http.StatusInternalServerError, err, "session error")
+	fields := logrus.Fields(map[string]interface{}{
+		"ip":  r.RequestURI,
+		"uri": r.RemoteAddr,
+	})
+	_, errorUuid := log.EntryWrapErr(log.Logger.WithFields(fields), err, "session error")
+	util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 }

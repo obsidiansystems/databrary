@@ -1,8 +1,9 @@
 package routes
 
 import (
-	"fmt"
+	"github.com/Sirupsen/logrus"
 	"github.com/databrary/databrary/logging"
+	"github.com/databrary/databrary/services/mail"
 	"github.com/pressly/chi"
 	"gopkg.in/throttled/throttled.v2"
 	"net/http"
@@ -14,7 +15,7 @@ func init() {
 	var err error
 	rateLimiter, err = NewRateLimiter()
 	if err != nil {
-		logging.WrapErrorAndLogFatal(err, "couldn't create rate limiter")
+		log.WrapErrLogFatal(err, "couldn't create rate limiter")
 	}
 }
 
@@ -23,17 +24,16 @@ func Api() http.Handler {
 	r := chi.NewRouter()
 	r.Route("/user", user)
 	r.With(rateLimiter.RateLimit).Get("/loggedin", IsLoggedInEndpoint)
+	r.With(rateLimiter.RateLimit).Get("/report-error", ReportError)
 	return r
 }
 
-func IpWrapMsg(r *http.Request, msgf string, args ...interface{}) string {
-	var msg string
-	if len(args) > 0 {
-		msg = fmt.Sprintf(msgf, args...)
-	} else {
-		msg = msgf
-	}
-	return fmt.Sprintf("from ip %#v : %s", r.RemoteAddr, msg)
+func NetInfoLogEntry(r *http.Request) *logrus.Entry {
+	fields := logrus.Fields(map[string]interface{}{
+		"ip":  r.RequestURI,
+		"uri": r.RemoteAddr,
+	})
+	return log.Logger.WithFields(fields)
 }
 
 func user(r chi.Router) {
@@ -44,6 +44,12 @@ func user(r chi.Router) {
 	r.With(rateLimiter.RateLimit).Post("/reset-password/email", ResetPasswordEmail)
 	r.With(rateLimiter.RateLimit).Post("/reset-password/token", ResetPasswordToken)
 
+}
+
+func ReportError(w http.ResponseWriter, r *http.Request) {
+	body := []byte("")
+	r.Body.Read(body)
+	mail.SendEmail(string(body), "error", "admin@databrary.org")
 }
 
 //func adminRouter() http.Handler {

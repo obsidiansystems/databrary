@@ -1,7 +1,6 @@
 package util
 
 import (
-	"fmt"
 	"math/rand"
 	"runtime/debug"
 	"strings"
@@ -32,8 +31,8 @@ func CheckOrFatalErr(e error) {
 	if e != nil {
 		// trim the top the 3 lines of the stack because they're inside debug.Stack()
 		stack := strings.Split(string(debug.Stack()), "\n")[3:]
-		logging.Logger.Print(strings.Join(stack, "\n"))
-		logging.Logger.Fatal(e)
+		log.Logger.Print(strings.Join(stack, "\n"))
+		log.Logger.Fatal(e)
 	}
 }
 
@@ -42,15 +41,9 @@ func Now() time.Time {
 	return time.Now().Round(time.Microsecond)
 }
 
-func JsonErrorResponse(w http.ResponseWriter, code int, err error, msgf string, args ...interface{}) {
-	var msg string
-	if len(args) > 0 {
-		msg = fmt.Sprintf(msgf, args...)
-	} else {
-		msg = msgf
-	}
+func JsonErrResp(w http.ResponseWriter, code int, data interface{}) {
 	w.WriteHeader(code)
-	WriteJSONResp(w, "error", logging.LogAndWrapError(err, msg).Error())
+	WriteJSONResp(w, "error", data)
 }
 
 func WriteJSONResp(w http.ResponseWriter, status string, msg interface{}) error {
@@ -61,6 +54,6 @@ func WriteJSONResp(w http.ResponseWriter, status string, msg interface{}) error 
 }
 
 type JSONResponse struct {
-	Status  string      `json:"status"`
-	Payload interface{} `json:"payload"`
+	Status string      `json:"status"`
+	Data   interface{} `json:"data"`
 }

@@ -1,4 +1,4 @@
-package logging
+package log
 
 import (
 	"fmt"
@@ -63,19 +63,8 @@ func InitLgr(conf *viper.Viper) *logrus.Logger {
 	return Logger
 }
 
-func LogAndError(msg string) error {
-	err := errors.New(msg)
-	return LogAndWrapError(err, msg) //TODO delete this redundant method in favor of logandwraperror
-}
-
 func buildError(err error, msgf string, args []interface{}) error {
-	var msg string
-	if len(args) > 0 {
-		msg = fmt.Sprintf(msgf, args...)
-	} else {
-		msg = msgf
-	}
-
+	msg := fmt.Sprintf(msgf, args...)
 	if err != nil {
 		err = errors.Wrap(err, msg)
 	} else {
@@ -84,43 +73,52 @@ func buildError(err error, msgf string, args []interface{}) error {
 	return err
 }
 
-func LogAndWrapError(err error, msgf string, args ...interface{}) (error, string) {
+// if you pass a nil error to any of these it will create a new error (so don't need to use errors.New at call site
+func EntryWrapErr(entry *logrus.Entry, err error, msgf string, args ...interface{}) (error, string) {
+	err = buildError(err, msgf, args)
+	errorUuid := uuid.NewV4().String()
+	entry.WithField("error_uuid", errorUuid).Errorf(errFmtString, err)
+	return err, errorUuid
+}
+
+func LogWrapErr(err error, msgf string, args ...interface{}) (error, string) {
 	err = buildError(err, msgf, args)
 	errorUuid := uuid.NewV4().String()
 	Logger.WithField("error_uuid", errorUuid).Errorf(errFmtString, err)
 	return err, errorUuid
 }
 
-func WrapErrorAndLogWarn(err error, msgf string, args ...interface{}) {
+func EntryWrapErrLogWarn(entry *logrus.Entry, err error, msgf string, args ...interface{}) {
+	err = buildError(err, msgf, args)
+	entry.Warnf(errFmtString, err)
+}
+
+func WrapErrLogWarn(err error, msgf string, args ...interface{}) {
 	err = buildError(err, msgf, args)
 	Logger.Warnf(errFmtString, err)
 }
 
-func WrapErrorAndLogInfo(err error, msgf string, args ...interface{}) {
+func EntryWrapErrLogInfo(entry *logrus.Entry, err error, msgf string, args ...interface{}) {
+	err = buildError(err, msgf, args)
+	entry.Infof(errFmtString, err)
+}
+
+func WrapErrLogInfo(err error, msgf string, args ...interface{}) {
 	err = buildError(err, msgf, args)
 	Logger.Infof(errFmtString, err)
 }
 
-func WrapErrorAndLogFatal(err error, msgf string, args ...interface{}) {
+func EntryWrapErrLogFatal(entry *logrus.Entry, err error, msgf string, args ...interface{}) {
+	err = buildError(err, msgf, args)
+	entry.Fatalf(errFmtString, err)
+}
+
+func WrapErrLogFatal(err error, msgf string, args ...interface{}) {
 	err = buildError(err, msgf, args)
 	Logger.Fatalf(errFmtString, err)
 }
 
-// TODO delete these in favor of above
-func LogAndErrorf(format string, args ...interface{}) error {
-
-	Logger.Errorf(format, args...)
-	msg := fmt.Sprintf(format, args...)
-	return errors.New(msg)
-}
-
-func LogAndInfof(format string, args ...interface{}) string {
-	Logger.Infof(format, args...)
-	msg := fmt.Sprintf(format, args...)
-	return msg
-}
-
-// stolen from somewhere...?
+// stolen from somewhere chi example
 
 func NewStructuredLogger(logger *logrus.Logger) func(next http.Handler) http.Handler {
 	return middleware.RequestLogger(&StructuredLogger{logger})

@@ -6,6 +6,7 @@ import (
 
 	"github.com/databrary/databrary/logging"
 	set "github.com/deckarep/golang-set"
+	"github.com/pkg/errors"
 )
 
 // Action Enum
@@ -29,13 +30,15 @@ var ALLACTIONS = set.NewSetWith(ActionATTEMPT, ActionOPEN, ActionCLOSE, ActionAD
 func (act *Action) Scan(value interface{}) error {
 	*act = ""
 	if value == nil {
-		return logging.LogAndError("scanned NULL action (did you mean to use NullAction)")
+		err, _ := log.LogWrapErr(nil, "scanned NULL action (did you mean to use NullAction)")
+		return err
 	}
 	if val, err := driver.String.ConvertValue(value); err == nil {
 		valAsString := string(val.([]byte))
 		*act = Action(valAsString)
 		if !ALLACTIONS.Contains(*act) {
-			return logging.LogAndErrorf("invalid Action %#v", *act)
+			err, _ := log.LogWrapErr(errors.New("invalid Action"), "%#v", *act)
+			return err
 		}
 		return nil
 	} else {
@@ -45,7 +48,8 @@ func (act *Action) Scan(value interface{}) error {
 
 func (act Action) Value() (driver.Value, error) {
 	if !ALLACTIONS.Contains(act) {
-		return nil, logging.LogAndErrorf("invalid Action %#v", act)
+		err, _ := log.LogWrapErr(nil, "invalid Action", "%#v", act)
+		return nil, err
 	}
 	return []byte(string(act)), nil
 }

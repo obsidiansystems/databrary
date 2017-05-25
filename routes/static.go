@@ -17,7 +17,9 @@ import (
 func GetLogin(w http.ResponseWriter, r *http.Request) {
 	// check if already logged in
 	if loggedIn, err := session.GetBool(r, "logged_in"); loggedIn {
-		util.JsonErrorResponse(w, http.StatusNotModified, err, "already logged in")
+		nInfo := NetInfoLogEntry(r)
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "already logged in")
+		util.JsonErrResp(w, http.StatusBadRequest, errorUuid)
 		return
 	}
 	scheme, addr, port := config.GetConf().Get("address.scheme"), config.GetConf().GetString("address.domain"), config.GetConf().GetString("address.backend_port")
@@ -67,31 +69,33 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 		p         *public_models.Party
 		accountId int
 	)
+	nInfo := NetInfoLogEntry(r)
 
 	if conn, err = db.GetDbConn(); err != nil {
-		logging.LogAndWrapError(err, IpWrapMsg(r, "couldn't open db conn"))
-		w.WriteHeader(http.StatusInternalServerError)
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't open db conn")
+		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 		return
 	}
+
 	if accountId, err = session.GetInt(r, "account_id"); err != nil {
-		logging.LogAndWrapError(err, IpWrapMsg(r, "couldn't find account %d", accountId))
-		w.WriteHeader(http.StatusInternalServerError)
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't find account %d", accountId)
+		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 		return
 	}
 
 	qrm := qm.Where("id = $1", accountId)
 
 	if p, err = public_models.Parties(conn, qrm).One(); err != nil {
-		logging.LogAndWrapError(err, IpWrapMsg(r, "couldn't find party %d", accountId))
-		w.WriteHeader(http.StatusInternalServerError)
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't find party %d", accountId)
+		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 		return
 	}
 
 	j, err := json.Marshal(p)
 
 	if err != nil {
-		logging.LogAndWrapError(err, IpWrapMsg(r, "couldn't marshal account %d", accountId))
-		w.WriteHeader(http.StatusInternalServerError)
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't marshal account %d", accountId)
+		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 		return
 	}
 

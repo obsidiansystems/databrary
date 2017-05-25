@@ -59,7 +59,7 @@ func SendPasswordRecovery(toName, toAddress, token string) error {
 	if err != nil {
 		return err
 	}
-	err = sendEmail(body, "Password Reset", toAddress)
+	err = SendEmail(body, "Password Reset", toAddress)
 	return err
 }
 
@@ -81,11 +81,11 @@ func SendPasswordRecoveryConfirmation(toName, toAddress string) error {
 	if err != nil {
 		return err
 	}
-	err = sendEmail(body, "Password Reset Confirmation", toAddress)
+	err = SendEmail(body, "Password Reset Confirmation", toAddress)
 	return err
 }
 
-func sendEmail(body, subject, toAddress string) error {
+func SendEmail(body, subject, toAddress string) error {
 	m := gomail.NewMessage()
 	m.SetHeader("From", "help@databrary.org")
 	m.SetHeader("To", toAddress)
