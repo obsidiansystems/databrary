@@ -9,11 +9,13 @@ import (
 	"github.com/pkg/errors"
 	"github.com/pressly/chi/middleware"
 	"github.com/rifflock/lfshook"
+	"github.com/satori/go.uuid"
 	"github.com/spf13/viper"
 	"net/http"
 )
 
 var Logger *logrus.Logger
+var errFmtString string
 
 func InitLgr(conf *viper.Viper) *logrus.Logger {
 	if Logger != nil {
@@ -26,6 +28,12 @@ func InitLgr(conf *viper.Viper) *logrus.Logger {
 	lvl, err := logrus.ParseLevel(log_level)
 	if err != nil {
 		panic("can't parse log level")
+	}
+
+	if lvl == logrus.DebugLevel {
+		errFmtString = "%+v"
+	} else {
+		errFmtString = "%v"
 	}
 
 	Logger = logrus.New()
@@ -57,7 +65,7 @@ func InitLgr(conf *viper.Viper) *logrus.Logger {
 
 func LogAndError(msg string) error {
 	err := errors.New(msg)
-	return LogAndWrapError(err, msg)
+	return LogAndWrapError(err, msg) //TODO delete this redundant method in favor of logandwraperror
 }
 
 func buildError(err error, msgf string, args []interface{}) error {
@@ -76,33 +84,31 @@ func buildError(err error, msgf string, args []interface{}) error {
 	return err
 }
 
-func LogAndWrapError(err error, msgf string, args ...interface{}) error {
+func LogAndWrapError(err error, msgf string, args ...interface{}) (error, string) {
 	err = buildError(err, msgf, args)
-	Logger.Debugf("%+v", err)
-	Logger.Errorf("%v", err)
-	return err
+	errorUuid := uuid.NewV4().String()
+	Logger.WithField("error_uuid", errorUuid).Errorf(errFmtString, err)
+	return err, errorUuid
 }
 
 func WrapErrorAndLogWarn(err error, msgf string, args ...interface{}) {
 	err = buildError(err, msgf, args)
-	Logger.Debugf("%+v", err)
-	Logger.Warnf("%v", err)
+	Logger.Warnf(errFmtString, err)
 }
 
 func WrapErrorAndLogInfo(err error, msgf string, args ...interface{}) {
 	err = buildError(err, msgf, args)
-	Logger.Debugf("%+v", err)
-	Logger.Infof("%v", err)
+	Logger.Infof(errFmtString, err)
 }
 
 func WrapErrorAndLogFatal(err error, msgf string, args ...interface{}) {
 	err = buildError(err, msgf, args)
-	Logger.Debugf("%+v", err)
-	Logger.Fatalf("%v", err)
+	Logger.Fatalf(errFmtString, err)
 }
 
+// TODO delete these in favor of above
 func LogAndErrorf(format string, args ...interface{}) error {
-	Logger.Debugf(format, args...)
+
 	Logger.Errorf(format, args...)
 	msg := fmt.Sprintf(format, args...)
 	return errors.New(msg)
