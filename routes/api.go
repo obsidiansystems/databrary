@@ -6,6 +6,7 @@ import (
 	"github.com/databrary/databrary/services/mail"
 	"github.com/pressly/chi"
 	"gopkg.in/throttled/throttled.v2"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -24,14 +25,14 @@ func Api() http.Handler {
 	r := chi.NewRouter()
 	r.Route("/user", user)
 	r.With(rateLimiter.RateLimit).Get("/loggedin", IsLoggedInEndpoint)
-	r.With(rateLimiter.RateLimit).Get("/report-error", ReportError)
+	r.With(rateLimiter.RateLimit).Post("/report-error", ReportError)
 	return r
 }
 
 func NetInfoLogEntry(r *http.Request) *logrus.Entry {
 	fields := logrus.Fields(map[string]interface{}{
-		"ip":  r.RequestURI,
-		"uri": r.RemoteAddr,
+		"uri": r.RequestURI,
+		"ip":  r.RemoteAddr,
 	})
 	return log.Logger.WithFields(fields)
 }
@@ -47,9 +48,10 @@ func user(r chi.Router) {
 }
 
 func ReportError(w http.ResponseWriter, r *http.Request) {
-	body := []byte("")
-	r.Body.Read(body)
-	mail.SendEmail(string(body), "error", "admin@databrary.org")
+	body, err := ioutil.ReadAll(r.Body)
+	if err == nil {
+		mail.SendEmail(string(body), "Databrary Error", "maksim.levental@nyu.edu")
+	}
 }
 
 //func adminRouter() http.Handler {

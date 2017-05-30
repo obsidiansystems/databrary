@@ -71,8 +71,7 @@ func SendPasswordRecoveryConfirmation(toName, toAddress string) error {
 				"You have received this email to confirm your password has been reset.",
 			},
 			Outros: []string{
-				"If you didn't perform this action please reset your password immediately",
-				"and then contact us.",
+				"If you didn't perform this action please reset your password immediately\nand then contact us.",
 			},
 			Signature: "Love",
 		},

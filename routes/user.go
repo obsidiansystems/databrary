@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"crypto/sha256"
 	"github.com/databrary/databrary/db"
 	public_models "github.com/databrary/databrary/db/models/sqlboiler_models/public"
 	log "github.com/databrary/databrary/logging"
@@ -19,6 +20,7 @@ import (
 	"github.com/vattle/sqlboiler/queries/qm"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/nullbio/null.v6"
+	"io/ioutil"
 )
 
 func clearSession(w http.ResponseWriter, r *http.Request) {
@@ -193,14 +195,13 @@ func IsLoggedInEndpoint(w http.ResponseWriter, r *http.Request) {
 func ResetPasswordEmail(w http.ResponseWriter, r *http.Request) {
 	clearSession(w, r)
 	data := struct {
-		Email string `json:"data"`
+		Email string `json:"email"`
 	}{}
 	nInfo := NetInfoLogEntry(r)
 	err := json.NewDecoder(r.Body).Decode(&data)
 
 	if err != nil {
-		var body []byte
-		r.Body.Read(body)
+		body, _ := ioutil.ReadAll(r.Body)
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't decode data from body %s", string(body))
 		util.JsonErrResp(w, http.StatusBadRequest, errorUuid)
 		return
@@ -214,12 +215,14 @@ func ResetPasswordEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ac, err := public_models.Accounts(dbConn, qm.Where("data = $1", data.Email)).One()
+	ac, err := public_models.Accounts(dbConn, qm.Where("email = $1", data.Email)).One()
 
 	if err != nil {
 		// always report data sent to avoid tipping off brute-force attackers
-		log.EntryWrapErr(nInfo, err, "couldn't locate account with email %#v", data.Email)
-		util.WriteJSONResp(w, "ok", "success")
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't locate account with email %#v", data.Email)
+		_ = errorUuid
+		//util.JsonErrResp(w, http.StatusBadRequest, errorUuid)
+		util.WriteJSONResp(w, "ok", "success") //TODO
 		return
 	}
 
@@ -257,7 +260,7 @@ func ResetPasswordEmail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newUuid := uuid.NewV4()
-	b, err := bcrypt.GenerateFromPassword(newUuid.Bytes(), bcrypt.MinCost)
+	uuidAsBytes := sha256.Sum256(newUuid.Bytes())
 
 	if err != nil {
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't generate auth token")
@@ -265,6 +268,8 @@ func ResetPasswordEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	token := fmt.Sprintf("databrary.auth:%x", string(uuidAsBytes[:]))
+	fmt.Println(token)
 	payload, err := json.Marshal(struct {
 		AccountID int `json:"account_id"`
 	}{ac.ID})
@@ -275,14 +280,15 @@ func ResetPasswordEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token := fmt.Sprintf("databrary.auth:%s", string(b))
 	redisStore, err := redis.GetRedisStore()
+
 	if err != nil {
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't open redis conn")
 		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 		return
 	}
-	err = redisStore.Save(token, payload, time.Now().AddDate(0, 0, 1))
+
+	err = redisStore.Save(token, payload, time.Now().Add(24*time.Hour))
 
 	if err != nil {
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't save auth token %s with paylod %s", token, string(payload))
@@ -300,7 +306,7 @@ func ResetPasswordEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	nInfo.Infof("reset password data stage for %#v", ac.ID)
+	nInfo.Infof("reset password email stage for %#v", ac.ID)
 	util.WriteJSONResp(w, "ok", "success")
 }
 
@@ -308,7 +314,7 @@ func ResetPasswordToken(w http.ResponseWriter, r *http.Request) {
 
 	clearSession(w, r)
 	data := struct {
-		Token       string `json:"data"`
+		Token       string `json:"token"`
 		NewPassword string `json:"password"`
 	}{}
 	nInfo := NetInfoLogEntry(r)
@@ -316,8 +322,7 @@ func ResetPasswordToken(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&data)
 
 	if err != nil {
-		var body []byte
-		r.Body.Read(body)
+		body, _ := ioutil.ReadAll(r.Body)
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't decode data from body %s", string(body))
 		util.JsonErrResp(w, http.StatusBadRequest, errorUuid)
 		return
@@ -331,14 +336,15 @@ func ResetPasswordToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b, err := bcrypt.GenerateFromPassword(authUuid.Bytes(), bcrypt.MinCost)
+	b := sha256.Sum256(authUuid.Bytes())
+
 	if err != nil {
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't generate auth data hash from uuid %#v", authUuid)
 		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 		return
 	}
 
-	redisToken := fmt.Sprintf("databrary.auth:%s", string(b))
+	redisToken := fmt.Sprintf("databrary.auth:%x", string(b[:]))
 	// reuse b
 	redisStore, err := redis.GetRedisStore()
 	if err != nil {
@@ -346,15 +352,17 @@ func ResetPasswordToken(w http.ResponseWriter, r *http.Request) {
 		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 		return
 	}
-	b, exists, err := redisStore.Find(redisToken)
+
+	authData, exists, err := redisStore.Find(redisToken)
 
 	if err != nil {
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't fetch redis data")
 		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 		return
 	}
+
 	if !exists {
-		log.EntryWrapErrLogWarn(nInfo, err, "auth token expired %s", redisToken)
+		log.EntryWrapErrLogWarn(nInfo, nil, "auth token expired %s", redisToken)
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
@@ -363,9 +371,9 @@ func ResetPasswordToken(w http.ResponseWriter, r *http.Request) {
 		AccountID int `json:"account_id"`
 	}{}
 
-	err = json.Unmarshal(b, &redisPayload)
+	err = json.Unmarshal(authData, &redisPayload)
 	if err != nil {
-		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't unmarshal redis payload from %s", string(b))
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't unmarshal redis payload from %s", string(authData[:]))
 		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 		return
 	}
@@ -386,7 +394,15 @@ func ResetPasswordToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ac.Password = null.String{data.NewPassword, true}
+	newPasswordHash, err := bcrypt.GenerateFromPassword([]byte(data.NewPassword), 12)
+
+	if err != nil {
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't generate password hash")
+		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
+		return
+	}
+
+	ac.Password = null.String{string(newPasswordHash), true}
 	tx, err := dbConn.Begin()
 
 	if err != nil {
@@ -431,6 +447,7 @@ func ResetPasswordToken(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.EntryWrapErrLogWarn(nInfo, err, "couldn't remove data %s from redis", redisToken)
 	}
+
 	nInfo.Infof("reset password for account %d", ac.ID)
 	util.WriteJSONResp(w, "ok", "success")
 }
