@@ -23,11 +23,6 @@ import (
 	"io/ioutil"
 )
 
-func clearSession(w http.ResponseWriter, r *http.Request) {
-	session.Clear(r)
-	session.Save(w, r)
-}
-
 func PostLogin(w http.ResponseWriter, r *http.Request) {
 	var (
 		err, match      error
@@ -39,16 +34,25 @@ func PostLogin(w http.ResponseWriter, r *http.Request) {
 	)
 	nInfo := NetInfoLogEntry(r)
 	if email, password, ok = r.BasicAuth(); !ok {
-		clearSession(w, r)
+		session.Destroy(w, r)
 		_, errorUuid := log.EntryWrapErr(nInfo, nil, "couldn't parse basic auth")
 		util.JsonErrResp(w, http.StatusBadRequest, errorUuid)
 		return
 	}
 
+	data := struct {
+		RememberMe bool `json:"rememberMe"`
+	}{}
+	err = json.NewDecoder(r.Body).Decode(&data)
+
+	if err != nil {
+		log.EntryWrapErr(nInfo, err, "couldn't read rememberMe")
+	}
+
 	dbConn, err := db.GetDbConn()
 
 	if err != nil {
-		clearSession(w, r)
+		session.Destroy(w, r)
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't open db conn")
 		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 		return
@@ -57,7 +61,7 @@ func PostLogin(w http.ResponseWriter, r *http.Request) {
 	qrm = qm.Where("email = $1", email)
 
 	if ac, err = public_models.Accounts(dbConn, qrm).One(); err != nil {
-		clearSession(w, r)
+		session.Destroy(w, r)
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't find account %#v", email)
 		util.JsonErrResp(w, http.StatusBadRequest, errorUuid)
 		return
@@ -67,7 +71,7 @@ func PostLogin(w http.ResponseWriter, r *http.Request) {
 	match = bcrypt.CompareHashAndPassword([]byte(ac.Password.String), []byte(password))
 
 	if match != nil {
-		clearSession(w, r)
+		session.Destroy(w, r)
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "wrong password for email %#v", email)
 		util.JsonErrResp(w, http.StatusBadRequest, errorUuid)
 		return
@@ -76,7 +80,7 @@ func PostLogin(w http.ResponseWriter, r *http.Request) {
 	err = session.RegenerateToken(r)
 
 	if err != nil {
-		clearSession(w, r)
+		session.Destroy(w, r)
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't regen token")
 		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 		return
@@ -86,7 +90,7 @@ func PostLogin(w http.ResponseWriter, r *http.Request) {
 	signature, err = bcrypt.GenerateFromPassword([]byte(ac.Password.String), bcrypt.MinCost)
 
 	if err != nil {
-		clearSession(w, r)
+		session.Destroy(w, r)
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't gen signature")
 		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 	}
@@ -94,10 +98,12 @@ func PostLogin(w http.ResponseWriter, r *http.Request) {
 	err = session.PutBytes(r, "signature", signature)
 	err = session.PutInt(r, "account_id", ac.ID)
 	err = session.PutBool(r, "logged_in", true)
+	// error here shouldn't be interfere with the user
+	_ = session.SetPersist(r, data.RememberMe)
 	err = session.Save(w, r)
 
 	if err != nil {
-		clearSession(w, r)
+		session.Destroy(w, r)
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't save session")
 		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 		return
@@ -107,7 +113,7 @@ func PostLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func PostLogOut(w http.ResponseWriter, r *http.Request) {
-	clearSession(w, r)
+	session.Destroy(w, r)
 	util.WriteJSONResp(w, "ok", "success")
 }
 
@@ -115,6 +121,9 @@ func PostLogOut(w http.ResponseWriter, r *http.Request) {
 func isLoggedIn(r *http.Request) (bool, int, error) {
 	signature, err := session.GetBytes(r, "signature")
 	accountId, err := session.GetInt(r, "account_id")
+	if err != nil {
+		return false, http.StatusInternalServerError, err
+	}
 	// if fresh or clear token
 	if signature == nil || accountId == 0 {
 		return false, http.StatusUnauthorized, nil
@@ -156,15 +165,16 @@ func IsLoggedInHandler(next http.Handler) http.Handler {
 		nInfo := NetInfoLogEntry(r)
 		loggedIn, statusCode, err := isLoggedIn(r)
 		if err != nil {
-			clearSession(w, r)
+			session.Destroy(w, r)
 			_, errorUuid := log.EntryWrapErr(nInfo, err, "login handler failed")
 			util.JsonErrResp(w, statusCode, errorUuid)
 			return
 		}
 		if loggedIn {
+
 			next.ServeHTTP(w, r)
 		} else {
-			clearSession(w, r)
+			session.Destroy(w, r)
 			nInfo.Info("unloggedin access")
 			w.WriteHeader(statusCode)
 		}
@@ -179,13 +189,13 @@ func IsLoggedInEndpoint(w http.ResponseWriter, r *http.Request) {
 	nInfo := NetInfoLogEntry(r)
 	loggedIn, statusCode, err := isLoggedIn(r)
 	if err != nil {
-		clearSession(w, r)
+		session.Destroy(w, r)
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "login endpoint failed")
 		util.JsonErrResp(w, statusCode, errorUuid)
 		return
 	}
 	if !loggedIn {
-		clearSession(w, r)
+		session.Destroy(w, r)
 	}
 	w.WriteHeader(statusCode)
 	util.WriteJSONResp(w, "ok", loggedInPayload{loggedIn})
@@ -193,7 +203,7 @@ func IsLoggedInEndpoint(w http.ResponseWriter, r *http.Request) {
 
 // the first stage of the reset password process - the auth token generation and email send
 func ResetPasswordEmail(w http.ResponseWriter, r *http.Request) {
-	clearSession(w, r)
+	session.Destroy(w, r)
 	data := struct {
 		Email string `json:"email"`
 	}{}
@@ -312,7 +322,7 @@ func ResetPasswordEmail(w http.ResponseWriter, r *http.Request) {
 
 func ResetPasswordToken(w http.ResponseWriter, r *http.Request) {
 
-	clearSession(w, r)
+	session.Destroy(w, r)
 	data := struct {
 		Token       string `json:"token"`
 		NewPassword string `json:"password"`

@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/databrary/databrary/config"
 	"github.com/databrary/databrary/db"
@@ -91,13 +90,5 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	j, err := json.Marshal(p)
-
-	if err != nil {
-		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't marshal account %d", accountId)
-		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
-		return
-	}
-
-	util.WriteJSONResp(w, "ok", string(j))
+	util.WriteJSONResp(w, "ok", p)
 }
