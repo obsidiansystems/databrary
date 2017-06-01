@@ -21,6 +21,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/nullbio/null.v6"
 	"io/ioutil"
+	"net/url"
 )
 
 func PostLogin(w http.ResponseWriter, r *http.Request) {
@@ -460,4 +461,50 @@ func ResetPasswordToken(w http.ResponseWriter, r *http.Request) {
 
 	nInfo.Infof("reset password for account %d", ac.ID)
 	util.WriteJSONResp(w, "ok", "success")
+}
+
+func UserExists(w http.ResponseWriter, r *http.Request) {
+	nInfo := NetInfoLogEntry(r)
+	returnFalse := func() {
+		util.WriteJSONResp(w, "ok", struct {
+			Exists bool `json:"exists"`
+		}{false},
+		)
+	}
+
+	rUrl, err := url.ParseRequestURI(r.RequestURI)
+
+	if err != nil {
+		log.EntryWrapErr(nInfo, err, "couldn't decode params from url", r.RequestURI)
+		returnFalse()
+		return
+	}
+
+	values := rUrl.Query()
+	email := values.Get("email")
+
+	if email == "" {
+		log.EntryWrapErr(nInfo, err, "no email", r.RequestURI)
+		returnFalse()
+		return
+	}
+
+	dbConn, err := db.GetDbConn()
+
+	if err != nil {
+		log.EntryWrapErr(nInfo, err, "couldn't open db conn")
+		returnFalse()
+		return
+	}
+
+	_, err = public_models.Accounts(dbConn, qm.Where("email = $1", email)).One()
+
+	if err == nil {
+		util.WriteJSONResp(w, "ok", struct {
+			Exists bool `json:"exists"`
+		}{true},
+		)
+	} else {
+		returnFalse()
+	}
 }
