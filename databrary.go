@@ -12,16 +12,16 @@ import (
 	"github.com/databrary/databrary/config"
 	log "github.com/databrary/databrary/logging"
 	//"github.com/databrary/databrary/routes"
-	"github.com/databrary/databrary/services/sessions"
-	"github.com/pressly/chi"
 	"github.com/databrary/databrary/db"
 	"github.com/databrary/databrary/routes"
 	"github.com/databrary/databrary/services/redis"
+	"github.com/databrary/databrary/services/sessions"
+	"github.com/pressly/chi"
+	"github.com/pressly/chi/middleware"
+	"github.com/rs/cors"
 	"github.com/unrolled/secure" // or
 	"gopkg.in/alecthomas/kingpin.v2"
-	"github.com/pressly/chi/middleware"
 	"time"
-	"github.com/rs/cors"
 )
 
 var (
@@ -100,9 +100,9 @@ func main() {
 
 	addr := ":3444"
 	fmt.Printf("seriving on https://%s/", addr)
-	if err := http.ListenAndServe(addr, r); err != nil {
-		fmt.Sprintf("couldn't serve: %+v", err)
-	}
+	//if err := http.ListenAndServe(addr, r); err != nil {
+	//	fmt.Sprintf("couldn't serve: %+v", err)
+	//}
 
 	// TODO use ssl
 	//go http.ListenAndServe(":3444", secureMiddleware.Handler(myHandler))

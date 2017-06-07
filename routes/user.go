@@ -508,4 +508,3 @@ func UserExists(w http.ResponseWriter, r *http.Request) {
 		returnFalse()
 	}
 }
-

@@ -1,22 +1,23 @@
 package routes
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/Sirupsen/logrus"
+	"github.com/databrary/databrary/db"
+	"github.com/databrary/databrary/db/models/sqlboiler_models/public"
 	"github.com/databrary/databrary/logging"
 	"github.com/databrary/databrary/services/mail"
 	"github.com/pressly/chi"
+	"github.com/renstrom/fuzzysearch/fuzzy"
+	"github.com/vattle/sqlboiler/queries/qm"
+	"gopkg.in/olahol/melody.v1"
 	"gopkg.in/throttled/throttled.v2"
-	"github.com/databrary/databrary/db"
 	"io/ioutil"
 	"net/http"
-	"gopkg.in/olahol/melody.v1"
 	"sync"
-	"github.com/databrary/databrary/db/models/sqlboiler_models/public"
-	"github.com/vattle/sqlboiler/queries/qm"
-	"github.com/renstrom/fuzzysearch/fuzzy"
-	"encoding/json"
-	"fmt"
 	//"github.com/pressly/chi/middleware"
+	"sort"
 )
 
 var rateLimiter throttled.HTTPRateLimiter
@@ -65,7 +66,6 @@ func AutoCompleteAffil(w http.ResponseWriter, r *http.Request) {
 	nInfo := NetInfoLogEntry(r)
 	mrouter.HandleConnect(func(s *melody.Session) {
 
-		fmt.Println("1Adfadfadfdf")
 		dbConn, err := db.GetDbConn()
 
 		if err != nil {
@@ -90,21 +90,25 @@ func AutoCompleteAffil(w http.ResponseWriter, r *http.Request) {
 	})
 
 	mrouter.HandleMessage(func(s *melody.Session, affil []byte) {
-		fmt.Println("2Adfadfadfdf")
-		affiliations := s.MustGet("affiliations")
-		matchingAffiliations := fuzzy.Find(string(affil), affiliations.([]string))
+		affiliations, err := s.Get("affiliations")
+		if err == false {
+			log.EntryWrapErr(nInfo, nil, "couldn't get affils")
+			return
+		}
+		matchingAffiliations := fuzzy.RankFindFold(string(affil), affiliations.([]string))
+		sort.Sort(matchingAffiliations)
+		matchingAffiliations = matchingAffiliations[:20]
 		j, _ := json.Marshal(matchingAffiliations)
 		mrouter.Broadcast(j)
 	})
 
-	mrouter.HandleSentMessage(func(s *melody.Session, b []byte) {
-		fmt.Println(string(b))
+	mrouter.HandleClose(func(m *melody.Session, i int, s string) error {
+		mrouter.Close()
+		return nil
 	})
 
 	mrouter.HandleError(func(s *melody.Session, err error) {
-		fmt.Println("3Adfadfadfdf")
-		_ = s
-		fmt.Println(err.Error())
+		mrouter.Close()
 	})
 	err := mrouter.HandleRequest(w, r)
 	fmt.Println(err)
