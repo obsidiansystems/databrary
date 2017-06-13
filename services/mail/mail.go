@@ -63,6 +63,44 @@ func SendPasswordRecovery(toName, toAddress, token string) error {
 	return err
 }
 
+func SendPasswordRegistration(toName, toAddress, token string) error {
+	conf := config.GetConf()
+	link := fmt.Sprintf("%s://%s:%s/user/confirm-email?token=%s",
+		conf.GetString("address.scheme"),
+		conf.GetString("address.domain"),
+		conf.GetString("address.frontend_port"),
+		token,
+	)
+	email := hermes.Email{
+		Body: hermes.Body{
+			Name: toName,
+			Intros: []string{
+				"You have received this email because you've registered a new account on Databrary.",
+			},
+			Actions: []hermes.Action{
+				{
+					Instructions: "Click the button to confirm your account:",
+					Button: hermes.Button{
+						Color: "#DC4D2F",
+						Text:  "Confirm your account",
+						Link:  link,
+					},
+				},
+			},
+			Outros: []string{
+				"If you did not request an account, please contact us immediately.",
+			},
+			Signature: "Love",
+		},
+	}
+	body, err := herm.GenerateHTML(email)
+	if err != nil {
+		return err
+	}
+	err = SendEmail(body, "Account Confirmation", toAddress)
+	return err
+}
+
 func SendPasswordRecoveryConfirmation(toName, toAddress string) error {
 	email := hermes.Email{
 		Body: hermes.Body{

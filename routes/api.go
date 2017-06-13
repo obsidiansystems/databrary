@@ -58,6 +58,9 @@ func user(r chi.Router) {
 	r.Post("/reset-password/token", ResetPasswordToken)
 
 	r.Get("/exists", UserExists)
+	r.Post("/check-token", CheckTokenExpiryEndpoint)
+
+	r.Post("/register", Register)
 }
 
 func AutoCompleteAffil(w http.ResponseWriter, r *http.Request) {
@@ -97,7 +100,11 @@ func AutoCompleteAffil(w http.ResponseWriter, r *http.Request) {
 		}
 		matchingAffiliations := fuzzy.RankFindFold(string(affil), affiliations.([]string))
 		sort.Sort(matchingAffiliations)
-		matchingAffiliations = matchingAffiliations[:20]
+		lenResults := 20
+		if matchingAffiliations.Len() < 20 {
+			lenResults = matchingAffiliations.Len()
+		}
+		matchingAffiliations = matchingAffiliations[:lenResults]
 		j, _ := json.Marshal(matchingAffiliations)
 		mrouter.Broadcast(j)
 	})

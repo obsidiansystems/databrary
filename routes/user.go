@@ -10,7 +10,7 @@ import (
 	"crypto/sha256"
 	"github.com/databrary/databrary/db"
 	public_models "github.com/databrary/databrary/db/models/sqlboiler_models/public"
-	log "github.com/databrary/databrary/logging"
+	"github.com/databrary/databrary/logging"
 	"github.com/databrary/databrary/services/mail"
 	"github.com/databrary/databrary/services/redis"
 	"github.com/databrary/databrary/util"
@@ -270,55 +270,82 @@ func ResetPasswordEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newUuid := uuid.NewV4()
-	uuidAsBytes := sha256.Sum256(newUuid.Bytes())
-
-	if err != nil {
-		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't generate auth token")
-		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
-		return
-	}
-
-	token := fmt.Sprintf("databrary.auth:%x", string(uuidAsBytes[:]))
-	fmt.Println(token)
-	payload, err := json.Marshal(struct {
-		AccountID int `json:"account_id"`
-	}{ac.ID})
-
-	if err != nil {
-		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't marshal payload with account id %#v", ac.ID)
-		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
-		return
-	}
-
-	redisStore, err := redis.GetRedisStore()
-
-	if err != nil {
-		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't open redis conn")
-		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
-		return
-	}
-
-	err = redisStore.Save(token, payload, time.Now().Add(24*time.Hour))
-
-	if err != nil {
-		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't save auth token %s with paylod %s", token, string(payload))
-		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
-		return
-	}
+	token, err := createToken(*pa, "auth", time.Now().Add(24*time.Hour))
 
 	toName := fmt.Sprintf("%s %s", pa.Prename.String, pa.Name)
-	err = mail.SendPasswordRecovery(toName, ac.Email, newUuid.String())
+	err = mail.SendPasswordRecovery(toName, ac.Email, token)
 
 	if err != nil {
-		redisStore.Delete(token)
-		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't send data to %#v with uuid %#v", ac.Email, newUuid)
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't send data to %#v with uuid %#v", ac.Email, token)
 		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 		return
 	}
 
 	nInfo.Infof("reset password email stage for %#v", ac.ID)
 	util.WriteJSONResp(w, "ok", "success")
+}
+
+func CheckTokenExpiryEndpoint(w http.ResponseWriter, r *http.Request) {
+	data := struct {
+		Token string `json:"token"`
+	}{}
+	nInfo := NetInfoLogEntry(r)
+
+	err := json.NewDecoder(r.Body).Decode(&data)
+
+	if err != nil {
+		body, _ := ioutil.ReadAll(r.Body)
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't decode data from body %s", string(body))
+		util.JsonErrResp(w, http.StatusBadRequest, errorUuid)
+		return
+	}
+
+	authUuid, err := uuid.FromString(data.Token)
+	_, msg, code, err := checkTokenExpiry(authUuid.String())
+	if err != nil {
+		_, errorUuid := log.EntryWrapErr(nInfo, err, msg)
+		util.JsonErrResp(w, code, errorUuid)
+		return
+	}
+
+	if code == http.StatusForbidden {
+		log.EntryWrapErrLogWarn(nInfo, nil, "auth token expired %s", authUuid.String())
+		w.WriteHeader(code)
+		return
+	}
+
+	util.WriteJSONResp(w, "ok", "success")
+}
+
+func checkTokenExpiry(token string) ([]byte, string, int, error) {
+	authUuid, err := uuid.FromString(token)
+
+	if err != nil {
+		return nil, fmt.Sprintf("couldn't decode uuid %s", token), http.StatusBadRequest, err
+	}
+
+	b := sha256.Sum256(authUuid.Bytes())
+
+	if err != nil {
+		return nil, fmt.Sprintf("couldn't generate auth data hash from uuid %#v", authUuid), http.StatusInternalServerError, err
+	}
+
+	redisToken := fmt.Sprintf("databrary.auth:%x", string(b[:]))
+	redisStore, err := redis.GetRedisStore()
+	if err != nil {
+		return nil, "couldn't open redis conn", http.StatusInternalServerError, err
+	}
+
+	authData, exists, err := redisStore.Find(redisToken)
+
+	if err != nil {
+		return nil, "couldn't fetch redis data", http.StatusInternalServerError, err
+	}
+
+	if !exists {
+		return nil, fmt.Sprintf("auth token expired %s", redisToken), http.StatusForbidden, nil
+	}
+	return authData, redisToken, 0, nil
 }
 
 func ResetPasswordToken(w http.ResponseWriter, r *http.Request) {
@@ -340,41 +367,16 @@ func ResetPasswordToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	authUuid, err := uuid.FromString(data.Token)
-
+	authData, redisToken, code, err := checkTokenExpiry(authUuid.String())
 	if err != nil {
-		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't decode uuid %s", data.Token)
-		util.JsonErrResp(w, http.StatusBadRequest, errorUuid)
+		_, errorUuid := log.EntryWrapErr(nInfo, err, redisToken)
+		util.JsonErrResp(w, code, errorUuid)
 		return
 	}
 
-	b := sha256.Sum256(authUuid.Bytes())
-
-	if err != nil {
-		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't generate auth data hash from uuid %#v", authUuid)
-		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
-		return
-	}
-
-	redisToken := fmt.Sprintf("databrary.auth:%x", string(b[:]))
-	// reuse b
-	redisStore, err := redis.GetRedisStore()
-	if err != nil {
-		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't open redis conn")
-		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
-		return
-	}
-
-	authData, exists, err := redisStore.Find(redisToken)
-
-	if err != nil {
-		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't fetch redis data")
-		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
-		return
-	}
-
-	if !exists {
-		log.EntryWrapErrLogWarn(nInfo, nil, "auth token expired %s", redisToken)
-		w.WriteHeader(http.StatusForbidden)
+	if code == http.StatusForbidden {
+		log.EntryWrapErrLogWarn(nInfo, nil, "auth token expired %s", authUuid.String())
+		w.WriteHeader(code)
 		return
 	}
 
@@ -384,7 +386,7 @@ func ResetPasswordToken(w http.ResponseWriter, r *http.Request) {
 
 	err = json.Unmarshal(authData, &redisPayload)
 	if err != nil {
-		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't unmarshal redis payload from %s", string(authData[:]))
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't unmarshal redis payload from %s", redisToken)
 		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 		return
 	}
@@ -452,6 +454,12 @@ func ResetPasswordToken(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.EntryWrapErrLogWarn(nInfo, err, "couldn't send email", ac.Email)
 	}
+	redisStore, err := redis.GetRedisStore()
+
+	if err != nil {
+		log.EntryWrapErrLogWarn(nInfo, err, "couldn't open redis conn")
+		return
+	}
 
 	err = redisStore.Delete(redisToken)
 
@@ -507,4 +515,130 @@ func UserExists(w http.ResponseWriter, r *http.Request) {
 	} else {
 		returnFalse()
 	}
+}
+
+func Register(w http.ResponseWriter, r *http.Request) {
+
+	session.Destroy(w, r)
+	data := struct {
+		FirstName   string `json:"firstName"`
+		LastName    string `json:"lastName"`
+		Email       string `json:"email"`
+		Affiliation string `json:"affiliation"`
+		ORCID       string `json:"orcid"`
+		URL         string `json:"homepage"`
+	}{}
+	nInfo := NetInfoLogEntry(r)
+
+	err := json.NewDecoder(r.Body).Decode(&data)
+
+	if err != nil {
+		body, _ := ioutil.ReadAll(r.Body)
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't decode data from body %s", string(body))
+		util.JsonErrResp(w, http.StatusBadRequest, errorUuid)
+		return
+	}
+
+	dbConn, err := db.GetDbConn()
+	tx, err := dbConn.Begin()
+	if err != nil {
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't open db conn")
+		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
+		return
+	}
+
+	newParty := public_models.Party{
+		Name:        data.LastName,
+		Prename:     null.NewString(data.FirstName, true),
+		Affiliation: null.NewString(data.Affiliation, true),
+	}
+
+	if len(data.ORCID) > 0 {
+		newParty.Orcid = null.NewString(data.ORCID, true)
+	}
+
+	if len(data.URL) > 0 {
+		newParty.URL = null.NewString(data.URL, true)
+	}
+
+	err = newParty.Insert(tx)
+
+	if err != nil {
+		tx.Rollback()
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't create party")
+		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
+		return
+	}
+
+	newAccount := public_models.Account{
+		ID:    newParty.ID,
+		Email: data.Email,
+	}
+	// only insert email value (let db increment id)
+	err = newAccount.Insert(tx)
+
+	if err != nil {
+		tx.Rollback()
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't create account")
+		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
+		return
+	}
+
+	err = tx.Commit()
+
+	if err != nil {
+		tx.Rollback()
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't create commit account/party creation transaction")
+		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
+		return
+	}
+
+	token, err := createToken(newParty, "auth", time.Now().Add(168*time.Hour))
+
+	if err != nil {
+		_, errorUuid := log.EntryWrapErr(nInfo, err, token)
+		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
+		return
+	}
+
+	toName := fmt.Sprintf("%s %s", newParty.Prename.String, newParty.Name)
+	err = mail.SendPasswordRegistration(toName, newAccount.Email, token)
+
+	if err != nil {
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't send data to %#v with uuid %#v", newAccount.Email, token)
+		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
+		return
+	}
+
+	nInfo.Infof("account confirmation for %#v", newParty.ID)
+	util.WriteJSONResp(w, "ok", "success")
+}
+
+// for password redis token reset and registration
+func createToken(party public_models.Party, redisContext string, expiration time.Time) (string, error) {
+	newUuid := uuid.NewV4()
+	uuidAsBytes := sha256.Sum256(newUuid.Bytes())
+
+	token := fmt.Sprintf("databrary.%s:%x", redisContext, string(uuidAsBytes[:]))
+	payload, err := json.Marshal(struct {
+		AccountID int `json:"account_id"`
+	}{party.ID})
+
+	if err != nil {
+		return fmt.Sprintf("couldn't marshal payload with account id %#v", party.ID), err
+	}
+
+	redisStore, err := redis.GetRedisStore()
+
+	if err != nil {
+		return "couldn't open redis conn", err
+	}
+
+	err = redisStore.Save(token, payload, expiration)
+
+	if err != nil {
+		return fmt.Sprintf("couldn't save registration token %s with paylod %s", token, string(payload)), err
+	}
+
+	return newUuid.String(), nil
 }
