@@ -7,6 +7,7 @@ import (
 	"github.com/databrary/databrary/db/models/sqlboiler_models/public"
 	"github.com/databrary/databrary/logging"
 	"github.com/databrary/databrary/services/mail"
+	"github.com/databrary/databrary/util"
 	"github.com/pressly/chi"
 	"github.com/renstrom/fuzzysearch/fuzzy"
 	"github.com/vattle/sqlboiler/queries/qm"
@@ -14,9 +15,8 @@ import (
 	"gopkg.in/throttled/throttled.v2"
 	"io/ioutil"
 	"net/http"
-	"sync"
 	"sort"
-	"github.com/databrary/databrary/util"
+	"sync"
 )
 
 var rateLimiter throttled.HTTPRateLimiter
