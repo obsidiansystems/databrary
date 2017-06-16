@@ -189,6 +189,7 @@ func IsLoggedInEndpoint(w http.ResponseWriter, r *http.Request) {
 	}
 	nInfo := NetInfoLogEntry(r)
 	loggedIn, statusCode, err := isLoggedIn(r)
+
 	if err != nil {
 		session.Destroy(w, r)
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "login endpoint failed")

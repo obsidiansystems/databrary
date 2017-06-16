@@ -2,7 +2,6 @@ package routes
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/Sirupsen/logrus"
 	"github.com/databrary/databrary/db"
 	"github.com/databrary/databrary/db/models/sqlboiler_models/public"
@@ -16,8 +15,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"sync"
-	//"github.com/pressly/chi/middleware"
 	"sort"
+	"github.com/databrary/databrary/util"
 )
 
 var rateLimiter throttled.HTTPRateLimiter
@@ -118,14 +117,21 @@ func AutoCompleteAffil(w http.ResponseWriter, r *http.Request) {
 		mrouter.Close()
 	})
 	err := mrouter.HandleRequest(w, r)
-	fmt.Println(err)
+	if err != nil {
+		log.EntryWrapErr(nInfo, err, "couldn't handle websocket request")
+	}
 }
 
-func ReportError(_ http.ResponseWriter, r *http.Request) {
+func ReportError(w http.ResponseWriter, r *http.Request) {
+	nInfo := NetInfoLogEntry(r)
 	body, err := ioutil.ReadAll(r.Body)
 	if err == nil {
 		mail.SendEmail(string(body), "Databrary Error", "maksim.levental@nyu.edu")
+	} else {
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't send report error email")
+		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 	}
+
 }
 
 //func adminRouter() http.Handler {
