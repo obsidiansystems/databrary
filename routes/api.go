@@ -2,15 +2,15 @@ package routes
 
 import (
 	"encoding/json"
-	"github.com/Sirupsen/logrus"
 	"github.com/databrary/databrary/db"
 	"github.com/databrary/databrary/db/models/sqlboiler_models/public"
 	"github.com/databrary/databrary/logging"
 	"github.com/databrary/databrary/services/mail"
 	"github.com/databrary/databrary/util"
+	"github.com/databrary/sqlboiler/queries/qm"
 	"github.com/pressly/chi"
 	"github.com/renstrom/fuzzysearch/fuzzy"
-	"github.com/vattle/sqlboiler/queries/qm"
+	"github.com/sirupsen/logrus"
 	"gopkg.in/olahol/melody.v1"
 	"gopkg.in/throttled/throttled.v2"
 	"io/ioutil"

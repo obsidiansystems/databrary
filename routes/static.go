@@ -8,8 +8,8 @@ import (
 	"github.com/databrary/databrary/logging"
 	"github.com/databrary/databrary/util"
 	"github.com/databrary/scs/session"
+	"github.com/databrary/sqlboiler/queries/qm"
 	"github.com/jmoiron/sqlx"
-	"github.com/vattle/sqlboiler/queries/qm"
 	"net/http"
 )
 

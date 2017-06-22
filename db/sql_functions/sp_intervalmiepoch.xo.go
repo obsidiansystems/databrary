@@ -6,7 +6,7 @@ package xo_models
 import (
 	"time"
 
-	"github.com/vattle/sqlboiler/boil"
+	"github.com/databrary/sqlboiler/boil"
 )
 
 // IntervalMiEpoch calls the stored procedure 'public.interval_mi_epoch(interval, interval) double precision' on db.
