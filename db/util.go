@@ -7,10 +7,13 @@ import (
 	"github.com/databrary/databrary/util"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 )
 
-func OpenConn(conf *viper.Viper) (*sqlx.DB, error) {
+var dbConn *sqlx.DB
+
+func InitDB(conf *viper.Viper) error {
 	settings := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		conf.GetString("database.host"),
 		conf.GetString("database.port"),
@@ -19,11 +22,22 @@ func OpenConn(conf *viper.Viper) (*sqlx.DB, error) {
 		conf.GetString("database.dbname"),
 		conf.GetString("database.sslmode"),
 	)
-	conn, err := sqlx.Connect("postgres", settings)
-	if err != nil {
-		return nil, err
+	var err error
+	if dbConn, err = sqlx.Connect("postgres", settings); err != nil {
+		dbConn = nil
+		return err
 	}
-	return conn, nil
+	dbConn.SetConnMaxLifetime(time.Hour)
+	dbConn.SetMaxIdleConns(100)
+	dbConn.SetMaxOpenConns(100)
+	return nil
+}
+
+func GetDbConn() (*sqlx.DB, error) {
+	if dbConn != nil {
+		return dbConn, nil
+	}
+	return nil, errors.New("uninited db")
 }
 
 // pg dates are relative to this fixed zone
