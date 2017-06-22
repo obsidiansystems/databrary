@@ -16,7 +16,7 @@ The version of sqlboiler though has been heavily modified to enable use of "cust
 Here are the commands to generate the models
 
 ```bash
-./sqlboiler postgres --basedir templates/ -o models/sqlboiler_models/
+./sqlboiler postgres --basedir templates/ -o models/sqlboiler_models/public -p public
 rsync -avpP models/sqlboiler_models/ ../../db/models/sqlboiler_models/
 
 ```
