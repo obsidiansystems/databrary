@@ -1,5 +1,19 @@
 # Databrary 2.0
 
+
+Table of Contents
+=================
+
+      * [Dependencies](#dependencies)
+         * [git](#git)
+         * [mercurial](#mercurial)
+         * [golang](#golang)
+         * [Docker](#docker)
+         * [Docker Compose](#docker-compose)
+         * [PSQL](#psql)
+         * [Dev Tools](#dev-tools)
+      * [Instructions](#instructions)
+
 ## Dependencies
 
 ### git
@@ -78,6 +92,7 @@ replace $USER with your name in `config/databrary_dev.toml`. finally
 ```
 
 will serve databrary on port 3444 over https. the https will be reported as insecure because the certs are self-signed but oh well.
+
 
 
 
