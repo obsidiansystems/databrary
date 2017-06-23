@@ -2,19 +2,84 @@
 
 ## Dependencies
 
+### git
+
+get it from somewhere
+
+### mercurial
+
+get it from somewhere
+
 ### golang
 
-https://golang.org/doc/install#install
+```
+wget https://storage.googleapis.com/golang/go$VERSION.$OS-$ARCH.tar.gz
+sudo tar -C /usr/local -xzf go$VERSION.$OS-$ARCH.tar.gz
 
-go uses two paths for storing dependencies: GOROOT and GOPATH.
+export PATH=$PATH:/usr/local/go/bin:~/go/bin
+
+go get -u github.com/golang/dep/cmd/dep
+```
 
 ### Docker
 
-ubuntu instructions
+```
+wget -qO- https://get.docker.com/ | sh
+sudo usermod -aG docker $USER
+```
+you will need to login/logout
 
-https://docs.docker.com/engine/installation/linux/ubuntu/
+### Docker Compose
+
+```
+sudo wget -O /usr/local/bin/docker-compose https://github.com/docker/compose/releases/download/1.14.0/docker-compose-`uname -s`-`uname -m`
+
+sudo chmod +x /usr/local/bin/docker-compose
+```
+
+### PSQL
+
+```
+sudo apt-get install postgresql-client
+```
 
 ### Dev Tools
 
 I highly highly recommend [Gogland](https://www.jetbrains.com/go/) as a go ide.
+
+## Instructions
+
+```
+go get -u github.com/databrary/databrary
+cd ~/go/src/github.com/databrary/databrary
+git checkout go_master
+dep ensure
+go build
+
+cd Docker
+./docker_build.sh
+cd ..
+```
+postgres pw: mysecretpassword
+
+```
+psql -f db/schema/master_sql -h localhost -U postgres
+docker-compose up
+```
+
+docker will start solr, postgres, and redis instance in that terminal. open a new terminal
+
+```
+cd ~/go/src/github.com/databrary/databrary
+```
+ 
+replace $USER with your name in `config/databrary_dev.toml`. finally
+
+```
+./databrary -c config/databrary_dev.toml
+```
+
+will serve databrary on port 3444 over https.
+
+
 
