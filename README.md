@@ -59,19 +59,16 @@ go build
 
 cd Docker
 ./docker_build.sh
-cd ..
-```
-postgres pw: mysecretpassword
-
-```
-psql -f db/schema/master_sql -h localhost -U postgres
 docker-compose up
 ```
+postgres pw: mysecretpassword
 
 docker will start solr, postgres, and redis instance in that terminal. open a new terminal
 
 ```
 cd ~/go/src/github.com/databrary/databrary
+psql -f db/schema/master_sql -h localhost -U postgres
+
 ```
  
 replace $USER with your name in `config/databrary_dev.toml`. finally
