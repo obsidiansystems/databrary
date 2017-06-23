@@ -4,15 +4,15 @@
 Table of Contents
 =================
 
-      * [Dependencies](#dependencies)
-         * [git](#git)
-         * [mercurial](#mercurial)
-         * [golang](#golang)
-         * [Docker](#docker)
-         * [Docker Compose](#docker-compose)
-         * [PSQL](#psql)
-         * [Dev Tools](#dev-tools)
-      * [Instructions](#instructions)
+  * [Dependencies](#dependencies)
+     * [git](#git)
+     * [mercurial](#mercurial)
+     * [golang](#golang)
+     * [Docker](#docker)
+     * [Docker Compose](#docker-compose)
+     * [PSQL](#psql)
+     * [Dev Tools](#dev-tools)
+  * [Instructions](#instructions)
 
 ## Dependencies
 
