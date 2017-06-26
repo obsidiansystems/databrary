@@ -81,7 +81,7 @@ docker will start solr, postgres, and redis instance in that terminal. open a ne
 
 ```
 cd ~/go/src/github.com/databrary/databrary
-psql -f db/schema/master_sql -h localhost -U postgres
+psql -f db/schema/master_sql -h localhost -U postgres -d databrary
 ```
  
 replace $USER with your name in `config/databrary_dev.toml`. finally
