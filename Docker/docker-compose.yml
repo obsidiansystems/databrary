@@ -20,7 +20,7 @@ services:
     image: databrary_redis
     ports:
       - "6379:6379"
-    command: redis-server --appendonly yes
+    command: redis-server /usr/local/etc/redis/redis.conf --appendonly yes
 
 volumes:
   databrary_solr_store:
