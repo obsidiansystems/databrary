@@ -15,7 +15,7 @@ type M map[string]interface{}
 // ErrSyncFail occurs during insert when the record could not be retrieved in
 // order to populate default value information. This usually happens when LastInsertId
 // fails or there was a primary key configuration that was not resolvable.
-var ErrSyncFail = errors.New("models: failed to synchronize data after insert")
+var ErrSyncFail = errors.New("public: failed to synchronize data after insert")
 
 type insertCache struct {
 	query        string
@@ -65,6 +65,14 @@ const (
 	PermissionADMIN  = "ADMIN"
 )
 
+// Enum values for data_type
+const (
+	DataTypeText    = "text"
+	DataTypeNumeric = "numeric"
+	DataTypeDate    = "date"
+	DataTypeVoid    = "void"
+)
+
 // Enum values for notice_delivery
 const (
 	NoticeDeliveryNone   = "none"
@@ -72,12 +80,4 @@ const (
 	NoticeDeliveryWeekly = "weekly"
 	NoticeDeliveryDaily  = "daily"
 	NoticeDeliveryAsync  = "async"
-)
-
-// Enum values for data_type
-const (
-	DataTypeText    = "text"
-	DataTypeNumeric = "numeric"
-	DataTypeDate    = "date"
-	DataTypeVoid    = "void"
 )

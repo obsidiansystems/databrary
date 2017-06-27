@@ -6,13 +6,12 @@ package audit
 
 import (
 	"bytes"
+	"github.com/pmezard/go-difflib/difflib"
 	"os"
 	"os/exec"
 	"sort"
 	"strings"
 	"testing"
-
-	"github.com/pmezard/go-difflib/difflib"
 )
 
 func testSlotAssets(t *testing.T) {

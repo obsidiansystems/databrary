@@ -8,16 +8,15 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"reflect"
-	"strings"
-	"sync"
-	"time"
-
 	"github.com/databrary/sqlboiler/boil"
 	"github.com/databrary/sqlboiler/queries"
 	"github.com/databrary/sqlboiler/queries/qm"
 	"github.com/databrary/sqlboiler/strmangle"
 	"github.com/pkg/errors"
+	"reflect"
+	"strings"
+	"sync"
+	"time"
 )
 
 // Token is an object representing the database table.
@@ -233,7 +232,7 @@ func (q tokenQuery) One() (*Token, error) {
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: failed to execute a one query for token")
+		return nil, errors.Wrap(err, "public: failed to execute a one query for token")
 	}
 
 	if err := o.doAfterSelectHooks(queries.GetExecutor(q.Query)); err != nil {
@@ -259,7 +258,7 @@ func (q tokenQuery) All() (TokenSlice, error) {
 
 	err := q.Bind(&o)
 	if err != nil {
-		return nil, errors.Wrap(err, "models: failed to assign all query results to Token slice")
+		return nil, errors.Wrap(err, "public: failed to assign all query results to Token slice")
 	}
 
 	if len(tokenAfterSelectHooks) != 0 {
@@ -292,7 +291,7 @@ func (q tokenQuery) Count() (int64, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to count token rows")
+		return 0, errors.Wrap(err, "public: failed to count token rows")
 	}
 
 	return count, nil
@@ -317,7 +316,7 @@ func (q tokenQuery) Exists() (bool, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "models: failed to check if token exists")
+		return false, errors.Wrap(err, "public: failed to check if token exists")
 	}
 
 	return count > 0, nil
@@ -369,7 +368,7 @@ func FindToken(exec boil.Executor, token string, selectCols ...string) (*Token, 
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: unable to select from token")
+		return nil, errors.Wrap(err, "public: unable to select from token")
 	}
 
 	return tokenObj, nil
@@ -413,7 +412,7 @@ func (o *Token) InsertP(exec boil.Executor, whitelist ...string) {
 // - All columns with a default, but non-zero are included (i.e. health = 75)
 func (o *Token) Insert(exec boil.Executor, whitelist ...string) error {
 	if o == nil {
-		return errors.New("models: no token provided for insertion")
+		return errors.New("public: no token provided for insertion")
 	}
 
 	var err error
@@ -472,7 +471,7 @@ func (o *Token) Insert(exec boil.Executor, whitelist ...string) error {
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "models: unable to insert into token")
+		return errors.Wrap(err, "public: unable to insert into token")
 	}
 
 	if !cached {
@@ -527,8 +526,12 @@ func (o *Token) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(tokenColumns, tokenPrimaryKeyColumns, whitelist)
+
+		if len(whitelist) == 0 {
+			wl = strmangle.SetComplement(wl, []string{"created_at"})
+		}
 		if len(wl) == 0 {
-			return errors.New("models: unable to update token, could not build whitelist")
+			return errors.New("public: unable to update token, could not build whitelist")
 		}
 
 		cache.query = fmt.Sprintf("UPDATE \"token\" SET %s WHERE %s",
@@ -550,7 +553,7 @@ func (o *Token) Update(exec boil.Executor, whitelist ...string) error {
 
 	_, err = exec.Exec(cache.query, values...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update token row")
+		return errors.Wrap(err, "public: unable to update token row")
 	}
 
 	if !cached {
@@ -575,7 +578,7 @@ func (q tokenQuery) UpdateAll(cols M) error {
 
 	_, err := q.Query.Exec()
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update all for token")
+		return errors.Wrap(err, "public: unable to update all for token")
 	}
 
 	return nil
@@ -608,7 +611,7 @@ func (o TokenSlice) UpdateAll(exec boil.Executor, cols M) error {
 	}
 
 	if len(cols) == 0 {
-		return errors.New("models: update all requires at least one column argument")
+		return errors.New("public: update all requires at least one column argument")
 	}
 
 	colNames := make([]string, len(cols))
@@ -640,7 +643,7 @@ func (o TokenSlice) UpdateAll(exec boil.Executor, cols M) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update all in token slice")
+		return errors.Wrap(err, "public: unable to update all in token slice")
 	}
 
 	return nil
@@ -669,7 +672,7 @@ func (o *Token) UpsertP(exec boil.Executor, updateOnConflict bool, conflictColum
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.
 func (o *Token) Upsert(exec boil.Executor, updateOnConflict bool, conflictColumns []string, updateColumns []string, whitelist ...string) error {
 	if o == nil {
-		return errors.New("models: no token provided for upsert")
+		return errors.New("public: no token provided for upsert")
 	}
 
 	if err := o.doBeforeUpsertHooks(exec); err != nil {
@@ -725,7 +728,7 @@ func (o *Token) Upsert(exec boil.Executor, updateOnConflict bool, conflictColumn
 			updateColumns,
 		)
 		if len(update) == 0 {
-			return errors.New("models: unable to upsert token, could not build update column list")
+			return errors.New("public: unable to upsert token, could not build update column list")
 		}
 
 		conflict := conflictColumns
@@ -768,7 +771,7 @@ func (o *Token) Upsert(exec boil.Executor, updateOnConflict bool, conflictColumn
 		_, err = exec.Exec(cache.query, vals...)
 	}
 	if err != nil {
-		return errors.Wrap(err, "models: unable to upsert token")
+		return errors.Wrap(err, "public: unable to upsert token")
 	}
 
 	if !cached {
@@ -793,7 +796,7 @@ func (o *Token) DeleteP(exec boil.Executor) {
 // DeleteG will match against the primary key column to find the record to delete.
 func (o *Token) DeleteG() error {
 	if o == nil {
-		return errors.New("models: no Token provided for deletion")
+		return errors.New("public: no Token provided for deletion")
 	}
 
 	return o.Delete(boil.GetDB())
@@ -812,7 +815,7 @@ func (o *Token) DeleteGP() {
 // Delete will match against the primary key column to find the record to delete.
 func (o *Token) Delete(exec boil.Executor) error {
 	if o == nil {
-		return errors.New("models: no Token provided for delete")
+		return errors.New("public: no Token provided for delete")
 	}
 
 	if err := o.doBeforeDeleteHooks(exec); err != nil {
@@ -829,7 +832,7 @@ func (o *Token) Delete(exec boil.Executor) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete from token")
+		return errors.Wrap(err, "public: unable to delete from token")
 	}
 
 	if err := o.doAfterDeleteHooks(exec); err != nil {
@@ -849,14 +852,14 @@ func (q tokenQuery) DeleteAllP() {
 // DeleteAll deletes all matching rows.
 func (q tokenQuery) DeleteAll() error {
 	if q.Query == nil {
-		return errors.New("models: no tokenQuery provided for delete all")
+		return errors.New("public: no tokenQuery provided for delete all")
 	}
 
 	queries.SetDelete(q.Query)
 
 	_, err := q.Query.Exec()
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete all from token")
+		return errors.Wrap(err, "public: unable to delete all from token")
 	}
 
 	return nil
@@ -872,7 +875,7 @@ func (o TokenSlice) DeleteAllGP() {
 // DeleteAllG deletes all rows in the slice.
 func (o TokenSlice) DeleteAllG() error {
 	if o == nil {
-		return errors.New("models: no Token slice provided for delete all")
+		return errors.New("public: no Token slice provided for delete all")
 	}
 	return o.DeleteAll(boil.GetDB())
 }
@@ -887,7 +890,7 @@ func (o TokenSlice) DeleteAllP(exec boil.Executor) {
 // DeleteAll deletes all rows in the slice, using an executor.
 func (o TokenSlice) DeleteAll(exec boil.Executor) error {
 	if o == nil {
-		return errors.New("models: no Token slice provided for delete all")
+		return errors.New("public: no Token slice provided for delete all")
 	}
 
 	if len(o) == 0 {
@@ -921,7 +924,7 @@ func (o TokenSlice) DeleteAll(exec boil.Executor) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete all from token slice")
+		return errors.Wrap(err, "public: unable to delete all from token slice")
 	}
 
 	if len(tokenAfterDeleteHooks) != 0 {
@@ -952,7 +955,7 @@ func (o *Token) ReloadP(exec boil.Executor) {
 // ReloadG refetches the object from the database using the primary keys.
 func (o *Token) ReloadG() error {
 	if o == nil {
-		return errors.New("models: no Token provided for reload")
+		return errors.New("public: no Token provided for reload")
 	}
 
 	return o.Reload(boil.GetDB())
@@ -992,7 +995,7 @@ func (o *TokenSlice) ReloadAllP(exec boil.Executor) {
 // and overwrites the original object slice with the newly updated slice.
 func (o *TokenSlice) ReloadAllG() error {
 	if o == nil {
-		return errors.New("models: empty TokenSlice provided for reload all")
+		return errors.New("public: empty TokenSlice provided for reload all")
 	}
 
 	return o.ReloadAll(boil.GetDB())
@@ -1022,7 +1025,7 @@ func (o *TokenSlice) ReloadAll(exec boil.Executor) error {
 
 	err := q.Bind(&tokens)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to reload all in TokenSlice")
+		return errors.Wrap(err, "public: unable to reload all in TokenSlice")
 	}
 
 	*o = tokens
@@ -1045,7 +1048,7 @@ func TokenExists(exec boil.Executor, token string) (bool, error) {
 
 	err := row.Scan(&exists)
 	if err != nil {
-		return false, errors.Wrap(err, "models: unable to check if token exists")
+		return false, errors.Wrap(err, "public: unable to check if token exists")
 	}
 
 	return exists, nil

@@ -8,17 +8,15 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
+	"github.com/databrary/sqlboiler/bdb/drivers"
+	"github.com/databrary/sqlboiler/randomize"
+	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
-
-	"github.com/databrary/sqlboiler/bdb/drivers"
-	"github.com/databrary/sqlboiler/randomize"
-	_ "github.com/lib/pq"
-	"github.com/pkg/errors"
-	"github.com/spf13/viper"
 )
 
 type pgTester struct {

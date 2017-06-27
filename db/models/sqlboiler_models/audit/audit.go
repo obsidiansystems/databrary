@@ -8,17 +8,16 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"reflect"
-	"strings"
-	"sync"
-	"time"
-
 	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/databrary/sqlboiler/boil"
 	"github.com/databrary/sqlboiler/queries"
 	"github.com/databrary/sqlboiler/queries/qm"
 	"github.com/databrary/sqlboiler/strmangle"
 	"github.com/pkg/errors"
+	"reflect"
+	"strings"
+	"sync"
+	"time"
 )
 
 // Audit is an object representing the database table.
@@ -232,7 +231,7 @@ func (q auditQuery) One() (*Audit, error) {
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "audit: failed to execute a one query for audit")
+		return nil, errors.Wrap(err, "models: failed to execute a one query for audit")
 	}
 
 	if err := o.doAfterSelectHooks(queries.GetExecutor(q.Query)); err != nil {
@@ -258,7 +257,7 @@ func (q auditQuery) All() (AuditSlice, error) {
 
 	err := q.Bind(&o)
 	if err != nil {
-		return nil, errors.Wrap(err, "audit: failed to assign all query results to Audit slice")
+		return nil, errors.Wrap(err, "models: failed to assign all query results to Audit slice")
 	}
 
 	if len(auditAfterSelectHooks) != 0 {
@@ -291,7 +290,7 @@ func (q auditQuery) Count() (int64, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "audit: failed to count audit rows")
+		return 0, errors.Wrap(err, "models: failed to count audit rows")
 	}
 
 	return count, nil
@@ -316,7 +315,7 @@ func (q auditQuery) Exists() (bool, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "audit: failed to check if audit exists")
+		return false, errors.Wrap(err, "models: failed to check if audit exists")
 	}
 
 	return count > 0, nil
@@ -361,7 +360,7 @@ func (o *Audit) InsertP(exec boil.Executor, whitelist ...string) {
 // - All columns with a default, but non-zero are included (i.e. health = 75)
 func (o *Audit) Insert(exec boil.Executor, whitelist ...string) error {
 	if o == nil {
-		return errors.New("audit: no audit provided for insertion")
+		return errors.New("models: no audit provided for insertion")
 	}
 
 	var err error
@@ -420,7 +419,7 @@ func (o *Audit) Insert(exec boil.Executor, whitelist ...string) error {
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "audit: unable to insert into audit")
+		return errors.Wrap(err, "models: unable to insert into audit")
 	}
 
 	if !cached {

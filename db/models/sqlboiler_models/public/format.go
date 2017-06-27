@@ -8,17 +8,16 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"reflect"
-	"strings"
-	"sync"
-	"time"
-
 	"github.com/databrary/sqlboiler/boil"
 	"github.com/databrary/sqlboiler/queries"
 	"github.com/databrary/sqlboiler/queries/qm"
 	"github.com/databrary/sqlboiler/strmangle"
 	"github.com/databrary/sqlboiler/types"
 	"github.com/pkg/errors"
+	"reflect"
+	"strings"
+	"sync"
+	"time"
 )
 
 // Format is an object representing the database table.
@@ -237,7 +236,7 @@ func (q formatQuery) One() (*Format, error) {
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: failed to execute a one query for format")
+		return nil, errors.Wrap(err, "public: failed to execute a one query for format")
 	}
 
 	if err := o.doAfterSelectHooks(queries.GetExecutor(q.Query)); err != nil {
@@ -263,7 +262,7 @@ func (q formatQuery) All() (FormatSlice, error) {
 
 	err := q.Bind(&o)
 	if err != nil {
-		return nil, errors.Wrap(err, "models: failed to assign all query results to Format slice")
+		return nil, errors.Wrap(err, "public: failed to assign all query results to Format slice")
 	}
 
 	if len(formatAfterSelectHooks) != 0 {
@@ -296,7 +295,7 @@ func (q formatQuery) Count() (int64, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to count format rows")
+		return 0, errors.Wrap(err, "public: failed to count format rows")
 	}
 
 	return count, nil
@@ -321,7 +320,7 @@ func (q formatQuery) Exists() (bool, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "models: failed to check if format exists")
+		return false, errors.Wrap(err, "public: failed to check if format exists")
 	}
 
 	return count > 0, nil
@@ -553,7 +552,7 @@ func FindFormat(exec boil.Executor, id int16, selectCols ...string) (*Format, er
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: unable to select from format")
+		return nil, errors.Wrap(err, "public: unable to select from format")
 	}
 
 	return formatObj, nil
@@ -597,7 +596,7 @@ func (o *Format) InsertP(exec boil.Executor, whitelist ...string) {
 // - All columns with a default, but non-zero are included (i.e. health = 75)
 func (o *Format) Insert(exec boil.Executor, whitelist ...string) error {
 	if o == nil {
-		return errors.New("models: no format provided for insertion")
+		return errors.New("public: no format provided for insertion")
 	}
 
 	var err error
@@ -656,7 +655,7 @@ func (o *Format) Insert(exec boil.Executor, whitelist ...string) error {
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "models: unable to insert into format")
+		return errors.Wrap(err, "public: unable to insert into format")
 	}
 
 	if !cached {
@@ -711,8 +710,12 @@ func (o *Format) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(formatColumns, formatPrimaryKeyColumns, whitelist)
+
+		if len(whitelist) == 0 {
+			wl = strmangle.SetComplement(wl, []string{"created_at"})
+		}
 		if len(wl) == 0 {
-			return errors.New("models: unable to update format, could not build whitelist")
+			return errors.New("public: unable to update format, could not build whitelist")
 		}
 
 		cache.query = fmt.Sprintf("UPDATE \"format\" SET %s WHERE %s",
@@ -734,7 +737,7 @@ func (o *Format) Update(exec boil.Executor, whitelist ...string) error {
 
 	_, err = exec.Exec(cache.query, values...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update format row")
+		return errors.Wrap(err, "public: unable to update format row")
 	}
 
 	if !cached {
@@ -759,7 +762,7 @@ func (q formatQuery) UpdateAll(cols M) error {
 
 	_, err := q.Query.Exec()
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update all for format")
+		return errors.Wrap(err, "public: unable to update all for format")
 	}
 
 	return nil
@@ -792,7 +795,7 @@ func (o FormatSlice) UpdateAll(exec boil.Executor, cols M) error {
 	}
 
 	if len(cols) == 0 {
-		return errors.New("models: update all requires at least one column argument")
+		return errors.New("public: update all requires at least one column argument")
 	}
 
 	colNames := make([]string, len(cols))
@@ -824,7 +827,7 @@ func (o FormatSlice) UpdateAll(exec boil.Executor, cols M) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update all in format slice")
+		return errors.Wrap(err, "public: unable to update all in format slice")
 	}
 
 	return nil
@@ -853,7 +856,7 @@ func (o *Format) UpsertP(exec boil.Executor, updateOnConflict bool, conflictColu
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.
 func (o *Format) Upsert(exec boil.Executor, updateOnConflict bool, conflictColumns []string, updateColumns []string, whitelist ...string) error {
 	if o == nil {
-		return errors.New("models: no format provided for upsert")
+		return errors.New("public: no format provided for upsert")
 	}
 
 	if err := o.doBeforeUpsertHooks(exec); err != nil {
@@ -909,7 +912,7 @@ func (o *Format) Upsert(exec boil.Executor, updateOnConflict bool, conflictColum
 			updateColumns,
 		)
 		if len(update) == 0 {
-			return errors.New("models: unable to upsert format, could not build update column list")
+			return errors.New("public: unable to upsert format, could not build update column list")
 		}
 
 		conflict := conflictColumns
@@ -952,7 +955,7 @@ func (o *Format) Upsert(exec boil.Executor, updateOnConflict bool, conflictColum
 		_, err = exec.Exec(cache.query, vals...)
 	}
 	if err != nil {
-		return errors.Wrap(err, "models: unable to upsert format")
+		return errors.Wrap(err, "public: unable to upsert format")
 	}
 
 	if !cached {
@@ -977,7 +980,7 @@ func (o *Format) DeleteP(exec boil.Executor) {
 // DeleteG will match against the primary key column to find the record to delete.
 func (o *Format) DeleteG() error {
 	if o == nil {
-		return errors.New("models: no Format provided for deletion")
+		return errors.New("public: no Format provided for deletion")
 	}
 
 	return o.Delete(boil.GetDB())
@@ -996,7 +999,7 @@ func (o *Format) DeleteGP() {
 // Delete will match against the primary key column to find the record to delete.
 func (o *Format) Delete(exec boil.Executor) error {
 	if o == nil {
-		return errors.New("models: no Format provided for delete")
+		return errors.New("public: no Format provided for delete")
 	}
 
 	if err := o.doBeforeDeleteHooks(exec); err != nil {
@@ -1013,7 +1016,7 @@ func (o *Format) Delete(exec boil.Executor) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete from format")
+		return errors.Wrap(err, "public: unable to delete from format")
 	}
 
 	if err := o.doAfterDeleteHooks(exec); err != nil {
@@ -1033,14 +1036,14 @@ func (q formatQuery) DeleteAllP() {
 // DeleteAll deletes all matching rows.
 func (q formatQuery) DeleteAll() error {
 	if q.Query == nil {
-		return errors.New("models: no formatQuery provided for delete all")
+		return errors.New("public: no formatQuery provided for delete all")
 	}
 
 	queries.SetDelete(q.Query)
 
 	_, err := q.Query.Exec()
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete all from format")
+		return errors.Wrap(err, "public: unable to delete all from format")
 	}
 
 	return nil
@@ -1056,7 +1059,7 @@ func (o FormatSlice) DeleteAllGP() {
 // DeleteAllG deletes all rows in the slice.
 func (o FormatSlice) DeleteAllG() error {
 	if o == nil {
-		return errors.New("models: no Format slice provided for delete all")
+		return errors.New("public: no Format slice provided for delete all")
 	}
 	return o.DeleteAll(boil.GetDB())
 }
@@ -1071,7 +1074,7 @@ func (o FormatSlice) DeleteAllP(exec boil.Executor) {
 // DeleteAll deletes all rows in the slice, using an executor.
 func (o FormatSlice) DeleteAll(exec boil.Executor) error {
 	if o == nil {
-		return errors.New("models: no Format slice provided for delete all")
+		return errors.New("public: no Format slice provided for delete all")
 	}
 
 	if len(o) == 0 {
@@ -1105,7 +1108,7 @@ func (o FormatSlice) DeleteAll(exec boil.Executor) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete all from format slice")
+		return errors.Wrap(err, "public: unable to delete all from format slice")
 	}
 
 	if len(formatAfterDeleteHooks) != 0 {
@@ -1136,7 +1139,7 @@ func (o *Format) ReloadP(exec boil.Executor) {
 // ReloadG refetches the object from the database using the primary keys.
 func (o *Format) ReloadG() error {
 	if o == nil {
-		return errors.New("models: no Format provided for reload")
+		return errors.New("public: no Format provided for reload")
 	}
 
 	return o.Reload(boil.GetDB())
@@ -1176,7 +1179,7 @@ func (o *FormatSlice) ReloadAllP(exec boil.Executor) {
 // and overwrites the original object slice with the newly updated slice.
 func (o *FormatSlice) ReloadAllG() error {
 	if o == nil {
-		return errors.New("models: empty FormatSlice provided for reload all")
+		return errors.New("public: empty FormatSlice provided for reload all")
 	}
 
 	return o.ReloadAll(boil.GetDB())
@@ -1206,7 +1209,7 @@ func (o *FormatSlice) ReloadAll(exec boil.Executor) error {
 
 	err := q.Bind(&formats)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to reload all in FormatSlice")
+		return errors.Wrap(err, "public: unable to reload all in FormatSlice")
 	}
 
 	*o = formats
@@ -1229,7 +1232,7 @@ func FormatExists(exec boil.Executor, id int16) (bool, error) {
 
 	err := row.Scan(&exists)
 	if err != nil {
-		return false, errors.Wrap(err, "models: unable to check if format exists")
+		return false, errors.Wrap(err, "public: unable to check if format exists")
 	}
 
 	return exists, nil

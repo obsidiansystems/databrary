@@ -8,16 +8,15 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"reflect"
-	"strings"
-	"sync"
-	"time"
-
 	"github.com/databrary/sqlboiler/boil"
 	"github.com/databrary/sqlboiler/queries"
 	"github.com/databrary/sqlboiler/queries/qm"
 	"github.com/databrary/sqlboiler/strmangle"
 	"github.com/pkg/errors"
+	"reflect"
+	"strings"
+	"sync"
+	"time"
 )
 
 // Session is an object representing the database table.
@@ -237,7 +236,7 @@ func (q sessionQuery) One() (*Session, error) {
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: failed to execute a one query for session")
+		return nil, errors.Wrap(err, "public: failed to execute a one query for session")
 	}
 
 	if err := o.doAfterSelectHooks(queries.GetExecutor(q.Query)); err != nil {
@@ -263,7 +262,7 @@ func (q sessionQuery) All() (SessionSlice, error) {
 
 	err := q.Bind(&o)
 	if err != nil {
-		return nil, errors.Wrap(err, "models: failed to assign all query results to Session slice")
+		return nil, errors.Wrap(err, "public: failed to assign all query results to Session slice")
 	}
 
 	if len(sessionAfterSelectHooks) != 0 {
@@ -296,7 +295,7 @@ func (q sessionQuery) Count() (int64, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to count session rows")
+		return 0, errors.Wrap(err, "public: failed to count session rows")
 	}
 
 	return count, nil
@@ -321,7 +320,7 @@ func (q sessionQuery) Exists() (bool, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "models: failed to check if session exists")
+		return false, errors.Wrap(err, "public: failed to check if session exists")
 	}
 
 	return count > 0, nil
@@ -546,7 +545,7 @@ func FindSession(exec boil.Executor, token string, selectCols ...string) (*Sessi
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: unable to select from session")
+		return nil, errors.Wrap(err, "public: unable to select from session")
 	}
 
 	return sessionObj, nil
@@ -590,7 +589,7 @@ func (o *Session) InsertP(exec boil.Executor, whitelist ...string) {
 // - All columns with a default, but non-zero are included (i.e. health = 75)
 func (o *Session) Insert(exec boil.Executor, whitelist ...string) error {
 	if o == nil {
-		return errors.New("models: no session provided for insertion")
+		return errors.New("public: no session provided for insertion")
 	}
 
 	var err error
@@ -649,7 +648,7 @@ func (o *Session) Insert(exec boil.Executor, whitelist ...string) error {
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "models: unable to insert into session")
+		return errors.Wrap(err, "public: unable to insert into session")
 	}
 
 	if !cached {
@@ -704,8 +703,12 @@ func (o *Session) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(sessionColumns, sessionPrimaryKeyColumns, whitelist)
+
+		if len(whitelist) == 0 {
+			wl = strmangle.SetComplement(wl, []string{"created_at"})
+		}
 		if len(wl) == 0 {
-			return errors.New("models: unable to update session, could not build whitelist")
+			return errors.New("public: unable to update session, could not build whitelist")
 		}
 
 		cache.query = fmt.Sprintf("UPDATE \"session\" SET %s WHERE %s",
@@ -727,7 +730,7 @@ func (o *Session) Update(exec boil.Executor, whitelist ...string) error {
 
 	_, err = exec.Exec(cache.query, values...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update session row")
+		return errors.Wrap(err, "public: unable to update session row")
 	}
 
 	if !cached {
@@ -752,7 +755,7 @@ func (q sessionQuery) UpdateAll(cols M) error {
 
 	_, err := q.Query.Exec()
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update all for session")
+		return errors.Wrap(err, "public: unable to update all for session")
 	}
 
 	return nil
@@ -785,7 +788,7 @@ func (o SessionSlice) UpdateAll(exec boil.Executor, cols M) error {
 	}
 
 	if len(cols) == 0 {
-		return errors.New("models: update all requires at least one column argument")
+		return errors.New("public: update all requires at least one column argument")
 	}
 
 	colNames := make([]string, len(cols))
@@ -817,7 +820,7 @@ func (o SessionSlice) UpdateAll(exec boil.Executor, cols M) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update all in session slice")
+		return errors.Wrap(err, "public: unable to update all in session slice")
 	}
 
 	return nil
@@ -846,7 +849,7 @@ func (o *Session) UpsertP(exec boil.Executor, updateOnConflict bool, conflictCol
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.
 func (o *Session) Upsert(exec boil.Executor, updateOnConflict bool, conflictColumns []string, updateColumns []string, whitelist ...string) error {
 	if o == nil {
-		return errors.New("models: no session provided for upsert")
+		return errors.New("public: no session provided for upsert")
 	}
 
 	if err := o.doBeforeUpsertHooks(exec); err != nil {
@@ -902,7 +905,7 @@ func (o *Session) Upsert(exec boil.Executor, updateOnConflict bool, conflictColu
 			updateColumns,
 		)
 		if len(update) == 0 {
-			return errors.New("models: unable to upsert session, could not build update column list")
+			return errors.New("public: unable to upsert session, could not build update column list")
 		}
 
 		conflict := conflictColumns
@@ -945,7 +948,7 @@ func (o *Session) Upsert(exec boil.Executor, updateOnConflict bool, conflictColu
 		_, err = exec.Exec(cache.query, vals...)
 	}
 	if err != nil {
-		return errors.Wrap(err, "models: unable to upsert session")
+		return errors.Wrap(err, "public: unable to upsert session")
 	}
 
 	if !cached {
@@ -970,7 +973,7 @@ func (o *Session) DeleteP(exec boil.Executor) {
 // DeleteG will match against the primary key column to find the record to delete.
 func (o *Session) DeleteG() error {
 	if o == nil {
-		return errors.New("models: no Session provided for deletion")
+		return errors.New("public: no Session provided for deletion")
 	}
 
 	return o.Delete(boil.GetDB())
@@ -989,7 +992,7 @@ func (o *Session) DeleteGP() {
 // Delete will match against the primary key column to find the record to delete.
 func (o *Session) Delete(exec boil.Executor) error {
 	if o == nil {
-		return errors.New("models: no Session provided for delete")
+		return errors.New("public: no Session provided for delete")
 	}
 
 	if err := o.doBeforeDeleteHooks(exec); err != nil {
@@ -1006,7 +1009,7 @@ func (o *Session) Delete(exec boil.Executor) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete from session")
+		return errors.Wrap(err, "public: unable to delete from session")
 	}
 
 	if err := o.doAfterDeleteHooks(exec); err != nil {
@@ -1026,14 +1029,14 @@ func (q sessionQuery) DeleteAllP() {
 // DeleteAll deletes all matching rows.
 func (q sessionQuery) DeleteAll() error {
 	if q.Query == nil {
-		return errors.New("models: no sessionQuery provided for delete all")
+		return errors.New("public: no sessionQuery provided for delete all")
 	}
 
 	queries.SetDelete(q.Query)
 
 	_, err := q.Query.Exec()
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete all from session")
+		return errors.Wrap(err, "public: unable to delete all from session")
 	}
 
 	return nil
@@ -1049,7 +1052,7 @@ func (o SessionSlice) DeleteAllGP() {
 // DeleteAllG deletes all rows in the slice.
 func (o SessionSlice) DeleteAllG() error {
 	if o == nil {
-		return errors.New("models: no Session slice provided for delete all")
+		return errors.New("public: no Session slice provided for delete all")
 	}
 	return o.DeleteAll(boil.GetDB())
 }
@@ -1064,7 +1067,7 @@ func (o SessionSlice) DeleteAllP(exec boil.Executor) {
 // DeleteAll deletes all rows in the slice, using an executor.
 func (o SessionSlice) DeleteAll(exec boil.Executor) error {
 	if o == nil {
-		return errors.New("models: no Session slice provided for delete all")
+		return errors.New("public: no Session slice provided for delete all")
 	}
 
 	if len(o) == 0 {
@@ -1098,7 +1101,7 @@ func (o SessionSlice) DeleteAll(exec boil.Executor) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete all from session slice")
+		return errors.Wrap(err, "public: unable to delete all from session slice")
 	}
 
 	if len(sessionAfterDeleteHooks) != 0 {
@@ -1129,7 +1132,7 @@ func (o *Session) ReloadP(exec boil.Executor) {
 // ReloadG refetches the object from the database using the primary keys.
 func (o *Session) ReloadG() error {
 	if o == nil {
-		return errors.New("models: no Session provided for reload")
+		return errors.New("public: no Session provided for reload")
 	}
 
 	return o.Reload(boil.GetDB())
@@ -1169,7 +1172,7 @@ func (o *SessionSlice) ReloadAllP(exec boil.Executor) {
 // and overwrites the original object slice with the newly updated slice.
 func (o *SessionSlice) ReloadAllG() error {
 	if o == nil {
-		return errors.New("models: empty SessionSlice provided for reload all")
+		return errors.New("public: empty SessionSlice provided for reload all")
 	}
 
 	return o.ReloadAll(boil.GetDB())
@@ -1199,7 +1202,7 @@ func (o *SessionSlice) ReloadAll(exec boil.Executor) error {
 
 	err := q.Bind(&sessions)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to reload all in SessionSlice")
+		return errors.Wrap(err, "public: unable to reload all in SessionSlice")
 	}
 
 	*o = sessions
@@ -1222,7 +1225,7 @@ func SessionExists(exec boil.Executor, token string) (bool, error) {
 
 	err := row.Scan(&exists)
 	if err != nil {
-		return false, errors.Wrap(err, "models: unable to check if session exists")
+		return false, errors.Wrap(err, "public: unable to check if session exists")
 	}
 
 	return exists, nil

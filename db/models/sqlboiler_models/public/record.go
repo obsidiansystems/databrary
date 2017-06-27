@@ -8,16 +8,15 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"reflect"
-	"strings"
-	"sync"
-	"time"
-
 	"github.com/databrary/sqlboiler/boil"
 	"github.com/databrary/sqlboiler/queries"
 	"github.com/databrary/sqlboiler/queries/qm"
 	"github.com/databrary/sqlboiler/strmangle"
 	"github.com/pkg/errors"
+	"reflect"
+	"strings"
+	"sync"
+	"time"
 )
 
 // Record is an object representing the database table.
@@ -38,8 +37,8 @@ type recordR struct {
 	Metrics         MetricSlice
 	MeasureDates    MeasureDateSlice
 	MeasureNumerics MeasureNumericSlice
-	SlotRecords     SlotRecordSlice
 	MeasureTexts    MeasureTextSlice
+	SlotRecords     SlotRecordSlice
 }
 
 // recordL is where Load methods for each relationship are stored.
@@ -242,7 +241,7 @@ func (q recordQuery) One() (*Record, error) {
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: failed to execute a one query for record")
+		return nil, errors.Wrap(err, "public: failed to execute a one query for record")
 	}
 
 	if err := o.doAfterSelectHooks(queries.GetExecutor(q.Query)); err != nil {
@@ -268,7 +267,7 @@ func (q recordQuery) All() (RecordSlice, error) {
 
 	err := q.Bind(&o)
 	if err != nil {
-		return nil, errors.Wrap(err, "models: failed to assign all query results to Record slice")
+		return nil, errors.Wrap(err, "public: failed to assign all query results to Record slice")
 	}
 
 	if len(recordAfterSelectHooks) != 0 {
@@ -301,7 +300,7 @@ func (q recordQuery) Count() (int64, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to count record rows")
+		return 0, errors.Wrap(err, "public: failed to count record rows")
 	}
 
 	return count, nil
@@ -326,7 +325,7 @@ func (q recordQuery) Exists() (bool, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "models: failed to check if record exists")
+		return false, errors.Wrap(err, "public: failed to check if record exists")
 	}
 
 	return count > 0, nil
@@ -462,30 +461,6 @@ func (o *Record) MeasureNumericsByFk(exec boil.Executor, mods ...qm.QueryMod) me
 	return query
 }
 
-// SlotRecordsG retrieves all the slot_record's slot record.
-func (o *Record) SlotRecordsG(mods ...qm.QueryMod) slotRecordQuery {
-	return o.SlotRecordsByFk(boil.GetDB(), mods...)
-}
-
-// SlotRecords retrieves all the slot_record's slot record with an executor.
-func (o *Record) SlotRecordsByFk(exec boil.Executor, mods ...qm.QueryMod) slotRecordQuery {
-	queryMods := []qm.QueryMod{
-		qm.Select("\"a\".*"),
-	}
-
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"a\".\"record\"=?", o.ID),
-	)
-
-	query := SlotRecords(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"slot_record\" as \"a\"")
-	return query
-}
-
 // MeasureTextsG retrieves all the measure_text's measure text.
 func (o *Record) MeasureTextsG(mods ...qm.QueryMod) measureTextQuery {
 	return o.MeasureTextsByFk(boil.GetDB(), mods...)
@@ -507,6 +482,30 @@ func (o *Record) MeasureTextsByFk(exec boil.Executor, mods ...qm.QueryMod) measu
 
 	query := MeasureTexts(exec, queryMods...)
 	queries.SetFrom(query.Query, "\"measure_text\" as \"a\"")
+	return query
+}
+
+// SlotRecordsG retrieves all the slot_record's slot record.
+func (o *Record) SlotRecordsG(mods ...qm.QueryMod) slotRecordQuery {
+	return o.SlotRecordsByFk(boil.GetDB(), mods...)
+}
+
+// SlotRecords retrieves all the slot_record's slot record with an executor.
+func (o *Record) SlotRecordsByFk(exec boil.Executor, mods ...qm.QueryMod) slotRecordQuery {
+	queryMods := []qm.QueryMod{
+		qm.Select("\"a\".*"),
+	}
+
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"a\".\"record\"=?", o.ID),
+	)
+
+	query := SlotRecords(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"slot_record\" as \"a\"")
 	return query
 }
 
@@ -976,78 +975,6 @@ func (recordL) LoadMeasureNumerics(e boil.Executor, singular bool, maybeRecord i
 	return nil
 }
 
-// LoadSlotRecords allows an eager lookup of values, cached into the
-// loaded structs of the objects.
-func (recordL) LoadSlotRecords(e boil.Executor, singular bool, maybeRecord interface{}) error {
-	var slice []*Record
-	var object *Record
-
-	count := 1
-	if singular {
-		object = maybeRecord.(*Record)
-	} else {
-		slice = *maybeRecord.(*RecordSlice)
-		count = len(slice)
-	}
-
-	args := make([]interface{}, count)
-	if singular {
-		if object.R == nil {
-			object.R = &recordR{}
-		}
-		args[0] = object.ID
-	} else {
-		for i, obj := range slice {
-			if obj.R == nil {
-				obj.R = &recordR{}
-			}
-			args[i] = obj.ID
-		}
-	}
-
-	query := fmt.Sprintf(
-		"select * from \"slot_record\" where \"record\" in (%s)",
-		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
-	)
-	if boil.DebugMode {
-		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
-	}
-
-	results, err := e.Query(query, args...)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load slot_record")
-	}
-	defer results.Close()
-
-	var resultSlice []*SlotRecord
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice slot_record")
-	}
-
-	if len(slotRecordAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(e); err != nil {
-				return err
-			}
-		}
-	}
-	if singular {
-		object.R.SlotRecords = resultSlice
-		return nil
-	}
-
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if local.ID == foreign.Record {
-				local.R.SlotRecords = append(local.R.SlotRecords, foreign)
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
 // LoadMeasureTexts allows an eager lookup of values, cached into the
 // loaded structs of the objects.
 func (recordL) LoadMeasureTexts(e boil.Executor, singular bool, maybeRecord interface{}) error {
@@ -1112,6 +1039,78 @@ func (recordL) LoadMeasureTexts(e boil.Executor, singular bool, maybeRecord inte
 		for _, local := range slice {
 			if local.ID == foreign.Record {
 				local.R.MeasureTexts = append(local.R.MeasureTexts, foreign)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadSlotRecords allows an eager lookup of values, cached into the
+// loaded structs of the objects.
+func (recordL) LoadSlotRecords(e boil.Executor, singular bool, maybeRecord interface{}) error {
+	var slice []*Record
+	var object *Record
+
+	count := 1
+	if singular {
+		object = maybeRecord.(*Record)
+	} else {
+		slice = *maybeRecord.(*RecordSlice)
+		count = len(slice)
+	}
+
+	args := make([]interface{}, count)
+	if singular {
+		if object.R == nil {
+			object.R = &recordR{}
+		}
+		args[0] = object.ID
+	} else {
+		for i, obj := range slice {
+			if obj.R == nil {
+				obj.R = &recordR{}
+			}
+			args[i] = obj.ID
+		}
+	}
+
+	query := fmt.Sprintf(
+		"select * from \"slot_record\" where \"record\" in (%s)",
+		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
+	)
+	if boil.DebugMode {
+		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
+	}
+
+	results, err := e.Query(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load slot_record")
+	}
+	defer results.Close()
+
+	var resultSlice []*SlotRecord
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice slot_record")
+	}
+
+	if len(slotRecordAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.SlotRecords = resultSlice
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.Record {
+				local.R.SlotRecords = append(local.R.SlotRecords, foreign)
 				break
 			}
 		}
@@ -1755,90 +1754,6 @@ func (o *Record) AddMeasureNumerics(exec boil.Executor, insert bool, related ...
 	return nil
 }
 
-// AddSlotRecordsG adds the given related objects to the existing relationships
-// of the record, optionally inserting them as new records.
-// Appends related to o.R.SlotRecords.
-// Sets related.R.Record appropriately.
-// Uses the global database handle.
-func (o *Record) AddSlotRecordsG(insert bool, related ...*SlotRecord) error {
-	return o.AddSlotRecords(boil.GetDB(), insert, related...)
-}
-
-// AddSlotRecordsP adds the given related objects to the existing relationships
-// of the record, optionally inserting them as new records.
-// Appends related to o.R.SlotRecords.
-// Sets related.R.Record appropriately.
-// Panics on error.
-func (o *Record) AddSlotRecordsP(exec boil.Executor, insert bool, related ...*SlotRecord) {
-	if err := o.AddSlotRecords(exec, insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddSlotRecordsGP adds the given related objects to the existing relationships
-// of the record, optionally inserting them as new records.
-// Appends related to o.R.SlotRecords.
-// Sets related.R.Record appropriately.
-// Uses the global database handle and panics on error.
-func (o *Record) AddSlotRecordsGP(insert bool, related ...*SlotRecord) {
-	if err := o.AddSlotRecords(boil.GetDB(), insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddSlotRecords adds the given related objects to the existing relationships
-// of the record, optionally inserting them as new records.
-// Appends related to o.R.SlotRecords.
-// Sets related.R.Record appropriately.
-func (o *Record) AddSlotRecords(exec boil.Executor, insert bool, related ...*SlotRecord) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.Record = o.ID
-			if err = rel.Insert(exec); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"slot_record\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"record"}),
-				strmangle.WhereClause("\"", "\"", 2, slotRecordPrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.Container, rel.Segment, rel.Record}
-
-			if boil.DebugMode {
-				fmt.Fprintln(boil.DebugWriter, updateQuery)
-				fmt.Fprintln(boil.DebugWriter, values)
-			}
-
-			if _, err = exec.Exec(updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.Record = o.ID
-		}
-	}
-
-	if o.R == nil {
-		o.R = &recordR{
-			SlotRecords: related,
-		}
-	} else {
-		o.R.SlotRecords = append(o.R.SlotRecords, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &slotRecordR{
-				Record: o,
-			}
-		} else {
-			rel.R.Record = o
-		}
-	}
-	return nil
-}
-
 // AddMeasureTextsG adds the given related objects to the existing relationships
 // of the record, optionally inserting them as new records.
 // Appends related to o.R.MeasureTexts.
@@ -1923,6 +1838,90 @@ func (o *Record) AddMeasureTexts(exec boil.Executor, insert bool, related ...*Me
 	return nil
 }
 
+// AddSlotRecordsG adds the given related objects to the existing relationships
+// of the record, optionally inserting them as new records.
+// Appends related to o.R.SlotRecords.
+// Sets related.R.Record appropriately.
+// Uses the global database handle.
+func (o *Record) AddSlotRecordsG(insert bool, related ...*SlotRecord) error {
+	return o.AddSlotRecords(boil.GetDB(), insert, related...)
+}
+
+// AddSlotRecordsP adds the given related objects to the existing relationships
+// of the record, optionally inserting them as new records.
+// Appends related to o.R.SlotRecords.
+// Sets related.R.Record appropriately.
+// Panics on error.
+func (o *Record) AddSlotRecordsP(exec boil.Executor, insert bool, related ...*SlotRecord) {
+	if err := o.AddSlotRecords(exec, insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddSlotRecordsGP adds the given related objects to the existing relationships
+// of the record, optionally inserting them as new records.
+// Appends related to o.R.SlotRecords.
+// Sets related.R.Record appropriately.
+// Uses the global database handle and panics on error.
+func (o *Record) AddSlotRecordsGP(insert bool, related ...*SlotRecord) {
+	if err := o.AddSlotRecords(boil.GetDB(), insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddSlotRecords adds the given related objects to the existing relationships
+// of the record, optionally inserting them as new records.
+// Appends related to o.R.SlotRecords.
+// Sets related.R.Record appropriately.
+func (o *Record) AddSlotRecords(exec boil.Executor, insert bool, related ...*SlotRecord) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.Record = o.ID
+			if err = rel.Insert(exec); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"slot_record\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"record"}),
+				strmangle.WhereClause("\"", "\"", 2, slotRecordPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.Container, rel.Segment, rel.Record}
+
+			if boil.DebugMode {
+				fmt.Fprintln(boil.DebugWriter, updateQuery)
+				fmt.Fprintln(boil.DebugWriter, values)
+			}
+
+			if _, err = exec.Exec(updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.Record = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &recordR{
+			SlotRecords: related,
+		}
+	} else {
+		o.R.SlotRecords = append(o.R.SlotRecords, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &slotRecordR{
+				Record: o,
+			}
+		} else {
+			rel.R.Record = o
+		}
+	}
+	return nil
+}
+
 // RecordsG retrieves all records.
 func RecordsG(mods ...qm.QueryMod) recordQuery {
 	return Records(boil.GetDB(), mods...)
@@ -1969,7 +1968,7 @@ func FindRecord(exec boil.Executor, id int, selectCols ...string) (*Record, erro
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: unable to select from record")
+		return nil, errors.Wrap(err, "public: unable to select from record")
 	}
 
 	return recordObj, nil
@@ -2013,7 +2012,7 @@ func (o *Record) InsertP(exec boil.Executor, whitelist ...string) {
 // - All columns with a default, but non-zero are included (i.e. health = 75)
 func (o *Record) Insert(exec boil.Executor, whitelist ...string) error {
 	if o == nil {
-		return errors.New("models: no record provided for insertion")
+		return errors.New("public: no record provided for insertion")
 	}
 
 	var err error
@@ -2072,7 +2071,7 @@ func (o *Record) Insert(exec boil.Executor, whitelist ...string) error {
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "models: unable to insert into record")
+		return errors.Wrap(err, "public: unable to insert into record")
 	}
 
 	if !cached {
@@ -2127,8 +2126,12 @@ func (o *Record) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(recordColumns, recordPrimaryKeyColumns, whitelist)
+
+		if len(whitelist) == 0 {
+			wl = strmangle.SetComplement(wl, []string{"created_at"})
+		}
 		if len(wl) == 0 {
-			return errors.New("models: unable to update record, could not build whitelist")
+			return errors.New("public: unable to update record, could not build whitelist")
 		}
 
 		cache.query = fmt.Sprintf("UPDATE \"record\" SET %s WHERE %s",
@@ -2150,7 +2153,7 @@ func (o *Record) Update(exec boil.Executor, whitelist ...string) error {
 
 	_, err = exec.Exec(cache.query, values...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update record row")
+		return errors.Wrap(err, "public: unable to update record row")
 	}
 
 	if !cached {
@@ -2175,7 +2178,7 @@ func (q recordQuery) UpdateAll(cols M) error {
 
 	_, err := q.Query.Exec()
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update all for record")
+		return errors.Wrap(err, "public: unable to update all for record")
 	}
 
 	return nil
@@ -2208,7 +2211,7 @@ func (o RecordSlice) UpdateAll(exec boil.Executor, cols M) error {
 	}
 
 	if len(cols) == 0 {
-		return errors.New("models: update all requires at least one column argument")
+		return errors.New("public: update all requires at least one column argument")
 	}
 
 	colNames := make([]string, len(cols))
@@ -2240,7 +2243,7 @@ func (o RecordSlice) UpdateAll(exec boil.Executor, cols M) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update all in record slice")
+		return errors.Wrap(err, "public: unable to update all in record slice")
 	}
 
 	return nil
@@ -2269,7 +2272,7 @@ func (o *Record) UpsertP(exec boil.Executor, updateOnConflict bool, conflictColu
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.
 func (o *Record) Upsert(exec boil.Executor, updateOnConflict bool, conflictColumns []string, updateColumns []string, whitelist ...string) error {
 	if o == nil {
-		return errors.New("models: no record provided for upsert")
+		return errors.New("public: no record provided for upsert")
 	}
 
 	if err := o.doBeforeUpsertHooks(exec); err != nil {
@@ -2325,7 +2328,7 @@ func (o *Record) Upsert(exec boil.Executor, updateOnConflict bool, conflictColum
 			updateColumns,
 		)
 		if len(update) == 0 {
-			return errors.New("models: unable to upsert record, could not build update column list")
+			return errors.New("public: unable to upsert record, could not build update column list")
 		}
 
 		conflict := conflictColumns
@@ -2368,7 +2371,7 @@ func (o *Record) Upsert(exec boil.Executor, updateOnConflict bool, conflictColum
 		_, err = exec.Exec(cache.query, vals...)
 	}
 	if err != nil {
-		return errors.Wrap(err, "models: unable to upsert record")
+		return errors.Wrap(err, "public: unable to upsert record")
 	}
 
 	if !cached {
@@ -2393,7 +2396,7 @@ func (o *Record) DeleteP(exec boil.Executor) {
 // DeleteG will match against the primary key column to find the record to delete.
 func (o *Record) DeleteG() error {
 	if o == nil {
-		return errors.New("models: no Record provided for deletion")
+		return errors.New("public: no Record provided for deletion")
 	}
 
 	return o.Delete(boil.GetDB())
@@ -2412,7 +2415,7 @@ func (o *Record) DeleteGP() {
 // Delete will match against the primary key column to find the record to delete.
 func (o *Record) Delete(exec boil.Executor) error {
 	if o == nil {
-		return errors.New("models: no Record provided for delete")
+		return errors.New("public: no Record provided for delete")
 	}
 
 	if err := o.doBeforeDeleteHooks(exec); err != nil {
@@ -2429,7 +2432,7 @@ func (o *Record) Delete(exec boil.Executor) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete from record")
+		return errors.Wrap(err, "public: unable to delete from record")
 	}
 
 	if err := o.doAfterDeleteHooks(exec); err != nil {
@@ -2449,14 +2452,14 @@ func (q recordQuery) DeleteAllP() {
 // DeleteAll deletes all matching rows.
 func (q recordQuery) DeleteAll() error {
 	if q.Query == nil {
-		return errors.New("models: no recordQuery provided for delete all")
+		return errors.New("public: no recordQuery provided for delete all")
 	}
 
 	queries.SetDelete(q.Query)
 
 	_, err := q.Query.Exec()
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete all from record")
+		return errors.Wrap(err, "public: unable to delete all from record")
 	}
 
 	return nil
@@ -2472,7 +2475,7 @@ func (o RecordSlice) DeleteAllGP() {
 // DeleteAllG deletes all rows in the slice.
 func (o RecordSlice) DeleteAllG() error {
 	if o == nil {
-		return errors.New("models: no Record slice provided for delete all")
+		return errors.New("public: no Record slice provided for delete all")
 	}
 	return o.DeleteAll(boil.GetDB())
 }
@@ -2487,7 +2490,7 @@ func (o RecordSlice) DeleteAllP(exec boil.Executor) {
 // DeleteAll deletes all rows in the slice, using an executor.
 func (o RecordSlice) DeleteAll(exec boil.Executor) error {
 	if o == nil {
-		return errors.New("models: no Record slice provided for delete all")
+		return errors.New("public: no Record slice provided for delete all")
 	}
 
 	if len(o) == 0 {
@@ -2521,7 +2524,7 @@ func (o RecordSlice) DeleteAll(exec boil.Executor) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete all from record slice")
+		return errors.Wrap(err, "public: unable to delete all from record slice")
 	}
 
 	if len(recordAfterDeleteHooks) != 0 {
@@ -2552,7 +2555,7 @@ func (o *Record) ReloadP(exec boil.Executor) {
 // ReloadG refetches the object from the database using the primary keys.
 func (o *Record) ReloadG() error {
 	if o == nil {
-		return errors.New("models: no Record provided for reload")
+		return errors.New("public: no Record provided for reload")
 	}
 
 	return o.Reload(boil.GetDB())
@@ -2592,7 +2595,7 @@ func (o *RecordSlice) ReloadAllP(exec boil.Executor) {
 // and overwrites the original object slice with the newly updated slice.
 func (o *RecordSlice) ReloadAllG() error {
 	if o == nil {
-		return errors.New("models: empty RecordSlice provided for reload all")
+		return errors.New("public: empty RecordSlice provided for reload all")
 	}
 
 	return o.ReloadAll(boil.GetDB())
@@ -2622,7 +2625,7 @@ func (o *RecordSlice) ReloadAll(exec boil.Executor) error {
 
 	err := q.Bind(&records)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to reload all in RecordSlice")
+		return errors.Wrap(err, "public: unable to reload all in RecordSlice")
 	}
 
 	*o = records
@@ -2645,7 +2648,7 @@ func RecordExists(exec boil.Executor, id int) (bool, error) {
 
 	err := row.Scan(&exists)
 	if err != nil {
-		return false, errors.Wrap(err, "models: unable to check if record exists")
+		return false, errors.Wrap(err, "public: unable to check if record exists")
 	}
 
 	return exists, nil

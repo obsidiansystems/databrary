@@ -6,18 +6,17 @@ package public
 
 import (
 	"bytes"
+	"github.com/databrary/databrary/db/models/custom_types"
+	"github.com/databrary/sqlboiler/boil"
+	"github.com/databrary/sqlboiler/randomize"
+	"github.com/databrary/sqlboiler/strmangle"
+	"github.com/pmezard/go-difflib/difflib"
 	"os"
 	"os/exec"
 	"reflect"
 	"sort"
 	"strings"
 	"testing"
-
-	"github.com/databrary/databrary/db/models/custom_types"
-	"github.com/databrary/sqlboiler/boil"
-	"github.com/databrary/sqlboiler/randomize"
-	"github.com/databrary/sqlboiler/strmangle"
-	"github.com/pmezard/go-difflib/difflib"
 )
 
 func testRecords(t *testing.T) {
@@ -887,6 +886,80 @@ func testRecordToManyMeasureNumerics(t *testing.T) {
 	}
 }
 
+func testRecordToManyMeasureTexts(t *testing.T) {
+	var err error
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var a Record
+	var b, c MeasureText
+
+	foreignBlacklist := measureTextColumnsWithDefault
+	if err := randomize.Struct(seed, &b, measureTextDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize MeasureText struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, measureTextDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize MeasureText struct: %s", err)
+	}
+	localBlacklist := recordColumnsWithDefault
+	if err := randomize.Struct(seed, &a, recordDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Record struct: %s", err)
+	}
+
+	b.Record = a.ID
+	c.Record = a.ID
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	measureText, err := a.MeasureTextsByFk(tx).All()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range measureText {
+		if v.Record == b.Record {
+			bFound = true
+		}
+		if v.Record == c.Record {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := RecordSlice{&a}
+	if err = a.L.LoadMeasureTexts(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.MeasureTexts); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.MeasureTexts = nil
+	if err = a.L.LoadMeasureTexts(tx, true, &a); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.MeasureTexts); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", measureText)
+	}
+}
+
 func testRecordToManySlotRecords(t *testing.T) {
 	var err error
 	tx := MustTx(boil.Begin())
@@ -963,80 +1036,6 @@ func testRecordToManySlotRecords(t *testing.T) {
 
 	if t.Failed() {
 		t.Logf("%#v", slotRecord)
-	}
-}
-
-func testRecordToManyMeasureTexts(t *testing.T) {
-	var err error
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var a Record
-	var b, c MeasureText
-
-	foreignBlacklist := measureTextColumnsWithDefault
-	if err := randomize.Struct(seed, &b, measureTextDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize MeasureText struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &c, measureTextDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize MeasureText struct: %s", err)
-	}
-	localBlacklist := recordColumnsWithDefault
-	if err := randomize.Struct(seed, &a, recordDBTypes, false, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Record struct: %s", err)
-	}
-
-	b.Record = a.ID
-	c.Record = a.ID
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	measureText, err := a.MeasureTextsByFk(tx).All()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	bFound, cFound := false, false
-	for _, v := range measureText {
-		if v.Record == b.Record {
-			bFound = true
-		}
-		if v.Record == c.Record {
-			cFound = true
-		}
-	}
-
-	if !bFound {
-		t.Error("expected to find b")
-	}
-	if !cFound {
-		t.Error("expected to find c")
-	}
-
-	slice := RecordSlice{&a}
-	if err = a.L.LoadMeasureTexts(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.MeasureTexts); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	a.R.MeasureTexts = nil
-	if err = a.L.LoadMeasureTexts(tx, true, &a); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.MeasureTexts); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	if t.Failed() {
-		t.Logf("%#v", measureText)
 	}
 }
 
@@ -1445,6 +1444,84 @@ func testRecordToManyAddOpMeasureNumerics(t *testing.T) {
 		}
 	}
 }
+func testRecordToManyAddOpMeasureTexts(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	var a Record
+	var b, c, d, e MeasureText
+
+	seed := randomize.NewSeed()
+	localComplelementList := strmangle.SetComplement(recordPrimaryKeyColumns, recordColumnsWithoutDefault)
+	if err = randomize.Struct(seed, &a, recordDBTypes, false, localComplelementList...); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignComplementList := strmangle.SetComplement(measureTextPrimaryKeyColumns, measureTextColumnsWithoutDefault)
+
+	foreigners := []*MeasureText{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, measureTextDBTypes, false, foreignComplementList...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*MeasureText{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddMeasureTexts(tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.Record {
+			t.Error("foreign key was wrong value", a.ID, first.Record)
+		}
+		if a.ID != second.Record {
+			t.Error("foreign key was wrong value", a.ID, second.Record)
+		}
+
+		if first.R.Record != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Record != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.MeasureTexts[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.MeasureTexts[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.MeasureTextsByFk(tx).Count()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
 func testRecordToManyAddOpSlotRecords(t *testing.T) {
 	var err error
 
@@ -1518,84 +1595,6 @@ func testRecordToManyAddOpSlotRecords(t *testing.T) {
 		}
 
 		count, err := a.SlotRecordsByFk(tx).Count()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if want := int64((i + 1) * 2); count != want {
-			t.Error("want", want, "got", count)
-		}
-	}
-}
-func testRecordToManyAddOpMeasureTexts(t *testing.T) {
-	var err error
-
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	var a Record
-	var b, c, d, e MeasureText
-
-	seed := randomize.NewSeed()
-	localComplelementList := strmangle.SetComplement(recordPrimaryKeyColumns, recordColumnsWithoutDefault)
-	if err = randomize.Struct(seed, &a, recordDBTypes, false, localComplelementList...); err != nil {
-		t.Fatal(err)
-	}
-
-	foreignComplementList := strmangle.SetComplement(measureTextPrimaryKeyColumns, measureTextColumnsWithoutDefault)
-
-	foreigners := []*MeasureText{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, measureTextDBTypes, false, foreignComplementList...); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	foreignersSplitByInsertion := [][]*MeasureText{
-		{&b, &c},
-		{&d, &e},
-	}
-
-	for i, x := range foreignersSplitByInsertion {
-		err = a.AddMeasureTexts(tx, i != 0, x...)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		first := x[0]
-		second := x[1]
-
-		if a.ID != first.Record {
-			t.Error("foreign key was wrong value", a.ID, first.Record)
-		}
-		if a.ID != second.Record {
-			t.Error("foreign key was wrong value", a.ID, second.Record)
-		}
-
-		if first.R.Record != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-		if second.R.Record != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-
-		if a.R.MeasureTexts[i*2] != first {
-			t.Error("relationship struct slice not set to correct value")
-		}
-		if a.R.MeasureTexts[i*2+1] != second {
-			t.Error("relationship struct slice not set to correct value")
-		}
-
-		count, err := a.MeasureTextsByFk(tx).Count()
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -8,11 +8,6 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"reflect"
-	"strings"
-	"sync"
-	"time"
-
 	"github.com/databrary/sqlboiler/boil"
 	"github.com/databrary/sqlboiler/queries"
 	"github.com/databrary/sqlboiler/queries/qm"
@@ -20,6 +15,10 @@ import (
 	"github.com/databrary/sqlboiler/types"
 	"github.com/pkg/errors"
 	"gopkg.in/nullbio/null.v6"
+	"reflect"
+	"strings"
+	"sync"
+	"time"
 )
 
 // RecordMeasuresView is an object representing the database view.
@@ -231,7 +230,7 @@ func (q recordMeasuresViewQuery) One() (*RecordMeasuresView, error) {
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: failed to execute a one query for record_measures_view")
+		return nil, errors.Wrap(err, "public: failed to execute a one query for record_measures_view")
 	}
 
 	if err := o.doAfterSelectHooks(queries.GetExecutor(q.Query)); err != nil {
@@ -257,7 +256,7 @@ func (q recordMeasuresViewQuery) All() (RecordMeasuresViewSlice, error) {
 
 	err := q.Bind(&o)
 	if err != nil {
-		return nil, errors.Wrap(err, "models: failed to assign all query results to RecordMeasuresView slice")
+		return nil, errors.Wrap(err, "public: failed to assign all query results to RecordMeasuresView slice")
 	}
 
 	if len(recordMeasuresViewAfterSelectHooks) != 0 {
@@ -290,7 +289,7 @@ func (q recordMeasuresViewQuery) Count() (int64, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to count record_measures_view rows")
+		return 0, errors.Wrap(err, "public: failed to count record_measures_view rows")
 	}
 
 	return count, nil
@@ -315,7 +314,7 @@ func (q recordMeasuresViewQuery) Exists() (bool, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "models: failed to check if record_measures_view exists")
+		return false, errors.Wrap(err, "public: failed to check if record_measures_view exists")
 	}
 
 	return count > 0, nil
@@ -360,7 +359,7 @@ func (o *RecordMeasuresView) InsertP(exec boil.Executor, whitelist ...string) {
 // - All columns with a default, but non-zero are included (i.e. health = 75)
 func (o *RecordMeasuresView) Insert(exec boil.Executor, whitelist ...string) error {
 	if o == nil {
-		return errors.New("models: no record_measures_view provided for insertion")
+		return errors.New("public: no record_measures_view provided for insertion")
 	}
 
 	var err error
@@ -419,7 +418,7 @@ func (o *RecordMeasuresView) Insert(exec boil.Executor, whitelist ...string) err
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "models: unable to insert into record_measures_view")
+		return errors.Wrap(err, "public: unable to insert into record_measures_view")
 	}
 
 	if !cached {

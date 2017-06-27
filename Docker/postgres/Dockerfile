@@ -6,7 +6,7 @@ WORKDIR /usr/local/src
 RUN git clone git://github.com/databrary/databrary
 WORKDIR databrary
 # TODO: set this to databrary_go eventually
-ARG commit=origin/go_models
+ARG commit=origin/go_master
 RUN git remote update && git checkout $commit
 RUN make -C pgranges install
 

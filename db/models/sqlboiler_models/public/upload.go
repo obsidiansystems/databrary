@@ -8,16 +8,15 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"reflect"
-	"strings"
-	"sync"
-	"time"
-
 	"github.com/databrary/sqlboiler/boil"
 	"github.com/databrary/sqlboiler/queries"
 	"github.com/databrary/sqlboiler/queries/qm"
 	"github.com/databrary/sqlboiler/strmangle"
 	"github.com/pkg/errors"
+	"reflect"
+	"strings"
+	"sync"
+	"time"
 )
 
 // Upload is an object representing the database table.
@@ -239,7 +238,7 @@ func (q uploadQuery) One() (*Upload, error) {
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: failed to execute a one query for upload")
+		return nil, errors.Wrap(err, "public: failed to execute a one query for upload")
 	}
 
 	if err := o.doAfterSelectHooks(queries.GetExecutor(q.Query)); err != nil {
@@ -265,7 +264,7 @@ func (q uploadQuery) All() (UploadSlice, error) {
 
 	err := q.Bind(&o)
 	if err != nil {
-		return nil, errors.Wrap(err, "models: failed to assign all query results to Upload slice")
+		return nil, errors.Wrap(err, "public: failed to assign all query results to Upload slice")
 	}
 
 	if len(uploadAfterSelectHooks) != 0 {
@@ -298,7 +297,7 @@ func (q uploadQuery) Count() (int64, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to count upload rows")
+		return 0, errors.Wrap(err, "public: failed to count upload rows")
 	}
 
 	return count, nil
@@ -323,7 +322,7 @@ func (q uploadQuery) Exists() (bool, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "models: failed to check if upload exists")
+		return false, errors.Wrap(err, "public: failed to check if upload exists")
 	}
 
 	return count > 0, nil
@@ -721,7 +720,7 @@ func FindUpload(exec boil.Executor, token string, selectCols ...string) (*Upload
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: unable to select from upload")
+		return nil, errors.Wrap(err, "public: unable to select from upload")
 	}
 
 	return uploadObj, nil
@@ -765,7 +764,7 @@ func (o *Upload) InsertP(exec boil.Executor, whitelist ...string) {
 // - All columns with a default, but non-zero are included (i.e. health = 75)
 func (o *Upload) Insert(exec boil.Executor, whitelist ...string) error {
 	if o == nil {
-		return errors.New("models: no upload provided for insertion")
+		return errors.New("public: no upload provided for insertion")
 	}
 
 	var err error
@@ -824,7 +823,7 @@ func (o *Upload) Insert(exec boil.Executor, whitelist ...string) error {
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "models: unable to insert into upload")
+		return errors.Wrap(err, "public: unable to insert into upload")
 	}
 
 	if !cached {
@@ -879,8 +878,12 @@ func (o *Upload) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(uploadColumns, uploadPrimaryKeyColumns, whitelist)
+
+		if len(whitelist) == 0 {
+			wl = strmangle.SetComplement(wl, []string{"created_at"})
+		}
 		if len(wl) == 0 {
-			return errors.New("models: unable to update upload, could not build whitelist")
+			return errors.New("public: unable to update upload, could not build whitelist")
 		}
 
 		cache.query = fmt.Sprintf("UPDATE \"upload\" SET %s WHERE %s",
@@ -902,7 +905,7 @@ func (o *Upload) Update(exec boil.Executor, whitelist ...string) error {
 
 	_, err = exec.Exec(cache.query, values...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update upload row")
+		return errors.Wrap(err, "public: unable to update upload row")
 	}
 
 	if !cached {
@@ -927,7 +930,7 @@ func (q uploadQuery) UpdateAll(cols M) error {
 
 	_, err := q.Query.Exec()
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update all for upload")
+		return errors.Wrap(err, "public: unable to update all for upload")
 	}
 
 	return nil
@@ -960,7 +963,7 @@ func (o UploadSlice) UpdateAll(exec boil.Executor, cols M) error {
 	}
 
 	if len(cols) == 0 {
-		return errors.New("models: update all requires at least one column argument")
+		return errors.New("public: update all requires at least one column argument")
 	}
 
 	colNames := make([]string, len(cols))
@@ -992,7 +995,7 @@ func (o UploadSlice) UpdateAll(exec boil.Executor, cols M) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update all in upload slice")
+		return errors.Wrap(err, "public: unable to update all in upload slice")
 	}
 
 	return nil
@@ -1021,7 +1024,7 @@ func (o *Upload) UpsertP(exec boil.Executor, updateOnConflict bool, conflictColu
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.
 func (o *Upload) Upsert(exec boil.Executor, updateOnConflict bool, conflictColumns []string, updateColumns []string, whitelist ...string) error {
 	if o == nil {
-		return errors.New("models: no upload provided for upsert")
+		return errors.New("public: no upload provided for upsert")
 	}
 
 	if err := o.doBeforeUpsertHooks(exec); err != nil {
@@ -1077,7 +1080,7 @@ func (o *Upload) Upsert(exec boil.Executor, updateOnConflict bool, conflictColum
 			updateColumns,
 		)
 		if len(update) == 0 {
-			return errors.New("models: unable to upsert upload, could not build update column list")
+			return errors.New("public: unable to upsert upload, could not build update column list")
 		}
 
 		conflict := conflictColumns
@@ -1120,7 +1123,7 @@ func (o *Upload) Upsert(exec boil.Executor, updateOnConflict bool, conflictColum
 		_, err = exec.Exec(cache.query, vals...)
 	}
 	if err != nil {
-		return errors.Wrap(err, "models: unable to upsert upload")
+		return errors.Wrap(err, "public: unable to upsert upload")
 	}
 
 	if !cached {
@@ -1145,7 +1148,7 @@ func (o *Upload) DeleteP(exec boil.Executor) {
 // DeleteG will match against the primary key column to find the record to delete.
 func (o *Upload) DeleteG() error {
 	if o == nil {
-		return errors.New("models: no Upload provided for deletion")
+		return errors.New("public: no Upload provided for deletion")
 	}
 
 	return o.Delete(boil.GetDB())
@@ -1164,7 +1167,7 @@ func (o *Upload) DeleteGP() {
 // Delete will match against the primary key column to find the record to delete.
 func (o *Upload) Delete(exec boil.Executor) error {
 	if o == nil {
-		return errors.New("models: no Upload provided for delete")
+		return errors.New("public: no Upload provided for delete")
 	}
 
 	if err := o.doBeforeDeleteHooks(exec); err != nil {
@@ -1181,7 +1184,7 @@ func (o *Upload) Delete(exec boil.Executor) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete from upload")
+		return errors.Wrap(err, "public: unable to delete from upload")
 	}
 
 	if err := o.doAfterDeleteHooks(exec); err != nil {
@@ -1201,14 +1204,14 @@ func (q uploadQuery) DeleteAllP() {
 // DeleteAll deletes all matching rows.
 func (q uploadQuery) DeleteAll() error {
 	if q.Query == nil {
-		return errors.New("models: no uploadQuery provided for delete all")
+		return errors.New("public: no uploadQuery provided for delete all")
 	}
 
 	queries.SetDelete(q.Query)
 
 	_, err := q.Query.Exec()
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete all from upload")
+		return errors.Wrap(err, "public: unable to delete all from upload")
 	}
 
 	return nil
@@ -1224,7 +1227,7 @@ func (o UploadSlice) DeleteAllGP() {
 // DeleteAllG deletes all rows in the slice.
 func (o UploadSlice) DeleteAllG() error {
 	if o == nil {
-		return errors.New("models: no Upload slice provided for delete all")
+		return errors.New("public: no Upload slice provided for delete all")
 	}
 	return o.DeleteAll(boil.GetDB())
 }
@@ -1239,7 +1242,7 @@ func (o UploadSlice) DeleteAllP(exec boil.Executor) {
 // DeleteAll deletes all rows in the slice, using an executor.
 func (o UploadSlice) DeleteAll(exec boil.Executor) error {
 	if o == nil {
-		return errors.New("models: no Upload slice provided for delete all")
+		return errors.New("public: no Upload slice provided for delete all")
 	}
 
 	if len(o) == 0 {
@@ -1273,7 +1276,7 @@ func (o UploadSlice) DeleteAll(exec boil.Executor) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete all from upload slice")
+		return errors.Wrap(err, "public: unable to delete all from upload slice")
 	}
 
 	if len(uploadAfterDeleteHooks) != 0 {
@@ -1304,7 +1307,7 @@ func (o *Upload) ReloadP(exec boil.Executor) {
 // ReloadG refetches the object from the database using the primary keys.
 func (o *Upload) ReloadG() error {
 	if o == nil {
-		return errors.New("models: no Upload provided for reload")
+		return errors.New("public: no Upload provided for reload")
 	}
 
 	return o.Reload(boil.GetDB())
@@ -1344,7 +1347,7 @@ func (o *UploadSlice) ReloadAllP(exec boil.Executor) {
 // and overwrites the original object slice with the newly updated slice.
 func (o *UploadSlice) ReloadAllG() error {
 	if o == nil {
-		return errors.New("models: empty UploadSlice provided for reload all")
+		return errors.New("public: empty UploadSlice provided for reload all")
 	}
 
 	return o.ReloadAll(boil.GetDB())
@@ -1374,7 +1377,7 @@ func (o *UploadSlice) ReloadAll(exec boil.Executor) error {
 
 	err := q.Bind(&uploads)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to reload all in UploadSlice")
+		return errors.Wrap(err, "public: unable to reload all in UploadSlice")
 	}
 
 	*o = uploads
@@ -1397,7 +1400,7 @@ func UploadExists(exec boil.Executor, token string) (bool, error) {
 
 	err := row.Scan(&exists)
 	if err != nil {
-		return false, errors.Wrap(err, "models: unable to check if upload exists")
+		return false, errors.Wrap(err, "public: unable to check if upload exists")
 	}
 
 	return exists, nil

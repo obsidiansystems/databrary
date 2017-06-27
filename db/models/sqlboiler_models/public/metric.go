@@ -8,11 +8,6 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"reflect"
-	"strings"
-	"sync"
-	"time"
-
 	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/databrary/sqlboiler/boil"
 	"github.com/databrary/sqlboiler/queries"
@@ -21,6 +16,10 @@ import (
 	"github.com/databrary/sqlboiler/types"
 	"github.com/pkg/errors"
 	"gopkg.in/nullbio/null.v6"
+	"reflect"
+	"strings"
+	"sync"
+	"time"
 )
 
 // Metric is an object representing the database table.
@@ -45,8 +44,8 @@ type metricR struct {
 	Records         RecordSlice
 	MeasureDates    MeasureDateSlice
 	MeasureNumerics MeasureNumericSlice
-	Volumes         VolumeSlice
 	MeasureTexts    MeasureTextSlice
+	Volumes         VolumeSlice
 }
 
 // metricL is where Load methods for each relationship are stored.
@@ -249,7 +248,7 @@ func (q metricQuery) One() (*Metric, error) {
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: failed to execute a one query for metric")
+		return nil, errors.Wrap(err, "public: failed to execute a one query for metric")
 	}
 
 	if err := o.doAfterSelectHooks(queries.GetExecutor(q.Query)); err != nil {
@@ -275,7 +274,7 @@ func (q metricQuery) All() (MetricSlice, error) {
 
 	err := q.Bind(&o)
 	if err != nil {
-		return nil, errors.Wrap(err, "models: failed to assign all query results to Metric slice")
+		return nil, errors.Wrap(err, "public: failed to assign all query results to Metric slice")
 	}
 
 	if len(metricAfterSelectHooks) != 0 {
@@ -308,7 +307,7 @@ func (q metricQuery) Count() (int64, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to count metric rows")
+		return 0, errors.Wrap(err, "public: failed to count metric rows")
 	}
 
 	return count, nil
@@ -333,7 +332,7 @@ func (q metricQuery) Exists() (bool, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "models: failed to check if metric exists")
+		return false, errors.Wrap(err, "public: failed to check if metric exists")
 	}
 
 	return count > 0, nil
@@ -431,6 +430,30 @@ func (o *Metric) MeasureNumericsByFk(exec boil.Executor, mods ...qm.QueryMod) me
 	return query
 }
 
+// MeasureTextsG retrieves all the measure_text's measure text.
+func (o *Metric) MeasureTextsG(mods ...qm.QueryMod) measureTextQuery {
+	return o.MeasureTextsByFk(boil.GetDB(), mods...)
+}
+
+// MeasureTexts retrieves all the measure_text's measure text with an executor.
+func (o *Metric) MeasureTextsByFk(exec boil.Executor, mods ...qm.QueryMod) measureTextQuery {
+	queryMods := []qm.QueryMod{
+		qm.Select("\"a\".*"),
+	}
+
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"a\".\"metric\"=?", o.ID),
+	)
+
+	query := MeasureTexts(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"measure_text\" as \"a\"")
+	return query
+}
+
 // VolumesG retrieves all the volume's volume.
 func (o *Metric) VolumesG(mods ...qm.QueryMod) volumeQuery {
 	return o.VolumesByFk(boil.GetDB(), mods...)
@@ -453,30 +476,6 @@ func (o *Metric) VolumesByFk(exec boil.Executor, mods ...qm.QueryMod) volumeQuer
 
 	query := Volumes(exec, queryMods...)
 	queries.SetFrom(query.Query, "\"volume\" as \"a\"")
-	return query
-}
-
-// MeasureTextsG retrieves all the measure_text's measure text.
-func (o *Metric) MeasureTextsG(mods ...qm.QueryMod) measureTextQuery {
-	return o.MeasureTextsByFk(boil.GetDB(), mods...)
-}
-
-// MeasureTexts retrieves all the measure_text's measure text with an executor.
-func (o *Metric) MeasureTextsByFk(exec boil.Executor, mods ...qm.QueryMod) measureTextQuery {
-	queryMods := []qm.QueryMod{
-		qm.Select("\"a\".*"),
-	}
-
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"a\".\"metric\"=?", o.ID),
-	)
-
-	query := MeasureTexts(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"measure_text\" as \"a\"")
 	return query
 }
 
@@ -790,6 +789,78 @@ func (metricL) LoadMeasureNumerics(e boil.Executor, singular bool, maybeMetric i
 	return nil
 }
 
+// LoadMeasureTexts allows an eager lookup of values, cached into the
+// loaded structs of the objects.
+func (metricL) LoadMeasureTexts(e boil.Executor, singular bool, maybeMetric interface{}) error {
+	var slice []*Metric
+	var object *Metric
+
+	count := 1
+	if singular {
+		object = maybeMetric.(*Metric)
+	} else {
+		slice = *maybeMetric.(*MetricSlice)
+		count = len(slice)
+	}
+
+	args := make([]interface{}, count)
+	if singular {
+		if object.R == nil {
+			object.R = &metricR{}
+		}
+		args[0] = object.ID
+	} else {
+		for i, obj := range slice {
+			if obj.R == nil {
+				obj.R = &metricR{}
+			}
+			args[i] = obj.ID
+		}
+	}
+
+	query := fmt.Sprintf(
+		"select * from \"measure_text\" where \"metric\" in (%s)",
+		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
+	)
+	if boil.DebugMode {
+		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
+	}
+
+	results, err := e.Query(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load measure_text")
+	}
+	defer results.Close()
+
+	var resultSlice []*MeasureText
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice measure_text")
+	}
+
+	if len(measureTextAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.MeasureTexts = resultSlice
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.Metric {
+				local.R.MeasureTexts = append(local.R.MeasureTexts, foreign)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
 // LoadVolumes allows an eager lookup of values, cached into the
 // loaded structs of the objects.
 func (metricL) LoadVolumes(e boil.Executor, singular bool, maybeMetric interface{}) error {
@@ -870,78 +941,6 @@ func (metricL) LoadVolumes(e boil.Executor, singular bool, maybeMetric interface
 		for _, local := range slice {
 			if local.ID == localJoinCol {
 				local.R.Volumes = append(local.R.Volumes, foreign)
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
-// LoadMeasureTexts allows an eager lookup of values, cached into the
-// loaded structs of the objects.
-func (metricL) LoadMeasureTexts(e boil.Executor, singular bool, maybeMetric interface{}) error {
-	var slice []*Metric
-	var object *Metric
-
-	count := 1
-	if singular {
-		object = maybeMetric.(*Metric)
-	} else {
-		slice = *maybeMetric.(*MetricSlice)
-		count = len(slice)
-	}
-
-	args := make([]interface{}, count)
-	if singular {
-		if object.R == nil {
-			object.R = &metricR{}
-		}
-		args[0] = object.ID
-	} else {
-		for i, obj := range slice {
-			if obj.R == nil {
-				obj.R = &metricR{}
-			}
-			args[i] = obj.ID
-		}
-	}
-
-	query := fmt.Sprintf(
-		"select * from \"measure_text\" where \"metric\" in (%s)",
-		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
-	)
-	if boil.DebugMode {
-		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
-	}
-
-	results, err := e.Query(query, args...)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load measure_text")
-	}
-	defer results.Close()
-
-	var resultSlice []*MeasureText
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice measure_text")
-	}
-
-	if len(measureTextAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(e); err != nil {
-				return err
-			}
-		}
-	}
-	if singular {
-		object.R.MeasureTexts = resultSlice
-		return nil
-	}
-
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if local.ID == foreign.Metric {
-				local.R.MeasureTexts = append(local.R.MeasureTexts, foreign)
 				break
 			}
 		}
@@ -1430,6 +1429,90 @@ func (o *Metric) AddMeasureNumerics(exec boil.Executor, insert bool, related ...
 	return nil
 }
 
+// AddMeasureTextsG adds the given related objects to the existing relationships
+// of the metric, optionally inserting them as new records.
+// Appends related to o.R.MeasureTexts.
+// Sets related.R.Metric appropriately.
+// Uses the global database handle.
+func (o *Metric) AddMeasureTextsG(insert bool, related ...*MeasureText) error {
+	return o.AddMeasureTexts(boil.GetDB(), insert, related...)
+}
+
+// AddMeasureTextsP adds the given related objects to the existing relationships
+// of the metric, optionally inserting them as new records.
+// Appends related to o.R.MeasureTexts.
+// Sets related.R.Metric appropriately.
+// Panics on error.
+func (o *Metric) AddMeasureTextsP(exec boil.Executor, insert bool, related ...*MeasureText) {
+	if err := o.AddMeasureTexts(exec, insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddMeasureTextsGP adds the given related objects to the existing relationships
+// of the metric, optionally inserting them as new records.
+// Appends related to o.R.MeasureTexts.
+// Sets related.R.Metric appropriately.
+// Uses the global database handle and panics on error.
+func (o *Metric) AddMeasureTextsGP(insert bool, related ...*MeasureText) {
+	if err := o.AddMeasureTexts(boil.GetDB(), insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddMeasureTexts adds the given related objects to the existing relationships
+// of the metric, optionally inserting them as new records.
+// Appends related to o.R.MeasureTexts.
+// Sets related.R.Metric appropriately.
+func (o *Metric) AddMeasureTexts(exec boil.Executor, insert bool, related ...*MeasureText) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.Metric = o.ID
+			if err = rel.Insert(exec); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"measure_text\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"metric"}),
+				strmangle.WhereClause("\"", "\"", 2, measureTextPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.Record, rel.Metric}
+
+			if boil.DebugMode {
+				fmt.Fprintln(boil.DebugWriter, updateQuery)
+				fmt.Fprintln(boil.DebugWriter, values)
+			}
+
+			if _, err = exec.Exec(updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.Metric = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &metricR{
+			MeasureTexts: related,
+		}
+	} else {
+		o.R.MeasureTexts = append(o.R.MeasureTexts, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &measureTextR{
+				Metric: o,
+			}
+		} else {
+			rel.R.Metric = o
+		}
+	}
+	return nil
+}
+
 // AddVolumesG adds the given related objects to the existing relationships
 // of the metric, optionally inserting them as new records.
 // Appends related to o.R.Volumes.
@@ -1666,90 +1749,6 @@ func removeVolumesFromMetricsSlice(o *Metric, related []*Volume) {
 	}
 }
 
-// AddMeasureTextsG adds the given related objects to the existing relationships
-// of the metric, optionally inserting them as new records.
-// Appends related to o.R.MeasureTexts.
-// Sets related.R.Metric appropriately.
-// Uses the global database handle.
-func (o *Metric) AddMeasureTextsG(insert bool, related ...*MeasureText) error {
-	return o.AddMeasureTexts(boil.GetDB(), insert, related...)
-}
-
-// AddMeasureTextsP adds the given related objects to the existing relationships
-// of the metric, optionally inserting them as new records.
-// Appends related to o.R.MeasureTexts.
-// Sets related.R.Metric appropriately.
-// Panics on error.
-func (o *Metric) AddMeasureTextsP(exec boil.Executor, insert bool, related ...*MeasureText) {
-	if err := o.AddMeasureTexts(exec, insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddMeasureTextsGP adds the given related objects to the existing relationships
-// of the metric, optionally inserting them as new records.
-// Appends related to o.R.MeasureTexts.
-// Sets related.R.Metric appropriately.
-// Uses the global database handle and panics on error.
-func (o *Metric) AddMeasureTextsGP(insert bool, related ...*MeasureText) {
-	if err := o.AddMeasureTexts(boil.GetDB(), insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddMeasureTexts adds the given related objects to the existing relationships
-// of the metric, optionally inserting them as new records.
-// Appends related to o.R.MeasureTexts.
-// Sets related.R.Metric appropriately.
-func (o *Metric) AddMeasureTexts(exec boil.Executor, insert bool, related ...*MeasureText) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.Metric = o.ID
-			if err = rel.Insert(exec); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"measure_text\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"metric"}),
-				strmangle.WhereClause("\"", "\"", 2, measureTextPrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.Record, rel.Metric}
-
-			if boil.DebugMode {
-				fmt.Fprintln(boil.DebugWriter, updateQuery)
-				fmt.Fprintln(boil.DebugWriter, values)
-			}
-
-			if _, err = exec.Exec(updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.Metric = o.ID
-		}
-	}
-
-	if o.R == nil {
-		o.R = &metricR{
-			MeasureTexts: related,
-		}
-	} else {
-		o.R.MeasureTexts = append(o.R.MeasureTexts, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &measureTextR{
-				Metric: o,
-			}
-		} else {
-			rel.R.Metric = o
-		}
-	}
-	return nil
-}
-
 // MetricsG retrieves all records.
 func MetricsG(mods ...qm.QueryMod) metricQuery {
 	return Metrics(boil.GetDB(), mods...)
@@ -1796,7 +1795,7 @@ func FindMetric(exec boil.Executor, id int, selectCols ...string) (*Metric, erro
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: unable to select from metric")
+		return nil, errors.Wrap(err, "public: unable to select from metric")
 	}
 
 	return metricObj, nil
@@ -1840,7 +1839,7 @@ func (o *Metric) InsertP(exec boil.Executor, whitelist ...string) {
 // - All columns with a default, but non-zero are included (i.e. health = 75)
 func (o *Metric) Insert(exec boil.Executor, whitelist ...string) error {
 	if o == nil {
-		return errors.New("models: no metric provided for insertion")
+		return errors.New("public: no metric provided for insertion")
 	}
 
 	var err error
@@ -1899,7 +1898,7 @@ func (o *Metric) Insert(exec boil.Executor, whitelist ...string) error {
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "models: unable to insert into metric")
+		return errors.Wrap(err, "public: unable to insert into metric")
 	}
 
 	if !cached {
@@ -1954,8 +1953,12 @@ func (o *Metric) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(metricColumns, metricPrimaryKeyColumns, whitelist)
+
+		if len(whitelist) == 0 {
+			wl = strmangle.SetComplement(wl, []string{"created_at"})
+		}
 		if len(wl) == 0 {
-			return errors.New("models: unable to update metric, could not build whitelist")
+			return errors.New("public: unable to update metric, could not build whitelist")
 		}
 
 		cache.query = fmt.Sprintf("UPDATE \"metric\" SET %s WHERE %s",
@@ -1977,7 +1980,7 @@ func (o *Metric) Update(exec boil.Executor, whitelist ...string) error {
 
 	_, err = exec.Exec(cache.query, values...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update metric row")
+		return errors.Wrap(err, "public: unable to update metric row")
 	}
 
 	if !cached {
@@ -2002,7 +2005,7 @@ func (q metricQuery) UpdateAll(cols M) error {
 
 	_, err := q.Query.Exec()
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update all for metric")
+		return errors.Wrap(err, "public: unable to update all for metric")
 	}
 
 	return nil
@@ -2035,7 +2038,7 @@ func (o MetricSlice) UpdateAll(exec boil.Executor, cols M) error {
 	}
 
 	if len(cols) == 0 {
-		return errors.New("models: update all requires at least one column argument")
+		return errors.New("public: update all requires at least one column argument")
 	}
 
 	colNames := make([]string, len(cols))
@@ -2067,7 +2070,7 @@ func (o MetricSlice) UpdateAll(exec boil.Executor, cols M) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update all in metric slice")
+		return errors.Wrap(err, "public: unable to update all in metric slice")
 	}
 
 	return nil
@@ -2096,7 +2099,7 @@ func (o *Metric) UpsertP(exec boil.Executor, updateOnConflict bool, conflictColu
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.
 func (o *Metric) Upsert(exec boil.Executor, updateOnConflict bool, conflictColumns []string, updateColumns []string, whitelist ...string) error {
 	if o == nil {
-		return errors.New("models: no metric provided for upsert")
+		return errors.New("public: no metric provided for upsert")
 	}
 
 	if err := o.doBeforeUpsertHooks(exec); err != nil {
@@ -2152,7 +2155,7 @@ func (o *Metric) Upsert(exec boil.Executor, updateOnConflict bool, conflictColum
 			updateColumns,
 		)
 		if len(update) == 0 {
-			return errors.New("models: unable to upsert metric, could not build update column list")
+			return errors.New("public: unable to upsert metric, could not build update column list")
 		}
 
 		conflict := conflictColumns
@@ -2195,7 +2198,7 @@ func (o *Metric) Upsert(exec boil.Executor, updateOnConflict bool, conflictColum
 		_, err = exec.Exec(cache.query, vals...)
 	}
 	if err != nil {
-		return errors.Wrap(err, "models: unable to upsert metric")
+		return errors.Wrap(err, "public: unable to upsert metric")
 	}
 
 	if !cached {
@@ -2220,7 +2223,7 @@ func (o *Metric) DeleteP(exec boil.Executor) {
 // DeleteG will match against the primary key column to find the record to delete.
 func (o *Metric) DeleteG() error {
 	if o == nil {
-		return errors.New("models: no Metric provided for deletion")
+		return errors.New("public: no Metric provided for deletion")
 	}
 
 	return o.Delete(boil.GetDB())
@@ -2239,7 +2242,7 @@ func (o *Metric) DeleteGP() {
 // Delete will match against the primary key column to find the record to delete.
 func (o *Metric) Delete(exec boil.Executor) error {
 	if o == nil {
-		return errors.New("models: no Metric provided for delete")
+		return errors.New("public: no Metric provided for delete")
 	}
 
 	if err := o.doBeforeDeleteHooks(exec); err != nil {
@@ -2256,7 +2259,7 @@ func (o *Metric) Delete(exec boil.Executor) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete from metric")
+		return errors.Wrap(err, "public: unable to delete from metric")
 	}
 
 	if err := o.doAfterDeleteHooks(exec); err != nil {
@@ -2276,14 +2279,14 @@ func (q metricQuery) DeleteAllP() {
 // DeleteAll deletes all matching rows.
 func (q metricQuery) DeleteAll() error {
 	if q.Query == nil {
-		return errors.New("models: no metricQuery provided for delete all")
+		return errors.New("public: no metricQuery provided for delete all")
 	}
 
 	queries.SetDelete(q.Query)
 
 	_, err := q.Query.Exec()
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete all from metric")
+		return errors.Wrap(err, "public: unable to delete all from metric")
 	}
 
 	return nil
@@ -2299,7 +2302,7 @@ func (o MetricSlice) DeleteAllGP() {
 // DeleteAllG deletes all rows in the slice.
 func (o MetricSlice) DeleteAllG() error {
 	if o == nil {
-		return errors.New("models: no Metric slice provided for delete all")
+		return errors.New("public: no Metric slice provided for delete all")
 	}
 	return o.DeleteAll(boil.GetDB())
 }
@@ -2314,7 +2317,7 @@ func (o MetricSlice) DeleteAllP(exec boil.Executor) {
 // DeleteAll deletes all rows in the slice, using an executor.
 func (o MetricSlice) DeleteAll(exec boil.Executor) error {
 	if o == nil {
-		return errors.New("models: no Metric slice provided for delete all")
+		return errors.New("public: no Metric slice provided for delete all")
 	}
 
 	if len(o) == 0 {
@@ -2348,7 +2351,7 @@ func (o MetricSlice) DeleteAll(exec boil.Executor) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete all from metric slice")
+		return errors.Wrap(err, "public: unable to delete all from metric slice")
 	}
 
 	if len(metricAfterDeleteHooks) != 0 {
@@ -2379,7 +2382,7 @@ func (o *Metric) ReloadP(exec boil.Executor) {
 // ReloadG refetches the object from the database using the primary keys.
 func (o *Metric) ReloadG() error {
 	if o == nil {
-		return errors.New("models: no Metric provided for reload")
+		return errors.New("public: no Metric provided for reload")
 	}
 
 	return o.Reload(boil.GetDB())
@@ -2419,7 +2422,7 @@ func (o *MetricSlice) ReloadAllP(exec boil.Executor) {
 // and overwrites the original object slice with the newly updated slice.
 func (o *MetricSlice) ReloadAllG() error {
 	if o == nil {
-		return errors.New("models: empty MetricSlice provided for reload all")
+		return errors.New("public: empty MetricSlice provided for reload all")
 	}
 
 	return o.ReloadAll(boil.GetDB())
@@ -2449,7 +2452,7 @@ func (o *MetricSlice) ReloadAll(exec boil.Executor) error {
 
 	err := q.Bind(&metrics)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to reload all in MetricSlice")
+		return errors.Wrap(err, "public: unable to reload all in MetricSlice")
 	}
 
 	*o = metrics
@@ -2472,7 +2475,7 @@ func MetricExists(exec boil.Executor, id int) (bool, error) {
 
 	err := row.Scan(&exists)
 	if err != nil {
-		return false, errors.Wrap(err, "models: unable to check if metric exists")
+		return false, errors.Wrap(err, "public: unable to check if metric exists")
 	}
 
 	return exists, nil

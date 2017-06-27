@@ -6,18 +6,17 @@ package public
 
 import (
 	"bytes"
+	"github.com/databrary/databrary/db/models/custom_types"
+	"github.com/databrary/sqlboiler/boil"
+	"github.com/databrary/sqlboiler/randomize"
+	"github.com/databrary/sqlboiler/strmangle"
+	"github.com/pmezard/go-difflib/difflib"
 	"os"
 	"os/exec"
 	"reflect"
 	"sort"
 	"strings"
 	"testing"
-
-	"github.com/databrary/databrary/db/models/custom_types"
-	"github.com/databrary/sqlboiler/boil"
-	"github.com/databrary/sqlboiler/randomize"
-	"github.com/databrary/sqlboiler/strmangle"
-	"github.com/pmezard/go-difflib/difflib"
 )
 
 func testExcerpts(t *testing.T) {

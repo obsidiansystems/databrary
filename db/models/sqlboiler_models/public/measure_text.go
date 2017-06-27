@@ -8,16 +8,15 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"reflect"
-	"strings"
-	"sync"
-	"time"
-
 	"github.com/databrary/sqlboiler/boil"
 	"github.com/databrary/sqlboiler/queries"
 	"github.com/databrary/sqlboiler/queries/qm"
 	"github.com/databrary/sqlboiler/strmangle"
 	"github.com/pkg/errors"
+	"reflect"
+	"strings"
+	"sync"
+	"time"
 )
 
 // MeasureText is an object representing the database table.
@@ -236,7 +235,7 @@ func (q measureTextQuery) One() (*MeasureText, error) {
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: failed to execute a one query for measure_text")
+		return nil, errors.Wrap(err, "public: failed to execute a one query for measure_text")
 	}
 
 	if err := o.doAfterSelectHooks(queries.GetExecutor(q.Query)); err != nil {
@@ -262,7 +261,7 @@ func (q measureTextQuery) All() (MeasureTextSlice, error) {
 
 	err := q.Bind(&o)
 	if err != nil {
-		return nil, errors.Wrap(err, "models: failed to assign all query results to MeasureText slice")
+		return nil, errors.Wrap(err, "public: failed to assign all query results to MeasureText slice")
 	}
 
 	if len(measureTextAfterSelectHooks) != 0 {
@@ -295,7 +294,7 @@ func (q measureTextQuery) Count() (int64, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to count measure_text rows")
+		return 0, errors.Wrap(err, "public: failed to count measure_text rows")
 	}
 
 	return count, nil
@@ -320,7 +319,7 @@ func (q measureTextQuery) Exists() (bool, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "models: failed to check if measure_text exists")
+		return false, errors.Wrap(err, "public: failed to check if measure_text exists")
 	}
 
 	return count > 0, nil
@@ -718,7 +717,7 @@ func FindMeasureText(exec boil.Executor, record int, metric int, selectCols ...s
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: unable to select from measure_text")
+		return nil, errors.Wrap(err, "public: unable to select from measure_text")
 	}
 
 	return measureTextObj, nil
@@ -762,7 +761,7 @@ func (o *MeasureText) InsertP(exec boil.Executor, whitelist ...string) {
 // - All columns with a default, but non-zero are included (i.e. health = 75)
 func (o *MeasureText) Insert(exec boil.Executor, whitelist ...string) error {
 	if o == nil {
-		return errors.New("models: no measure_text provided for insertion")
+		return errors.New("public: no measure_text provided for insertion")
 	}
 
 	var err error
@@ -821,7 +820,7 @@ func (o *MeasureText) Insert(exec boil.Executor, whitelist ...string) error {
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "models: unable to insert into measure_text")
+		return errors.Wrap(err, "public: unable to insert into measure_text")
 	}
 
 	if !cached {
@@ -876,8 +875,12 @@ func (o *MeasureText) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(measureTextColumns, measureTextPrimaryKeyColumns, whitelist)
+
+		if len(whitelist) == 0 {
+			wl = strmangle.SetComplement(wl, []string{"created_at"})
+		}
 		if len(wl) == 0 {
-			return errors.New("models: unable to update measure_text, could not build whitelist")
+			return errors.New("public: unable to update measure_text, could not build whitelist")
 		}
 
 		cache.query = fmt.Sprintf("UPDATE \"measure_text\" SET %s WHERE %s",
@@ -899,7 +902,7 @@ func (o *MeasureText) Update(exec boil.Executor, whitelist ...string) error {
 
 	_, err = exec.Exec(cache.query, values...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update measure_text row")
+		return errors.Wrap(err, "public: unable to update measure_text row")
 	}
 
 	if !cached {
@@ -924,7 +927,7 @@ func (q measureTextQuery) UpdateAll(cols M) error {
 
 	_, err := q.Query.Exec()
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update all for measure_text")
+		return errors.Wrap(err, "public: unable to update all for measure_text")
 	}
 
 	return nil
@@ -957,7 +960,7 @@ func (o MeasureTextSlice) UpdateAll(exec boil.Executor, cols M) error {
 	}
 
 	if len(cols) == 0 {
-		return errors.New("models: update all requires at least one column argument")
+		return errors.New("public: update all requires at least one column argument")
 	}
 
 	colNames := make([]string, len(cols))
@@ -989,7 +992,7 @@ func (o MeasureTextSlice) UpdateAll(exec boil.Executor, cols M) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update all in measureText slice")
+		return errors.Wrap(err, "public: unable to update all in measureText slice")
 	}
 
 	return nil
@@ -1018,7 +1021,7 @@ func (o *MeasureText) UpsertP(exec boil.Executor, updateOnConflict bool, conflic
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.
 func (o *MeasureText) Upsert(exec boil.Executor, updateOnConflict bool, conflictColumns []string, updateColumns []string, whitelist ...string) error {
 	if o == nil {
-		return errors.New("models: no measure_text provided for upsert")
+		return errors.New("public: no measure_text provided for upsert")
 	}
 
 	if err := o.doBeforeUpsertHooks(exec); err != nil {
@@ -1074,7 +1077,7 @@ func (o *MeasureText) Upsert(exec boil.Executor, updateOnConflict bool, conflict
 			updateColumns,
 		)
 		if len(update) == 0 {
-			return errors.New("models: unable to upsert measure_text, could not build update column list")
+			return errors.New("public: unable to upsert measure_text, could not build update column list")
 		}
 
 		conflict := conflictColumns
@@ -1117,7 +1120,7 @@ func (o *MeasureText) Upsert(exec boil.Executor, updateOnConflict bool, conflict
 		_, err = exec.Exec(cache.query, vals...)
 	}
 	if err != nil {
-		return errors.Wrap(err, "models: unable to upsert measure_text")
+		return errors.Wrap(err, "public: unable to upsert measure_text")
 	}
 
 	if !cached {
@@ -1142,7 +1145,7 @@ func (o *MeasureText) DeleteP(exec boil.Executor) {
 // DeleteG will match against the primary key column to find the record to delete.
 func (o *MeasureText) DeleteG() error {
 	if o == nil {
-		return errors.New("models: no MeasureText provided for deletion")
+		return errors.New("public: no MeasureText provided for deletion")
 	}
 
 	return o.Delete(boil.GetDB())
@@ -1161,7 +1164,7 @@ func (o *MeasureText) DeleteGP() {
 // Delete will match against the primary key column to find the record to delete.
 func (o *MeasureText) Delete(exec boil.Executor) error {
 	if o == nil {
-		return errors.New("models: no MeasureText provided for delete")
+		return errors.New("public: no MeasureText provided for delete")
 	}
 
 	if err := o.doBeforeDeleteHooks(exec); err != nil {
@@ -1178,7 +1181,7 @@ func (o *MeasureText) Delete(exec boil.Executor) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete from measure_text")
+		return errors.Wrap(err, "public: unable to delete from measure_text")
 	}
 
 	if err := o.doAfterDeleteHooks(exec); err != nil {
@@ -1198,14 +1201,14 @@ func (q measureTextQuery) DeleteAllP() {
 // DeleteAll deletes all matching rows.
 func (q measureTextQuery) DeleteAll() error {
 	if q.Query == nil {
-		return errors.New("models: no measureTextQuery provided for delete all")
+		return errors.New("public: no measureTextQuery provided for delete all")
 	}
 
 	queries.SetDelete(q.Query)
 
 	_, err := q.Query.Exec()
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete all from measure_text")
+		return errors.Wrap(err, "public: unable to delete all from measure_text")
 	}
 
 	return nil
@@ -1221,7 +1224,7 @@ func (o MeasureTextSlice) DeleteAllGP() {
 // DeleteAllG deletes all rows in the slice.
 func (o MeasureTextSlice) DeleteAllG() error {
 	if o == nil {
-		return errors.New("models: no MeasureText slice provided for delete all")
+		return errors.New("public: no MeasureText slice provided for delete all")
 	}
 	return o.DeleteAll(boil.GetDB())
 }
@@ -1236,7 +1239,7 @@ func (o MeasureTextSlice) DeleteAllP(exec boil.Executor) {
 // DeleteAll deletes all rows in the slice, using an executor.
 func (o MeasureTextSlice) DeleteAll(exec boil.Executor) error {
 	if o == nil {
-		return errors.New("models: no MeasureText slice provided for delete all")
+		return errors.New("public: no MeasureText slice provided for delete all")
 	}
 
 	if len(o) == 0 {
@@ -1270,7 +1273,7 @@ func (o MeasureTextSlice) DeleteAll(exec boil.Executor) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete all from measureText slice")
+		return errors.Wrap(err, "public: unable to delete all from measureText slice")
 	}
 
 	if len(measureTextAfterDeleteHooks) != 0 {
@@ -1301,7 +1304,7 @@ func (o *MeasureText) ReloadP(exec boil.Executor) {
 // ReloadG refetches the object from the database using the primary keys.
 func (o *MeasureText) ReloadG() error {
 	if o == nil {
-		return errors.New("models: no MeasureText provided for reload")
+		return errors.New("public: no MeasureText provided for reload")
 	}
 
 	return o.Reload(boil.GetDB())
@@ -1341,7 +1344,7 @@ func (o *MeasureTextSlice) ReloadAllP(exec boil.Executor) {
 // and overwrites the original object slice with the newly updated slice.
 func (o *MeasureTextSlice) ReloadAllG() error {
 	if o == nil {
-		return errors.New("models: empty MeasureTextSlice provided for reload all")
+		return errors.New("public: empty MeasureTextSlice provided for reload all")
 	}
 
 	return o.ReloadAll(boil.GetDB())
@@ -1371,7 +1374,7 @@ func (o *MeasureTextSlice) ReloadAll(exec boil.Executor) error {
 
 	err := q.Bind(&measureTexts)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to reload all in MeasureTextSlice")
+		return errors.Wrap(err, "public: unable to reload all in MeasureTextSlice")
 	}
 
 	*o = measureTexts
@@ -1394,7 +1397,7 @@ func MeasureTextExists(exec boil.Executor, record int, metric int) (bool, error)
 
 	err := row.Scan(&exists)
 	if err != nil {
-		return false, errors.Wrap(err, "models: unable to check if measure_text exists")
+		return false, errors.Wrap(err, "public: unable to check if measure_text exists")
 	}
 
 	return exists, nil

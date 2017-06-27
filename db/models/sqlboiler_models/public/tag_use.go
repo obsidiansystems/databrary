@@ -8,17 +8,16 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"reflect"
-	"strings"
-	"sync"
-	"time"
-
 	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/databrary/sqlboiler/boil"
 	"github.com/databrary/sqlboiler/queries"
 	"github.com/databrary/sqlboiler/queries/qm"
 	"github.com/databrary/sqlboiler/strmangle"
 	"github.com/pkg/errors"
+	"reflect"
+	"strings"
+	"sync"
+	"time"
 )
 
 // TagUse is an object representing the database table.
@@ -239,7 +238,7 @@ func (q tagUseQuery) One() (*TagUse, error) {
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: failed to execute a one query for tag_use")
+		return nil, errors.Wrap(err, "public: failed to execute a one query for tag_use")
 	}
 
 	if err := o.doAfterSelectHooks(queries.GetExecutor(q.Query)); err != nil {
@@ -265,7 +264,7 @@ func (q tagUseQuery) All() (TagUseSlice, error) {
 
 	err := q.Bind(&o)
 	if err != nil {
-		return nil, errors.Wrap(err, "models: failed to assign all query results to TagUse slice")
+		return nil, errors.Wrap(err, "public: failed to assign all query results to TagUse slice")
 	}
 
 	if len(tagUseAfterSelectHooks) != 0 {
@@ -298,7 +297,7 @@ func (q tagUseQuery) Count() (int64, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to count tag_use rows")
+		return 0, errors.Wrap(err, "public: failed to count tag_use rows")
 	}
 
 	return count, nil
@@ -323,7 +322,7 @@ func (q tagUseQuery) Exists() (bool, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "models: failed to check if tag_use exists")
+		return false, errors.Wrap(err, "public: failed to check if tag_use exists")
 	}
 
 	return count > 0, nil
@@ -894,7 +893,7 @@ func FindTagUse(exec boil.Executor, container int, segment custom_types.Segment,
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: unable to select from tag_use")
+		return nil, errors.Wrap(err, "public: unable to select from tag_use")
 	}
 
 	return tagUseObj, nil
@@ -938,7 +937,7 @@ func (o *TagUse) InsertP(exec boil.Executor, whitelist ...string) {
 // - All columns with a default, but non-zero are included (i.e. health = 75)
 func (o *TagUse) Insert(exec boil.Executor, whitelist ...string) error {
 	if o == nil {
-		return errors.New("models: no tag_use provided for insertion")
+		return errors.New("public: no tag_use provided for insertion")
 	}
 
 	var err error
@@ -997,7 +996,7 @@ func (o *TagUse) Insert(exec boil.Executor, whitelist ...string) error {
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "models: unable to insert into tag_use")
+		return errors.Wrap(err, "public: unable to insert into tag_use")
 	}
 
 	if !cached {
@@ -1052,8 +1051,12 @@ func (o *TagUse) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(tagUseColumns, tagUsePrimaryKeyColumns, whitelist)
+
+		if len(whitelist) == 0 {
+			wl = strmangle.SetComplement(wl, []string{"created_at"})
+		}
 		if len(wl) == 0 {
-			return errors.New("models: unable to update tag_use, could not build whitelist")
+			return errors.New("public: unable to update tag_use, could not build whitelist")
 		}
 
 		cache.query = fmt.Sprintf("UPDATE \"tag_use\" SET %s WHERE %s",
@@ -1075,7 +1078,7 @@ func (o *TagUse) Update(exec boil.Executor, whitelist ...string) error {
 
 	_, err = exec.Exec(cache.query, values...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update tag_use row")
+		return errors.Wrap(err, "public: unable to update tag_use row")
 	}
 
 	if !cached {
@@ -1100,7 +1103,7 @@ func (q tagUseQuery) UpdateAll(cols M) error {
 
 	_, err := q.Query.Exec()
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update all for tag_use")
+		return errors.Wrap(err, "public: unable to update all for tag_use")
 	}
 
 	return nil
@@ -1133,7 +1136,7 @@ func (o TagUseSlice) UpdateAll(exec boil.Executor, cols M) error {
 	}
 
 	if len(cols) == 0 {
-		return errors.New("models: update all requires at least one column argument")
+		return errors.New("public: update all requires at least one column argument")
 	}
 
 	colNames := make([]string, len(cols))
@@ -1165,7 +1168,7 @@ func (o TagUseSlice) UpdateAll(exec boil.Executor, cols M) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update all in tagUse slice")
+		return errors.Wrap(err, "public: unable to update all in tagUse slice")
 	}
 
 	return nil
@@ -1194,7 +1197,7 @@ func (o *TagUse) UpsertP(exec boil.Executor, updateOnConflict bool, conflictColu
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.
 func (o *TagUse) Upsert(exec boil.Executor, updateOnConflict bool, conflictColumns []string, updateColumns []string, whitelist ...string) error {
 	if o == nil {
-		return errors.New("models: no tag_use provided for upsert")
+		return errors.New("public: no tag_use provided for upsert")
 	}
 
 	if err := o.doBeforeUpsertHooks(exec); err != nil {
@@ -1250,7 +1253,7 @@ func (o *TagUse) Upsert(exec boil.Executor, updateOnConflict bool, conflictColum
 			updateColumns,
 		)
 		if len(update) == 0 {
-			return errors.New("models: unable to upsert tag_use, could not build update column list")
+			return errors.New("public: unable to upsert tag_use, could not build update column list")
 		}
 
 		conflict := conflictColumns
@@ -1293,7 +1296,7 @@ func (o *TagUse) Upsert(exec boil.Executor, updateOnConflict bool, conflictColum
 		_, err = exec.Exec(cache.query, vals...)
 	}
 	if err != nil {
-		return errors.Wrap(err, "models: unable to upsert tag_use")
+		return errors.Wrap(err, "public: unable to upsert tag_use")
 	}
 
 	if !cached {
@@ -1318,7 +1321,7 @@ func (o *TagUse) DeleteP(exec boil.Executor) {
 // DeleteG will match against the primary key column to find the record to delete.
 func (o *TagUse) DeleteG() error {
 	if o == nil {
-		return errors.New("models: no TagUse provided for deletion")
+		return errors.New("public: no TagUse provided for deletion")
 	}
 
 	return o.Delete(boil.GetDB())
@@ -1337,7 +1340,7 @@ func (o *TagUse) DeleteGP() {
 // Delete will match against the primary key column to find the record to delete.
 func (o *TagUse) Delete(exec boil.Executor) error {
 	if o == nil {
-		return errors.New("models: no TagUse provided for delete")
+		return errors.New("public: no TagUse provided for delete")
 	}
 
 	if err := o.doBeforeDeleteHooks(exec); err != nil {
@@ -1354,7 +1357,7 @@ func (o *TagUse) Delete(exec boil.Executor) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete from tag_use")
+		return errors.Wrap(err, "public: unable to delete from tag_use")
 	}
 
 	if err := o.doAfterDeleteHooks(exec); err != nil {
@@ -1374,14 +1377,14 @@ func (q tagUseQuery) DeleteAllP() {
 // DeleteAll deletes all matching rows.
 func (q tagUseQuery) DeleteAll() error {
 	if q.Query == nil {
-		return errors.New("models: no tagUseQuery provided for delete all")
+		return errors.New("public: no tagUseQuery provided for delete all")
 	}
 
 	queries.SetDelete(q.Query)
 
 	_, err := q.Query.Exec()
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete all from tag_use")
+		return errors.Wrap(err, "public: unable to delete all from tag_use")
 	}
 
 	return nil
@@ -1397,7 +1400,7 @@ func (o TagUseSlice) DeleteAllGP() {
 // DeleteAllG deletes all rows in the slice.
 func (o TagUseSlice) DeleteAllG() error {
 	if o == nil {
-		return errors.New("models: no TagUse slice provided for delete all")
+		return errors.New("public: no TagUse slice provided for delete all")
 	}
 	return o.DeleteAll(boil.GetDB())
 }
@@ -1412,7 +1415,7 @@ func (o TagUseSlice) DeleteAllP(exec boil.Executor) {
 // DeleteAll deletes all rows in the slice, using an executor.
 func (o TagUseSlice) DeleteAll(exec boil.Executor) error {
 	if o == nil {
-		return errors.New("models: no TagUse slice provided for delete all")
+		return errors.New("public: no TagUse slice provided for delete all")
 	}
 
 	if len(o) == 0 {
@@ -1446,7 +1449,7 @@ func (o TagUseSlice) DeleteAll(exec boil.Executor) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete all from tagUse slice")
+		return errors.Wrap(err, "public: unable to delete all from tagUse slice")
 	}
 
 	if len(tagUseAfterDeleteHooks) != 0 {
@@ -1477,7 +1480,7 @@ func (o *TagUse) ReloadP(exec boil.Executor) {
 // ReloadG refetches the object from the database using the primary keys.
 func (o *TagUse) ReloadG() error {
 	if o == nil {
-		return errors.New("models: no TagUse provided for reload")
+		return errors.New("public: no TagUse provided for reload")
 	}
 
 	return o.Reload(boil.GetDB())
@@ -1517,7 +1520,7 @@ func (o *TagUseSlice) ReloadAllP(exec boil.Executor) {
 // and overwrites the original object slice with the newly updated slice.
 func (o *TagUseSlice) ReloadAllG() error {
 	if o == nil {
-		return errors.New("models: empty TagUseSlice provided for reload all")
+		return errors.New("public: empty TagUseSlice provided for reload all")
 	}
 
 	return o.ReloadAll(boil.GetDB())
@@ -1547,7 +1550,7 @@ func (o *TagUseSlice) ReloadAll(exec boil.Executor) error {
 
 	err := q.Bind(&tagUses)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to reload all in TagUseSlice")
+		return errors.Wrap(err, "public: unable to reload all in TagUseSlice")
 	}
 
 	*o = tagUses
@@ -1570,7 +1573,7 @@ func TagUseExists(exec boil.Executor, container int, segment custom_types.Segmen
 
 	err := row.Scan(&exists)
 	if err != nil {
-		return false, errors.Wrap(err, "models: unable to check if tag_use exists")
+		return false, errors.Wrap(err, "public: unable to check if tag_use exists")
 	}
 
 	return exists, nil

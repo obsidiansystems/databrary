@@ -7,12 +7,11 @@ package public
 import (
 	"bytes"
 	"fmt"
+	"github.com/databrary/sqlboiler/boil"
 	"io"
 	"io/ioutil"
 	"math/rand"
 	"regexp"
-
-	"github.com/databrary/sqlboiler/boil"
 )
 
 var dbNameRand *rand.Rand

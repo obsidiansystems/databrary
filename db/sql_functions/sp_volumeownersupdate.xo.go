@@ -6,7 +6,7 @@ package xo_models
 import (
 	"fmt"
 
-	"github.com/vattle/sqlboiler/boil"
+	"github.com/databrary/sqlboiler/boil"
 )
 
 // VolumeOwnersUpdate calls the stored procedure 'public.volume_owners_update(integer) void' on db.

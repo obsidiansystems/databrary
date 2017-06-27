@@ -6,7 +6,7 @@ package xo_models
 import (
 	"time"
 
-	"github.com/vattle/sqlboiler/boil"
+	"github.com/databrary/sqlboiler/boil"
 )
 
 // VolumeCreation calls the stored procedure 'public.volume_creation(integer) timestamp with time zone' on db.

@@ -8,17 +8,16 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"reflect"
-	"strings"
-	"sync"
-	"time"
-
 	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/databrary/sqlboiler/boil"
 	"github.com/databrary/sqlboiler/queries"
 	"github.com/databrary/sqlboiler/queries/qm"
 	"github.com/databrary/sqlboiler/strmangle"
 	"github.com/pkg/errors"
+	"reflect"
+	"strings"
+	"sync"
+	"time"
 )
 
 // VolumeInclusion is an object representing the database table.
@@ -237,7 +236,7 @@ func (q volumeInclusionQuery) One() (*VolumeInclusion, error) {
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: failed to execute a one query for volume_inclusion")
+		return nil, errors.Wrap(err, "public: failed to execute a one query for volume_inclusion")
 	}
 
 	if err := o.doAfterSelectHooks(queries.GetExecutor(q.Query)); err != nil {
@@ -263,7 +262,7 @@ func (q volumeInclusionQuery) All() (VolumeInclusionSlice, error) {
 
 	err := q.Bind(&o)
 	if err != nil {
-		return nil, errors.Wrap(err, "models: failed to assign all query results to VolumeInclusion slice")
+		return nil, errors.Wrap(err, "public: failed to assign all query results to VolumeInclusion slice")
 	}
 
 	if len(volumeInclusionAfterSelectHooks) != 0 {
@@ -296,7 +295,7 @@ func (q volumeInclusionQuery) Count() (int64, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to count volume_inclusion rows")
+		return 0, errors.Wrap(err, "public: failed to count volume_inclusion rows")
 	}
 
 	return count, nil
@@ -321,7 +320,7 @@ func (q volumeInclusionQuery) Exists() (bool, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "models: failed to check if volume_inclusion exists")
+		return false, errors.Wrap(err, "public: failed to check if volume_inclusion exists")
 	}
 
 	return count > 0, nil
@@ -719,7 +718,7 @@ func FindVolumeInclusion(exec boil.Executor, container int, volume int, selectCo
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: unable to select from volume_inclusion")
+		return nil, errors.Wrap(err, "public: unable to select from volume_inclusion")
 	}
 
 	return volumeInclusionObj, nil
@@ -763,7 +762,7 @@ func (o *VolumeInclusion) InsertP(exec boil.Executor, whitelist ...string) {
 // - All columns with a default, but non-zero are included (i.e. health = 75)
 func (o *VolumeInclusion) Insert(exec boil.Executor, whitelist ...string) error {
 	if o == nil {
-		return errors.New("models: no volume_inclusion provided for insertion")
+		return errors.New("public: no volume_inclusion provided for insertion")
 	}
 
 	var err error
@@ -822,7 +821,7 @@ func (o *VolumeInclusion) Insert(exec boil.Executor, whitelist ...string) error 
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "models: unable to insert into volume_inclusion")
+		return errors.Wrap(err, "public: unable to insert into volume_inclusion")
 	}
 
 	if !cached {
@@ -877,8 +876,12 @@ func (o *VolumeInclusion) Update(exec boil.Executor, whitelist ...string) error 
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(volumeInclusionColumns, volumeInclusionPrimaryKeyColumns, whitelist)
+
+		if len(whitelist) == 0 {
+			wl = strmangle.SetComplement(wl, []string{"created_at"})
+		}
 		if len(wl) == 0 {
-			return errors.New("models: unable to update volume_inclusion, could not build whitelist")
+			return errors.New("public: unable to update volume_inclusion, could not build whitelist")
 		}
 
 		cache.query = fmt.Sprintf("UPDATE \"volume_inclusion\" SET %s WHERE %s",
@@ -900,7 +903,7 @@ func (o *VolumeInclusion) Update(exec boil.Executor, whitelist ...string) error 
 
 	_, err = exec.Exec(cache.query, values...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update volume_inclusion row")
+		return errors.Wrap(err, "public: unable to update volume_inclusion row")
 	}
 
 	if !cached {
@@ -925,7 +928,7 @@ func (q volumeInclusionQuery) UpdateAll(cols M) error {
 
 	_, err := q.Query.Exec()
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update all for volume_inclusion")
+		return errors.Wrap(err, "public: unable to update all for volume_inclusion")
 	}
 
 	return nil
@@ -958,7 +961,7 @@ func (o VolumeInclusionSlice) UpdateAll(exec boil.Executor, cols M) error {
 	}
 
 	if len(cols) == 0 {
-		return errors.New("models: update all requires at least one column argument")
+		return errors.New("public: update all requires at least one column argument")
 	}
 
 	colNames := make([]string, len(cols))
@@ -990,7 +993,7 @@ func (o VolumeInclusionSlice) UpdateAll(exec boil.Executor, cols M) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update all in volumeInclusion slice")
+		return errors.Wrap(err, "public: unable to update all in volumeInclusion slice")
 	}
 
 	return nil
@@ -1019,7 +1022,7 @@ func (o *VolumeInclusion) UpsertP(exec boil.Executor, updateOnConflict bool, con
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.
 func (o *VolumeInclusion) Upsert(exec boil.Executor, updateOnConflict bool, conflictColumns []string, updateColumns []string, whitelist ...string) error {
 	if o == nil {
-		return errors.New("models: no volume_inclusion provided for upsert")
+		return errors.New("public: no volume_inclusion provided for upsert")
 	}
 
 	if err := o.doBeforeUpsertHooks(exec); err != nil {
@@ -1075,7 +1078,7 @@ func (o *VolumeInclusion) Upsert(exec boil.Executor, updateOnConflict bool, conf
 			updateColumns,
 		)
 		if len(update) == 0 {
-			return errors.New("models: unable to upsert volume_inclusion, could not build update column list")
+			return errors.New("public: unable to upsert volume_inclusion, could not build update column list")
 		}
 
 		conflict := conflictColumns
@@ -1118,7 +1121,7 @@ func (o *VolumeInclusion) Upsert(exec boil.Executor, updateOnConflict bool, conf
 		_, err = exec.Exec(cache.query, vals...)
 	}
 	if err != nil {
-		return errors.Wrap(err, "models: unable to upsert volume_inclusion")
+		return errors.Wrap(err, "public: unable to upsert volume_inclusion")
 	}
 
 	if !cached {
@@ -1143,7 +1146,7 @@ func (o *VolumeInclusion) DeleteP(exec boil.Executor) {
 // DeleteG will match against the primary key column to find the record to delete.
 func (o *VolumeInclusion) DeleteG() error {
 	if o == nil {
-		return errors.New("models: no VolumeInclusion provided for deletion")
+		return errors.New("public: no VolumeInclusion provided for deletion")
 	}
 
 	return o.Delete(boil.GetDB())
@@ -1162,7 +1165,7 @@ func (o *VolumeInclusion) DeleteGP() {
 // Delete will match against the primary key column to find the record to delete.
 func (o *VolumeInclusion) Delete(exec boil.Executor) error {
 	if o == nil {
-		return errors.New("models: no VolumeInclusion provided for delete")
+		return errors.New("public: no VolumeInclusion provided for delete")
 	}
 
 	if err := o.doBeforeDeleteHooks(exec); err != nil {
@@ -1179,7 +1182,7 @@ func (o *VolumeInclusion) Delete(exec boil.Executor) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete from volume_inclusion")
+		return errors.Wrap(err, "public: unable to delete from volume_inclusion")
 	}
 
 	if err := o.doAfterDeleteHooks(exec); err != nil {
@@ -1199,14 +1202,14 @@ func (q volumeInclusionQuery) DeleteAllP() {
 // DeleteAll deletes all matching rows.
 func (q volumeInclusionQuery) DeleteAll() error {
 	if q.Query == nil {
-		return errors.New("models: no volumeInclusionQuery provided for delete all")
+		return errors.New("public: no volumeInclusionQuery provided for delete all")
 	}
 
 	queries.SetDelete(q.Query)
 
 	_, err := q.Query.Exec()
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete all from volume_inclusion")
+		return errors.Wrap(err, "public: unable to delete all from volume_inclusion")
 	}
 
 	return nil
@@ -1222,7 +1225,7 @@ func (o VolumeInclusionSlice) DeleteAllGP() {
 // DeleteAllG deletes all rows in the slice.
 func (o VolumeInclusionSlice) DeleteAllG() error {
 	if o == nil {
-		return errors.New("models: no VolumeInclusion slice provided for delete all")
+		return errors.New("public: no VolumeInclusion slice provided for delete all")
 	}
 	return o.DeleteAll(boil.GetDB())
 }
@@ -1237,7 +1240,7 @@ func (o VolumeInclusionSlice) DeleteAllP(exec boil.Executor) {
 // DeleteAll deletes all rows in the slice, using an executor.
 func (o VolumeInclusionSlice) DeleteAll(exec boil.Executor) error {
 	if o == nil {
-		return errors.New("models: no VolumeInclusion slice provided for delete all")
+		return errors.New("public: no VolumeInclusion slice provided for delete all")
 	}
 
 	if len(o) == 0 {
@@ -1271,7 +1274,7 @@ func (o VolumeInclusionSlice) DeleteAll(exec boil.Executor) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete all from volumeInclusion slice")
+		return errors.Wrap(err, "public: unable to delete all from volumeInclusion slice")
 	}
 
 	if len(volumeInclusionAfterDeleteHooks) != 0 {
@@ -1302,7 +1305,7 @@ func (o *VolumeInclusion) ReloadP(exec boil.Executor) {
 // ReloadG refetches the object from the database using the primary keys.
 func (o *VolumeInclusion) ReloadG() error {
 	if o == nil {
-		return errors.New("models: no VolumeInclusion provided for reload")
+		return errors.New("public: no VolumeInclusion provided for reload")
 	}
 
 	return o.Reload(boil.GetDB())
@@ -1342,7 +1345,7 @@ func (o *VolumeInclusionSlice) ReloadAllP(exec boil.Executor) {
 // and overwrites the original object slice with the newly updated slice.
 func (o *VolumeInclusionSlice) ReloadAllG() error {
 	if o == nil {
-		return errors.New("models: empty VolumeInclusionSlice provided for reload all")
+		return errors.New("public: empty VolumeInclusionSlice provided for reload all")
 	}
 
 	return o.ReloadAll(boil.GetDB())
@@ -1372,7 +1375,7 @@ func (o *VolumeInclusionSlice) ReloadAll(exec boil.Executor) error {
 
 	err := q.Bind(&volumeInclusions)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to reload all in VolumeInclusionSlice")
+		return errors.Wrap(err, "public: unable to reload all in VolumeInclusionSlice")
 	}
 
 	*o = volumeInclusions
@@ -1395,7 +1398,7 @@ func VolumeInclusionExists(exec boil.Executor, container int, volume int) (bool,
 
 	err := row.Scan(&exists)
 	if err != nil {
-		return false, errors.Wrap(err, "models: unable to check if volume_inclusion exists")
+		return false, errors.Wrap(err, "public: unable to check if volume_inclusion exists")
 	}
 
 	return exists, nil

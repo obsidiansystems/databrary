@@ -8,11 +8,6 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"reflect"
-	"strings"
-	"sync"
-	"time"
-
 	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/databrary/sqlboiler/boil"
 	"github.com/databrary/sqlboiler/queries"
@@ -20,6 +15,10 @@ import (
 	"github.com/databrary/sqlboiler/strmangle"
 	"github.com/pkg/errors"
 	"gopkg.in/nullbio/null.v6"
+	"reflect"
+	"strings"
+	"sync"
+	"time"
 )
 
 // Party is an object representing the database table.
@@ -239,7 +238,7 @@ func (q partyQuery) One() (*Party, error) {
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "audit: failed to execute a one query for party")
+		return nil, errors.Wrap(err, "models: failed to execute a one query for party")
 	}
 
 	if err := o.doAfterSelectHooks(queries.GetExecutor(q.Query)); err != nil {
@@ -265,7 +264,7 @@ func (q partyQuery) All() (PartySlice, error) {
 
 	err := q.Bind(&o)
 	if err != nil {
-		return nil, errors.Wrap(err, "audit: failed to assign all query results to Party slice")
+		return nil, errors.Wrap(err, "models: failed to assign all query results to Party slice")
 	}
 
 	if len(partyAfterSelectHooks) != 0 {
@@ -298,7 +297,7 @@ func (q partyQuery) Count() (int64, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "audit: failed to count party rows")
+		return 0, errors.Wrap(err, "models: failed to count party rows")
 	}
 
 	return count, nil
@@ -323,7 +322,7 @@ func (q partyQuery) Exists() (bool, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "audit: failed to check if party exists")
+		return false, errors.Wrap(err, "models: failed to check if party exists")
 	}
 
 	return count > 0, nil
@@ -368,7 +367,7 @@ func (o *Party) InsertP(exec boil.Executor, whitelist ...string) {
 // - All columns with a default, but non-zero are included (i.e. health = 75)
 func (o *Party) Insert(exec boil.Executor, whitelist ...string) error {
 	if o == nil {
-		return errors.New("audit: no party provided for insertion")
+		return errors.New("models: no party provided for insertion")
 	}
 
 	var err error
@@ -427,7 +426,7 @@ func (o *Party) Insert(exec boil.Executor, whitelist ...string) error {
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "audit: unable to insert into party")
+		return errors.Wrap(err, "models: unable to insert into party")
 	}
 
 	if !cached {

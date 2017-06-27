@@ -6,7 +6,7 @@ package xo_models
 import (
 	"fmt"
 
-	"github.com/vattle/sqlboiler/boil"
+	"github.com/databrary/sqlboiler/boil"
 )
 
 // AssetReplace calls the stored procedure 'public.asset_replace(integer, integer) void' on db.

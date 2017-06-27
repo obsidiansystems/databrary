@@ -8,16 +8,15 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"reflect"
-	"strings"
-	"sync"
-	"time"
-
 	"github.com/databrary/sqlboiler/boil"
 	"github.com/databrary/sqlboiler/queries"
 	"github.com/databrary/sqlboiler/queries/qm"
 	"github.com/databrary/sqlboiler/strmangle"
 	"github.com/pkg/errors"
+	"reflect"
+	"strings"
+	"sync"
+	"time"
 )
 
 // AssetRevision is an object representing the database table.
@@ -235,7 +234,7 @@ func (q assetRevisionQuery) One() (*AssetRevision, error) {
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: failed to execute a one query for asset_revision")
+		return nil, errors.Wrap(err, "public: failed to execute a one query for asset_revision")
 	}
 
 	if err := o.doAfterSelectHooks(queries.GetExecutor(q.Query)); err != nil {
@@ -261,7 +260,7 @@ func (q assetRevisionQuery) All() (AssetRevisionSlice, error) {
 
 	err := q.Bind(&o)
 	if err != nil {
-		return nil, errors.Wrap(err, "models: failed to assign all query results to AssetRevision slice")
+		return nil, errors.Wrap(err, "public: failed to assign all query results to AssetRevision slice")
 	}
 
 	if len(assetRevisionAfterSelectHooks) != 0 {
@@ -294,7 +293,7 @@ func (q assetRevisionQuery) Count() (int64, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to count asset_revision rows")
+		return 0, errors.Wrap(err, "public: failed to count asset_revision rows")
 	}
 
 	return count, nil
@@ -319,7 +318,7 @@ func (q assetRevisionQuery) Exists() (bool, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "models: failed to check if asset_revision exists")
+		return false, errors.Wrap(err, "public: failed to check if asset_revision exists")
 	}
 
 	return count > 0, nil
@@ -717,7 +716,7 @@ func FindAssetRevision(exec boil.Executor, orig int, selectCols ...string) (*Ass
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: unable to select from asset_revision")
+		return nil, errors.Wrap(err, "public: unable to select from asset_revision")
 	}
 
 	return assetRevisionObj, nil
@@ -761,7 +760,7 @@ func (o *AssetRevision) InsertP(exec boil.Executor, whitelist ...string) {
 // - All columns with a default, but non-zero are included (i.e. health = 75)
 func (o *AssetRevision) Insert(exec boil.Executor, whitelist ...string) error {
 	if o == nil {
-		return errors.New("models: no asset_revision provided for insertion")
+		return errors.New("public: no asset_revision provided for insertion")
 	}
 
 	var err error
@@ -820,7 +819,7 @@ func (o *AssetRevision) Insert(exec boil.Executor, whitelist ...string) error {
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "models: unable to insert into asset_revision")
+		return errors.Wrap(err, "public: unable to insert into asset_revision")
 	}
 
 	if !cached {
@@ -875,8 +874,12 @@ func (o *AssetRevision) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(assetRevisionColumns, assetRevisionPrimaryKeyColumns, whitelist)
+
+		if len(whitelist) == 0 {
+			wl = strmangle.SetComplement(wl, []string{"created_at"})
+		}
 		if len(wl) == 0 {
-			return errors.New("models: unable to update asset_revision, could not build whitelist")
+			return errors.New("public: unable to update asset_revision, could not build whitelist")
 		}
 
 		cache.query = fmt.Sprintf("UPDATE \"asset_revision\" SET %s WHERE %s",
@@ -898,7 +901,7 @@ func (o *AssetRevision) Update(exec boil.Executor, whitelist ...string) error {
 
 	_, err = exec.Exec(cache.query, values...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update asset_revision row")
+		return errors.Wrap(err, "public: unable to update asset_revision row")
 	}
 
 	if !cached {
@@ -923,7 +926,7 @@ func (q assetRevisionQuery) UpdateAll(cols M) error {
 
 	_, err := q.Query.Exec()
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update all for asset_revision")
+		return errors.Wrap(err, "public: unable to update all for asset_revision")
 	}
 
 	return nil
@@ -956,7 +959,7 @@ func (o AssetRevisionSlice) UpdateAll(exec boil.Executor, cols M) error {
 	}
 
 	if len(cols) == 0 {
-		return errors.New("models: update all requires at least one column argument")
+		return errors.New("public: update all requires at least one column argument")
 	}
 
 	colNames := make([]string, len(cols))
@@ -988,7 +991,7 @@ func (o AssetRevisionSlice) UpdateAll(exec boil.Executor, cols M) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update all in assetRevision slice")
+		return errors.Wrap(err, "public: unable to update all in assetRevision slice")
 	}
 
 	return nil
@@ -1017,7 +1020,7 @@ func (o *AssetRevision) UpsertP(exec boil.Executor, updateOnConflict bool, confl
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.
 func (o *AssetRevision) Upsert(exec boil.Executor, updateOnConflict bool, conflictColumns []string, updateColumns []string, whitelist ...string) error {
 	if o == nil {
-		return errors.New("models: no asset_revision provided for upsert")
+		return errors.New("public: no asset_revision provided for upsert")
 	}
 
 	if err := o.doBeforeUpsertHooks(exec); err != nil {
@@ -1073,7 +1076,7 @@ func (o *AssetRevision) Upsert(exec boil.Executor, updateOnConflict bool, confli
 			updateColumns,
 		)
 		if len(update) == 0 {
-			return errors.New("models: unable to upsert asset_revision, could not build update column list")
+			return errors.New("public: unable to upsert asset_revision, could not build update column list")
 		}
 
 		conflict := conflictColumns
@@ -1116,7 +1119,7 @@ func (o *AssetRevision) Upsert(exec boil.Executor, updateOnConflict bool, confli
 		_, err = exec.Exec(cache.query, vals...)
 	}
 	if err != nil {
-		return errors.Wrap(err, "models: unable to upsert asset_revision")
+		return errors.Wrap(err, "public: unable to upsert asset_revision")
 	}
 
 	if !cached {
@@ -1141,7 +1144,7 @@ func (o *AssetRevision) DeleteP(exec boil.Executor) {
 // DeleteG will match against the primary key column to find the record to delete.
 func (o *AssetRevision) DeleteG() error {
 	if o == nil {
-		return errors.New("models: no AssetRevision provided for deletion")
+		return errors.New("public: no AssetRevision provided for deletion")
 	}
 
 	return o.Delete(boil.GetDB())
@@ -1160,7 +1163,7 @@ func (o *AssetRevision) DeleteGP() {
 // Delete will match against the primary key column to find the record to delete.
 func (o *AssetRevision) Delete(exec boil.Executor) error {
 	if o == nil {
-		return errors.New("models: no AssetRevision provided for delete")
+		return errors.New("public: no AssetRevision provided for delete")
 	}
 
 	if err := o.doBeforeDeleteHooks(exec); err != nil {
@@ -1177,7 +1180,7 @@ func (o *AssetRevision) Delete(exec boil.Executor) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete from asset_revision")
+		return errors.Wrap(err, "public: unable to delete from asset_revision")
 	}
 
 	if err := o.doAfterDeleteHooks(exec); err != nil {
@@ -1197,14 +1200,14 @@ func (q assetRevisionQuery) DeleteAllP() {
 // DeleteAll deletes all matching rows.
 func (q assetRevisionQuery) DeleteAll() error {
 	if q.Query == nil {
-		return errors.New("models: no assetRevisionQuery provided for delete all")
+		return errors.New("public: no assetRevisionQuery provided for delete all")
 	}
 
 	queries.SetDelete(q.Query)
 
 	_, err := q.Query.Exec()
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete all from asset_revision")
+		return errors.Wrap(err, "public: unable to delete all from asset_revision")
 	}
 
 	return nil
@@ -1220,7 +1223,7 @@ func (o AssetRevisionSlice) DeleteAllGP() {
 // DeleteAllG deletes all rows in the slice.
 func (o AssetRevisionSlice) DeleteAllG() error {
 	if o == nil {
-		return errors.New("models: no AssetRevision slice provided for delete all")
+		return errors.New("public: no AssetRevision slice provided for delete all")
 	}
 	return o.DeleteAll(boil.GetDB())
 }
@@ -1235,7 +1238,7 @@ func (o AssetRevisionSlice) DeleteAllP(exec boil.Executor) {
 // DeleteAll deletes all rows in the slice, using an executor.
 func (o AssetRevisionSlice) DeleteAll(exec boil.Executor) error {
 	if o == nil {
-		return errors.New("models: no AssetRevision slice provided for delete all")
+		return errors.New("public: no AssetRevision slice provided for delete all")
 	}
 
 	if len(o) == 0 {
@@ -1269,7 +1272,7 @@ func (o AssetRevisionSlice) DeleteAll(exec boil.Executor) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete all from assetRevision slice")
+		return errors.Wrap(err, "public: unable to delete all from assetRevision slice")
 	}
 
 	if len(assetRevisionAfterDeleteHooks) != 0 {
@@ -1300,7 +1303,7 @@ func (o *AssetRevision) ReloadP(exec boil.Executor) {
 // ReloadG refetches the object from the database using the primary keys.
 func (o *AssetRevision) ReloadG() error {
 	if o == nil {
-		return errors.New("models: no AssetRevision provided for reload")
+		return errors.New("public: no AssetRevision provided for reload")
 	}
 
 	return o.Reload(boil.GetDB())
@@ -1340,7 +1343,7 @@ func (o *AssetRevisionSlice) ReloadAllP(exec boil.Executor) {
 // and overwrites the original object slice with the newly updated slice.
 func (o *AssetRevisionSlice) ReloadAllG() error {
 	if o == nil {
-		return errors.New("models: empty AssetRevisionSlice provided for reload all")
+		return errors.New("public: empty AssetRevisionSlice provided for reload all")
 	}
 
 	return o.ReloadAll(boil.GetDB())
@@ -1370,7 +1373,7 @@ func (o *AssetRevisionSlice) ReloadAll(exec boil.Executor) error {
 
 	err := q.Bind(&assetRevisions)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to reload all in AssetRevisionSlice")
+		return errors.Wrap(err, "public: unable to reload all in AssetRevisionSlice")
 	}
 
 	*o = assetRevisions
@@ -1393,7 +1396,7 @@ func AssetRevisionExists(exec boil.Executor, orig int) (bool, error) {
 
 	err := row.Scan(&exists)
 	if err != nil {
-		return false, errors.Wrap(err, "models: unable to check if asset_revision exists")
+		return false, errors.Wrap(err, "public: unable to check if asset_revision exists")
 	}
 
 	return exists, nil

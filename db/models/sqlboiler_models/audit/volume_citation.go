@@ -8,11 +8,6 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"reflect"
-	"strings"
-	"sync"
-	"time"
-
 	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/databrary/sqlboiler/boil"
 	"github.com/databrary/sqlboiler/queries"
@@ -20,6 +15,10 @@ import (
 	"github.com/databrary/sqlboiler/strmangle"
 	"github.com/pkg/errors"
 	"gopkg.in/nullbio/null.v6"
+	"reflect"
+	"strings"
+	"sync"
+	"time"
 )
 
 // VolumeCitation is an object representing the database table.
@@ -237,7 +236,7 @@ func (q volumeCitationQuery) One() (*VolumeCitation, error) {
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "audit: failed to execute a one query for volume_citation")
+		return nil, errors.Wrap(err, "models: failed to execute a one query for volume_citation")
 	}
 
 	if err := o.doAfterSelectHooks(queries.GetExecutor(q.Query)); err != nil {
@@ -263,7 +262,7 @@ func (q volumeCitationQuery) All() (VolumeCitationSlice, error) {
 
 	err := q.Bind(&o)
 	if err != nil {
-		return nil, errors.Wrap(err, "audit: failed to assign all query results to VolumeCitation slice")
+		return nil, errors.Wrap(err, "models: failed to assign all query results to VolumeCitation slice")
 	}
 
 	if len(volumeCitationAfterSelectHooks) != 0 {
@@ -296,7 +295,7 @@ func (q volumeCitationQuery) Count() (int64, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "audit: failed to count volume_citation rows")
+		return 0, errors.Wrap(err, "models: failed to count volume_citation rows")
 	}
 
 	return count, nil
@@ -321,7 +320,7 @@ func (q volumeCitationQuery) Exists() (bool, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "audit: failed to check if volume_citation exists")
+		return false, errors.Wrap(err, "models: failed to check if volume_citation exists")
 	}
 
 	return count > 0, nil
@@ -366,7 +365,7 @@ func (o *VolumeCitation) InsertP(exec boil.Executor, whitelist ...string) {
 // - All columns with a default, but non-zero are included (i.e. health = 75)
 func (o *VolumeCitation) Insert(exec boil.Executor, whitelist ...string) error {
 	if o == nil {
-		return errors.New("audit: no volume_citation provided for insertion")
+		return errors.New("models: no volume_citation provided for insertion")
 	}
 
 	var err error
@@ -425,7 +424,7 @@ func (o *VolumeCitation) Insert(exec boil.Executor, whitelist ...string) error {
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "audit: unable to insert into volume_citation")
+		return errors.Wrap(err, "models: unable to insert into volume_citation")
 	}
 
 	if !cached {

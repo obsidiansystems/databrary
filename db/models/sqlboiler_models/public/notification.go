@@ -8,11 +8,6 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"reflect"
-	"strings"
-	"sync"
-	"time"
-
 	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/databrary/sqlboiler/boil"
 	"github.com/databrary/sqlboiler/queries"
@@ -20,6 +15,10 @@ import (
 	"github.com/databrary/sqlboiler/strmangle"
 	"github.com/pkg/errors"
 	"gopkg.in/nullbio/null.v6"
+	"reflect"
+	"strings"
+	"sync"
+	"time"
 )
 
 // Notification is an object representing the database table.
@@ -257,7 +256,7 @@ func (q notificationQuery) One() (*Notification, error) {
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: failed to execute a one query for notification")
+		return nil, errors.Wrap(err, "public: failed to execute a one query for notification")
 	}
 
 	if err := o.doAfterSelectHooks(queries.GetExecutor(q.Query)); err != nil {
@@ -283,7 +282,7 @@ func (q notificationQuery) All() (NotificationSlice, error) {
 
 	err := q.Bind(&o)
 	if err != nil {
-		return nil, errors.Wrap(err, "models: failed to assign all query results to Notification slice")
+		return nil, errors.Wrap(err, "public: failed to assign all query results to Notification slice")
 	}
 
 	if len(notificationAfterSelectHooks) != 0 {
@@ -316,7 +315,7 @@ func (q notificationQuery) Count() (int64, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to count notification rows")
+		return 0, errors.Wrap(err, "public: failed to count notification rows")
 	}
 
 	return count, nil
@@ -341,7 +340,7 @@ func (q notificationQuery) Exists() (bool, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "models: failed to check if notification exists")
+		return false, errors.Wrap(err, "public: failed to check if notification exists")
 	}
 
 	return count > 0, nil
@@ -2316,7 +2315,7 @@ func FindNotification(exec boil.Executor, id int, selectCols ...string) (*Notifi
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: unable to select from notification")
+		return nil, errors.Wrap(err, "public: unable to select from notification")
 	}
 
 	return notificationObj, nil
@@ -2360,7 +2359,7 @@ func (o *Notification) InsertP(exec boil.Executor, whitelist ...string) {
 // - All columns with a default, but non-zero are included (i.e. health = 75)
 func (o *Notification) Insert(exec boil.Executor, whitelist ...string) error {
 	if o == nil {
-		return errors.New("models: no notification provided for insertion")
+		return errors.New("public: no notification provided for insertion")
 	}
 
 	var err error
@@ -2419,7 +2418,7 @@ func (o *Notification) Insert(exec boil.Executor, whitelist ...string) error {
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "models: unable to insert into notification")
+		return errors.Wrap(err, "public: unable to insert into notification")
 	}
 
 	if !cached {
@@ -2474,8 +2473,12 @@ func (o *Notification) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(notificationColumns, notificationPrimaryKeyColumns, whitelist)
+
+		if len(whitelist) == 0 {
+			wl = strmangle.SetComplement(wl, []string{"created_at"})
+		}
 		if len(wl) == 0 {
-			return errors.New("models: unable to update notification, could not build whitelist")
+			return errors.New("public: unable to update notification, could not build whitelist")
 		}
 
 		cache.query = fmt.Sprintf("UPDATE \"notification\" SET %s WHERE %s",
@@ -2497,7 +2500,7 @@ func (o *Notification) Update(exec boil.Executor, whitelist ...string) error {
 
 	_, err = exec.Exec(cache.query, values...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update notification row")
+		return errors.Wrap(err, "public: unable to update notification row")
 	}
 
 	if !cached {
@@ -2522,7 +2525,7 @@ func (q notificationQuery) UpdateAll(cols M) error {
 
 	_, err := q.Query.Exec()
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update all for notification")
+		return errors.Wrap(err, "public: unable to update all for notification")
 	}
 
 	return nil
@@ -2555,7 +2558,7 @@ func (o NotificationSlice) UpdateAll(exec boil.Executor, cols M) error {
 	}
 
 	if len(cols) == 0 {
-		return errors.New("models: update all requires at least one column argument")
+		return errors.New("public: update all requires at least one column argument")
 	}
 
 	colNames := make([]string, len(cols))
@@ -2587,7 +2590,7 @@ func (o NotificationSlice) UpdateAll(exec boil.Executor, cols M) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update all in notification slice")
+		return errors.Wrap(err, "public: unable to update all in notification slice")
 	}
 
 	return nil
@@ -2616,7 +2619,7 @@ func (o *Notification) UpsertP(exec boil.Executor, updateOnConflict bool, confli
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.
 func (o *Notification) Upsert(exec boil.Executor, updateOnConflict bool, conflictColumns []string, updateColumns []string, whitelist ...string) error {
 	if o == nil {
-		return errors.New("models: no notification provided for upsert")
+		return errors.New("public: no notification provided for upsert")
 	}
 
 	if err := o.doBeforeUpsertHooks(exec); err != nil {
@@ -2672,7 +2675,7 @@ func (o *Notification) Upsert(exec boil.Executor, updateOnConflict bool, conflic
 			updateColumns,
 		)
 		if len(update) == 0 {
-			return errors.New("models: unable to upsert notification, could not build update column list")
+			return errors.New("public: unable to upsert notification, could not build update column list")
 		}
 
 		conflict := conflictColumns
@@ -2715,7 +2718,7 @@ func (o *Notification) Upsert(exec boil.Executor, updateOnConflict bool, conflic
 		_, err = exec.Exec(cache.query, vals...)
 	}
 	if err != nil {
-		return errors.Wrap(err, "models: unable to upsert notification")
+		return errors.Wrap(err, "public: unable to upsert notification")
 	}
 
 	if !cached {
@@ -2740,7 +2743,7 @@ func (o *Notification) DeleteP(exec boil.Executor) {
 // DeleteG will match against the primary key column to find the record to delete.
 func (o *Notification) DeleteG() error {
 	if o == nil {
-		return errors.New("models: no Notification provided for deletion")
+		return errors.New("public: no Notification provided for deletion")
 	}
 
 	return o.Delete(boil.GetDB())
@@ -2759,7 +2762,7 @@ func (o *Notification) DeleteGP() {
 // Delete will match against the primary key column to find the record to delete.
 func (o *Notification) Delete(exec boil.Executor) error {
 	if o == nil {
-		return errors.New("models: no Notification provided for delete")
+		return errors.New("public: no Notification provided for delete")
 	}
 
 	if err := o.doBeforeDeleteHooks(exec); err != nil {
@@ -2776,7 +2779,7 @@ func (o *Notification) Delete(exec boil.Executor) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete from notification")
+		return errors.Wrap(err, "public: unable to delete from notification")
 	}
 
 	if err := o.doAfterDeleteHooks(exec); err != nil {
@@ -2796,14 +2799,14 @@ func (q notificationQuery) DeleteAllP() {
 // DeleteAll deletes all matching rows.
 func (q notificationQuery) DeleteAll() error {
 	if q.Query == nil {
-		return errors.New("models: no notificationQuery provided for delete all")
+		return errors.New("public: no notificationQuery provided for delete all")
 	}
 
 	queries.SetDelete(q.Query)
 
 	_, err := q.Query.Exec()
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete all from notification")
+		return errors.Wrap(err, "public: unable to delete all from notification")
 	}
 
 	return nil
@@ -2819,7 +2822,7 @@ func (o NotificationSlice) DeleteAllGP() {
 // DeleteAllG deletes all rows in the slice.
 func (o NotificationSlice) DeleteAllG() error {
 	if o == nil {
-		return errors.New("models: no Notification slice provided for delete all")
+		return errors.New("public: no Notification slice provided for delete all")
 	}
 	return o.DeleteAll(boil.GetDB())
 }
@@ -2834,7 +2837,7 @@ func (o NotificationSlice) DeleteAllP(exec boil.Executor) {
 // DeleteAll deletes all rows in the slice, using an executor.
 func (o NotificationSlice) DeleteAll(exec boil.Executor) error {
 	if o == nil {
-		return errors.New("models: no Notification slice provided for delete all")
+		return errors.New("public: no Notification slice provided for delete all")
 	}
 
 	if len(o) == 0 {
@@ -2868,7 +2871,7 @@ func (o NotificationSlice) DeleteAll(exec boil.Executor) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete all from notification slice")
+		return errors.Wrap(err, "public: unable to delete all from notification slice")
 	}
 
 	if len(notificationAfterDeleteHooks) != 0 {
@@ -2899,7 +2902,7 @@ func (o *Notification) ReloadP(exec boil.Executor) {
 // ReloadG refetches the object from the database using the primary keys.
 func (o *Notification) ReloadG() error {
 	if o == nil {
-		return errors.New("models: no Notification provided for reload")
+		return errors.New("public: no Notification provided for reload")
 	}
 
 	return o.Reload(boil.GetDB())
@@ -2939,7 +2942,7 @@ func (o *NotificationSlice) ReloadAllP(exec boil.Executor) {
 // and overwrites the original object slice with the newly updated slice.
 func (o *NotificationSlice) ReloadAllG() error {
 	if o == nil {
-		return errors.New("models: empty NotificationSlice provided for reload all")
+		return errors.New("public: empty NotificationSlice provided for reload all")
 	}
 
 	return o.ReloadAll(boil.GetDB())
@@ -2969,7 +2972,7 @@ func (o *NotificationSlice) ReloadAll(exec boil.Executor) error {
 
 	err := q.Bind(&notifications)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to reload all in NotificationSlice")
+		return errors.Wrap(err, "public: unable to reload all in NotificationSlice")
 	}
 
 	*o = notifications
@@ -2992,7 +2995,7 @@ func NotificationExists(exec boil.Executor, id int) (bool, error) {
 
 	err := row.Scan(&exists)
 	if err != nil {
-		return false, errors.Wrap(err, "models: unable to check if notification exists")
+		return false, errors.Wrap(err, "public: unable to check if notification exists")
 	}
 
 	return exists, nil

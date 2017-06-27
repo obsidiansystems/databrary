@@ -8,11 +8,6 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"reflect"
-	"strings"
-	"sync"
-	"time"
-
 	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/databrary/sqlboiler/boil"
 	"github.com/databrary/sqlboiler/queries"
@@ -20,6 +15,10 @@ import (
 	"github.com/databrary/sqlboiler/strmangle"
 	"github.com/pkg/errors"
 	"gopkg.in/nullbio/null.v6"
+	"reflect"
+	"strings"
+	"sync"
+	"time"
 )
 
 // AuthorizeValid is an object representing the database view.
@@ -234,7 +233,7 @@ func (q authorizeValidQuery) One() (*AuthorizeValid, error) {
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: failed to execute a one query for authorize_valid")
+		return nil, errors.Wrap(err, "public: failed to execute a one query for authorize_valid")
 	}
 
 	if err := o.doAfterSelectHooks(queries.GetExecutor(q.Query)); err != nil {
@@ -260,7 +259,7 @@ func (q authorizeValidQuery) All() (AuthorizeValidSlice, error) {
 
 	err := q.Bind(&o)
 	if err != nil {
-		return nil, errors.Wrap(err, "models: failed to assign all query results to AuthorizeValid slice")
+		return nil, errors.Wrap(err, "public: failed to assign all query results to AuthorizeValid slice")
 	}
 
 	if len(authorizeValidAfterSelectHooks) != 0 {
@@ -293,7 +292,7 @@ func (q authorizeValidQuery) Count() (int64, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to count authorize_valid rows")
+		return 0, errors.Wrap(err, "public: failed to count authorize_valid rows")
 	}
 
 	return count, nil
@@ -318,7 +317,7 @@ func (q authorizeValidQuery) Exists() (bool, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "models: failed to check if authorize_valid exists")
+		return false, errors.Wrap(err, "public: failed to check if authorize_valid exists")
 	}
 
 	return count > 0, nil
@@ -363,7 +362,7 @@ func (o *AuthorizeValid) InsertP(exec boil.Executor, whitelist ...string) {
 // - All columns with a default, but non-zero are included (i.e. health = 75)
 func (o *AuthorizeValid) Insert(exec boil.Executor, whitelist ...string) error {
 	if o == nil {
-		return errors.New("models: no authorize_valid provided for insertion")
+		return errors.New("public: no authorize_valid provided for insertion")
 	}
 
 	var err error
@@ -422,7 +421,7 @@ func (o *AuthorizeValid) Insert(exec boil.Executor, whitelist ...string) error {
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "models: unable to insert into authorize_valid")
+		return errors.Wrap(err, "public: unable to insert into authorize_valid")
 	}
 
 	if !cached {

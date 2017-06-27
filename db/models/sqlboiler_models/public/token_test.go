@@ -6,17 +6,16 @@ package public
 
 import (
 	"bytes"
+	"github.com/databrary/sqlboiler/boil"
+	"github.com/databrary/sqlboiler/randomize"
+	"github.com/databrary/sqlboiler/strmangle"
+	"github.com/pmezard/go-difflib/difflib"
 	"os"
 	"os/exec"
 	"reflect"
 	"sort"
 	"strings"
 	"testing"
-
-	"github.com/databrary/sqlboiler/boil"
-	"github.com/databrary/sqlboiler/randomize"
-	"github.com/databrary/sqlboiler/strmangle"
-	"github.com/pmezard/go-difflib/difflib"
 )
 
 func testTokens(t *testing.T) {

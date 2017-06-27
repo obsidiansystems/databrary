@@ -8,11 +8,6 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"reflect"
-	"strings"
-	"sync"
-	"time"
-
 	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/databrary/sqlboiler/boil"
 	"github.com/databrary/sqlboiler/queries"
@@ -20,6 +15,10 @@ import (
 	"github.com/databrary/sqlboiler/strmangle"
 	"github.com/pkg/errors"
 	"gopkg.in/nullbio/null.v6"
+	"reflect"
+	"strings"
+	"sync"
+	"time"
 )
 
 // Record is an object representing the database table.
@@ -236,7 +235,7 @@ func (q recordQuery) One() (*Record, error) {
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "audit: failed to execute a one query for record")
+		return nil, errors.Wrap(err, "models: failed to execute a one query for record")
 	}
 
 	if err := o.doAfterSelectHooks(queries.GetExecutor(q.Query)); err != nil {
@@ -262,7 +261,7 @@ func (q recordQuery) All() (RecordSlice, error) {
 
 	err := q.Bind(&o)
 	if err != nil {
-		return nil, errors.Wrap(err, "audit: failed to assign all query results to Record slice")
+		return nil, errors.Wrap(err, "models: failed to assign all query results to Record slice")
 	}
 
 	if len(recordAfterSelectHooks) != 0 {
@@ -295,7 +294,7 @@ func (q recordQuery) Count() (int64, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "audit: failed to count record rows")
+		return 0, errors.Wrap(err, "models: failed to count record rows")
 	}
 
 	return count, nil
@@ -320,7 +319,7 @@ func (q recordQuery) Exists() (bool, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "audit: failed to check if record exists")
+		return false, errors.Wrap(err, "models: failed to check if record exists")
 	}
 
 	return count > 0, nil
@@ -365,7 +364,7 @@ func (o *Record) InsertP(exec boil.Executor, whitelist ...string) {
 // - All columns with a default, but non-zero are included (i.e. health = 75)
 func (o *Record) Insert(exec boil.Executor, whitelist ...string) error {
 	if o == nil {
-		return errors.New("audit: no record provided for insertion")
+		return errors.New("models: no record provided for insertion")
 	}
 
 	var err error
@@ -424,7 +423,7 @@ func (o *Record) Insert(exec boil.Executor, whitelist ...string) error {
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "audit: unable to insert into record")
+		return errors.Wrap(err, "models: unable to insert into record")
 	}
 
 	if !cached {

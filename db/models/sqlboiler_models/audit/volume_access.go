@@ -8,11 +8,6 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"reflect"
-	"strings"
-	"sync"
-	"time"
-
 	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/databrary/sqlboiler/boil"
 	"github.com/databrary/sqlboiler/queries"
@@ -20,6 +15,10 @@ import (
 	"github.com/databrary/sqlboiler/strmangle"
 	"github.com/pkg/errors"
 	"gopkg.in/nullbio/null.v6"
+	"reflect"
+	"strings"
+	"sync"
+	"time"
 )
 
 // VolumeAccess is an object representing the database table.
@@ -238,7 +237,7 @@ func (q volumeAccessQuery) One() (*VolumeAccess, error) {
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "audit: failed to execute a one query for volume_access")
+		return nil, errors.Wrap(err, "models: failed to execute a one query for volume_access")
 	}
 
 	if err := o.doAfterSelectHooks(queries.GetExecutor(q.Query)); err != nil {
@@ -264,7 +263,7 @@ func (q volumeAccessQuery) All() (VolumeAccessSlice, error) {
 
 	err := q.Bind(&o)
 	if err != nil {
-		return nil, errors.Wrap(err, "audit: failed to assign all query results to VolumeAccess slice")
+		return nil, errors.Wrap(err, "models: failed to assign all query results to VolumeAccess slice")
 	}
 
 	if len(volumeAccessAfterSelectHooks) != 0 {
@@ -297,7 +296,7 @@ func (q volumeAccessQuery) Count() (int64, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "audit: failed to count volume_access rows")
+		return 0, errors.Wrap(err, "models: failed to count volume_access rows")
 	}
 
 	return count, nil
@@ -322,7 +321,7 @@ func (q volumeAccessQuery) Exists() (bool, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "audit: failed to check if volume_access exists")
+		return false, errors.Wrap(err, "models: failed to check if volume_access exists")
 	}
 
 	return count > 0, nil
@@ -367,7 +366,7 @@ func (o *VolumeAccess) InsertP(exec boil.Executor, whitelist ...string) {
 // - All columns with a default, but non-zero are included (i.e. health = 75)
 func (o *VolumeAccess) Insert(exec boil.Executor, whitelist ...string) error {
 	if o == nil {
-		return errors.New("audit: no volume_access provided for insertion")
+		return errors.New("models: no volume_access provided for insertion")
 	}
 
 	var err error
@@ -426,7 +425,7 @@ func (o *VolumeAccess) Insert(exec boil.Executor, whitelist ...string) error {
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "audit: unable to insert into volume_access")
+		return errors.Wrap(err, "models: unable to insert into volume_access")
 	}
 
 	if !cached {

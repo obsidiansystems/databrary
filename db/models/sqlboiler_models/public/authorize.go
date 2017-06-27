@@ -8,11 +8,6 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"reflect"
-	"strings"
-	"sync"
-	"time"
-
 	"github.com/databrary/databrary/db/models/custom_types"
 	"github.com/databrary/sqlboiler/boil"
 	"github.com/databrary/sqlboiler/queries"
@@ -20,6 +15,10 @@ import (
 	"github.com/databrary/sqlboiler/strmangle"
 	"github.com/pkg/errors"
 	"gopkg.in/nullbio/null.v6"
+	"reflect"
+	"strings"
+	"sync"
+	"time"
 )
 
 // Authorize is an object representing the database table.
@@ -240,7 +239,7 @@ func (q authorizeQuery) One() (*Authorize, error) {
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: failed to execute a one query for authorize")
+		return nil, errors.Wrap(err, "public: failed to execute a one query for authorize")
 	}
 
 	if err := o.doAfterSelectHooks(queries.GetExecutor(q.Query)); err != nil {
@@ -266,7 +265,7 @@ func (q authorizeQuery) All() (AuthorizeSlice, error) {
 
 	err := q.Bind(&o)
 	if err != nil {
-		return nil, errors.Wrap(err, "models: failed to assign all query results to Authorize slice")
+		return nil, errors.Wrap(err, "public: failed to assign all query results to Authorize slice")
 	}
 
 	if len(authorizeAfterSelectHooks) != 0 {
@@ -299,7 +298,7 @@ func (q authorizeQuery) Count() (int64, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to count authorize rows")
+		return 0, errors.Wrap(err, "public: failed to count authorize rows")
 	}
 
 	return count, nil
@@ -324,7 +323,7 @@ func (q authorizeQuery) Exists() (bool, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "models: failed to check if authorize exists")
+		return false, errors.Wrap(err, "public: failed to check if authorize exists")
 	}
 
 	return count > 0, nil
@@ -722,7 +721,7 @@ func FindAuthorize(exec boil.Executor, child int, parent int, selectCols ...stri
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: unable to select from authorize")
+		return nil, errors.Wrap(err, "public: unable to select from authorize")
 	}
 
 	return authorizeObj, nil
@@ -766,7 +765,7 @@ func (o *Authorize) InsertP(exec boil.Executor, whitelist ...string) {
 // - All columns with a default, but non-zero are included (i.e. health = 75)
 func (o *Authorize) Insert(exec boil.Executor, whitelist ...string) error {
 	if o == nil {
-		return errors.New("models: no authorize provided for insertion")
+		return errors.New("public: no authorize provided for insertion")
 	}
 
 	var err error
@@ -825,7 +824,7 @@ func (o *Authorize) Insert(exec boil.Executor, whitelist ...string) error {
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "models: unable to insert into authorize")
+		return errors.Wrap(err, "public: unable to insert into authorize")
 	}
 
 	if !cached {
@@ -880,8 +879,12 @@ func (o *Authorize) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(authorizeColumns, authorizePrimaryKeyColumns, whitelist)
+
+		if len(whitelist) == 0 {
+			wl = strmangle.SetComplement(wl, []string{"created_at"})
+		}
 		if len(wl) == 0 {
-			return errors.New("models: unable to update authorize, could not build whitelist")
+			return errors.New("public: unable to update authorize, could not build whitelist")
 		}
 
 		cache.query = fmt.Sprintf("UPDATE \"authorize\" SET %s WHERE %s",
@@ -903,7 +906,7 @@ func (o *Authorize) Update(exec boil.Executor, whitelist ...string) error {
 
 	_, err = exec.Exec(cache.query, values...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update authorize row")
+		return errors.Wrap(err, "public: unable to update authorize row")
 	}
 
 	if !cached {
@@ -928,7 +931,7 @@ func (q authorizeQuery) UpdateAll(cols M) error {
 
 	_, err := q.Query.Exec()
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update all for authorize")
+		return errors.Wrap(err, "public: unable to update all for authorize")
 	}
 
 	return nil
@@ -961,7 +964,7 @@ func (o AuthorizeSlice) UpdateAll(exec boil.Executor, cols M) error {
 	}
 
 	if len(cols) == 0 {
-		return errors.New("models: update all requires at least one column argument")
+		return errors.New("public: update all requires at least one column argument")
 	}
 
 	colNames := make([]string, len(cols))
@@ -993,7 +996,7 @@ func (o AuthorizeSlice) UpdateAll(exec boil.Executor, cols M) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update all in authorize slice")
+		return errors.Wrap(err, "public: unable to update all in authorize slice")
 	}
 
 	return nil
@@ -1022,7 +1025,7 @@ func (o *Authorize) UpsertP(exec boil.Executor, updateOnConflict bool, conflictC
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.
 func (o *Authorize) Upsert(exec boil.Executor, updateOnConflict bool, conflictColumns []string, updateColumns []string, whitelist ...string) error {
 	if o == nil {
-		return errors.New("models: no authorize provided for upsert")
+		return errors.New("public: no authorize provided for upsert")
 	}
 
 	if err := o.doBeforeUpsertHooks(exec); err != nil {
@@ -1078,7 +1081,7 @@ func (o *Authorize) Upsert(exec boil.Executor, updateOnConflict bool, conflictCo
 			updateColumns,
 		)
 		if len(update) == 0 {
-			return errors.New("models: unable to upsert authorize, could not build update column list")
+			return errors.New("public: unable to upsert authorize, could not build update column list")
 		}
 
 		conflict := conflictColumns
@@ -1121,7 +1124,7 @@ func (o *Authorize) Upsert(exec boil.Executor, updateOnConflict bool, conflictCo
 		_, err = exec.Exec(cache.query, vals...)
 	}
 	if err != nil {
-		return errors.Wrap(err, "models: unable to upsert authorize")
+		return errors.Wrap(err, "public: unable to upsert authorize")
 	}
 
 	if !cached {
@@ -1146,7 +1149,7 @@ func (o *Authorize) DeleteP(exec boil.Executor) {
 // DeleteG will match against the primary key column to find the record to delete.
 func (o *Authorize) DeleteG() error {
 	if o == nil {
-		return errors.New("models: no Authorize provided for deletion")
+		return errors.New("public: no Authorize provided for deletion")
 	}
 
 	return o.Delete(boil.GetDB())
@@ -1165,7 +1168,7 @@ func (o *Authorize) DeleteGP() {
 // Delete will match against the primary key column to find the record to delete.
 func (o *Authorize) Delete(exec boil.Executor) error {
 	if o == nil {
-		return errors.New("models: no Authorize provided for delete")
+		return errors.New("public: no Authorize provided for delete")
 	}
 
 	if err := o.doBeforeDeleteHooks(exec); err != nil {
@@ -1182,7 +1185,7 @@ func (o *Authorize) Delete(exec boil.Executor) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete from authorize")
+		return errors.Wrap(err, "public: unable to delete from authorize")
 	}
 
 	if err := o.doAfterDeleteHooks(exec); err != nil {
@@ -1202,14 +1205,14 @@ func (q authorizeQuery) DeleteAllP() {
 // DeleteAll deletes all matching rows.
 func (q authorizeQuery) DeleteAll() error {
 	if q.Query == nil {
-		return errors.New("models: no authorizeQuery provided for delete all")
+		return errors.New("public: no authorizeQuery provided for delete all")
 	}
 
 	queries.SetDelete(q.Query)
 
 	_, err := q.Query.Exec()
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete all from authorize")
+		return errors.Wrap(err, "public: unable to delete all from authorize")
 	}
 
 	return nil
@@ -1225,7 +1228,7 @@ func (o AuthorizeSlice) DeleteAllGP() {
 // DeleteAllG deletes all rows in the slice.
 func (o AuthorizeSlice) DeleteAllG() error {
 	if o == nil {
-		return errors.New("models: no Authorize slice provided for delete all")
+		return errors.New("public: no Authorize slice provided for delete all")
 	}
 	return o.DeleteAll(boil.GetDB())
 }
@@ -1240,7 +1243,7 @@ func (o AuthorizeSlice) DeleteAllP(exec boil.Executor) {
 // DeleteAll deletes all rows in the slice, using an executor.
 func (o AuthorizeSlice) DeleteAll(exec boil.Executor) error {
 	if o == nil {
-		return errors.New("models: no Authorize slice provided for delete all")
+		return errors.New("public: no Authorize slice provided for delete all")
 	}
 
 	if len(o) == 0 {
@@ -1274,7 +1277,7 @@ func (o AuthorizeSlice) DeleteAll(exec boil.Executor) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete all from authorize slice")
+		return errors.Wrap(err, "public: unable to delete all from authorize slice")
 	}
 
 	if len(authorizeAfterDeleteHooks) != 0 {
@@ -1305,7 +1308,7 @@ func (o *Authorize) ReloadP(exec boil.Executor) {
 // ReloadG refetches the object from the database using the primary keys.
 func (o *Authorize) ReloadG() error {
 	if o == nil {
-		return errors.New("models: no Authorize provided for reload")
+		return errors.New("public: no Authorize provided for reload")
 	}
 
 	return o.Reload(boil.GetDB())
@@ -1345,7 +1348,7 @@ func (o *AuthorizeSlice) ReloadAllP(exec boil.Executor) {
 // and overwrites the original object slice with the newly updated slice.
 func (o *AuthorizeSlice) ReloadAllG() error {
 	if o == nil {
-		return errors.New("models: empty AuthorizeSlice provided for reload all")
+		return errors.New("public: empty AuthorizeSlice provided for reload all")
 	}
 
 	return o.ReloadAll(boil.GetDB())
@@ -1375,7 +1378,7 @@ func (o *AuthorizeSlice) ReloadAll(exec boil.Executor) error {
 
 	err := q.Bind(&authorizes)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to reload all in AuthorizeSlice")
+		return errors.Wrap(err, "public: unable to reload all in AuthorizeSlice")
 	}
 
 	*o = authorizes
@@ -1398,7 +1401,7 @@ func AuthorizeExists(exec boil.Executor, child int, parent int) (bool, error) {
 
 	err := row.Scan(&exists)
 	if err != nil {
-		return false, errors.Wrap(err, "models: unable to check if authorize exists")
+		return false, errors.Wrap(err, "public: unable to check if authorize exists")
 	}
 
 	return exists, nil

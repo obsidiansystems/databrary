@@ -7,16 +7,15 @@ package public
 import (
 	"flag"
 	"fmt"
+	"github.com/databrary/sqlboiler/boil"
+	"github.com/kat-co/vala"
+	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 	"math/rand"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
-
-	"github.com/databrary/sqlboiler/boil"
-	"github.com/kat-co/vala"
-	"github.com/pkg/errors"
-	"github.com/spf13/viper"
 )
 
 var flagDebugMode = flag.Bool("test.sqldebug", false, "Turns on debug mode for SQL statements")

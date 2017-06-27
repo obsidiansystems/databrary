@@ -8,17 +8,16 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"reflect"
-	"strings"
-	"sync"
-	"time"
-
 	"github.com/databrary/sqlboiler/boil"
 	"github.com/databrary/sqlboiler/queries"
 	"github.com/databrary/sqlboiler/queries/qm"
 	"github.com/databrary/sqlboiler/strmangle"
 	"github.com/pkg/errors"
 	"gopkg.in/nullbio/null.v6"
+	"reflect"
+	"strings"
+	"sync"
+	"time"
 )
 
 // Account is an object representing the database table.
@@ -36,13 +35,13 @@ type accountR struct {
 	ID                  *Party
 	LoginToken          *LoginToken
 	AccountTokens       AccountTokenSlice
-	WhoTagUses          TagUseSlice
-	Uploads             UploadSlice
-	OwnerTranscodes     TranscodeSlice
+	WhoComments         CommentSlice
+	TargetNotifications NotificationSlice
 	TargetNotifies      NotifySlice
 	Sessions            SessionSlice
-	TargetNotifications NotificationSlice
-	WhoComments         CommentSlice
+	WhoTagUses          TagUseSlice
+	OwnerTranscodes     TranscodeSlice
+	Uploads             UploadSlice
 }
 
 // accountL is where Load methods for each relationship are stored.
@@ -245,7 +244,7 @@ func (q accountQuery) One() (*Account, error) {
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: failed to execute a one query for account")
+		return nil, errors.Wrap(err, "public: failed to execute a one query for account")
 	}
 
 	if err := o.doAfterSelectHooks(queries.GetExecutor(q.Query)); err != nil {
@@ -271,7 +270,7 @@ func (q accountQuery) All() (AccountSlice, error) {
 
 	err := q.Bind(&o)
 	if err != nil {
-		return nil, errors.Wrap(err, "models: failed to assign all query results to Account slice")
+		return nil, errors.Wrap(err, "public: failed to assign all query results to Account slice")
 	}
 
 	if len(accountAfterSelectHooks) != 0 {
@@ -304,7 +303,7 @@ func (q accountQuery) Count() (int64, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "models: failed to count account rows")
+		return 0, errors.Wrap(err, "public: failed to count account rows")
 	}
 
 	return count, nil
@@ -329,7 +328,7 @@ func (q accountQuery) Exists() (bool, error) {
 
 	err := q.Query.QueryRow().Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "models: failed to check if account exists")
+		return false, errors.Wrap(err, "public: failed to check if account exists")
 	}
 
 	return count > 0, nil
@@ -397,13 +396,13 @@ func (o *Account) AccountTokensByFk(exec boil.Executor, mods ...qm.QueryMod) acc
 	return query
 }
 
-// WhoTagUsesG retrieves all the tag_use's tag use via who column.
-func (o *Account) WhoTagUsesG(mods ...qm.QueryMod) tagUseQuery {
-	return o.WhoTagUsesByFk(boil.GetDB(), mods...)
+// WhoCommentsG retrieves all the comment's comment via who column.
+func (o *Account) WhoCommentsG(mods ...qm.QueryMod) commentQuery {
+	return o.WhoCommentsByFk(boil.GetDB(), mods...)
 }
 
-// WhoTagUses retrieves all the tag_use's tag use with an executor via who column.
-func (o *Account) WhoTagUsesByFk(exec boil.Executor, mods ...qm.QueryMod) tagUseQuery {
+// WhoComments retrieves all the comment's comment with an executor via who column.
+func (o *Account) WhoCommentsByFk(exec boil.Executor, mods ...qm.QueryMod) commentQuery {
 	queryMods := []qm.QueryMod{
 		qm.Select("\"a\".*"),
 	}
@@ -416,18 +415,18 @@ func (o *Account) WhoTagUsesByFk(exec boil.Executor, mods ...qm.QueryMod) tagUse
 		qm.Where("\"a\".\"who\"=?", o.ID),
 	)
 
-	query := TagUses(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"tag_use\" as \"a\"")
+	query := Comments(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"comment\" as \"a\"")
 	return query
 }
 
-// UploadsG retrieves all the upload's upload.
-func (o *Account) UploadsG(mods ...qm.QueryMod) uploadQuery {
-	return o.UploadsByFk(boil.GetDB(), mods...)
+// TargetNotificationsG retrieves all the notification's notification via target column.
+func (o *Account) TargetNotificationsG(mods ...qm.QueryMod) notificationQuery {
+	return o.TargetNotificationsByFk(boil.GetDB(), mods...)
 }
 
-// Uploads retrieves all the upload's upload with an executor.
-func (o *Account) UploadsByFk(exec boil.Executor, mods ...qm.QueryMod) uploadQuery {
+// TargetNotifications retrieves all the notification's notification with an executor via target column.
+func (o *Account) TargetNotificationsByFk(exec boil.Executor, mods ...qm.QueryMod) notificationQuery {
 	queryMods := []qm.QueryMod{
 		qm.Select("\"a\".*"),
 	}
@@ -437,35 +436,11 @@ func (o *Account) UploadsByFk(exec boil.Executor, mods ...qm.QueryMod) uploadQue
 	}
 
 	queryMods = append(queryMods,
-		qm.Where("\"a\".\"account\"=?", o.ID),
+		qm.Where("\"a\".\"target\"=?", o.ID),
 	)
 
-	query := Uploads(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"upload\" as \"a\"")
-	return query
-}
-
-// OwnerTranscodesG retrieves all the transcode's transcode via owner column.
-func (o *Account) OwnerTranscodesG(mods ...qm.QueryMod) transcodeQuery {
-	return o.OwnerTranscodesByFk(boil.GetDB(), mods...)
-}
-
-// OwnerTranscodes retrieves all the transcode's transcode with an executor via owner column.
-func (o *Account) OwnerTranscodesByFk(exec boil.Executor, mods ...qm.QueryMod) transcodeQuery {
-	queryMods := []qm.QueryMod{
-		qm.Select("\"a\".*"),
-	}
-
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"a\".\"owner\"=?", o.ID),
-	)
-
-	query := Transcodes(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"transcode\" as \"a\"")
+	query := Notifications(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"notification\" as \"a\"")
 	return query
 }
 
@@ -517,37 +492,13 @@ func (o *Account) SessionsByFk(exec boil.Executor, mods ...qm.QueryMod) sessionQ
 	return query
 }
 
-// TargetNotificationsG retrieves all the notification's notification via target column.
-func (o *Account) TargetNotificationsG(mods ...qm.QueryMod) notificationQuery {
-	return o.TargetNotificationsByFk(boil.GetDB(), mods...)
+// WhoTagUsesG retrieves all the tag_use's tag use via who column.
+func (o *Account) WhoTagUsesG(mods ...qm.QueryMod) tagUseQuery {
+	return o.WhoTagUsesByFk(boil.GetDB(), mods...)
 }
 
-// TargetNotifications retrieves all the notification's notification with an executor via target column.
-func (o *Account) TargetNotificationsByFk(exec boil.Executor, mods ...qm.QueryMod) notificationQuery {
-	queryMods := []qm.QueryMod{
-		qm.Select("\"a\".*"),
-	}
-
-	if len(mods) != 0 {
-		queryMods = append(queryMods, mods...)
-	}
-
-	queryMods = append(queryMods,
-		qm.Where("\"a\".\"target\"=?", o.ID),
-	)
-
-	query := Notifications(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"notification\" as \"a\"")
-	return query
-}
-
-// WhoCommentsG retrieves all the comment's comment via who column.
-func (o *Account) WhoCommentsG(mods ...qm.QueryMod) commentQuery {
-	return o.WhoCommentsByFk(boil.GetDB(), mods...)
-}
-
-// WhoComments retrieves all the comment's comment with an executor via who column.
-func (o *Account) WhoCommentsByFk(exec boil.Executor, mods ...qm.QueryMod) commentQuery {
+// WhoTagUses retrieves all the tag_use's tag use with an executor via who column.
+func (o *Account) WhoTagUsesByFk(exec boil.Executor, mods ...qm.QueryMod) tagUseQuery {
 	queryMods := []qm.QueryMod{
 		qm.Select("\"a\".*"),
 	}
@@ -560,8 +511,56 @@ func (o *Account) WhoCommentsByFk(exec boil.Executor, mods ...qm.QueryMod) comme
 		qm.Where("\"a\".\"who\"=?", o.ID),
 	)
 
-	query := Comments(exec, queryMods...)
-	queries.SetFrom(query.Query, "\"comment\" as \"a\"")
+	query := TagUses(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"tag_use\" as \"a\"")
+	return query
+}
+
+// OwnerTranscodesG retrieves all the transcode's transcode via owner column.
+func (o *Account) OwnerTranscodesG(mods ...qm.QueryMod) transcodeQuery {
+	return o.OwnerTranscodesByFk(boil.GetDB(), mods...)
+}
+
+// OwnerTranscodes retrieves all the transcode's transcode with an executor via owner column.
+func (o *Account) OwnerTranscodesByFk(exec boil.Executor, mods ...qm.QueryMod) transcodeQuery {
+	queryMods := []qm.QueryMod{
+		qm.Select("\"a\".*"),
+	}
+
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"a\".\"owner\"=?", o.ID),
+	)
+
+	query := Transcodes(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"transcode\" as \"a\"")
+	return query
+}
+
+// UploadsG retrieves all the upload's upload.
+func (o *Account) UploadsG(mods ...qm.QueryMod) uploadQuery {
+	return o.UploadsByFk(boil.GetDB(), mods...)
+}
+
+// Uploads retrieves all the upload's upload with an executor.
+func (o *Account) UploadsByFk(exec boil.Executor, mods ...qm.QueryMod) uploadQuery {
+	queryMods := []qm.QueryMod{
+		qm.Select("\"a\".*"),
+	}
+
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"a\".\"account\"=?", o.ID),
+	)
+
+	query := Uploads(exec, queryMods...)
+	queries.SetFrom(query.Query, "\"upload\" as \"a\"")
 	return query
 }
 
@@ -793,9 +792,9 @@ func (accountL) LoadAccountTokens(e boil.Executor, singular bool, maybeAccount i
 	return nil
 }
 
-// LoadWhoTagUses allows an eager lookup of values, cached into the
+// LoadWhoComments allows an eager lookup of values, cached into the
 // loaded structs of the objects.
-func (accountL) LoadWhoTagUses(e boil.Executor, singular bool, maybeAccount interface{}) error {
+func (accountL) LoadWhoComments(e boil.Executor, singular bool, maybeAccount interface{}) error {
 	var slice []*Account
 	var object *Account
 
@@ -823,7 +822,7 @@ func (accountL) LoadWhoTagUses(e boil.Executor, singular bool, maybeAccount inte
 	}
 
 	query := fmt.Sprintf(
-		"select * from \"tag_use\" where \"who\" in (%s)",
+		"select * from \"comment\" where \"who\" in (%s)",
 		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
 	)
 	if boil.DebugMode {
@@ -832,16 +831,16 @@ func (accountL) LoadWhoTagUses(e boil.Executor, singular bool, maybeAccount inte
 
 	results, err := e.Query(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "failed to eager load tag_use")
+		return errors.Wrap(err, "failed to eager load comment")
 	}
 	defer results.Close()
 
-	var resultSlice []*TagUse
+	var resultSlice []*Comment
 	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice tag_use")
+		return errors.Wrap(err, "failed to bind eager loaded slice comment")
 	}
 
-	if len(tagUseAfterSelectHooks) != 0 {
+	if len(commentAfterSelectHooks) != 0 {
 		for _, obj := range resultSlice {
 			if err := obj.doAfterSelectHooks(e); err != nil {
 				return err
@@ -849,14 +848,14 @@ func (accountL) LoadWhoTagUses(e boil.Executor, singular bool, maybeAccount inte
 		}
 	}
 	if singular {
-		object.R.WhoTagUses = resultSlice
+		object.R.WhoComments = resultSlice
 		return nil
 	}
 
 	for _, foreign := range resultSlice {
 		for _, local := range slice {
 			if local.ID == foreign.Who {
-				local.R.WhoTagUses = append(local.R.WhoTagUses, foreign)
+				local.R.WhoComments = append(local.R.WhoComments, foreign)
 				break
 			}
 		}
@@ -865,9 +864,9 @@ func (accountL) LoadWhoTagUses(e boil.Executor, singular bool, maybeAccount inte
 	return nil
 }
 
-// LoadUploads allows an eager lookup of values, cached into the
+// LoadTargetNotifications allows an eager lookup of values, cached into the
 // loaded structs of the objects.
-func (accountL) LoadUploads(e boil.Executor, singular bool, maybeAccount interface{}) error {
+func (accountL) LoadTargetNotifications(e boil.Executor, singular bool, maybeAccount interface{}) error {
 	var slice []*Account
 	var object *Account
 
@@ -895,7 +894,7 @@ func (accountL) LoadUploads(e boil.Executor, singular bool, maybeAccount interfa
 	}
 
 	query := fmt.Sprintf(
-		"select * from \"upload\" where \"account\" in (%s)",
+		"select * from \"notification\" where \"target\" in (%s)",
 		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
 	)
 	if boil.DebugMode {
@@ -904,16 +903,16 @@ func (accountL) LoadUploads(e boil.Executor, singular bool, maybeAccount interfa
 
 	results, err := e.Query(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "failed to eager load upload")
+		return errors.Wrap(err, "failed to eager load notification")
 	}
 	defer results.Close()
 
-	var resultSlice []*Upload
+	var resultSlice []*Notification
 	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice upload")
+		return errors.Wrap(err, "failed to bind eager loaded slice notification")
 	}
 
-	if len(uploadAfterSelectHooks) != 0 {
+	if len(notificationAfterSelectHooks) != 0 {
 		for _, obj := range resultSlice {
 			if err := obj.doAfterSelectHooks(e); err != nil {
 				return err
@@ -921,86 +920,14 @@ func (accountL) LoadUploads(e boil.Executor, singular bool, maybeAccount interfa
 		}
 	}
 	if singular {
-		object.R.Uploads = resultSlice
+		object.R.TargetNotifications = resultSlice
 		return nil
 	}
 
 	for _, foreign := range resultSlice {
 		for _, local := range slice {
-			if local.ID == foreign.Account {
-				local.R.Uploads = append(local.R.Uploads, foreign)
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
-// LoadOwnerTranscodes allows an eager lookup of values, cached into the
-// loaded structs of the objects.
-func (accountL) LoadOwnerTranscodes(e boil.Executor, singular bool, maybeAccount interface{}) error {
-	var slice []*Account
-	var object *Account
-
-	count := 1
-	if singular {
-		object = maybeAccount.(*Account)
-	} else {
-		slice = *maybeAccount.(*AccountSlice)
-		count = len(slice)
-	}
-
-	args := make([]interface{}, count)
-	if singular {
-		if object.R == nil {
-			object.R = &accountR{}
-		}
-		args[0] = object.ID
-	} else {
-		for i, obj := range slice {
-			if obj.R == nil {
-				obj.R = &accountR{}
-			}
-			args[i] = obj.ID
-		}
-	}
-
-	query := fmt.Sprintf(
-		"select * from \"transcode\" where \"owner\" in (%s)",
-		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
-	)
-	if boil.DebugMode {
-		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
-	}
-
-	results, err := e.Query(query, args...)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load transcode")
-	}
-	defer results.Close()
-
-	var resultSlice []*Transcode
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice transcode")
-	}
-
-	if len(transcodeAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(e); err != nil {
-				return err
-			}
-		}
-	}
-	if singular {
-		object.R.OwnerTranscodes = resultSlice
-		return nil
-	}
-
-	for _, foreign := range resultSlice {
-		for _, local := range slice {
-			if local.ID == foreign.Owner {
-				local.R.OwnerTranscodes = append(local.R.OwnerTranscodes, foreign)
+			if local.ID == foreign.Target {
+				local.R.TargetNotifications = append(local.R.TargetNotifications, foreign)
 				break
 			}
 		}
@@ -1153,9 +1080,9 @@ func (accountL) LoadSessions(e boil.Executor, singular bool, maybeAccount interf
 	return nil
 }
 
-// LoadTargetNotifications allows an eager lookup of values, cached into the
+// LoadWhoTagUses allows an eager lookup of values, cached into the
 // loaded structs of the objects.
-func (accountL) LoadTargetNotifications(e boil.Executor, singular bool, maybeAccount interface{}) error {
+func (accountL) LoadWhoTagUses(e boil.Executor, singular bool, maybeAccount interface{}) error {
 	var slice []*Account
 	var object *Account
 
@@ -1183,7 +1110,7 @@ func (accountL) LoadTargetNotifications(e boil.Executor, singular bool, maybeAcc
 	}
 
 	query := fmt.Sprintf(
-		"select * from \"notification\" where \"target\" in (%s)",
+		"select * from \"tag_use\" where \"who\" in (%s)",
 		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
 	)
 	if boil.DebugMode {
@@ -1192,16 +1119,16 @@ func (accountL) LoadTargetNotifications(e boil.Executor, singular bool, maybeAcc
 
 	results, err := e.Query(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "failed to eager load notification")
+		return errors.Wrap(err, "failed to eager load tag_use")
 	}
 	defer results.Close()
 
-	var resultSlice []*Notification
+	var resultSlice []*TagUse
 	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice notification")
+		return errors.Wrap(err, "failed to bind eager loaded slice tag_use")
 	}
 
-	if len(notificationAfterSelectHooks) != 0 {
+	if len(tagUseAfterSelectHooks) != 0 {
 		for _, obj := range resultSlice {
 			if err := obj.doAfterSelectHooks(e); err != nil {
 				return err
@@ -1209,14 +1136,14 @@ func (accountL) LoadTargetNotifications(e boil.Executor, singular bool, maybeAcc
 		}
 	}
 	if singular {
-		object.R.TargetNotifications = resultSlice
+		object.R.WhoTagUses = resultSlice
 		return nil
 	}
 
 	for _, foreign := range resultSlice {
 		for _, local := range slice {
-			if local.ID == foreign.Target {
-				local.R.TargetNotifications = append(local.R.TargetNotifications, foreign)
+			if local.ID == foreign.Who {
+				local.R.WhoTagUses = append(local.R.WhoTagUses, foreign)
 				break
 			}
 		}
@@ -1225,9 +1152,9 @@ func (accountL) LoadTargetNotifications(e boil.Executor, singular bool, maybeAcc
 	return nil
 }
 
-// LoadWhoComments allows an eager lookup of values, cached into the
+// LoadOwnerTranscodes allows an eager lookup of values, cached into the
 // loaded structs of the objects.
-func (accountL) LoadWhoComments(e boil.Executor, singular bool, maybeAccount interface{}) error {
+func (accountL) LoadOwnerTranscodes(e boil.Executor, singular bool, maybeAccount interface{}) error {
 	var slice []*Account
 	var object *Account
 
@@ -1255,7 +1182,7 @@ func (accountL) LoadWhoComments(e boil.Executor, singular bool, maybeAccount int
 	}
 
 	query := fmt.Sprintf(
-		"select * from \"comment\" where \"who\" in (%s)",
+		"select * from \"transcode\" where \"owner\" in (%s)",
 		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
 	)
 	if boil.DebugMode {
@@ -1264,16 +1191,16 @@ func (accountL) LoadWhoComments(e boil.Executor, singular bool, maybeAccount int
 
 	results, err := e.Query(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "failed to eager load comment")
+		return errors.Wrap(err, "failed to eager load transcode")
 	}
 	defer results.Close()
 
-	var resultSlice []*Comment
+	var resultSlice []*Transcode
 	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice comment")
+		return errors.Wrap(err, "failed to bind eager loaded slice transcode")
 	}
 
-	if len(commentAfterSelectHooks) != 0 {
+	if len(transcodeAfterSelectHooks) != 0 {
 		for _, obj := range resultSlice {
 			if err := obj.doAfterSelectHooks(e); err != nil {
 				return err
@@ -1281,14 +1208,86 @@ func (accountL) LoadWhoComments(e boil.Executor, singular bool, maybeAccount int
 		}
 	}
 	if singular {
-		object.R.WhoComments = resultSlice
+		object.R.OwnerTranscodes = resultSlice
 		return nil
 	}
 
 	for _, foreign := range resultSlice {
 		for _, local := range slice {
-			if local.ID == foreign.Who {
-				local.R.WhoComments = append(local.R.WhoComments, foreign)
+			if local.ID == foreign.Owner {
+				local.R.OwnerTranscodes = append(local.R.OwnerTranscodes, foreign)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadUploads allows an eager lookup of values, cached into the
+// loaded structs of the objects.
+func (accountL) LoadUploads(e boil.Executor, singular bool, maybeAccount interface{}) error {
+	var slice []*Account
+	var object *Account
+
+	count := 1
+	if singular {
+		object = maybeAccount.(*Account)
+	} else {
+		slice = *maybeAccount.(*AccountSlice)
+		count = len(slice)
+	}
+
+	args := make([]interface{}, count)
+	if singular {
+		if object.R == nil {
+			object.R = &accountR{}
+		}
+		args[0] = object.ID
+	} else {
+		for i, obj := range slice {
+			if obj.R == nil {
+				obj.R = &accountR{}
+			}
+			args[i] = obj.ID
+		}
+	}
+
+	query := fmt.Sprintf(
+		"select * from \"upload\" where \"account\" in (%s)",
+		strmangle.Placeholders(dialect.IndexPlaceholders, count, 1, 1),
+	)
+	if boil.DebugMode {
+		fmt.Fprintf(boil.DebugWriter, "%s\n%v\n", query, args)
+	}
+
+	results, err := e.Query(query, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load upload")
+	}
+	defer results.Close()
+
+	var resultSlice []*Upload
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice upload")
+	}
+
+	if len(uploadAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.Uploads = resultSlice
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.Account {
+				local.R.Uploads = append(local.R.Uploads, foreign)
 				break
 			}
 		}
@@ -1536,42 +1535,42 @@ func (o *Account) AddAccountTokens(exec boil.Executor, insert bool, related ...*
 	return nil
 }
 
-// AddWhoTagUsesG adds the given related objects to the existing relationships
+// AddWhoCommentsG adds the given related objects to the existing relationships
 // of the account, optionally inserting them as new records.
-// Appends related to o.R.WhoTagUses.
+// Appends related to o.R.WhoComments.
 // Sets related.R.Who appropriately.
 // Uses the global database handle.
-func (o *Account) AddWhoTagUsesG(insert bool, related ...*TagUse) error {
-	return o.AddWhoTagUses(boil.GetDB(), insert, related...)
+func (o *Account) AddWhoCommentsG(insert bool, related ...*Comment) error {
+	return o.AddWhoComments(boil.GetDB(), insert, related...)
 }
 
-// AddWhoTagUsesP adds the given related objects to the existing relationships
+// AddWhoCommentsP adds the given related objects to the existing relationships
 // of the account, optionally inserting them as new records.
-// Appends related to o.R.WhoTagUses.
+// Appends related to o.R.WhoComments.
 // Sets related.R.Who appropriately.
 // Panics on error.
-func (o *Account) AddWhoTagUsesP(exec boil.Executor, insert bool, related ...*TagUse) {
-	if err := o.AddWhoTagUses(exec, insert, related...); err != nil {
+func (o *Account) AddWhoCommentsP(exec boil.Executor, insert bool, related ...*Comment) {
+	if err := o.AddWhoComments(exec, insert, related...); err != nil {
 		panic(boil.WrapErr(err))
 	}
 }
 
-// AddWhoTagUsesGP adds the given related objects to the existing relationships
+// AddWhoCommentsGP adds the given related objects to the existing relationships
 // of the account, optionally inserting them as new records.
-// Appends related to o.R.WhoTagUses.
+// Appends related to o.R.WhoComments.
 // Sets related.R.Who appropriately.
 // Uses the global database handle and panics on error.
-func (o *Account) AddWhoTagUsesGP(insert bool, related ...*TagUse) {
-	if err := o.AddWhoTagUses(boil.GetDB(), insert, related...); err != nil {
+func (o *Account) AddWhoCommentsGP(insert bool, related ...*Comment) {
+	if err := o.AddWhoComments(boil.GetDB(), insert, related...); err != nil {
 		panic(boil.WrapErr(err))
 	}
 }
 
-// AddWhoTagUses adds the given related objects to the existing relationships
+// AddWhoComments adds the given related objects to the existing relationships
 // of the account, optionally inserting them as new records.
-// Appends related to o.R.WhoTagUses.
+// Appends related to o.R.WhoComments.
 // Sets related.R.Who appropriately.
-func (o *Account) AddWhoTagUses(exec boil.Executor, insert bool, related ...*TagUse) error {
+func (o *Account) AddWhoComments(exec boil.Executor, insert bool, related ...*Comment) error {
 	var err error
 	for _, rel := range related {
 		if insert {
@@ -1581,11 +1580,11 @@ func (o *Account) AddWhoTagUses(exec boil.Executor, insert bool, related ...*Tag
 			}
 		} else {
 			updateQuery := fmt.Sprintf(
-				"UPDATE \"tag_use\" SET %s WHERE %s",
+				"UPDATE \"comment\" SET %s WHERE %s",
 				strmangle.SetParamNames("\"", "\"", 1, []string{"who"}),
-				strmangle.WhereClause("\"", "\"", 2, tagUsePrimaryKeyColumns),
+				strmangle.WhereClause("\"", "\"", 2, commentPrimaryKeyColumns),
 			)
-			values := []interface{}{o.ID, rel.Container, rel.Segment, rel.Tag, rel.Who}
+			values := []interface{}{o.ID, rel.ID}
 
 			if boil.DebugMode {
 				fmt.Fprintln(boil.DebugWriter, updateQuery)
@@ -1602,15 +1601,15 @@ func (o *Account) AddWhoTagUses(exec boil.Executor, insert bool, related ...*Tag
 
 	if o.R == nil {
 		o.R = &accountR{
-			WhoTagUses: related,
+			WhoComments: related,
 		}
 	} else {
-		o.R.WhoTagUses = append(o.R.WhoTagUses, related...)
+		o.R.WhoComments = append(o.R.WhoComments, related...)
 	}
 
 	for _, rel := range related {
 		if rel.R == nil {
-			rel.R = &tagUseR{
+			rel.R = &commentR{
 				Who: o,
 			}
 		} else {
@@ -1620,56 +1619,56 @@ func (o *Account) AddWhoTagUses(exec boil.Executor, insert bool, related ...*Tag
 	return nil
 }
 
-// AddUploadsG adds the given related objects to the existing relationships
+// AddTargetNotificationsG adds the given related objects to the existing relationships
 // of the account, optionally inserting them as new records.
-// Appends related to o.R.Uploads.
-// Sets related.R.Account appropriately.
+// Appends related to o.R.TargetNotifications.
+// Sets related.R.Target appropriately.
 // Uses the global database handle.
-func (o *Account) AddUploadsG(insert bool, related ...*Upload) error {
-	return o.AddUploads(boil.GetDB(), insert, related...)
+func (o *Account) AddTargetNotificationsG(insert bool, related ...*Notification) error {
+	return o.AddTargetNotifications(boil.GetDB(), insert, related...)
 }
 
-// AddUploadsP adds the given related objects to the existing relationships
+// AddTargetNotificationsP adds the given related objects to the existing relationships
 // of the account, optionally inserting them as new records.
-// Appends related to o.R.Uploads.
-// Sets related.R.Account appropriately.
+// Appends related to o.R.TargetNotifications.
+// Sets related.R.Target appropriately.
 // Panics on error.
-func (o *Account) AddUploadsP(exec boil.Executor, insert bool, related ...*Upload) {
-	if err := o.AddUploads(exec, insert, related...); err != nil {
+func (o *Account) AddTargetNotificationsP(exec boil.Executor, insert bool, related ...*Notification) {
+	if err := o.AddTargetNotifications(exec, insert, related...); err != nil {
 		panic(boil.WrapErr(err))
 	}
 }
 
-// AddUploadsGP adds the given related objects to the existing relationships
+// AddTargetNotificationsGP adds the given related objects to the existing relationships
 // of the account, optionally inserting them as new records.
-// Appends related to o.R.Uploads.
-// Sets related.R.Account appropriately.
+// Appends related to o.R.TargetNotifications.
+// Sets related.R.Target appropriately.
 // Uses the global database handle and panics on error.
-func (o *Account) AddUploadsGP(insert bool, related ...*Upload) {
-	if err := o.AddUploads(boil.GetDB(), insert, related...); err != nil {
+func (o *Account) AddTargetNotificationsGP(insert bool, related ...*Notification) {
+	if err := o.AddTargetNotifications(boil.GetDB(), insert, related...); err != nil {
 		panic(boil.WrapErr(err))
 	}
 }
 
-// AddUploads adds the given related objects to the existing relationships
+// AddTargetNotifications adds the given related objects to the existing relationships
 // of the account, optionally inserting them as new records.
-// Appends related to o.R.Uploads.
-// Sets related.R.Account appropriately.
-func (o *Account) AddUploads(exec boil.Executor, insert bool, related ...*Upload) error {
+// Appends related to o.R.TargetNotifications.
+// Sets related.R.Target appropriately.
+func (o *Account) AddTargetNotifications(exec boil.Executor, insert bool, related ...*Notification) error {
 	var err error
 	for _, rel := range related {
 		if insert {
-			rel.Account = o.ID
+			rel.Target = o.ID
 			if err = rel.Insert(exec); err != nil {
 				return errors.Wrap(err, "failed to insert into foreign table")
 			}
 		} else {
 			updateQuery := fmt.Sprintf(
-				"UPDATE \"upload\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"account"}),
-				strmangle.WhereClause("\"", "\"", 2, uploadPrimaryKeyColumns),
+				"UPDATE \"notification\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"target"}),
+				strmangle.WhereClause("\"", "\"", 2, notificationPrimaryKeyColumns),
 			)
-			values := []interface{}{o.ID, rel.Token}
+			values := []interface{}{o.ID, rel.ID}
 
 			if boil.DebugMode {
 				fmt.Fprintln(boil.DebugWriter, updateQuery)
@@ -1680,109 +1679,25 @@ func (o *Account) AddUploads(exec boil.Executor, insert bool, related ...*Upload
 				return errors.Wrap(err, "failed to update foreign table")
 			}
 
-			rel.Account = o.ID
+			rel.Target = o.ID
 		}
 	}
 
 	if o.R == nil {
 		o.R = &accountR{
-			Uploads: related,
+			TargetNotifications: related,
 		}
 	} else {
-		o.R.Uploads = append(o.R.Uploads, related...)
+		o.R.TargetNotifications = append(o.R.TargetNotifications, related...)
 	}
 
 	for _, rel := range related {
 		if rel.R == nil {
-			rel.R = &uploadR{
-				Account: o,
+			rel.R = &notificationR{
+				Target: o,
 			}
 		} else {
-			rel.R.Account = o
-		}
-	}
-	return nil
-}
-
-// AddOwnerTranscodesG adds the given related objects to the existing relationships
-// of the account, optionally inserting them as new records.
-// Appends related to o.R.OwnerTranscodes.
-// Sets related.R.Owner appropriately.
-// Uses the global database handle.
-func (o *Account) AddOwnerTranscodesG(insert bool, related ...*Transcode) error {
-	return o.AddOwnerTranscodes(boil.GetDB(), insert, related...)
-}
-
-// AddOwnerTranscodesP adds the given related objects to the existing relationships
-// of the account, optionally inserting them as new records.
-// Appends related to o.R.OwnerTranscodes.
-// Sets related.R.Owner appropriately.
-// Panics on error.
-func (o *Account) AddOwnerTranscodesP(exec boil.Executor, insert bool, related ...*Transcode) {
-	if err := o.AddOwnerTranscodes(exec, insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddOwnerTranscodesGP adds the given related objects to the existing relationships
-// of the account, optionally inserting them as new records.
-// Appends related to o.R.OwnerTranscodes.
-// Sets related.R.Owner appropriately.
-// Uses the global database handle and panics on error.
-func (o *Account) AddOwnerTranscodesGP(insert bool, related ...*Transcode) {
-	if err := o.AddOwnerTranscodes(boil.GetDB(), insert, related...); err != nil {
-		panic(boil.WrapErr(err))
-	}
-}
-
-// AddOwnerTranscodes adds the given related objects to the existing relationships
-// of the account, optionally inserting them as new records.
-// Appends related to o.R.OwnerTranscodes.
-// Sets related.R.Owner appropriately.
-func (o *Account) AddOwnerTranscodes(exec boil.Executor, insert bool, related ...*Transcode) error {
-	var err error
-	for _, rel := range related {
-		if insert {
-			rel.Owner = o.ID
-			if err = rel.Insert(exec); err != nil {
-				return errors.Wrap(err, "failed to insert into foreign table")
-			}
-		} else {
-			updateQuery := fmt.Sprintf(
-				"UPDATE \"transcode\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"owner"}),
-				strmangle.WhereClause("\"", "\"", 2, transcodePrimaryKeyColumns),
-			)
-			values := []interface{}{o.ID, rel.Asset}
-
-			if boil.DebugMode {
-				fmt.Fprintln(boil.DebugWriter, updateQuery)
-				fmt.Fprintln(boil.DebugWriter, values)
-			}
-
-			if _, err = exec.Exec(updateQuery, values...); err != nil {
-				return errors.Wrap(err, "failed to update foreign table")
-			}
-
-			rel.Owner = o.ID
-		}
-	}
-
-	if o.R == nil {
-		o.R = &accountR{
-			OwnerTranscodes: related,
-		}
-	} else {
-		o.R.OwnerTranscodes = append(o.R.OwnerTranscodes, related...)
-	}
-
-	for _, rel := range related {
-		if rel.R == nil {
-			rel.R = &transcodeR{
-				Owner: o,
-			}
-		} else {
-			rel.R.Owner = o
+			rel.R.Target = o
 		}
 	}
 	return nil
@@ -1956,56 +1871,56 @@ func (o *Account) AddSessions(exec boil.Executor, insert bool, related ...*Sessi
 	return nil
 }
 
-// AddTargetNotificationsG adds the given related objects to the existing relationships
+// AddWhoTagUsesG adds the given related objects to the existing relationships
 // of the account, optionally inserting them as new records.
-// Appends related to o.R.TargetNotifications.
-// Sets related.R.Target appropriately.
+// Appends related to o.R.WhoTagUses.
+// Sets related.R.Who appropriately.
 // Uses the global database handle.
-func (o *Account) AddTargetNotificationsG(insert bool, related ...*Notification) error {
-	return o.AddTargetNotifications(boil.GetDB(), insert, related...)
+func (o *Account) AddWhoTagUsesG(insert bool, related ...*TagUse) error {
+	return o.AddWhoTagUses(boil.GetDB(), insert, related...)
 }
 
-// AddTargetNotificationsP adds the given related objects to the existing relationships
+// AddWhoTagUsesP adds the given related objects to the existing relationships
 // of the account, optionally inserting them as new records.
-// Appends related to o.R.TargetNotifications.
-// Sets related.R.Target appropriately.
+// Appends related to o.R.WhoTagUses.
+// Sets related.R.Who appropriately.
 // Panics on error.
-func (o *Account) AddTargetNotificationsP(exec boil.Executor, insert bool, related ...*Notification) {
-	if err := o.AddTargetNotifications(exec, insert, related...); err != nil {
+func (o *Account) AddWhoTagUsesP(exec boil.Executor, insert bool, related ...*TagUse) {
+	if err := o.AddWhoTagUses(exec, insert, related...); err != nil {
 		panic(boil.WrapErr(err))
 	}
 }
 
-// AddTargetNotificationsGP adds the given related objects to the existing relationships
+// AddWhoTagUsesGP adds the given related objects to the existing relationships
 // of the account, optionally inserting them as new records.
-// Appends related to o.R.TargetNotifications.
-// Sets related.R.Target appropriately.
+// Appends related to o.R.WhoTagUses.
+// Sets related.R.Who appropriately.
 // Uses the global database handle and panics on error.
-func (o *Account) AddTargetNotificationsGP(insert bool, related ...*Notification) {
-	if err := o.AddTargetNotifications(boil.GetDB(), insert, related...); err != nil {
+func (o *Account) AddWhoTagUsesGP(insert bool, related ...*TagUse) {
+	if err := o.AddWhoTagUses(boil.GetDB(), insert, related...); err != nil {
 		panic(boil.WrapErr(err))
 	}
 }
 
-// AddTargetNotifications adds the given related objects to the existing relationships
+// AddWhoTagUses adds the given related objects to the existing relationships
 // of the account, optionally inserting them as new records.
-// Appends related to o.R.TargetNotifications.
-// Sets related.R.Target appropriately.
-func (o *Account) AddTargetNotifications(exec boil.Executor, insert bool, related ...*Notification) error {
+// Appends related to o.R.WhoTagUses.
+// Sets related.R.Who appropriately.
+func (o *Account) AddWhoTagUses(exec boil.Executor, insert bool, related ...*TagUse) error {
 	var err error
 	for _, rel := range related {
 		if insert {
-			rel.Target = o.ID
+			rel.Who = o.ID
 			if err = rel.Insert(exec); err != nil {
 				return errors.Wrap(err, "failed to insert into foreign table")
 			}
 		} else {
 			updateQuery := fmt.Sprintf(
-				"UPDATE \"notification\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"target"}),
-				strmangle.WhereClause("\"", "\"", 2, notificationPrimaryKeyColumns),
+				"UPDATE \"tag_use\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"who"}),
+				strmangle.WhereClause("\"", "\"", 2, tagUsePrimaryKeyColumns),
 			)
-			values := []interface{}{o.ID, rel.ID}
+			values := []interface{}{o.ID, rel.Container, rel.Segment, rel.Tag, rel.Who}
 
 			if boil.DebugMode {
 				fmt.Fprintln(boil.DebugWriter, updateQuery)
@@ -2016,80 +1931,80 @@ func (o *Account) AddTargetNotifications(exec boil.Executor, insert bool, relate
 				return errors.Wrap(err, "failed to update foreign table")
 			}
 
-			rel.Target = o.ID
+			rel.Who = o.ID
 		}
 	}
 
 	if o.R == nil {
 		o.R = &accountR{
-			TargetNotifications: related,
+			WhoTagUses: related,
 		}
 	} else {
-		o.R.TargetNotifications = append(o.R.TargetNotifications, related...)
+		o.R.WhoTagUses = append(o.R.WhoTagUses, related...)
 	}
 
 	for _, rel := range related {
 		if rel.R == nil {
-			rel.R = &notificationR{
-				Target: o,
+			rel.R = &tagUseR{
+				Who: o,
 			}
 		} else {
-			rel.R.Target = o
+			rel.R.Who = o
 		}
 	}
 	return nil
 }
 
-// AddWhoCommentsG adds the given related objects to the existing relationships
+// AddOwnerTranscodesG adds the given related objects to the existing relationships
 // of the account, optionally inserting them as new records.
-// Appends related to o.R.WhoComments.
-// Sets related.R.Who appropriately.
+// Appends related to o.R.OwnerTranscodes.
+// Sets related.R.Owner appropriately.
 // Uses the global database handle.
-func (o *Account) AddWhoCommentsG(insert bool, related ...*Comment) error {
-	return o.AddWhoComments(boil.GetDB(), insert, related...)
+func (o *Account) AddOwnerTranscodesG(insert bool, related ...*Transcode) error {
+	return o.AddOwnerTranscodes(boil.GetDB(), insert, related...)
 }
 
-// AddWhoCommentsP adds the given related objects to the existing relationships
+// AddOwnerTranscodesP adds the given related objects to the existing relationships
 // of the account, optionally inserting them as new records.
-// Appends related to o.R.WhoComments.
-// Sets related.R.Who appropriately.
+// Appends related to o.R.OwnerTranscodes.
+// Sets related.R.Owner appropriately.
 // Panics on error.
-func (o *Account) AddWhoCommentsP(exec boil.Executor, insert bool, related ...*Comment) {
-	if err := o.AddWhoComments(exec, insert, related...); err != nil {
+func (o *Account) AddOwnerTranscodesP(exec boil.Executor, insert bool, related ...*Transcode) {
+	if err := o.AddOwnerTranscodes(exec, insert, related...); err != nil {
 		panic(boil.WrapErr(err))
 	}
 }
 
-// AddWhoCommentsGP adds the given related objects to the existing relationships
+// AddOwnerTranscodesGP adds the given related objects to the existing relationships
 // of the account, optionally inserting them as new records.
-// Appends related to o.R.WhoComments.
-// Sets related.R.Who appropriately.
+// Appends related to o.R.OwnerTranscodes.
+// Sets related.R.Owner appropriately.
 // Uses the global database handle and panics on error.
-func (o *Account) AddWhoCommentsGP(insert bool, related ...*Comment) {
-	if err := o.AddWhoComments(boil.GetDB(), insert, related...); err != nil {
+func (o *Account) AddOwnerTranscodesGP(insert bool, related ...*Transcode) {
+	if err := o.AddOwnerTranscodes(boil.GetDB(), insert, related...); err != nil {
 		panic(boil.WrapErr(err))
 	}
 }
 
-// AddWhoComments adds the given related objects to the existing relationships
+// AddOwnerTranscodes adds the given related objects to the existing relationships
 // of the account, optionally inserting them as new records.
-// Appends related to o.R.WhoComments.
-// Sets related.R.Who appropriately.
-func (o *Account) AddWhoComments(exec boil.Executor, insert bool, related ...*Comment) error {
+// Appends related to o.R.OwnerTranscodes.
+// Sets related.R.Owner appropriately.
+func (o *Account) AddOwnerTranscodes(exec boil.Executor, insert bool, related ...*Transcode) error {
 	var err error
 	for _, rel := range related {
 		if insert {
-			rel.Who = o.ID
+			rel.Owner = o.ID
 			if err = rel.Insert(exec); err != nil {
 				return errors.Wrap(err, "failed to insert into foreign table")
 			}
 		} else {
 			updateQuery := fmt.Sprintf(
-				"UPDATE \"comment\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 1, []string{"who"}),
-				strmangle.WhereClause("\"", "\"", 2, commentPrimaryKeyColumns),
+				"UPDATE \"transcode\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"owner"}),
+				strmangle.WhereClause("\"", "\"", 2, transcodePrimaryKeyColumns),
 			)
-			values := []interface{}{o.ID, rel.ID}
+			values := []interface{}{o.ID, rel.Asset}
 
 			if boil.DebugMode {
 				fmt.Fprintln(boil.DebugWriter, updateQuery)
@@ -2100,25 +2015,109 @@ func (o *Account) AddWhoComments(exec boil.Executor, insert bool, related ...*Co
 				return errors.Wrap(err, "failed to update foreign table")
 			}
 
-			rel.Who = o.ID
+			rel.Owner = o.ID
 		}
 	}
 
 	if o.R == nil {
 		o.R = &accountR{
-			WhoComments: related,
+			OwnerTranscodes: related,
 		}
 	} else {
-		o.R.WhoComments = append(o.R.WhoComments, related...)
+		o.R.OwnerTranscodes = append(o.R.OwnerTranscodes, related...)
 	}
 
 	for _, rel := range related {
 		if rel.R == nil {
-			rel.R = &commentR{
-				Who: o,
+			rel.R = &transcodeR{
+				Owner: o,
 			}
 		} else {
-			rel.R.Who = o
+			rel.R.Owner = o
+		}
+	}
+	return nil
+}
+
+// AddUploadsG adds the given related objects to the existing relationships
+// of the account, optionally inserting them as new records.
+// Appends related to o.R.Uploads.
+// Sets related.R.Account appropriately.
+// Uses the global database handle.
+func (o *Account) AddUploadsG(insert bool, related ...*Upload) error {
+	return o.AddUploads(boil.GetDB(), insert, related...)
+}
+
+// AddUploadsP adds the given related objects to the existing relationships
+// of the account, optionally inserting them as new records.
+// Appends related to o.R.Uploads.
+// Sets related.R.Account appropriately.
+// Panics on error.
+func (o *Account) AddUploadsP(exec boil.Executor, insert bool, related ...*Upload) {
+	if err := o.AddUploads(exec, insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddUploadsGP adds the given related objects to the existing relationships
+// of the account, optionally inserting them as new records.
+// Appends related to o.R.Uploads.
+// Sets related.R.Account appropriately.
+// Uses the global database handle and panics on error.
+func (o *Account) AddUploadsGP(insert bool, related ...*Upload) {
+	if err := o.AddUploads(boil.GetDB(), insert, related...); err != nil {
+		panic(boil.WrapErr(err))
+	}
+}
+
+// AddUploads adds the given related objects to the existing relationships
+// of the account, optionally inserting them as new records.
+// Appends related to o.R.Uploads.
+// Sets related.R.Account appropriately.
+func (o *Account) AddUploads(exec boil.Executor, insert bool, related ...*Upload) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.Account = o.ID
+			if err = rel.Insert(exec); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"upload\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"account"}),
+				strmangle.WhereClause("\"", "\"", 2, uploadPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.Token}
+
+			if boil.DebugMode {
+				fmt.Fprintln(boil.DebugWriter, updateQuery)
+				fmt.Fprintln(boil.DebugWriter, values)
+			}
+
+			if _, err = exec.Exec(updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.Account = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &accountR{
+			Uploads: related,
+		}
+	} else {
+		o.R.Uploads = append(o.R.Uploads, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &uploadR{
+				Account: o,
+			}
+		} else {
+			rel.R.Account = o
 		}
 	}
 	return nil
@@ -2170,7 +2169,7 @@ func FindAccount(exec boil.Executor, id int, selectCols ...string) (*Account, er
 		if errors.Cause(err) == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "models: unable to select from account")
+		return nil, errors.Wrap(err, "public: unable to select from account")
 	}
 
 	return accountObj, nil
@@ -2214,7 +2213,7 @@ func (o *Account) InsertP(exec boil.Executor, whitelist ...string) {
 // - All columns with a default, but non-zero are included (i.e. health = 75)
 func (o *Account) Insert(exec boil.Executor, whitelist ...string) error {
 	if o == nil {
-		return errors.New("models: no account provided for insertion")
+		return errors.New("public: no account provided for insertion")
 	}
 
 	var err error
@@ -2273,7 +2272,7 @@ func (o *Account) Insert(exec boil.Executor, whitelist ...string) error {
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "models: unable to insert into account")
+		return errors.Wrap(err, "public: unable to insert into account")
 	}
 
 	if !cached {
@@ -2328,8 +2327,12 @@ func (o *Account) Update(exec boil.Executor, whitelist ...string) error {
 
 	if !cached {
 		wl := strmangle.UpdateColumnSet(accountColumns, accountPrimaryKeyColumns, whitelist)
+
+		if len(whitelist) == 0 {
+			wl = strmangle.SetComplement(wl, []string{"created_at"})
+		}
 		if len(wl) == 0 {
-			return errors.New("models: unable to update account, could not build whitelist")
+			return errors.New("public: unable to update account, could not build whitelist")
 		}
 
 		cache.query = fmt.Sprintf("UPDATE \"account\" SET %s WHERE %s",
@@ -2351,7 +2354,7 @@ func (o *Account) Update(exec boil.Executor, whitelist ...string) error {
 
 	_, err = exec.Exec(cache.query, values...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update account row")
+		return errors.Wrap(err, "public: unable to update account row")
 	}
 
 	if !cached {
@@ -2376,7 +2379,7 @@ func (q accountQuery) UpdateAll(cols M) error {
 
 	_, err := q.Query.Exec()
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update all for account")
+		return errors.Wrap(err, "public: unable to update all for account")
 	}
 
 	return nil
@@ -2409,7 +2412,7 @@ func (o AccountSlice) UpdateAll(exec boil.Executor, cols M) error {
 	}
 
 	if len(cols) == 0 {
-		return errors.New("models: update all requires at least one column argument")
+		return errors.New("public: update all requires at least one column argument")
 	}
 
 	colNames := make([]string, len(cols))
@@ -2441,7 +2444,7 @@ func (o AccountSlice) UpdateAll(exec boil.Executor, cols M) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to update all in account slice")
+		return errors.Wrap(err, "public: unable to update all in account slice")
 	}
 
 	return nil
@@ -2470,7 +2473,7 @@ func (o *Account) UpsertP(exec boil.Executor, updateOnConflict bool, conflictCol
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.
 func (o *Account) Upsert(exec boil.Executor, updateOnConflict bool, conflictColumns []string, updateColumns []string, whitelist ...string) error {
 	if o == nil {
-		return errors.New("models: no account provided for upsert")
+		return errors.New("public: no account provided for upsert")
 	}
 
 	if err := o.doBeforeUpsertHooks(exec); err != nil {
@@ -2526,7 +2529,7 @@ func (o *Account) Upsert(exec boil.Executor, updateOnConflict bool, conflictColu
 			updateColumns,
 		)
 		if len(update) == 0 {
-			return errors.New("models: unable to upsert account, could not build update column list")
+			return errors.New("public: unable to upsert account, could not build update column list")
 		}
 
 		conflict := conflictColumns
@@ -2569,7 +2572,7 @@ func (o *Account) Upsert(exec boil.Executor, updateOnConflict bool, conflictColu
 		_, err = exec.Exec(cache.query, vals...)
 	}
 	if err != nil {
-		return errors.Wrap(err, "models: unable to upsert account")
+		return errors.Wrap(err, "public: unable to upsert account")
 	}
 
 	if !cached {
@@ -2594,7 +2597,7 @@ func (o *Account) DeleteP(exec boil.Executor) {
 // DeleteG will match against the primary key column to find the record to delete.
 func (o *Account) DeleteG() error {
 	if o == nil {
-		return errors.New("models: no Account provided for deletion")
+		return errors.New("public: no Account provided for deletion")
 	}
 
 	return o.Delete(boil.GetDB())
@@ -2613,7 +2616,7 @@ func (o *Account) DeleteGP() {
 // Delete will match against the primary key column to find the record to delete.
 func (o *Account) Delete(exec boil.Executor) error {
 	if o == nil {
-		return errors.New("models: no Account provided for delete")
+		return errors.New("public: no Account provided for delete")
 	}
 
 	if err := o.doBeforeDeleteHooks(exec); err != nil {
@@ -2630,7 +2633,7 @@ func (o *Account) Delete(exec boil.Executor) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete from account")
+		return errors.Wrap(err, "public: unable to delete from account")
 	}
 
 	if err := o.doAfterDeleteHooks(exec); err != nil {
@@ -2650,14 +2653,14 @@ func (q accountQuery) DeleteAllP() {
 // DeleteAll deletes all matching rows.
 func (q accountQuery) DeleteAll() error {
 	if q.Query == nil {
-		return errors.New("models: no accountQuery provided for delete all")
+		return errors.New("public: no accountQuery provided for delete all")
 	}
 
 	queries.SetDelete(q.Query)
 
 	_, err := q.Query.Exec()
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete all from account")
+		return errors.Wrap(err, "public: unable to delete all from account")
 	}
 
 	return nil
@@ -2673,7 +2676,7 @@ func (o AccountSlice) DeleteAllGP() {
 // DeleteAllG deletes all rows in the slice.
 func (o AccountSlice) DeleteAllG() error {
 	if o == nil {
-		return errors.New("models: no Account slice provided for delete all")
+		return errors.New("public: no Account slice provided for delete all")
 	}
 	return o.DeleteAll(boil.GetDB())
 }
@@ -2688,7 +2691,7 @@ func (o AccountSlice) DeleteAllP(exec boil.Executor) {
 // DeleteAll deletes all rows in the slice, using an executor.
 func (o AccountSlice) DeleteAll(exec boil.Executor) error {
 	if o == nil {
-		return errors.New("models: no Account slice provided for delete all")
+		return errors.New("public: no Account slice provided for delete all")
 	}
 
 	if len(o) == 0 {
@@ -2722,7 +2725,7 @@ func (o AccountSlice) DeleteAll(exec boil.Executor) error {
 
 	_, err := exec.Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to delete all from account slice")
+		return errors.Wrap(err, "public: unable to delete all from account slice")
 	}
 
 	if len(accountAfterDeleteHooks) != 0 {
@@ -2753,7 +2756,7 @@ func (o *Account) ReloadP(exec boil.Executor) {
 // ReloadG refetches the object from the database using the primary keys.
 func (o *Account) ReloadG() error {
 	if o == nil {
-		return errors.New("models: no Account provided for reload")
+		return errors.New("public: no Account provided for reload")
 	}
 
 	return o.Reload(boil.GetDB())
@@ -2793,7 +2796,7 @@ func (o *AccountSlice) ReloadAllP(exec boil.Executor) {
 // and overwrites the original object slice with the newly updated slice.
 func (o *AccountSlice) ReloadAllG() error {
 	if o == nil {
-		return errors.New("models: empty AccountSlice provided for reload all")
+		return errors.New("public: empty AccountSlice provided for reload all")
 	}
 
 	return o.ReloadAll(boil.GetDB())
@@ -2823,7 +2826,7 @@ func (o *AccountSlice) ReloadAll(exec boil.Executor) error {
 
 	err := q.Bind(&accounts)
 	if err != nil {
-		return errors.Wrap(err, "models: unable to reload all in AccountSlice")
+		return errors.Wrap(err, "public: unable to reload all in AccountSlice")
 	}
 
 	*o = accounts
@@ -2846,7 +2849,7 @@ func AccountExists(exec boil.Executor, id int) (bool, error) {
 
 	err := row.Scan(&exists)
 	if err != nil {
-		return false, errors.Wrap(err, "models: unable to check if account exists")
+		return false, errors.Wrap(err, "public: unable to check if account exists")
 	}
 
 	return exists, nil

@@ -6,18 +6,17 @@ package public
 
 import (
 	"bytes"
+	"github.com/databrary/databrary/db/models/custom_types"
+	"github.com/databrary/sqlboiler/boil"
+	"github.com/databrary/sqlboiler/randomize"
+	"github.com/databrary/sqlboiler/strmangle"
+	"github.com/pmezard/go-difflib/difflib"
 	"os"
 	"os/exec"
 	"reflect"
 	"sort"
 	"strings"
 	"testing"
-
-	"github.com/databrary/databrary/db/models/custom_types"
-	"github.com/databrary/sqlboiler/boil"
-	"github.com/databrary/sqlboiler/randomize"
-	"github.com/databrary/sqlboiler/strmangle"
-	"github.com/pmezard/go-difflib/difflib"
 )
 
 func testTags(t *testing.T) {
@@ -537,85 +536,6 @@ func testTagsInsertWhitelist(t *testing.T) {
 	}
 }
 
-func testTagToManyTagUses(t *testing.T) {
-	var err error
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var a Tag
-	var b, c TagUse
-
-	foreignBlacklist := tagUseColumnsWithDefault
-	foreignBlacklist = append(foreignBlacklist, tagUseColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &b, tagUseDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize TagUse struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &c, tagUseDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize TagUse struct: %s", err)
-	}
-	b.Segment = custom_types.SegmentRandom()
-	c.Segment = custom_types.SegmentRandom()
-
-	localBlacklist := tagColumnsWithDefault
-	if err := randomize.Struct(seed, &a, tagDBTypes, false, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Tag struct: %s", err)
-	}
-
-	b.Tag = a.ID
-	c.Tag = a.ID
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	tagUse, err := a.TagUsesByFk(tx).All()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	bFound, cFound := false, false
-	for _, v := range tagUse {
-		if v.Tag == b.Tag {
-			bFound = true
-		}
-		if v.Tag == c.Tag {
-			cFound = true
-		}
-	}
-
-	if !bFound {
-		t.Error("expected to find b")
-	}
-	if !cFound {
-		t.Error("expected to find c")
-	}
-
-	slice := TagSlice{&a}
-	if err = a.L.LoadTagUses(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.TagUses); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	a.R.TagUses = nil
-	if err = a.L.LoadTagUses(tx, true, &a); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.TagUses); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	if t.Failed() {
-		t.Logf("%#v", tagUse)
-	}
-}
-
 func testTagToManyNotifications(t *testing.T) {
 	var err error
 	tx := MustTx(boil.Begin())
@@ -703,36 +623,35 @@ func testTagToManyNotifications(t *testing.T) {
 	}
 }
 
-func testTagToManyAddOpTagUses(t *testing.T) {
+func testTagToManyTagUses(t *testing.T) {
 	var err error
-
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
 
-	var a Tag
-	var b, c, d, e TagUse
-
 	seed := randomize.NewSeed()
-	localComplelementList := strmangle.SetComplement(tagPrimaryKeyColumns, tagColumnsWithoutDefault)
-	if err = randomize.Struct(seed, &a, tagDBTypes, false, localComplelementList...); err != nil {
-		t.Fatal(err)
+
+	var a Tag
+	var b, c TagUse
+
+	foreignBlacklist := tagUseColumnsWithDefault
+	foreignBlacklist = append(foreignBlacklist, tagUseColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &b, tagUseDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize TagUse struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, tagUseDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize TagUse struct: %s", err)
+	}
+	b.Segment = custom_types.SegmentRandom()
+	c.Segment = custom_types.SegmentRandom()
+
+	localBlacklist := tagColumnsWithDefault
+	if err := randomize.Struct(seed, &a, tagDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Tag struct: %s", err)
 	}
 
-	foreignComplementList := strmangle.SetComplement(tagUsePrimaryKeyColumns, tagUseColumnsWithoutDefault)
-	foreignComplementList = append(foreignComplementList, tagUseColumnsWithCustom...)
-
-	foreigners := []*TagUse{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, tagUseDBTypes, false, foreignComplementList...); err != nil {
-			t.Fatal(err)
-		}
-		x.Segment = custom_types.SegmentRandom()
-
-	}
-
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
+	b.Tag = a.ID
+	c.Tag = a.ID
 	if err = b.Insert(tx); err != nil {
 		t.Fatal(err)
 	}
@@ -740,50 +659,49 @@ func testTagToManyAddOpTagUses(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	foreignersSplitByInsertion := [][]*TagUse{
-		{&b, &c},
-		{&d, &e},
+	tagUse, err := a.TagUsesByFk(tx).All()
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	for i, x := range foreignersSplitByInsertion {
-		err = a.AddTagUses(tx, i != 0, x...)
-		if err != nil {
-			t.Fatal(err)
+	bFound, cFound := false, false
+	for _, v := range tagUse {
+		if v.Tag == b.Tag {
+			bFound = true
 		}
+		if v.Tag == c.Tag {
+			cFound = true
+		}
+	}
 
-		first := x[0]
-		second := x[1]
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
 
-		if a.ID != first.Tag {
-			t.Error("foreign key was wrong value", a.ID, first.Tag)
-		}
-		if a.ID != second.Tag {
-			t.Error("foreign key was wrong value", a.ID, second.Tag)
-		}
+	slice := TagSlice{&a}
+	if err = a.L.LoadTagUses(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.TagUses); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
 
-		if first.R.Tag != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-		if second.R.Tag != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
+	a.R.TagUses = nil
+	if err = a.L.LoadTagUses(tx, true, &a); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.TagUses); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
 
-		if a.R.TagUses[i*2] != first {
-			t.Error("relationship struct slice not set to correct value")
-		}
-		if a.R.TagUses[i*2+1] != second {
-			t.Error("relationship struct slice not set to correct value")
-		}
-
-		count, err := a.TagUsesByFk(tx).Count()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if want := int64((i + 1) * 2); count != want {
-			t.Error("want", want, "got", count)
-		}
+	if t.Failed() {
+		t.Logf("%#v", tagUse)
 	}
 }
+
 func testTagToManyAddOpNotifications(t *testing.T) {
 	var err error
 
@@ -1059,6 +977,88 @@ func testTagToManyRemoveOpNotifications(t *testing.T) {
 	}
 	if a.R.Notifications[0] != &e {
 		t.Error("relationship to e should have been preserved")
+	}
+}
+
+func testTagToManyAddOpTagUses(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	var a Tag
+	var b, c, d, e TagUse
+
+	seed := randomize.NewSeed()
+	localComplelementList := strmangle.SetComplement(tagPrimaryKeyColumns, tagColumnsWithoutDefault)
+	if err = randomize.Struct(seed, &a, tagDBTypes, false, localComplelementList...); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignComplementList := strmangle.SetComplement(tagUsePrimaryKeyColumns, tagUseColumnsWithoutDefault)
+	foreignComplementList = append(foreignComplementList, tagUseColumnsWithCustom...)
+
+	foreigners := []*TagUse{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, tagUseDBTypes, false, foreignComplementList...); err != nil {
+			t.Fatal(err)
+		}
+		x.Segment = custom_types.SegmentRandom()
+
+	}
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*TagUse{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddTagUses(tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.Tag {
+			t.Error("foreign key was wrong value", a.ID, first.Tag)
+		}
+		if a.ID != second.Tag {
+			t.Error("foreign key was wrong value", a.ID, second.Tag)
+		}
+
+		if first.R.Tag != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Tag != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.TagUses[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.TagUses[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.TagUsesByFk(tx).Count()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
 	}
 }
 

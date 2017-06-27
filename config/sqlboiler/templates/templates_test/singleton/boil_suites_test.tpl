@@ -355,7 +355,9 @@ func TestLive(t *testing.T) {
   {{ range $index, $table := .Tables}}
   {{- if not $table.IsJoinTable -}}
   {{- $tableName := $table.Name | plural | titleCase -}}
+  {{ if $table.HasPrimaryKey }}
   t.Run("{{$tableName}}", test{{$tableName}}Live)
+  {{end}}
   {{end -}}
   {{end}}
 

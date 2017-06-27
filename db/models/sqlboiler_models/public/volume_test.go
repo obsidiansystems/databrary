@@ -6,18 +6,17 @@ package public
 
 import (
 	"bytes"
+	"github.com/databrary/databrary/db/models/custom_types"
+	"github.com/databrary/sqlboiler/boil"
+	"github.com/databrary/sqlboiler/randomize"
+	"github.com/databrary/sqlboiler/strmangle"
+	"github.com/pmezard/go-difflib/difflib"
 	"os"
 	"os/exec"
 	"reflect"
 	"sort"
 	"strings"
 	"testing"
-
-	"github.com/databrary/databrary/db/models/custom_types"
-	"github.com/databrary/sqlboiler/boil"
-	"github.com/databrary/sqlboiler/randomize"
-	"github.com/databrary/sqlboiler/strmangle"
-	"github.com/pmezard/go-difflib/difflib"
 )
 
 func testVolumes(t *testing.T) {
@@ -537,59 +536,6 @@ func testVolumesInsertWhitelist(t *testing.T) {
 	}
 }
 
-func testVolumeOneToOneVolumeOwnerUsingVolumeOwner(t *testing.T) {
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var foreign VolumeOwner
-	var local Volume
-
-	foreignBlacklist := volumeOwnerColumnsWithDefault
-	if err := randomize.Struct(seed, &foreign, volumeOwnerDBTypes, true, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize VolumeOwner struct: %s", err)
-	}
-	localBlacklist := volumeColumnsWithDefault
-	if err := randomize.Struct(seed, &local, volumeDBTypes, true, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Volume struct: %s", err)
-	}
-
-	if err := local.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	foreign.Volume = local.ID
-	if err := foreign.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	check, err := local.VolumeOwnerByFk(tx).One()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if check.Volume != foreign.Volume {
-		t.Errorf("want: %v, got %v", foreign.Volume, check.Volume)
-	}
-
-	slice := VolumeSlice{&local}
-	if err = local.L.LoadVolumeOwner(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.VolumeOwner == nil {
-		t.Error("struct should have been eager loaded")
-	}
-
-	local.R.VolumeOwner = nil
-	if err = local.L.LoadVolumeOwner(tx, true, &local); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.VolumeOwner == nil {
-		t.Error("struct should have been eager loaded")
-	}
-}
-
 func testVolumeOneToOneVolumeCitationUsingVolumeCitation(t *testing.T) {
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -643,66 +589,59 @@ func testVolumeOneToOneVolumeCitationUsingVolumeCitation(t *testing.T) {
 	}
 }
 
-func testVolumeOneToOneSetOpVolumeOwnerUsingVolumeOwner(t *testing.T) {
-	var err error
-
+func testVolumeOneToOneVolumeOwnerUsingVolumeOwner(t *testing.T) {
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
-	seed := randomize.NewSeed()
-	var a Volume
-	var b, c VolumeOwner
 
-	foreignBlacklist := strmangle.SetComplement(volumeOwnerPrimaryKeyColumns, volumeOwnerColumnsWithoutDefault)
-	if err := randomize.Struct(seed, &b, volumeOwnerDBTypes, false, foreignBlacklist...); err != nil {
+	seed := randomize.NewSeed()
+
+	var foreign VolumeOwner
+	var local Volume
+
+	foreignBlacklist := volumeOwnerColumnsWithDefault
+	if err := randomize.Struct(seed, &foreign, volumeOwnerDBTypes, true, foreignBlacklist...); err != nil {
 		t.Errorf("Unable to randomize VolumeOwner struct: %s", err)
 	}
-	if err := randomize.Struct(seed, &c, volumeOwnerDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize VolumeOwner struct: %s", err)
-	}
-	localBlacklist := strmangle.SetComplement(volumePrimaryKeyColumns, volumeColumnsWithoutDefault)
-	if err := randomize.Struct(seed, &a, volumeDBTypes, false, localBlacklist...); err != nil {
+	localBlacklist := volumeColumnsWithDefault
+	if err := randomize.Struct(seed, &local, volumeDBTypes, true, localBlacklist...); err != nil {
 		t.Errorf("Unable to randomize Volume struct: %s", err)
 	}
 
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(tx); err != nil {
+	if err := local.Insert(tx); err != nil {
 		t.Fatal(err)
 	}
 
-	for i, x := range []*VolumeOwner{&b, &c} {
-		err = a.SetVolumeOwner(tx, i != 0, x)
-		if err != nil {
-			t.Fatal(err)
-		}
+	foreign.Volume = local.ID
+	if err := foreign.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
 
-		if a.R.VolumeOwner != x {
-			t.Error("relationship struct not set to correct value")
-		}
-		if x.R.Volume != &a {
-			t.Error("failed to append to foreign relationship struct")
-		}
+	check, err := local.VolumeOwnerByFk(tx).One()
+	if err != nil {
+		t.Fatal(err)
+	}
 
-		if a.ID != x.Volume {
-			t.Error("foreign key was wrong value", a.ID)
-		}
+	if check.Volume != foreign.Volume {
+		t.Errorf("want: %v, got %v", foreign.Volume, check.Volume)
+	}
 
-		if exists, err := VolumeOwnerExists(tx, x.Volume); err != nil {
-			t.Fatal(err)
-		} else if !exists {
-			t.Error("want 'x' to exist")
-		}
+	slice := VolumeSlice{&local}
+	if err = local.L.LoadVolumeOwner(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.VolumeOwner == nil {
+		t.Error("struct should have been eager loaded")
+	}
 
-		if a.ID != x.Volume {
-			t.Error("foreign key was wrong value", a.ID, x.Volume)
-		}
-
-		if err = x.Delete(tx); err != nil {
-			t.Fatal("failed to delete x", err)
-		}
+	local.R.VolumeOwner = nil
+	if err = local.L.LoadVolumeOwner(tx, true, &local); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.VolumeOwner == nil {
+		t.Error("struct should have been eager loaded")
 	}
 }
+
 func testVolumeOneToOneSetOpVolumeCitationUsingVolumeCitation(t *testing.T) {
 	var err error
 
@@ -749,6 +688,66 @@ func testVolumeOneToOneSetOpVolumeCitationUsingVolumeCitation(t *testing.T) {
 		}
 
 		if exists, err := VolumeCitationExists(tx, x.Volume); err != nil {
+			t.Fatal(err)
+		} else if !exists {
+			t.Error("want 'x' to exist")
+		}
+
+		if a.ID != x.Volume {
+			t.Error("foreign key was wrong value", a.ID, x.Volume)
+		}
+
+		if err = x.Delete(tx); err != nil {
+			t.Fatal("failed to delete x", err)
+		}
+	}
+}
+func testVolumeOneToOneSetOpVolumeOwnerUsingVolumeOwner(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+	seed := randomize.NewSeed()
+	var a Volume
+	var b, c VolumeOwner
+
+	foreignBlacklist := strmangle.SetComplement(volumeOwnerPrimaryKeyColumns, volumeOwnerColumnsWithoutDefault)
+	if err := randomize.Struct(seed, &b, volumeOwnerDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize VolumeOwner struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, volumeOwnerDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize VolumeOwner struct: %s", err)
+	}
+	localBlacklist := strmangle.SetComplement(volumePrimaryKeyColumns, volumeColumnsWithoutDefault)
+	if err := randomize.Struct(seed, &a, volumeDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Volume struct: %s", err)
+	}
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	for i, x := range []*VolumeOwner{&b, &c} {
+		err = a.SetVolumeOwner(tx, i != 0, x)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if a.R.VolumeOwner != x {
+			t.Error("relationship struct not set to correct value")
+		}
+		if x.R.Volume != &a {
+			t.Error("failed to append to foreign relationship struct")
+		}
+
+		if a.ID != x.Volume {
+			t.Error("foreign key was wrong value", a.ID)
+		}
+
+		if exists, err := VolumeOwnerExists(tx, x.Volume); err != nil {
 			t.Fatal(err)
 		} else if !exists {
 			t.Error("want 'x' to exist")
@@ -919,154 +918,6 @@ func testVolumeToManyContainers(t *testing.T) {
 	}
 }
 
-func testVolumeToManyUploads(t *testing.T) {
-	var err error
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var a Volume
-	var b, c Upload
-
-	foreignBlacklist := uploadColumnsWithDefault
-	if err := randomize.Struct(seed, &b, uploadDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Upload struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &c, uploadDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Upload struct: %s", err)
-	}
-	localBlacklist := volumeColumnsWithDefault
-	if err := randomize.Struct(seed, &a, volumeDBTypes, false, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Volume struct: %s", err)
-	}
-
-	b.Volume = a.ID
-	c.Volume = a.ID
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	upload, err := a.UploadsByFk(tx).All()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	bFound, cFound := false, false
-	for _, v := range upload {
-		if v.Volume == b.Volume {
-			bFound = true
-		}
-		if v.Volume == c.Volume {
-			cFound = true
-		}
-	}
-
-	if !bFound {
-		t.Error("expected to find b")
-	}
-	if !cFound {
-		t.Error("expected to find c")
-	}
-
-	slice := VolumeSlice{&a}
-	if err = a.L.LoadUploads(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.Uploads); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	a.R.Uploads = nil
-	if err = a.L.LoadUploads(tx, true, &a); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.Uploads); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	if t.Failed() {
-		t.Logf("%#v", upload)
-	}
-}
-
-func testVolumeToManyRecords(t *testing.T) {
-	var err error
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var a Volume
-	var b, c Record
-
-	foreignBlacklist := recordColumnsWithDefault
-	if err := randomize.Struct(seed, &b, recordDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Record struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &c, recordDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Record struct: %s", err)
-	}
-	localBlacklist := volumeColumnsWithDefault
-	if err := randomize.Struct(seed, &a, volumeDBTypes, false, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Volume struct: %s", err)
-	}
-
-	b.Volume = a.ID
-	c.Volume = a.ID
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	record, err := a.RecordsByFk(tx).All()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	bFound, cFound := false, false
-	for _, v := range record {
-		if v.Volume == b.Volume {
-			bFound = true
-		}
-		if v.Volume == c.Volume {
-			cFound = true
-		}
-	}
-
-	if !bFound {
-		t.Error("expected to find b")
-	}
-	if !cFound {
-		t.Error("expected to find c")
-	}
-
-	slice := VolumeSlice{&a}
-	if err = a.L.LoadRecords(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.Records); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	a.R.Records = nil
-	if err = a.L.LoadRecords(tx, true, &a); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.Records); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	if t.Failed() {
-		t.Logf("%#v", record)
-	}
-}
-
 func testVolumeToManyNotifications(t *testing.T) {
 	var err error
 	tx := MustTx(boil.Begin())
@@ -1154,7 +1005,7 @@ func testVolumeToManyNotifications(t *testing.T) {
 	}
 }
 
-func testVolumeToManyVolumeLinks(t *testing.T) {
+func testVolumeToManyRecords(t *testing.T) {
 	var err error
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
@@ -1162,14 +1013,14 @@ func testVolumeToManyVolumeLinks(t *testing.T) {
 	seed := randomize.NewSeed()
 
 	var a Volume
-	var b, c VolumeLink
+	var b, c Record
 
-	foreignBlacklist := volumeLinkColumnsWithDefault
-	if err := randomize.Struct(seed, &b, volumeLinkDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize VolumeLink struct: %s", err)
+	foreignBlacklist := recordColumnsWithDefault
+	if err := randomize.Struct(seed, &b, recordDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Record struct: %s", err)
 	}
-	if err := randomize.Struct(seed, &c, volumeLinkDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize VolumeLink struct: %s", err)
+	if err := randomize.Struct(seed, &c, recordDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Record struct: %s", err)
 	}
 	localBlacklist := volumeColumnsWithDefault
 	if err := randomize.Struct(seed, &a, volumeDBTypes, false, localBlacklist...); err != nil {
@@ -1185,13 +1036,13 @@ func testVolumeToManyVolumeLinks(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	volumeLink, err := a.VolumeLinksByFk(tx).All()
+	record, err := a.RecordsByFk(tx).All()
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	bFound, cFound := false, false
-	for _, v := range volumeLink {
+	for _, v := range record {
 		if v.Volume == b.Volume {
 			bFound = true
 		}
@@ -1208,23 +1059,178 @@ func testVolumeToManyVolumeLinks(t *testing.T) {
 	}
 
 	slice := VolumeSlice{&a}
-	if err = a.L.LoadVolumeLinks(tx, false, &slice); err != nil {
+	if err = a.L.LoadRecords(tx, false, &slice); err != nil {
 		t.Fatal(err)
 	}
-	if got := len(a.R.VolumeLinks); got != 2 {
+	if got := len(a.R.Records); got != 2 {
 		t.Error("number of eager loaded records wrong, got:", got)
 	}
 
-	a.R.VolumeLinks = nil
-	if err = a.L.LoadVolumeLinks(tx, true, &a); err != nil {
+	a.R.Records = nil
+	if err = a.L.LoadRecords(tx, true, &a); err != nil {
 		t.Fatal(err)
 	}
-	if got := len(a.R.VolumeLinks); got != 2 {
+	if got := len(a.R.Records); got != 2 {
 		t.Error("number of eager loaded records wrong, got:", got)
 	}
 
 	if t.Failed() {
-		t.Logf("%#v", volumeLink)
+		t.Logf("%#v", record)
+	}
+}
+
+func testVolumeToManyUploads(t *testing.T) {
+	var err error
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var a Volume
+	var b, c Upload
+
+	foreignBlacklist := uploadColumnsWithDefault
+	if err := randomize.Struct(seed, &b, uploadDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Upload struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, uploadDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Upload struct: %s", err)
+	}
+	localBlacklist := volumeColumnsWithDefault
+	if err := randomize.Struct(seed, &a, volumeDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Volume struct: %s", err)
+	}
+
+	b.Volume = a.ID
+	c.Volume = a.ID
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	upload, err := a.UploadsByFk(tx).All()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range upload {
+		if v.Volume == b.Volume {
+			bFound = true
+		}
+		if v.Volume == c.Volume {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := VolumeSlice{&a}
+	if err = a.L.LoadUploads(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.Uploads); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.Uploads = nil
+	if err = a.L.LoadUploads(tx, true, &a); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.Uploads); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", upload)
+	}
+}
+
+func testVolumeToManyVolumeAccesses(t *testing.T) {
+	var err error
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var a Volume
+	var b, c VolumeAccess
+
+	foreignBlacklist := volumeAccessColumnsWithDefault
+	foreignBlacklist = append(foreignBlacklist, volumeAccessColumnsWithCustom...)
+
+	if err := randomize.Struct(seed, &b, volumeAccessDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize VolumeAccess struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, volumeAccessDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize VolumeAccess struct: %s", err)
+	}
+	b.Individual = custom_types.PermissionRandom()
+	c.Individual = custom_types.PermissionRandom()
+	b.Children = custom_types.PermissionRandom()
+	c.Children = custom_types.PermissionRandom()
+
+	localBlacklist := volumeColumnsWithDefault
+	if err := randomize.Struct(seed, &a, volumeDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Volume struct: %s", err)
+	}
+
+	b.Volume = a.ID
+	c.Volume = a.ID
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	volumeAccess, err := a.VolumeAccessesByFk(tx).All()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range volumeAccess {
+		if v.Volume == b.Volume {
+			bFound = true
+		}
+		if v.Volume == c.Volume {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := VolumeSlice{&a}
+	if err = a.L.LoadVolumeAccesses(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.VolumeAccesses); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.VolumeAccesses = nil
+	if err = a.L.LoadVolumeAccesses(tx, true, &a); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.VolumeAccesses); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", volumeAccess)
 	}
 }
 
@@ -1378,6 +1384,80 @@ func testVolumeToManyVolumeInclusions(t *testing.T) {
 
 	if t.Failed() {
 		t.Logf("%#v", volumeInclusion)
+	}
+}
+
+func testVolumeToManyVolumeLinks(t *testing.T) {
+	var err error
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	seed := randomize.NewSeed()
+
+	var a Volume
+	var b, c VolumeLink
+
+	foreignBlacklist := volumeLinkColumnsWithDefault
+	if err := randomize.Struct(seed, &b, volumeLinkDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize VolumeLink struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &c, volumeLinkDBTypes, false, foreignBlacklist...); err != nil {
+		t.Errorf("Unable to randomize VolumeLink struct: %s", err)
+	}
+	localBlacklist := volumeColumnsWithDefault
+	if err := randomize.Struct(seed, &a, volumeDBTypes, false, localBlacklist...); err != nil {
+		t.Errorf("Unable to randomize Volume struct: %s", err)
+	}
+
+	b.Volume = a.ID
+	c.Volume = a.ID
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	volumeLink, err := a.VolumeLinksByFk(tx).All()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range volumeLink {
+		if v.Volume == b.Volume {
+			bFound = true
+		}
+		if v.Volume == c.Volume {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := VolumeSlice{&a}
+	if err = a.L.LoadVolumeLinks(tx, false, &slice); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.VolumeLinks); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.VolumeLinks = nil
+	if err = a.L.LoadVolumeLinks(tx, true, &a); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.VolumeLinks); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", volumeLink)
 	}
 }
 
@@ -1543,87 +1623,6 @@ func testVolumeToManyVolumeStates(t *testing.T) {
 	}
 }
 
-func testVolumeToManyVolumeAccesses(t *testing.T) {
-	var err error
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	seed := randomize.NewSeed()
-
-	var a Volume
-	var b, c VolumeAccess
-
-	foreignBlacklist := volumeAccessColumnsWithDefault
-	foreignBlacklist = append(foreignBlacklist, volumeAccessColumnsWithCustom...)
-
-	if err := randomize.Struct(seed, &b, volumeAccessDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize VolumeAccess struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &c, volumeAccessDBTypes, false, foreignBlacklist...); err != nil {
-		t.Errorf("Unable to randomize VolumeAccess struct: %s", err)
-	}
-	b.Individual = custom_types.PermissionRandom()
-	c.Individual = custom_types.PermissionRandom()
-	b.Children = custom_types.PermissionRandom()
-	c.Children = custom_types.PermissionRandom()
-
-	localBlacklist := volumeColumnsWithDefault
-	if err := randomize.Struct(seed, &a, volumeDBTypes, false, localBlacklist...); err != nil {
-		t.Errorf("Unable to randomize Volume struct: %s", err)
-	}
-
-	b.Volume = a.ID
-	c.Volume = a.ID
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	volumeAccess, err := a.VolumeAccessesByFk(tx).All()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	bFound, cFound := false, false
-	for _, v := range volumeAccess {
-		if v.Volume == b.Volume {
-			bFound = true
-		}
-		if v.Volume == c.Volume {
-			cFound = true
-		}
-	}
-
-	if !bFound {
-		t.Error("expected to find b")
-	}
-	if !cFound {
-		t.Error("expected to find c")
-	}
-
-	slice := VolumeSlice{&a}
-	if err = a.L.LoadVolumeAccesses(tx, false, &slice); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.VolumeAccesses); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	a.R.VolumeAccesses = nil
-	if err = a.L.LoadVolumeAccesses(tx, true, &a); err != nil {
-		t.Fatal(err)
-	}
-	if got := len(a.R.VolumeAccesses); got != 2 {
-		t.Error("number of eager loaded records wrong, got:", got)
-	}
-
-	if t.Failed() {
-		t.Logf("%#v", volumeAccess)
-	}
-}
-
 func testVolumeToManyAddOpAssets(t *testing.T) {
 	var err error
 
@@ -1776,162 +1775,6 @@ func testVolumeToManyAddOpContainers(t *testing.T) {
 		}
 
 		count, err := a.ContainersByFk(tx).Count()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if want := int64((i + 1) * 2); count != want {
-			t.Error("want", want, "got", count)
-		}
-	}
-}
-func testVolumeToManyAddOpUploads(t *testing.T) {
-	var err error
-
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	var a Volume
-	var b, c, d, e Upload
-
-	seed := randomize.NewSeed()
-	localComplelementList := strmangle.SetComplement(volumePrimaryKeyColumns, volumeColumnsWithoutDefault)
-	if err = randomize.Struct(seed, &a, volumeDBTypes, false, localComplelementList...); err != nil {
-		t.Fatal(err)
-	}
-
-	foreignComplementList := strmangle.SetComplement(uploadPrimaryKeyColumns, uploadColumnsWithoutDefault)
-
-	foreigners := []*Upload{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, uploadDBTypes, false, foreignComplementList...); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	foreignersSplitByInsertion := [][]*Upload{
-		{&b, &c},
-		{&d, &e},
-	}
-
-	for i, x := range foreignersSplitByInsertion {
-		err = a.AddUploads(tx, i != 0, x...)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		first := x[0]
-		second := x[1]
-
-		if a.ID != first.Volume {
-			t.Error("foreign key was wrong value", a.ID, first.Volume)
-		}
-		if a.ID != second.Volume {
-			t.Error("foreign key was wrong value", a.ID, second.Volume)
-		}
-
-		if first.R.Volume != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-		if second.R.Volume != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-
-		if a.R.Uploads[i*2] != first {
-			t.Error("relationship struct slice not set to correct value")
-		}
-		if a.R.Uploads[i*2+1] != second {
-			t.Error("relationship struct slice not set to correct value")
-		}
-
-		count, err := a.UploadsByFk(tx).Count()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if want := int64((i + 1) * 2); count != want {
-			t.Error("want", want, "got", count)
-		}
-	}
-}
-func testVolumeToManyAddOpRecords(t *testing.T) {
-	var err error
-
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	var a Volume
-	var b, c, d, e Record
-
-	seed := randomize.NewSeed()
-	localComplelementList := strmangle.SetComplement(volumePrimaryKeyColumns, volumeColumnsWithoutDefault)
-	if err = randomize.Struct(seed, &a, volumeDBTypes, false, localComplelementList...); err != nil {
-		t.Fatal(err)
-	}
-
-	foreignComplementList := strmangle.SetComplement(recordPrimaryKeyColumns, recordColumnsWithoutDefault)
-
-	foreigners := []*Record{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, recordDBTypes, false, foreignComplementList...); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	foreignersSplitByInsertion := [][]*Record{
-		{&b, &c},
-		{&d, &e},
-	}
-
-	for i, x := range foreignersSplitByInsertion {
-		err = a.AddRecords(tx, i != 0, x...)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		first := x[0]
-		second := x[1]
-
-		if a.ID != first.Volume {
-			t.Error("foreign key was wrong value", a.ID, first.Volume)
-		}
-		if a.ID != second.Volume {
-			t.Error("foreign key was wrong value", a.ID, second.Volume)
-		}
-
-		if first.R.Volume != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-		if second.R.Volume != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-
-		if a.R.Records[i*2] != first {
-			t.Error("relationship struct slice not set to correct value")
-		}
-		if a.R.Records[i*2+1] != second {
-			t.Error("relationship struct slice not set to correct value")
-		}
-
-		count, err := a.RecordsByFk(tx).Count()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -2218,14 +2061,14 @@ func testVolumeToManyRemoveOpNotifications(t *testing.T) {
 	}
 }
 
-func testVolumeToManyAddOpVolumeLinks(t *testing.T) {
+func testVolumeToManyAddOpRecords(t *testing.T) {
 	var err error
 
 	tx := MustTx(boil.Begin())
 	defer tx.Rollback()
 
 	var a Volume
-	var b, c, d, e VolumeLink
+	var b, c, d, e Record
 
 	seed := randomize.NewSeed()
 	localComplelementList := strmangle.SetComplement(volumePrimaryKeyColumns, volumeColumnsWithoutDefault)
@@ -2233,11 +2076,11 @@ func testVolumeToManyAddOpVolumeLinks(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	foreignComplementList := strmangle.SetComplement(volumeLinkPrimaryKeyColumns, volumeLinkColumnsWithoutDefault)
+	foreignComplementList := strmangle.SetComplement(recordPrimaryKeyColumns, recordColumnsWithoutDefault)
 
-	foreigners := []*VolumeLink{&b, &c, &d, &e}
+	foreigners := []*Record{&b, &c, &d, &e}
 	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, volumeLinkDBTypes, false, foreignComplementList...); err != nil {
+		if err = randomize.Struct(seed, x, recordDBTypes, false, foreignComplementList...); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -2252,13 +2095,13 @@ func testVolumeToManyAddOpVolumeLinks(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	foreignersSplitByInsertion := [][]*VolumeLink{
+	foreignersSplitByInsertion := [][]*Record{
 		{&b, &c},
 		{&d, &e},
 	}
 
 	for i, x := range foreignersSplitByInsertion {
-		err = a.AddVolumeLinks(tx, i != 0, x...)
+		err = a.AddRecords(tx, i != 0, x...)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -2280,14 +2123,174 @@ func testVolumeToManyAddOpVolumeLinks(t *testing.T) {
 			t.Error("relationship was not added properly to the foreign slice")
 		}
 
-		if a.R.VolumeLinks[i*2] != first {
+		if a.R.Records[i*2] != first {
 			t.Error("relationship struct slice not set to correct value")
 		}
-		if a.R.VolumeLinks[i*2+1] != second {
+		if a.R.Records[i*2+1] != second {
 			t.Error("relationship struct slice not set to correct value")
 		}
 
-		count, err := a.VolumeLinksByFk(tx).Count()
+		count, err := a.RecordsByFk(tx).Count()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+func testVolumeToManyAddOpUploads(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	var a Volume
+	var b, c, d, e Upload
+
+	seed := randomize.NewSeed()
+	localComplelementList := strmangle.SetComplement(volumePrimaryKeyColumns, volumeColumnsWithoutDefault)
+	if err = randomize.Struct(seed, &a, volumeDBTypes, false, localComplelementList...); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignComplementList := strmangle.SetComplement(uploadPrimaryKeyColumns, uploadColumnsWithoutDefault)
+
+	foreigners := []*Upload{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, uploadDBTypes, false, foreignComplementList...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*Upload{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddUploads(tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.Volume {
+			t.Error("foreign key was wrong value", a.ID, first.Volume)
+		}
+		if a.ID != second.Volume {
+			t.Error("foreign key was wrong value", a.ID, second.Volume)
+		}
+
+		if first.R.Volume != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Volume != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.Uploads[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.Uploads[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.UploadsByFk(tx).Count()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+func testVolumeToManyAddOpVolumeAccesses(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	var a Volume
+	var b, c, d, e VolumeAccess
+
+	seed := randomize.NewSeed()
+	localComplelementList := strmangle.SetComplement(volumePrimaryKeyColumns, volumeColumnsWithoutDefault)
+	if err = randomize.Struct(seed, &a, volumeDBTypes, false, localComplelementList...); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignComplementList := strmangle.SetComplement(volumeAccessPrimaryKeyColumns, volumeAccessColumnsWithoutDefault)
+	foreignComplementList = append(foreignComplementList, volumeAccessColumnsWithCustom...)
+
+	foreigners := []*VolumeAccess{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, volumeAccessDBTypes, false, foreignComplementList...); err != nil {
+			t.Fatal(err)
+		}
+		x.Individual = custom_types.PermissionRandom()
+		x.Children = custom_types.PermissionRandom()
+
+	}
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*VolumeAccess{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddVolumeAccesses(tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.Volume {
+			t.Error("foreign key was wrong value", a.ID, first.Volume)
+		}
+		if a.ID != second.Volume {
+			t.Error("foreign key was wrong value", a.ID, second.Volume)
+		}
+
+		if first.R.Volume != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Volume != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.VolumeAccesses[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.VolumeAccesses[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.VolumeAccessesByFk(tx).Count()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -2447,6 +2450,84 @@ func testVolumeToManyAddOpVolumeInclusions(t *testing.T) {
 		}
 
 		count, err := a.VolumeInclusionsByFk(tx).Count()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+func testVolumeToManyAddOpVolumeLinks(t *testing.T) {
+	var err error
+
+	tx := MustTx(boil.Begin())
+	defer tx.Rollback()
+
+	var a Volume
+	var b, c, d, e VolumeLink
+
+	seed := randomize.NewSeed()
+	localComplelementList := strmangle.SetComplement(volumePrimaryKeyColumns, volumeColumnsWithoutDefault)
+	if err = randomize.Struct(seed, &a, volumeDBTypes, false, localComplelementList...); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignComplementList := strmangle.SetComplement(volumeLinkPrimaryKeyColumns, volumeLinkColumnsWithoutDefault)
+
+	foreigners := []*VolumeLink{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, volumeLinkDBTypes, false, foreignComplementList...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(tx); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*VolumeLink{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddVolumeLinks(tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.Volume {
+			t.Error("foreign key was wrong value", a.ID, first.Volume)
+		}
+		if a.ID != second.Volume {
+			t.Error("foreign key was wrong value", a.ID, second.Volume)
+		}
+
+		if first.R.Volume != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Volume != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.VolumeLinks[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.VolumeLinks[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.VolumeLinksByFk(tx).Count()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -2774,88 +2855,6 @@ func testVolumeToManyAddOpVolumeStates(t *testing.T) {
 		}
 
 		count, err := a.VolumeStatesByFk(tx).Count()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if want := int64((i + 1) * 2); count != want {
-			t.Error("want", want, "got", count)
-		}
-	}
-}
-func testVolumeToManyAddOpVolumeAccesses(t *testing.T) {
-	var err error
-
-	tx := MustTx(boil.Begin())
-	defer tx.Rollback()
-
-	var a Volume
-	var b, c, d, e VolumeAccess
-
-	seed := randomize.NewSeed()
-	localComplelementList := strmangle.SetComplement(volumePrimaryKeyColumns, volumeColumnsWithoutDefault)
-	if err = randomize.Struct(seed, &a, volumeDBTypes, false, localComplelementList...); err != nil {
-		t.Fatal(err)
-	}
-
-	foreignComplementList := strmangle.SetComplement(volumeAccessPrimaryKeyColumns, volumeAccessColumnsWithoutDefault)
-	foreignComplementList = append(foreignComplementList, volumeAccessColumnsWithCustom...)
-
-	foreigners := []*VolumeAccess{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, volumeAccessDBTypes, false, foreignComplementList...); err != nil {
-			t.Fatal(err)
-		}
-		x.Individual = custom_types.PermissionRandom()
-		x.Children = custom_types.PermissionRandom()
-
-	}
-
-	if err := a.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(tx); err != nil {
-		t.Fatal(err)
-	}
-
-	foreignersSplitByInsertion := [][]*VolumeAccess{
-		{&b, &c},
-		{&d, &e},
-	}
-
-	for i, x := range foreignersSplitByInsertion {
-		err = a.AddVolumeAccesses(tx, i != 0, x...)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		first := x[0]
-		second := x[1]
-
-		if a.ID != first.Volume {
-			t.Error("foreign key was wrong value", a.ID, first.Volume)
-		}
-		if a.ID != second.Volume {
-			t.Error("foreign key was wrong value", a.ID, second.Volume)
-		}
-
-		if first.R.Volume != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-		if second.R.Volume != &a {
-			t.Error("relationship was not added properly to the foreign slice")
-		}
-
-		if a.R.VolumeAccesses[i*2] != first {
-			t.Error("relationship struct slice not set to correct value")
-		}
-		if a.R.VolumeAccesses[i*2+1] != second {
-			t.Error("relationship struct slice not set to correct value")
-		}
-
-		count, err := a.VolumeAccessesByFk(tx).Count()
 		if err != nil {
 			t.Fatal(err)
 		}
