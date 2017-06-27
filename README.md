@@ -87,7 +87,7 @@ psql -f db/schema/master_sql -h localhost -U postgres -d databrary
 replace $USER with your name in `config/databrary_dev.toml`. finally
 
 ```
-./databrary -c config/databrary_dev.toml
+GMAILPASSWORD={{password}} ./databrary -c config/databrary_dev.toml
 ```
 
 will serve databrary on port 3444 over https. the https will be reported as insecure because the certs are self-signed but oh well.
