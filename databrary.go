@@ -90,7 +90,6 @@ func main() {
 	//
 	r.Use(middleware.StripSlashes)
 	r.Mount("/api", routes.Api())
-	r.With(routes.IsLoggedInHandler).Get("/profile", routes.GetProfile)
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("nothing here yet"))

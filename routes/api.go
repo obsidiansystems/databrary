@@ -60,6 +60,8 @@ func user(r chi.Router) {
 	r.Post("/check-token", CheckTokenExpiryEndpoint)
 
 	r.Post("/register", Register)
+
+	r.With(IsLoggedInHandler).Get("/profile", GetProfile)
 }
 
 func AutoCompleteAffil(w http.ResponseWriter, r *http.Request) {

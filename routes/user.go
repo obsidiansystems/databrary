@@ -22,6 +22,7 @@ import (
 	"gopkg.in/nullbio/null.v6"
 	"io/ioutil"
 	"net/url"
+	"github.com/jmoiron/sqlx"
 )
 
 func PostLogin(w http.ResponseWriter, r *http.Request) {
@@ -642,4 +643,36 @@ func createToken(party public_models.Party, redisContext string, expiration time
 	}
 
 	return newUuid.String(), nil
+}
+
+func GetProfile(w http.ResponseWriter, r *http.Request) {
+	var (
+		err       error
+		conn      *sqlx.DB
+		p         *public_models.Party
+		accountId int
+	)
+	nInfo := NetInfoLogEntry(r)
+
+	if conn, err = db.GetDbConn(); err != nil {
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't open db conn")
+		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
+		return
+	}
+
+	if accountId, err = session.GetInt(r, "account_id"); err != nil {
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't find account %d", accountId)
+		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
+		return
+	}
+
+	qrm := qm.Where("id = $1", accountId)
+
+	if p, err = public_models.Parties(conn, qrm).One(); err != nil {
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't find party %d", accountId)
+		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
+		return
+	}
+
+	util.WriteJSONResp(w, "ok", p)
 }
