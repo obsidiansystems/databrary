@@ -5,11 +5,11 @@ import (
 
 	"time"
 
-	"github.com/Sirupsen/logrus"
-	log "github.com/databrary/databrary/logging"
+	"github.com/databrary/databrary/logging"
 	"github.com/databrary/databrary/services/redis"
 	"github.com/databrary/databrary/util"
 	"github.com/databrary/scs/session"
+	"github.com/sirupsen/logrus"
 )
 
 var (

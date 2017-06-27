@@ -6,7 +6,7 @@ package xo_models
 import (
 	"fmt"
 
-	"github.com/vattle/sqlboiler/boil"
+	"github.com/databrary/sqlboiler/boil"
 )
 
 // VolumeTextRefresh calls the stored procedure 'public.volume_text_refresh(integer) void' on db.

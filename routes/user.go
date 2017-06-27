@@ -15,9 +15,9 @@ import (
 	"github.com/databrary/databrary/services/redis"
 	"github.com/databrary/databrary/util"
 	"github.com/databrary/scs/session"
+	"github.com/databrary/sqlboiler/queries/qm"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
-	"github.com/vattle/sqlboiler/queries/qm"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/nullbio/null.v6"
 	"io/ioutil"
@@ -189,6 +189,7 @@ func IsLoggedInEndpoint(w http.ResponseWriter, r *http.Request) {
 	}
 	nInfo := NetInfoLogEntry(r)
 	loggedIn, statusCode, err := isLoggedIn(r)
+
 	if err != nil {
 		session.Destroy(w, r)
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "login endpoint failed")

@@ -3,8 +3,8 @@ package mail
 import (
 	"fmt"
 	"github.com/databrary/databrary/config"
+	"github.com/go-gomail/gomail"
 	"github.com/matcornic/hermes"
-	"gopkg.in/gomail.v2"
 	"os"
 )
 

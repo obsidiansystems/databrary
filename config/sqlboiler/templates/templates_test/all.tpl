@@ -11,7 +11,7 @@ func test{{$tableNamePlural}}(t *testing.T) {
 		t.Error("expected a query, got nothing")
 	}
 }
-
+{{ if .Table.HasPrimaryKey }}
 func test{{$tableNamePlural}}Live(t *testing.T) {
 		all, err := {{$tableNamePlural}}(dbMain.liveDbConn).All()
 		if err != nil {
@@ -73,4 +73,4 @@ func test{{$tableNamePlural}}Live(t *testing.T) {
 		}
 
 	}
-
+{{end}}

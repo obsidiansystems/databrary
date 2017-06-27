@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/databrary/databrary/db/models/custom_types"
-	"github.com/vattle/sqlboiler/boil"
+	"github.com/databrary/sqlboiler/boil"
 )
 
 // Duration calls the stored procedure 'public.duration(segment) interval' on db.

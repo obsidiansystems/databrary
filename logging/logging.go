@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/lestrrat/go-file-rotatelogs"
 	"github.com/pkg/errors"
 	"github.com/pressly/chi/middleware"
 	"github.com/rifflock/lfshook"
 	"github.com/satori/go.uuid"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"net/http"
 )
