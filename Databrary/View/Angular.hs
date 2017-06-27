@@ -75,7 +75,11 @@ htmlAngular debug nojs auth = H.docTypeHtml H.! ngAttribute "app" "databraryModu
     H.! H.customAttribute "flow-prevent-drop" mempty
     $ do
     H.noscript $ do
-      H.preEscapedString "<iframe src='https://www.googletagmanager.com/ns.html?id=GTM-NW6PSFL' height='0' width='0' style='display:none;visibility:hidden'></iframe>"
+      H.iframe 
+        H.! HA.src "https://www.googletagmanager.com/ns.html?id=GTM-NW6PSFL" 
+        H.! HA.height "0" 
+        H.! HA.width "0" 
+        H.! HA.style "display:none;visibility:hidden"
     H.noscript $ do
       H.preEscapedString "Our site works best with modern browsers (Firefox, Chrome, Safari &ge;6, IE &ge;10, and others) with Javascript enabled.  You can also switch to the "
       H.a
