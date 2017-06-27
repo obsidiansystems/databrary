@@ -76,6 +76,7 @@ htmlAngular debug nojs auth = H.docTypeHtml H.! ngAttribute "app" "databraryModu
     $ do
     H.noscript $ do
       H.preEscapedString "<iframe src='https://www.googletagmanager.com/ns.html?id=GTM-NW6PSFL' height='0' width='0' style='display:none;visibility:hidden'></iframe>"
+    H.noscript $ do
       H.preEscapedString "Our site works best with modern browsers (Firefox, Chrome, Safari &ge;6, IE &ge;10, and others) with Javascript enabled.  You can also switch to the "
       H.a
         H.! HA.href (builderValue nojs)
