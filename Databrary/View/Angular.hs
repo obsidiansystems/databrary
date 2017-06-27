@@ -74,8 +74,8 @@ htmlAngular debug nojs auth = H.docTypeHtml H.! ngAttribute "app" "databraryModu
   H.body
     H.! H.customAttribute "flow-prevent-drop" mempty
     $ do
-    H.noscript $ do
-      H.iframe $
+    H.noscript  
+      H.iframe 
         H.! HA.src "https://www.googletagmanager.com/ns.html?id=GTM-NW6PSFL" 
         H.! HA.height "0" 
         H.! HA.width "0" 
