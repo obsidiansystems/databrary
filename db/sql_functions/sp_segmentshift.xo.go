@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/databrary/databrary/db/models/custom_types"
-	"github.com/vattle/sqlboiler/boil"
+	"github.com/databrary/sqlboiler/boil"
 )
 
 // SegmentShift calls the stored procedure 'public.segment_shift(segment, interval) segment' on db.

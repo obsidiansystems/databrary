@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/databrary/databrary/db/models/custom_types"
-	"github.com/vattle/sqlboiler/boil"
+	"github.com/databrary/sqlboiler/boil"
 )
 
 // Singleton calls the stored procedure 'public.singleton(integer, interval, segment) interval' on db.

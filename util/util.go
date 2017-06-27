@@ -1,13 +1,14 @@
 package util
 
 import (
-	"fmt"
 	"math/rand"
 	"runtime/debug"
 	"strings"
 	"time"
 
-	log "github.com/databrary/databrary/logging"
+	"encoding/json"
+	"github.com/databrary/databrary/logging"
+	"net/http"
 )
 
 var (
@@ -35,21 +36,24 @@ func CheckOrFatalErr(e error) {
 	}
 }
 
-func PrintReps(stuff ...interface{}) {
-	for _, v := range stuff {
-		fmt.Printf("%#v\n", v)
-	}
-}
-
 func Now() time.Time {
 	// postgres rounds
 	return time.Now().Round(time.Microsecond)
 }
 
-func Date(t time.Time) time.Time {
-	return t.Truncate(24 * time.Hour)
+func JsonErrResp(w http.ResponseWriter, code int, data interface{}) {
+	w.WriteHeader(code)
+	WriteJSONResp(w, "error", data)
 }
 
-func Today() time.Time {
-	return Date(Now())
+func WriteJSONResp(w http.ResponseWriter, status string, msg interface{}) error {
+	resp := JSONResponse{status, msg}
+	j, _ := json.Marshal(resp)
+	_, err := w.Write(j)
+	return err
+}
+
+type JSONResponse struct {
+	Status string      `json:"status"`
+	Data   interface{} `json:"data"`
 }

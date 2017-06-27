@@ -1,7 +1,7 @@
 We use [viper](https://github.com/spf13/viper) for config.
 
 In here we have the actual config files for different environments
-and the configuration artifacts for [sqlboiler](https://github.com/vattle/sqlboiler)
+and the configuration artifacts for [sqlboiler](https://github.com/databrary/sqlboiler)
 and [xo](https://github.com/knq/xo).
 
 Note that you can't change `sqlboiler.toml` to any other name

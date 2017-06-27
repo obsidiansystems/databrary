@@ -1,0 +1,31 @@
+version: '2'
+services:
+  databrary_postgres:
+    image: databrary_postgres
+    volumes:
+      - databrary_postgres_store:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  databrary_solr:
+    build: ./solr
+    image: databrary_solr
+    ports:
+      - "8983:8983"
+    volumes:
+      - databrary_solr_store:/opt/solr
+
+  databrary_redis:
+    build: ./redis
+    image: databrary_redis
+    ports:
+      - "6379:6379"
+    command: redis-server /usr/local/etc/redis/redis.conf --appendonly yes
+
+volumes:
+  databrary_solr_store:
+    external: true
+  databrary_postgres_store:
+    external: true
+  databrary_logs_store:
+    external: true
