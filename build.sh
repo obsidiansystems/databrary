@@ -73,6 +73,6 @@ cd ~/src/databrary
 cabal sandbox init
 cabal install happy --force-reinstalls
 cabal install --only-dependencies --force-reinstalls
-cabal configure -- --user -f
+cabal configure 
 cp example.conf databrary.conf
 yes | cabal install 
