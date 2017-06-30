@@ -98,13 +98,8 @@ func main() {
 	r.FileServer("/public", http.Dir("public"))
 
 	addr := ":3444"
-	fmt.Printf("seriving on https://%s/", addr)
-	//if err := http.ListenAndServe(addr, r); err != nil {
-	//	fmt.Sprintf("couldn't serve: %+v", err)
-	//}
+	fmt.Printf("serving on https://%s/\n", addr)
 
-	// TODO use ssl
-	//go http.ListenAndServe(":3444", secureMiddleware.Handler(myHandler))
 	certPath := conf.GetString("ssl.cert")
 	keyPath := conf.GetString("ssl.key")
 	err := http.ListenAndServeTLS(addr, certPath, keyPath, r)

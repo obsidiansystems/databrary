@@ -27,7 +27,7 @@ block_key = "blockkey"
 
 [address]
 scheme = "https"
-domain = "172.22.236.163"
+domain = "localhost"
 backend_port = "3444"
 frontend_port = "3000"
 
