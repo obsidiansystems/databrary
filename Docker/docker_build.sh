@@ -1,15 +1,15 @@
 #!/bin/bash
 set -e
 containers=`docker ps -a -q`
-if [ -n "$(containers)" ]; then
+if [ -n "$containers" ]; then
   docker rm $containers -f
 fi
 images=`docker images -a -q`
-if [ -n "$(images)" ]; then
+if [ -n "$images" ]; then
   docker rmi $images -f
 fi
 volumes=`docker volume list -q`
-if [ -n "$(volumes)" ]; then 
+if [ -n "$volumes" ]; then 
   docker volume rm $volumes -f
 fi
 docker volume create --name databrary_postgres_store
