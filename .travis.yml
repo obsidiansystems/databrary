@@ -28,6 +28,7 @@ before_install:
   - sudo chmod +x /usr/local/bin/docker-compose
   - cd Docker && ./docker_build.sh && docker-compose up -d
   - cd ..
+  - dep ensure
 script:
   - go vet
   - go test -cover
