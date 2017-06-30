@@ -9,6 +9,8 @@ go:
 #    - GOARCH=amd64
 #    - GO_FOR_RELEASE=1.8
 #    - IMAGE_NAME=tsuru/api
+services:
+  - docker
 addons:
   apt:
     packages:
