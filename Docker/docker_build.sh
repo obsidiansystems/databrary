@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 containers=`docker ps -a -q`
 if [ -n "$containers" ]; then
   docker rm $containers -f
