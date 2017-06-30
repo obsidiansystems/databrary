@@ -1,18 +1,28 @@
 # Databrary 2.0
 
+[![Build Status](https://travis-ci.org/databrary/databrary.png?branch=go_master)](https://travis-ci.org/databrary/databrary)
+
 
 Table of Contents
 =================
 
   * [Dependencies](#dependencies)
      * [git](#git)
-     * [mercurial](#mercurial)
      * [golang](#golang)
+        * [ubuntu](#ubuntu)
+        * [macOS](#macos)
      * [Docker](#docker)
+        * [ubuntu](#ubuntu-1)
+        * [macOS](#macos-1)
      * [Docker Compose](#docker-compose)
+        * [ubuntu](#ubuntu-2)
+        * [macOS](#macos-2)
      * [PSQL](#psql)
+        * [ubuntu](#ubuntu-3)
+        * [macOS](#macos-3)
      * [Dev Tools](#dev-tools)
-  * [Instructions](#instructions)
+  * [To start the app](#to-start-the-app)
+
 
 ## Dependencies
 
@@ -20,16 +30,9 @@ Table of Contents
 
 get it from somewhere
 
-### mercurial
-
-get it from somewhere
-
-macOS: 
-
-```brew install mercurial```
-
 ### golang
 
+#### ubuntu
 ```
 wget https://storage.googleapis.com/golang/go$VERSION.$OS-$ARCH.tar.gz
 sudo tar -C /usr/local -xzf go$VERSION.$OS-$ARCH.tar.gz
@@ -40,7 +43,7 @@ echo "export PATH=$PATH:/usr/local/go/bin:~/go/bin" >> ~/.bashrc
 go get -u github.com/golang/dep/cmd/dep
 ```
 
-macOS: 
+#### macOS
 
 explanation: http://www.golangbootcamp.com/book/get_setup
 
@@ -61,6 +64,7 @@ And then
 ```
 source ~/.bash_profile
 ```
+
 Get dep
 ```
 go get -u github.com/golang/dep/cmd/dep
@@ -68,17 +72,21 @@ go get -u github.com/golang/dep/cmd/dep
 
 ### Docker
 
+#### ubuntu
+
 ```
 wget -qO- https://get.docker.com/ | sh
 sudo usermod -aG docker $USER
+su - $USER
 ```
-you will need to login/logout
 
-macOS:
+#### macOS
 
 Download and install docker from https://www.docker.com/docker-mac. This will configure the env for you, ready to use.
 
 ### Docker Compose
+
+#### ubuntu
 
 ```
 sudo wget -O /usr/local/bin/docker-compose https://github.com/docker/compose/releases/download/1.14.0/docker-compose-`uname -s`-`uname -m`
@@ -86,17 +94,18 @@ sudo wget -O /usr/local/bin/docker-compose https://github.com/docker/compose/rel
 sudo chmod +x /usr/local/bin/docker-compose
 ```
 
-macOS:
+#### macOS
 
 Docker includes Docker Compose for macOS, so no need to do anything here.
 
 ### PSQL
 
+#### ubuntu
 ```
 sudo apt-get install postgresql-client
 ```
 
-macOS:
+#### macOS
 
 ```
 brew install postgresql
@@ -119,29 +128,23 @@ go build
 
 cd Docker
 ./docker_build.sh
-docker-compose up
-```
-postgres pw: mysecretpassword
-
-Docker will start solr, postgres, and redis instance in that terminal. 
-
-Second, open a new terminal and do this only once. This will build tables anew from the existing schema, replacing your local database. Once you add data to your local database, you should not rebuild it again. 
-
-```
-cd ~/go/src/github.com/databrary/databrary
-psql -f db/schema/master_sql -h localhost -U postgres -d databrary
-```
- 
-Third, replace $USER with your name in `config/databrary_dev.toml`. 
-macOS: Change /home/$USER to /Users/username (replace username with your Mac username: e.g., /Users/jack.)
-
-Fourth, finally do the following to start the app.
-
-```
-GMAILPASSWORD={{password}} ./databrary -c config/databrary_dev.toml
+docker-compose up -d
 ```
 
-Thsi will serve databrary on port 3444 over https and set the password for the email sending functionality. The https will be reported as insecure because the certs are self-signed. Tell the browser to trust the site.
+
+**Replace `$USER` with your name in `config/databrary_dev.toml`**.
+
+**macOS**: Change /home/$USER to /Users/username (replace username with your Mac username: e.g., /Users/jack.)
+
+The app uses gmail to send service emails so to start the app you need to set the GMAILPASSWORD env var
+
+```
+GMAILPASSWORD=<password> ./databrary -c config/databrary_dev.toml
+```
+
+This will serve databrary on [https://localhost:3444](https://localhost:3444)  over https and set the password for the email sending functionality. The https will be reported as insecure because the certs are self-signed. Tell the browser to trust the site.
+
+
 
 
 
