@@ -1,6 +1,7 @@
 language: go
 sudo: required
 install: true
+dist: xenial
 go:
   - 1.8.x
   - master
@@ -24,6 +25,7 @@ before_install:
   - sudo wget -O /usr/local/bin/docker-compose https://github.com/docker/compose/releases/download/1.14.0/docker-compose-`uname -s`-`uname -m`
   - sudo chmod +x /usr/local/bin/docker-compose
   - cd Docker && ./docker_build.sh && docker-compose up -d
+  - cd ..
 script:
   - go vet
   - go test -cover
