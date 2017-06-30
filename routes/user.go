@@ -16,6 +16,7 @@ import (
 	"github.com/databrary/databrary/util"
 	"github.com/databrary/scs/session"
 	"github.com/databrary/sqlboiler/queries/qm"
+	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
