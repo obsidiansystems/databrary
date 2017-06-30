@@ -20,6 +20,8 @@ addons:
 #  - rsyslogd &
 #  - sleep 1
 before_install:
+  - sudo service postgresql stop
+  - while sudo lsof -Pi :5432 -sTCP:LISTEN -t; do sleep 1; done
   - go get -u github.com/golang/dep/...
   - cd $TRAVIS_BUILD_DIR
   - sudo wget -O /usr/local/bin/docker-compose https://github.com/docker/compose/releases/download/1.14.0/docker-compose-`uname -s`-`uname -m`
