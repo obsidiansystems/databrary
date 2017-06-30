@@ -1,9 +1,17 @@
 #!/bin/bash
 set -e
-docker rm $(docker ps -a -q) -f
-docker rmi $(docker images -a -q) -f
-docker volume rm $(docker volume list -q) -f
-
+containers=`docker ps -a -q`
+if [ -n "$(containers)" ]; then
+  docker rm $containers -f
+fi
+images=`docker images -a -q`
+if [ -n "$(images)" ]; then
+  docker rmi $images -f
+fi
+volumes=`docker volume list -q`
+if [ -n "$(volumes)" ]; then 
+  docker volume rm $volumes -f
+fi
 docker volume create --name databrary_postgres_store
 docker build -t databrary_postgres postgres/
 docker run -d -v databrary_postgres_store:/var/lib/postgresql/data -p 5432:5432 --rm --name databrary_postgres databrary_postgres
