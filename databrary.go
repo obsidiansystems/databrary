@@ -71,12 +71,13 @@ func main() {
 		PublicKey:             `pin-sha256="base64+primary=="; pin-sha256="base64+backup=="; max-age=5184000; includeSubdomains; report-uri="https://www.example.com/hpkp-report"`,
 		IsDevelopment:         true,
 	})
+
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(log.NewStructuredLogger(log.Logger))
 	r.Use(middleware.Recoverer)
-	r.Use(secureMiddleware.Handler) // TODO turn back on
+	r.Use(secureMiddleware.Handler)
 	r.Use(middleware.Timeout(60 * time.Second))
 
 	rateLimiter, err := routes.NewRateLimiter()
@@ -86,7 +87,7 @@ func main() {
 
 	r.Use(rateLimiter.RateLimit)
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"}, //[]string{"http://localhost:3000", "https://localhost:3000"},
+		AllowedOrigins:   []string{"*"}, // TODO: []string{"http://localhost:3000", "https://localhost:3000"},
 		AllowCredentials: true,
 		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
@@ -105,8 +106,8 @@ func main() {
 
 	r.FileServer("/public", http.Dir("public"))
 	GenerateApi(r)
-	addr := ":3444"
-	fmt.Printf("serving on https://%s/\n", addr)
+	addr := conf.GetString("address.domain") + ":" + conf.GetString("address.backend_port")
+	fmt.Printf("serving on %s://%s/\n", conf.GetString("address.scheme"), addr)
 
 	certPath := conf.GetString("ssl.cert")
 	keyPath := conf.GetString("ssl.key")
