@@ -47,6 +47,7 @@ func JsonErrResp(w http.ResponseWriter, code int, data interface{}) {
 }
 
 func WriteJSONResp(w http.ResponseWriter, status string, msg interface{}) error {
+	w.WriteHeader(http.StatusOK)
 	resp := JSONResponse{status, msg}
 	j, _ := json.Marshal(resp)
 	_, err := w.Write(j)
