@@ -19,6 +19,7 @@ Table of Contents
         * [macOS](#macos-3)
      * [Dev Tools](#dev-tools)
   * [To start the app](#to-start-the-app)
+  * [API](#api)
   * [Secrets](#secrets)
 
 
@@ -142,6 +143,9 @@ GMAILPASSWORD=<password> ./databrary -c config/databrary_dev.toml
 
 This will serve databrary on [https://localhost:3444](https://localhost:3444)  over https and set the password for the email sending functionality. The https will be reported as insecure because the certs are self-signed. Tell the browser to trust the site.
 
+## API
+
+[API](api.md)
 
 ## Secrets
 
