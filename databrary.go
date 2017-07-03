@@ -7,21 +7,21 @@ import (
 	"os"
 	"path/filepath"
 
+	"fmt"
 	"github.com/databrary/databrary/config"
-	"github.com/databrary/databrary/logging"
 	"github.com/databrary/databrary/db"
+	"github.com/databrary/databrary/logging"
 	"github.com/databrary/databrary/routes"
 	"github.com/databrary/databrary/services/redis"
 	"github.com/databrary/databrary/services/sessions"
 	"github.com/pressly/chi"
+	"github.com/pressly/chi/docgen"
 	"github.com/pressly/chi/middleware"
 	"github.com/rs/cors"
 	"github.com/unrolled/secure"
-	"github.com/pressly/chi/docgen"
 	"gopkg.in/alecthomas/kingpin.v2"
-	"time"
-	"fmt"
 	"strings"
+	"time"
 )
 
 var (
@@ -115,7 +115,7 @@ func main() {
 
 func GenerateApi(r chi.Router) {
 	m := docgen.MarkdownOpts{
-		ProjectPath:        proj_root,
+		ProjectPath:        "github.com/databrary/databrary",
 		Intro:              "Databrary 2.0 API",
 		ForceRelativeLinks: true,
 	}
