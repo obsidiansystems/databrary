@@ -10,8 +10,8 @@ import (
 
 	"fmt"
 	"github.com/databrary/databrary/config"
-	"github.com/databrary/databrary/logging"
 	"github.com/databrary/databrary/db"
+	"github.com/databrary/databrary/logging"
 	"github.com/databrary/databrary/routes"
 	"github.com/databrary/databrary/services/redis"
 	"github.com/databrary/databrary/services/sessions"
@@ -103,8 +103,8 @@ func main() {
 
 	r.FileServer("/public", http.Dir("public"))
 
-	addr := ":3444"
-	fmt.Printf("serving on https://%s/\n", addr)
+	addr := conf.GetString("address.domain") + ":" + conf.GetString("address.backend_port")
+	fmt.Printf("serving on %s://%s/\n", conf.GetString("address.scheme"), addr)
 
 	certPath := conf.GetString("ssl.cert")
 	keyPath := conf.GetString("ssl.key")
