@@ -19,6 +19,7 @@ Table of Contents
         * [macOS](#macos-3)
      * [Dev Tools](#dev-tools)
   * [To start the app](#to-start-the-app)
+  * [Secrets](#secrets)
 
 
 ## Dependencies
