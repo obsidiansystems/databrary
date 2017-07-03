@@ -20,6 +20,7 @@ import (
 	"github.com/rs/cors"
 	"github.com/unrolled/secure"
 	"gopkg.in/alecthomas/kingpin.v2"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -27,9 +28,9 @@ import (
 var (
 	proj_root   = strings.Split(filepath.Join(os.Getenv("GOPATH"), "src/github.com/databrary/databrary/"), ":")[1]
 	config_path = kingpin.Flag("config", "Path to config file").
-		Default(filepath.Join(proj_root, "config/databrary_dev.toml")).
-		Short('c').
-		String()
+			Default(filepath.Join(proj_root, "config/databrary_dev.toml")).
+			Short('c').
+			String()
 )
 
 func init() {
@@ -119,9 +120,15 @@ func GenerateApi(r chi.Router) {
 		Intro:              "Databrary 2.0 API",
 		ForceRelativeLinks: true,
 	}
-
+	// skip middleware
+	re := regexp.MustCompile(`^- \[`)
 	f, _ := os.Create(filepath.Join(proj_root, "api.md"))
 	defer f.Close()
-	f.WriteString(docgen.MarkdownRoutesDoc(r, m))
+	docs := docgen.MarkdownRoutesDoc(r, m)
+	for _, v := range strings.Split(docs, "\n") {
+		if re.FindStringIndex(v) == nil {
+			f.WriteString(v + "\n")
+		}
+	}
 	f.Sync()
 }

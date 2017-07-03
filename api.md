@@ -7,34 +7,14 @@ Databrary 2.0 API
 <details>
 <summary>`/`</summary>
 
-- [RequestID](/vendor/github.com/pressly/chi/middleware/request_id.go#L63)
-- [RealIP](/vendor/github.com/pressly/chi/middleware/realip.go#L29)
-- [RequestLogger.func1](/vendor/github.com/pressly/chi/middleware/logger.go#L31)
-- [Recoverer](/vendor/github.com/pressly/chi/middleware/recoverer.go#L16)
-- [github.com/databrary/databrary/vendor/github.com/unrolled/secure.(*Secure).Handler-fm](/databrary.go#L78)
-- [Timeout.func1](/vendor/github.com/pressly/chi/middleware/timeout.go#L33)
-- [github.com/databrary/databrary/vendor/gopkg.in/throttled/throttled%2ev2.(*HTTPRateLimiter).RateLimit-fm](/databrary.go#L86)
-- [github.com/databrary/databrary/vendor/github.com/rs/cors.(*Cors).Handler-fm](/databrary.go#L95)
-- [Manage.func1](/vendor/github.com/databrary/scs/session/manager.go#L36)
-- [StripSlashes](/vendor/github.com/pressly/chi/middleware/strip.go#L12)
 - **/**
 	- _GET_
-		- [main.main.func1](/databrary.go#L101)
+		- [main.main.func1](/databrary.go#L102)
 
 </details>
 <details>
 <summary>`/api/autocomplete-affil`</summary>
 
-- [RequestID](/vendor/github.com/pressly/chi/middleware/request_id.go#L63)
-- [RealIP](/vendor/github.com/pressly/chi/middleware/realip.go#L29)
-- [RequestLogger.func1](/vendor/github.com/pressly/chi/middleware/logger.go#L31)
-- [Recoverer](/vendor/github.com/pressly/chi/middleware/recoverer.go#L16)
-- [github.com/databrary/databrary/vendor/github.com/unrolled/secure.(*Secure).Handler-fm](/databrary.go#L78)
-- [Timeout.func1](/vendor/github.com/pressly/chi/middleware/timeout.go#L33)
-- [github.com/databrary/databrary/vendor/gopkg.in/throttled/throttled%2ev2.(*HTTPRateLimiter).RateLimit-fm](/databrary.go#L86)
-- [github.com/databrary/databrary/vendor/github.com/rs/cors.(*Cors).Handler-fm](/databrary.go#L95)
-- [Manage.func1](/vendor/github.com/databrary/scs/session/manager.go#L36)
-- [StripSlashes](/vendor/github.com/pressly/chi/middleware/strip.go#L12)
 - **/api**
 	- **/autocomplete-affil**
 		- _GET_
@@ -44,16 +24,6 @@ Databrary 2.0 API
 <details>
 <summary>`/api/loggedin`</summary>
 
-- [RequestID](/vendor/github.com/pressly/chi/middleware/request_id.go#L63)
-- [RealIP](/vendor/github.com/pressly/chi/middleware/realip.go#L29)
-- [RequestLogger.func1](/vendor/github.com/pressly/chi/middleware/logger.go#L31)
-- [Recoverer](/vendor/github.com/pressly/chi/middleware/recoverer.go#L16)
-- [github.com/databrary/databrary/vendor/github.com/unrolled/secure.(*Secure).Handler-fm](/databrary.go#L78)
-- [Timeout.func1](/vendor/github.com/pressly/chi/middleware/timeout.go#L33)
-- [github.com/databrary/databrary/vendor/gopkg.in/throttled/throttled%2ev2.(*HTTPRateLimiter).RateLimit-fm](/databrary.go#L86)
-- [github.com/databrary/databrary/vendor/github.com/rs/cors.(*Cors).Handler-fm](/databrary.go#L95)
-- [Manage.func1](/vendor/github.com/databrary/scs/session/manager.go#L36)
-- [StripSlashes](/vendor/github.com/pressly/chi/middleware/strip.go#L12)
 - **/api**
 	- **/loggedin**
 		- _GET_
@@ -63,16 +33,6 @@ Databrary 2.0 API
 <details>
 <summary>`/api/report-error`</summary>
 
-- [RequestID](/vendor/github.com/pressly/chi/middleware/request_id.go#L63)
-- [RealIP](/vendor/github.com/pressly/chi/middleware/realip.go#L29)
-- [RequestLogger.func1](/vendor/github.com/pressly/chi/middleware/logger.go#L31)
-- [Recoverer](/vendor/github.com/pressly/chi/middleware/recoverer.go#L16)
-- [github.com/databrary/databrary/vendor/github.com/unrolled/secure.(*Secure).Handler-fm](/databrary.go#L78)
-- [Timeout.func1](/vendor/github.com/pressly/chi/middleware/timeout.go#L33)
-- [github.com/databrary/databrary/vendor/gopkg.in/throttled/throttled%2ev2.(*HTTPRateLimiter).RateLimit-fm](/databrary.go#L86)
-- [github.com/databrary/databrary/vendor/github.com/rs/cors.(*Cors).Handler-fm](/databrary.go#L95)
-- [Manage.func1](/vendor/github.com/databrary/scs/session/manager.go#L36)
-- [StripSlashes](/vendor/github.com/pressly/chi/middleware/strip.go#L12)
 - **/api**
 	- **/report-error**
 		- _POST_
@@ -82,16 +42,6 @@ Databrary 2.0 API
 <details>
 <summary>`/api/user/check-token`</summary>
 
-- [RequestID](/vendor/github.com/pressly/chi/middleware/request_id.go#L63)
-- [RealIP](/vendor/github.com/pressly/chi/middleware/realip.go#L29)
-- [RequestLogger.func1](/vendor/github.com/pressly/chi/middleware/logger.go#L31)
-- [Recoverer](/vendor/github.com/pressly/chi/middleware/recoverer.go#L16)
-- [github.com/databrary/databrary/vendor/github.com/unrolled/secure.(*Secure).Handler-fm](/databrary.go#L78)
-- [Timeout.func1](/vendor/github.com/pressly/chi/middleware/timeout.go#L33)
-- [github.com/databrary/databrary/vendor/gopkg.in/throttled/throttled%2ev2.(*HTTPRateLimiter).RateLimit-fm](/databrary.go#L86)
-- [github.com/databrary/databrary/vendor/github.com/rs/cors.(*Cors).Handler-fm](/databrary.go#L95)
-- [Manage.func1](/vendor/github.com/databrary/scs/session/manager.go#L36)
-- [StripSlashes](/vendor/github.com/pressly/chi/middleware/strip.go#L12)
 - **/api**
 	- **/user**
 		- **/check-token**
@@ -102,16 +52,6 @@ Databrary 2.0 API
 <details>
 <summary>`/api/user/exists`</summary>
 
-- [RequestID](/vendor/github.com/pressly/chi/middleware/request_id.go#L63)
-- [RealIP](/vendor/github.com/pressly/chi/middleware/realip.go#L29)
-- [RequestLogger.func1](/vendor/github.com/pressly/chi/middleware/logger.go#L31)
-- [Recoverer](/vendor/github.com/pressly/chi/middleware/recoverer.go#L16)
-- [github.com/databrary/databrary/vendor/github.com/unrolled/secure.(*Secure).Handler-fm](/databrary.go#L78)
-- [Timeout.func1](/vendor/github.com/pressly/chi/middleware/timeout.go#L33)
-- [github.com/databrary/databrary/vendor/gopkg.in/throttled/throttled%2ev2.(*HTTPRateLimiter).RateLimit-fm](/databrary.go#L86)
-- [github.com/databrary/databrary/vendor/github.com/rs/cors.(*Cors).Handler-fm](/databrary.go#L95)
-- [Manage.func1](/vendor/github.com/databrary/scs/session/manager.go#L36)
-- [StripSlashes](/vendor/github.com/pressly/chi/middleware/strip.go#L12)
 - **/api**
 	- **/user**
 		- **/exists**
@@ -122,16 +62,6 @@ Databrary 2.0 API
 <details>
 <summary>`/api/user/login`</summary>
 
-- [RequestID](/vendor/github.com/pressly/chi/middleware/request_id.go#L63)
-- [RealIP](/vendor/github.com/pressly/chi/middleware/realip.go#L29)
-- [RequestLogger.func1](/vendor/github.com/pressly/chi/middleware/logger.go#L31)
-- [Recoverer](/vendor/github.com/pressly/chi/middleware/recoverer.go#L16)
-- [github.com/databrary/databrary/vendor/github.com/unrolled/secure.(*Secure).Handler-fm](/databrary.go#L78)
-- [Timeout.func1](/vendor/github.com/pressly/chi/middleware/timeout.go#L33)
-- [github.com/databrary/databrary/vendor/gopkg.in/throttled/throttled%2ev2.(*HTTPRateLimiter).RateLimit-fm](/databrary.go#L86)
-- [github.com/databrary/databrary/vendor/github.com/rs/cors.(*Cors).Handler-fm](/databrary.go#L95)
-- [Manage.func1](/vendor/github.com/databrary/scs/session/manager.go#L36)
-- [StripSlashes](/vendor/github.com/pressly/chi/middleware/strip.go#L12)
 - **/api**
 	- **/user**
 		- **/login**
@@ -144,16 +74,6 @@ Databrary 2.0 API
 <details>
 <summary>`/api/user/logout`</summary>
 
-- [RequestID](/vendor/github.com/pressly/chi/middleware/request_id.go#L63)
-- [RealIP](/vendor/github.com/pressly/chi/middleware/realip.go#L29)
-- [RequestLogger.func1](/vendor/github.com/pressly/chi/middleware/logger.go#L31)
-- [Recoverer](/vendor/github.com/pressly/chi/middleware/recoverer.go#L16)
-- [github.com/databrary/databrary/vendor/github.com/unrolled/secure.(*Secure).Handler-fm](/databrary.go#L78)
-- [Timeout.func1](/vendor/github.com/pressly/chi/middleware/timeout.go#L33)
-- [github.com/databrary/databrary/vendor/gopkg.in/throttled/throttled%2ev2.(*HTTPRateLimiter).RateLimit-fm](/databrary.go#L86)
-- [github.com/databrary/databrary/vendor/github.com/rs/cors.(*Cors).Handler-fm](/databrary.go#L95)
-- [Manage.func1](/vendor/github.com/databrary/scs/session/manager.go#L36)
-- [StripSlashes](/vendor/github.com/pressly/chi/middleware/strip.go#L12)
 - **/api**
 	- **/user**
 		- **/logout**
@@ -164,16 +84,6 @@ Databrary 2.0 API
 <details>
 <summary>`/api/user/profile`</summary>
 
-- [RequestID](/vendor/github.com/pressly/chi/middleware/request_id.go#L63)
-- [RealIP](/vendor/github.com/pressly/chi/middleware/realip.go#L29)
-- [RequestLogger.func1](/vendor/github.com/pressly/chi/middleware/logger.go#L31)
-- [Recoverer](/vendor/github.com/pressly/chi/middleware/recoverer.go#L16)
-- [github.com/databrary/databrary/vendor/github.com/unrolled/secure.(*Secure).Handler-fm](/databrary.go#L78)
-- [Timeout.func1](/vendor/github.com/pressly/chi/middleware/timeout.go#L33)
-- [github.com/databrary/databrary/vendor/gopkg.in/throttled/throttled%2ev2.(*HTTPRateLimiter).RateLimit-fm](/databrary.go#L86)
-- [github.com/databrary/databrary/vendor/github.com/rs/cors.(*Cors).Handler-fm](/databrary.go#L95)
-- [Manage.func1](/vendor/github.com/databrary/scs/session/manager.go#L36)
-- [StripSlashes](/vendor/github.com/pressly/chi/middleware/strip.go#L12)
 - **/api**
 	- **/user**
 		- **/profile**
@@ -187,16 +97,6 @@ Databrary 2.0 API
 <details>
 <summary>`/api/user/register`</summary>
 
-- [RequestID](/vendor/github.com/pressly/chi/middleware/request_id.go#L63)
-- [RealIP](/vendor/github.com/pressly/chi/middleware/realip.go#L29)
-- [RequestLogger.func1](/vendor/github.com/pressly/chi/middleware/logger.go#L31)
-- [Recoverer](/vendor/github.com/pressly/chi/middleware/recoverer.go#L16)
-- [github.com/databrary/databrary/vendor/github.com/unrolled/secure.(*Secure).Handler-fm](/databrary.go#L78)
-- [Timeout.func1](/vendor/github.com/pressly/chi/middleware/timeout.go#L33)
-- [github.com/databrary/databrary/vendor/gopkg.in/throttled/throttled%2ev2.(*HTTPRateLimiter).RateLimit-fm](/databrary.go#L86)
-- [github.com/databrary/databrary/vendor/github.com/rs/cors.(*Cors).Handler-fm](/databrary.go#L95)
-- [Manage.func1](/vendor/github.com/databrary/scs/session/manager.go#L36)
-- [StripSlashes](/vendor/github.com/pressly/chi/middleware/strip.go#L12)
 - **/api**
 	- **/user**
 		- **/register**
@@ -207,16 +107,6 @@ Databrary 2.0 API
 <details>
 <summary>`/api/user/reset-password/email`</summary>
 
-- [RequestID](/vendor/github.com/pressly/chi/middleware/request_id.go#L63)
-- [RealIP](/vendor/github.com/pressly/chi/middleware/realip.go#L29)
-- [RequestLogger.func1](/vendor/github.com/pressly/chi/middleware/logger.go#L31)
-- [Recoverer](/vendor/github.com/pressly/chi/middleware/recoverer.go#L16)
-- [github.com/databrary/databrary/vendor/github.com/unrolled/secure.(*Secure).Handler-fm](/databrary.go#L78)
-- [Timeout.func1](/vendor/github.com/pressly/chi/middleware/timeout.go#L33)
-- [github.com/databrary/databrary/vendor/gopkg.in/throttled/throttled%2ev2.(*HTTPRateLimiter).RateLimit-fm](/databrary.go#L86)
-- [github.com/databrary/databrary/vendor/github.com/rs/cors.(*Cors).Handler-fm](/databrary.go#L95)
-- [Manage.func1](/vendor/github.com/databrary/scs/session/manager.go#L36)
-- [StripSlashes](/vendor/github.com/pressly/chi/middleware/strip.go#L12)
 - **/api**
 	- **/user**
 		- **/reset-password/email**
@@ -227,16 +117,6 @@ Databrary 2.0 API
 <details>
 <summary>`/api/user/reset-password/token`</summary>
 
-- [RequestID](/vendor/github.com/pressly/chi/middleware/request_id.go#L63)
-- [RealIP](/vendor/github.com/pressly/chi/middleware/realip.go#L29)
-- [RequestLogger.func1](/vendor/github.com/pressly/chi/middleware/logger.go#L31)
-- [Recoverer](/vendor/github.com/pressly/chi/middleware/recoverer.go#L16)
-- [github.com/databrary/databrary/vendor/github.com/unrolled/secure.(*Secure).Handler-fm](/databrary.go#L78)
-- [Timeout.func1](/vendor/github.com/pressly/chi/middleware/timeout.go#L33)
-- [github.com/databrary/databrary/vendor/gopkg.in/throttled/throttled%2ev2.(*HTTPRateLimiter).RateLimit-fm](/databrary.go#L86)
-- [github.com/databrary/databrary/vendor/github.com/rs/cors.(*Cors).Handler-fm](/databrary.go#L95)
-- [Manage.func1](/vendor/github.com/databrary/scs/session/manager.go#L36)
-- [StripSlashes](/vendor/github.com/pressly/chi/middleware/strip.go#L12)
 - **/api**
 	- **/user**
 		- **/reset-password/token**
@@ -247,16 +127,6 @@ Databrary 2.0 API
 <details>
 <summary>`/public`</summary>
 
-- [RequestID](/vendor/github.com/pressly/chi/middleware/request_id.go#L63)
-- [RealIP](/vendor/github.com/pressly/chi/middleware/realip.go#L29)
-- [RequestLogger.func1](/vendor/github.com/pressly/chi/middleware/logger.go#L31)
-- [Recoverer](/vendor/github.com/pressly/chi/middleware/recoverer.go#L16)
-- [github.com/databrary/databrary/vendor/github.com/unrolled/secure.(*Secure).Handler-fm](/databrary.go#L78)
-- [Timeout.func1](/vendor/github.com/pressly/chi/middleware/timeout.go#L33)
-- [github.com/databrary/databrary/vendor/gopkg.in/throttled/throttled%2ev2.(*HTTPRateLimiter).RateLimit-fm](/databrary.go#L86)
-- [github.com/databrary/databrary/vendor/github.com/rs/cors.(*Cors).Handler-fm](/databrary.go#L95)
-- [Manage.func1](/vendor/github.com/databrary/scs/session/manager.go#L36)
-- [StripSlashes](/vendor/github.com/pressly/chi/middleware/strip.go#L12)
 - **/public**
 	- _GET_
 		- [(Handler).ServeHTTP-fm](https:///usr/local/go/src/net/http/h2_bundle.go#L4331)
@@ -265,16 +135,6 @@ Databrary 2.0 API
 <details>
 <summary>`/public/*`</summary>
 
-- [RequestID](/vendor/github.com/pressly/chi/middleware/request_id.go#L63)
-- [RealIP](/vendor/github.com/pressly/chi/middleware/realip.go#L29)
-- [RequestLogger.func1](/vendor/github.com/pressly/chi/middleware/logger.go#L31)
-- [Recoverer](/vendor/github.com/pressly/chi/middleware/recoverer.go#L16)
-- [github.com/databrary/databrary/vendor/github.com/unrolled/secure.(*Secure).Handler-fm](/databrary.go#L78)
-- [Timeout.func1](/vendor/github.com/pressly/chi/middleware/timeout.go#L33)
-- [github.com/databrary/databrary/vendor/gopkg.in/throttled/throttled%2ev2.(*HTTPRateLimiter).RateLimit-fm](/databrary.go#L86)
-- [github.com/databrary/databrary/vendor/github.com/rs/cors.(*Cors).Handler-fm](/databrary.go#L95)
-- [Manage.func1](/vendor/github.com/databrary/scs/session/manager.go#L36)
-- [StripSlashes](/vendor/github.com/pressly/chi/middleware/strip.go#L12)
 - **/public/***
 	- _GET_
 		- [(*Mux).FileServer.func1](/vendor/github.com/pressly/chi/mux.go#L317)
@@ -282,3 +142,4 @@ Databrary 2.0 API
 </details>
 
 Total # of routes: 14
+
