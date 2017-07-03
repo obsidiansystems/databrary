@@ -3,13 +3,9 @@ package routes
 import (
 	"fmt"
 	"github.com/databrary/databrary/config"
-	"github.com/databrary/databrary/db"
-	public_models "github.com/databrary/databrary/db/models/sqlboiler_models/public"
 	"github.com/databrary/databrary/logging"
 	"github.com/databrary/databrary/util"
 	"github.com/databrary/scs/session"
-	"github.com/databrary/sqlboiler/queries/qm"
-	"github.com/jmoiron/sqlx"
 	"net/http"
 )
 
@@ -61,34 +57,4 @@ func GetLogin(w http.ResponseWriter, r *http.Request) {
 		</html>`, scheme, addr, port)))
 }
 
-func GetProfile(w http.ResponseWriter, r *http.Request) {
-	var (
-		err       error
-		conn      *sqlx.DB
-		p         *public_models.Party
-		accountId int
-	)
-	nInfo := NetInfoLogEntry(r)
 
-	if conn, err = db.GetDbConn(); err != nil {
-		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't open db conn")
-		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
-		return
-	}
-
-	if accountId, err = session.GetInt(r, "account_id"); err != nil {
-		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't find account %d", accountId)
-		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
-		return
-	}
-
-	qrm := qm.Where("id = $1", accountId)
-
-	if p, err = public_models.Parties(conn, qrm).One(); err != nil {
-		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't find party %d", accountId)
-		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
-		return
-	}
-
-	util.WriteJSONResp(w, "ok", p)
-}

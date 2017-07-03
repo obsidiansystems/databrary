@@ -1,8 +1,5 @@
 # Databrary 2.0
 
-[![Build Status](https://travis-ci.org/databrary/databrary.png?branch=go_master)](https://travis-ci.org/databrary/databrary)
-
-
 Table of Contents
 =================
 
