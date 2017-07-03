@@ -12,12 +12,10 @@ go:
 #    - IMAGE_NAME=tsuru/api
 services:
   - docker
-
 # safelist
 branches:
   only:
   - go_master
-
 addons:
   apt:
     packages:
