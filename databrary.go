@@ -4,7 +4,6 @@ package main
 import (
 	"net/http"
 
-	//"fmt"
 	"os"
 	"path/filepath"
 
@@ -16,18 +15,22 @@ import (
 	"github.com/databrary/databrary/services/redis"
 	"github.com/databrary/databrary/services/sessions"
 	"github.com/pressly/chi"
+	"github.com/pressly/chi/docgen"
 	"github.com/pressly/chi/middleware"
 	"github.com/rs/cors"
 	"github.com/unrolled/secure"
 	"gopkg.in/alecthomas/kingpin.v2"
+	"regexp"
+	"strings"
 	"time"
 )
 
 var (
+	proj_root   = strings.Split(filepath.Join(os.Getenv("GOPATH"), "src/github.com/databrary/databrary/"), ":")[1]
 	config_path = kingpin.Flag("config", "Path to config file").
-		Default(filepath.Join(os.Getenv("GOPATH"), "src/github.com/databrary/databrary/config/databrary_dev.toml")).
-		Short('c').
-		String()
+			Default(filepath.Join(proj_root, "config/databrary_dev.toml")).
+			Short('c').
+			String()
 )
 
 func init() {
@@ -102,7 +105,7 @@ func main() {
 	})
 
 	r.FileServer("/public", http.Dir("public"))
-
+	GenerateApi(r)
 	addr := conf.GetString("address.domain") + ":" + conf.GetString("address.backend_port")
 	fmt.Printf("serving on %s://%s/\n", conf.GetString("address.scheme"), addr)
 
@@ -110,4 +113,23 @@ func main() {
 	keyPath := conf.GetString("ssl.key")
 	err = http.ListenAndServeTLS(addr, certPath, keyPath, r)
 	fmt.Println(err)
+}
+
+func GenerateApi(r chi.Router) {
+	m := docgen.MarkdownOpts{
+		ProjectPath:        "github.com/databrary/databrary",
+		Intro:              "Databrary 2.0 API",
+		ForceRelativeLinks: true,
+	}
+	// skip middleware
+	re := regexp.MustCompile(`^- \[`)
+	f, _ := os.Create(filepath.Join(proj_root, "api.md"))
+	defer f.Close()
+	docs := docgen.MarkdownRoutesDoc(r, m)
+	for _, v := range strings.Split(docs, "\n") {
+		if re.FindStringIndex(v) == nil {
+			f.WriteString(v + "\n")
+		}
+	}
+	f.Sync()
 }
