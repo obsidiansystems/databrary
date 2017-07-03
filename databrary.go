@@ -4,11 +4,9 @@ package main
 import (
 	"net/http"
 
-	//"fmt"
 	"os"
 	"path/filepath"
 
-	"fmt"
 	"github.com/databrary/databrary/config"
 	"github.com/databrary/databrary/logging"
 	"github.com/databrary/databrary/db"
@@ -18,14 +16,18 @@ import (
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/middleware"
 	"github.com/rs/cors"
-	"github.com/unrolled/secure" // or
+	"github.com/unrolled/secure"
+	"github.com/pressly/chi/docgen"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"time"
+	"fmt"
+	"strings"
 )
 
 var (
+	proj_root   = strings.Split(filepath.Join(os.Getenv("GOPATH"), "src/github.com/databrary/databrary/"), ":")[1]
 	config_path = kingpin.Flag("config", "Path to config file").
-		Default(filepath.Join(os.Getenv("GOPATH"), "~/go/src/github.com/databrary/databrary/config/databrary_dev.toml")).
+		Default(filepath.Join(proj_root, "config/databrary_dev.toml")).
 		Short('c').
 		String()
 )
@@ -68,7 +70,6 @@ func main() {
 		PublicKey:             `pin-sha256="base64+primary=="; pin-sha256="base64+backup=="; max-age=5184000; includeSubdomains; report-uri="https://www.example.com/hpkp-report"`,
 		IsDevelopment:         true,
 	})
-	//_ = secureMiddleware
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
@@ -93,7 +94,7 @@ func main() {
 
 	r.Use(c.Handler)
 	r.Use(sessions.NewSessionManager())
-	//
+
 	r.Use(middleware.StripSlashes)
 	r.Mount("/api", routes.Api())
 
@@ -102,7 +103,7 @@ func main() {
 	})
 
 	r.FileServer("/public", http.Dir("public"))
-
+	GenerateApi(r)
 	addr := ":3444"
 	fmt.Printf("serving on https://%s/\n", addr)
 
@@ -110,4 +111,17 @@ func main() {
 	keyPath := conf.GetString("ssl.key")
 	err = http.ListenAndServeTLS(addr, certPath, keyPath, r)
 	fmt.Println(err)
+}
+
+func GenerateApi(r chi.Router) {
+	m := docgen.MarkdownOpts{
+		ProjectPath:        proj_root,
+		Intro:              "Databrary 2.0 API",
+		ForceRelativeLinks: true,
+	}
+
+	f, _ := os.Create(filepath.Join(proj_root, "api.md"))
+	defer f.Close()
+	f.WriteString(docgen.MarkdownRoutesDoc(r, m))
+	f.Sync()
 }

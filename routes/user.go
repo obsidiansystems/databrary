@@ -16,13 +16,13 @@ import (
 	"github.com/databrary/databrary/util"
 	"github.com/databrary/scs/session"
 	"github.com/databrary/sqlboiler/queries/qm"
+	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
+	"gopkg.in/nullbio/null.v6"
 	"io/ioutil"
 	"net/url"
-	"github.com/jmoiron/sqlx"
-	"gopkg.in/nullbio/null.v6"
 )
 
 func PostLogin(w http.ResponseWriter, r *http.Request) {
