@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"github.com/databrary/databrary/config"
 	"github.com/databrary/databrary/logging"
-	//"github.com/databrary/databrary/routes"
 	"github.com/databrary/databrary/db"
 	"github.com/databrary/databrary/routes"
 	"github.com/databrary/databrary/services/redis"
@@ -77,6 +76,13 @@ func main() {
 	r.Use(middleware.Recoverer)
 	r.Use(secureMiddleware.Handler) // TODO turn back on
 	r.Use(middleware.Timeout(60 * time.Second))
+
+	rateLimiter, err := routes.NewRateLimiter()
+	if err != nil {
+		log.WrapErrLogFatal(err, "couldn't create rate limiter")
+	}
+
+	r.Use(rateLimiter.RateLimit)
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"}, //[]string{"http://localhost:3000", "https://localhost:3000"},
 		AllowCredentials: true,
@@ -90,7 +96,6 @@ func main() {
 	//
 	r.Use(middleware.StripSlashes)
 	r.Mount("/api", routes.Api())
-	r.With(routes.IsLoggedInHandler).Get("/profile", routes.GetProfile)
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("nothing here yet"))
@@ -99,15 +104,10 @@ func main() {
 	r.FileServer("/public", http.Dir("public"))
 
 	addr := ":3444"
-	fmt.Printf("seriving on https://%s/", addr)
-	//if err := http.ListenAndServe(addr, r); err != nil {
-	//	fmt.Sprintf("couldn't serve: %+v", err)
-	//}
+	fmt.Printf("serving on https://%s/\n", addr)
 
-	// TODO use ssl
-	//go http.ListenAndServe(":3444", secureMiddleware.Handler(myHandler))
 	certPath := conf.GetString("ssl.cert")
 	keyPath := conf.GetString("ssl.key")
-	err := http.ListenAndServeTLS(addr, certPath, keyPath, r)
+	err = http.ListenAndServeTLS(addr, certPath, keyPath, r)
 	fmt.Println(err)
 }

@@ -1,6 +1,4 @@
-So far there's only a Dockerfile for the postgres db.
-
-The Dockerfile installs some dependencies to make pgranges installation
+The Dockerfile for postgres installs some dependencies to make pgranges installation
 work - pgranges is some C code for unioning/intersecting more than
 2 ranges etc. The init-user scripts creates the databrary user with
 superuser privileges. The remove-superuser script removes those privileges.
@@ -15,3 +13,4 @@ instance to see whether it's ready to accept connections.
 `docker_build.sh` just automates creating the volume store for the
 postgres instance and creating the `databrary` user and then removing
 superuser privileges.
+
