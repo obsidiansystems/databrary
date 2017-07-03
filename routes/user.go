@@ -19,10 +19,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
-	"gopkg.in/nullbio/null.v6"
 	"io/ioutil"
 	"net/url"
 	"github.com/jmoiron/sqlx"
+	"gopkg.in/nullbio/null.v6"
 )
 
 func PostLogin(w http.ResponseWriter, r *http.Request) {
@@ -648,14 +648,15 @@ func createToken(party public_models.Party, redisContext string, expiration time
 func GetProfile(w http.ResponseWriter, r *http.Request) {
 	var (
 		err       error
-		conn      *sqlx.DB
+		dbConn    *sqlx.DB
 		p         *public_models.Party
+		a         *public_models.Account
 		accountId int
 	)
 	nInfo := NetInfoLogEntry(r)
 
-	if conn, err = db.GetDbConn(); err != nil {
-		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't open db conn")
+	if dbConn, err = db.GetDbConn(); err != nil {
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't open db dbConn")
 		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 		return
 	}
@@ -668,13 +669,35 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 
 	qrm := qm.Where("id = $1", accountId)
 
-	if p, err = public_models.Parties(conn, qrm).One(); err != nil {
+	if a, err = public_models.Accounts(dbConn, qrm).One(); err != nil {
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't find account %d", accountId)
+		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
+		return
+	}
+
+	if p, err = public_models.Parties(dbConn, qrm).One(); err != nil {
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't find party %d", accountId)
 		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 		return
 	}
 
-	util.WriteJSONResp(w, "ok", p)
+	util.WriteJSONResp(w, "ok", struct {
+		FirstName   string `json:"firstName"`
+		LastName    string `json:"lastName"`
+		Email       string `json:"email"`
+		Affiliation string `json:"affiliation"`
+		ORCID       string `json:"orcid"`
+		URL         string `json:"url"`
+		AccountId   int    `json:"accountId"`
+	}{
+		p.Prename.String,
+		p.Name,
+		a.Email,
+		p.Affiliation.String,
+		p.Orcid.String,
+		p.URL.String,
+		a.ID,
+	})
 }
 
 func PatchProfile(w http.ResponseWriter, r *http.Request) {
