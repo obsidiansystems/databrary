@@ -18,14 +18,14 @@ import (
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/middleware"
 	"github.com/rs/cors"
-	"github.com/unrolled/secure" // or
+	"github.com/unrolled/secure"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"time"
 )
 
 var (
 	config_path = kingpin.Flag("config", "Path to config file").
-		Default(filepath.Join(os.Getenv("GOPATH"), "~/go/src/github.com/databrary/databrary/config/databrary_dev.toml")).
+		Default(filepath.Join(os.Getenv("GOPATH"), "src/github.com/databrary/databrary/config/databrary_dev.toml")).
 		Short('c').
 		String()
 )
@@ -68,13 +68,13 @@ func main() {
 		PublicKey:             `pin-sha256="base64+primary=="; pin-sha256="base64+backup=="; max-age=5184000; includeSubdomains; report-uri="https://www.example.com/hpkp-report"`,
 		IsDevelopment:         true,
 	})
-	//_ = secureMiddleware
+
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(log.NewStructuredLogger(log.Logger))
 	r.Use(middleware.Recoverer)
-	r.Use(secureMiddleware.Handler) // TODO turn back on
+	r.Use(secureMiddleware.Handler)
 	r.Use(middleware.Timeout(60 * time.Second))
 
 	rateLimiter, err := routes.NewRateLimiter()
@@ -84,7 +84,7 @@ func main() {
 
 	r.Use(rateLimiter.RateLimit)
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"}, //[]string{"http://localhost:3000", "https://localhost:3000"},
+		AllowedOrigins:   []string{"*"}, // TODO: []string{"http://localhost:3000", "https://localhost:3000"},
 		AllowCredentials: true,
 		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
@@ -93,7 +93,7 @@ func main() {
 
 	r.Use(c.Handler)
 	r.Use(sessions.NewSessionManager())
-	//
+
 	r.Use(middleware.StripSlashes)
 	r.Mount("/api", routes.Api())
 
