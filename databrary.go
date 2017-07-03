@@ -25,7 +25,7 @@ import (
 
 var (
 	config_path = kingpin.Flag("config", "Path to config file").
-		Default(filepath.Join(os.Getenv("GOPATH"), "~/go/src/github.com/databrary/databrary/config/databrary_dev.toml")).
+		Default(filepath.Join(os.Getenv("GOPATH"), "src/github.com/databrary/databrary/config/databrary_dev.toml")).
 		Short('c').
 		String()
 )
