@@ -12,29 +12,18 @@ import (
 	"github.com/renstrom/fuzzysearch/fuzzy"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/olahol/melody.v1"
-	"gopkg.in/throttled/throttled.v2"
 	"io/ioutil"
 	"net/http"
 	"sort"
 	"sync"
 )
 
-var rateLimiter throttled.HTTPRateLimiter
-
-func init() {
-	var err error
-	rateLimiter, err = NewRateLimiter()
-	if err != nil {
-		log.WrapErrLogFatal(err, "couldn't create rate limiter")
-	}
-}
-
 // A completely separate router for administrator routes
 func Api() http.Handler {
 	r := chi.NewRouter()
-	r.With(rateLimiter.RateLimit).Route("/user", user)
-	r.With(rateLimiter.RateLimit).Get("/loggedin", IsLoggedInEndpoint)
-	r.With(rateLimiter.RateLimit).Post("/report-error", ReportError)
+	r.Route("/user", user)
+	r.Get("/loggedin", IsLoggedInEndpoint)
+	r.Post("/report-error", ReportError)
 	r.Get("/autocomplete-affil", AutoCompleteAffil)
 	return r
 }
@@ -61,7 +50,12 @@ func user(r chi.Router) {
 
 	r.Post("/register", Register)
 
-	r.With(IsLoggedInHandler).Get("/profile", GetProfile)
+	r.With(IsLoggedInHandler).Group(func(r chi.Router) {
+		r.Route("/profile", func(r chi.Router) {
+			r.Get("/", GetProfile)
+			r.Patch("/", PatchProfile)
+		})
+	})
 }
 
 func AutoCompleteAffil(w http.ResponseWriter, r *http.Request) {

@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"github.com/databrary/databrary/config"
 	"github.com/databrary/databrary/logging"
-	//"github.com/databrary/databrary/routes"
 	"github.com/databrary/databrary/db"
 	"github.com/databrary/databrary/routes"
 	"github.com/databrary/databrary/services/redis"
@@ -77,6 +76,13 @@ func main() {
 	r.Use(middleware.Recoverer)
 	r.Use(secureMiddleware.Handler) // TODO turn back on
 	r.Use(middleware.Timeout(60 * time.Second))
+
+	rateLimiter, err := routes.NewRateLimiter()
+	if err != nil {
+		log.WrapErrLogFatal(err, "couldn't create rate limiter")
+	}
+
+	r.Use(rateLimiter.RateLimit)
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"}, //[]string{"http://localhost:3000", "https://localhost:3000"},
 		AllowCredentials: true,
@@ -102,6 +108,6 @@ func main() {
 
 	certPath := conf.GetString("ssl.cert")
 	keyPath := conf.GetString("ssl.key")
-	err := http.ListenAndServeTLS(addr, certPath, keyPath, r)
+	err = http.ListenAndServeTLS(addr, certPath, keyPath, r)
 	fmt.Println(err)
 }
