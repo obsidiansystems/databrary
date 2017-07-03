@@ -19,6 +19,8 @@ Table of Contents
         * [macOS](#macos-3)
      * [Dev Tools](#dev-tools)
   * [To start the app](#to-start-the-app)
+  * [API](#api)
+  * [Secrets](#secrets)
 
 
 ## Dependencies
@@ -141,8 +143,30 @@ GMAILPASSWORD=<password> ./databrary -c config/databrary_dev.toml
 
 This will serve databrary on [https://localhost:3444](https://localhost:3444)  over https and set the password for the email sending functionality. The https will be reported as insecure because the certs are self-signed. Tell the browser to trust the site.
 
+## API
 
+[API](api.md)
 
+## Secrets
 
+[sqlboiler config db pw](../go_master/config/sqlboiler/sqlboiler.toml#L12)
 
+[config db pw](../go_master/config/databrary_dev.toml#L10)
 
+[config redis pw](../go_master/config/databrary_dev.toml#L20)
+
+[config redis secret](../go_master/config/databrary_dev.toml#L20)
+
+[config cookie hash key](../go_master/config/databrary_dev.toml#L25)
+
+[config cookie block key](../go_master/config/databrary_dev.toml#L26)
+
+[docker pg pw](../go_master/Docker/postgres/Dockerfile#L2)
+
+[docker script pg pw](../go_master/Docker/docker_build.sh#L20)
+
+[docker script pg pw](/go_master/Docker/wait-for-postgres.sh#L10)
+
+[docker pg pw](../go_master/Docker/postgres/init-user-db.sh#L3)
+
+[redis config pw](../go_master/Docker/redis/redis.conf#L1)
