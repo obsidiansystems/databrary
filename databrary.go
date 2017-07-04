@@ -26,14 +26,23 @@ import (
 )
 
 var (
-	proj_root   = strings.Split(filepath.Join(os.Getenv("GOPATH"), "src/github.com/databrary/databrary/"), ":")[1]
-	config_path = kingpin.Flag("config", "Path to config file").
-			Default(filepath.Join(proj_root, "config/databrary_dev.toml")).
-			Short('c').
-			String()
+	proj_root   string
+	config_path *string
 )
 
 func init() {
+	goPaths := strings.Split(filepath.Join(os.Getenv("GOPATH"), "src/github.com/databrary/databrary/"), ":")
+	if len(goPaths) == 2 {
+		proj_root = goPaths[1]
+	} else if len(goPaths) == 1 {
+		proj_root = goPaths[0]
+	} else {
+		panic(fmt.Sprintf("unexpected gopath %#v", goPaths))
+	}
+	config_path = kingpin.Flag("config", "Path to config file").
+		Default(filepath.Join(proj_root, "config/databrary_dev.toml")).
+		Short('c').
+		String()
 	// cmd line flags
 	kingpin.Version("0.0.0")
 	kingpin.Parse()

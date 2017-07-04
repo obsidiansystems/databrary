@@ -9,7 +9,7 @@ Databrary 2.0 API
 
 - **/**
 	- _GET_
-		- [main.main.func1](/databrary.go#L102)
+		- [main.main.func1](/databrary.go#L103)
 
 </details>
 <details>
