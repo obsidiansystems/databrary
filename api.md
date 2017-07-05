@@ -18,7 +18,7 @@ Databrary 2.0 API
 - **/api**
 	- **/autocomplete-affil**
 		- _GET_
-			- [AutoCompleteAffil](/routes/api.go#L66)
+			- [AutoCompleteAffil](/routes/api.go#L65)
 
 </details>
 <details>
@@ -36,7 +36,7 @@ Databrary 2.0 API
 - **/api**
 	- **/report-error**
 		- _POST_
-			- [ReportError](/routes/api.go#L126)
+			- [ReportError](/routes/api.go#L125)
 
 </details>
 <details>
@@ -45,7 +45,7 @@ Databrary 2.0 API
 - **/api**
 	- **/site-stats**
 		- _GET_
-			- [GetSiteStats](/routes/api.go#L138)
+			- [GetSiteStats](/routes/api.go#L137)
 
 </details>
 <details>
@@ -100,7 +100,7 @@ Databrary 2.0 API
 				- _GET_
 					- [GetProfile](/routes/user.go#L648)
 				- _PATCH_
-					- [PatchProfile](/routes/user.go#L680)
+					- [PatchProfile](/routes/user.go#L703)
 
 </details>
 <details>
@@ -134,15 +134,15 @@ Databrary 2.0 API
 
 </details>
 <details>
-<summary>`/api/user/volume/*`</summary>
+<summary>`/api/user/volume/*/all`</summary>
 
 - **/api**
 	- **/user**
 		- **/volume**
 			- **/***
-				- **/**
+				- **/all**
 					- _GET_
-						- [GetUserVolumes](/routes/volume.go#L25)
+						- [GetUserVolumes](/routes/volume.go#L24)
 
 </details>
 <details>
