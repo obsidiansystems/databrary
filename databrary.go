@@ -14,6 +14,7 @@ import (
 	"github.com/databrary/databrary/routes"
 	"github.com/databrary/databrary/services/redis"
 	"github.com/databrary/databrary/services/sessions"
+	"github.com/databrary/sqlboiler/boil"
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/docgen"
 	"github.com/pressly/chi/middleware"
@@ -26,14 +27,23 @@ import (
 )
 
 var (
-	proj_root   = strings.Split(filepath.Join(os.Getenv("GOPATH"), "src/github.com/databrary/databrary/"), ":")[1]
-	config_path = kingpin.Flag("config", "Path to config file").
-			Default(filepath.Join(proj_root, "config/databrary_dev.toml")).
-			Short('c').
-			String()
+	proj_root   string
+	config_path *string
 )
 
 func init() {
+	goPaths := strings.Split(filepath.Join(os.Getenv("GOPATH"), "src/github.com/databrary/databrary/"), ":")
+	if len(goPaths) == 2 {
+		proj_root = goPaths[1]
+	} else if len(goPaths) == 1 {
+		proj_root = goPaths[0]
+	} else {
+		panic(fmt.Sprintf("unexpected gopath %#v", goPaths))
+	}
+	config_path = kingpin.Flag("config", "Path to config file").
+		Default(filepath.Join(proj_root, "config/databrary_dev.toml")).
+		Short('c').
+		String()
 	// cmd line flags
 	kingpin.Version("0.0.0")
 	kingpin.Parse()
@@ -50,6 +60,10 @@ func init() {
 	}
 
 	redis.InitRedisStore(config.GetConf())
+
+	if config.GetConf().GetString("log.level") == "DEBUG" {
+		boil.DebugMode = true
+	}
 }
 
 func main() {
@@ -89,7 +103,7 @@ func main() {
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"}, // TODO: []string{"http://localhost:3000", "https://localhost:3000"},
 		AllowCredentials: true,
-		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
+		AllowedMethods:   []string{"GET", "POST", "OPTIONS", "PATCH"},
 		AllowedHeaders:   []string{"Content-Type", "Authorization"},
 		Debug:            true,
 	})

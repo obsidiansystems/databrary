@@ -9,7 +9,7 @@ Databrary 2.0 API
 
 - **/**
 	- _GET_
-		- [main.main.func1](/databrary.go#L102)
+		- [main.main.func1](/databrary.go#L117)
 
 </details>
 <details>
@@ -18,7 +18,7 @@ Databrary 2.0 API
 - **/api**
 	- **/autocomplete-affil**
 		- _GET_
-			- [AutoCompleteAffil](/routes/api.go#L61)
+			- [AutoCompleteAffil](/routes/api.go#L66)
 
 </details>
 <details>
@@ -36,7 +36,16 @@ Databrary 2.0 API
 - **/api**
 	- **/report-error**
 		- _POST_
-			- [ReportError](/routes/api.go#L121)
+			- [ReportError](/routes/api.go#L126)
+
+</details>
+<details>
+<summary>`/api/site-stats`</summary>
+
+- **/api**
+	- **/site-stats**
+		- _GET_
+			- [GetSiteStats](/routes/api.go#L138)
 
 </details>
 <details>
@@ -91,7 +100,7 @@ Databrary 2.0 API
 				- _GET_
 					- [GetProfile](/routes/user.go#L648)
 				- _PATCH_
-					- [PatchProfile](/routes/user.go#L703)
+					- [PatchProfile](/routes/user.go#L680)
 
 </details>
 <details>
@@ -125,6 +134,18 @@ Databrary 2.0 API
 
 </details>
 <details>
+<summary>`/api/user/volume/*`</summary>
+
+- **/api**
+	- **/user**
+		- **/volume**
+			- **/***
+				- **/**
+					- _GET_
+						- [GetUserVolumes](/routes/volume.go#L25)
+
+</details>
+<details>
 <summary>`/public`</summary>
 
 - **/public**
@@ -137,9 +158,9 @@ Databrary 2.0 API
 
 - **/public/***
 	- _GET_
-		- [(*Mux).FileServer.func1](/vendor/github.com/pressly/chi/mux.go#L317)
+		- [(*Mux).FileServer.func1](https://github.com/pressly/chi/mux.go#L317)
 
 </details>
 
-Total # of routes: 14
+Total # of routes: 16
 
