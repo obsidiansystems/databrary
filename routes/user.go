@@ -734,13 +734,13 @@ func PatchProfile(w http.ResponseWriter, r *http.Request) {
 		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 		return
 	}
-
-	if data.Email != a.Email {
-		err = errors.New("account email and received email don't match")
-		_, errorUuid := log.EntryWrapErr(nInfo, err, "%s %s", data.Email, a.Email)
-		util.JsonErrResp(w, http.StatusBadRequest, errorUuid)
-		return
-	}
+	//
+	//if data.Email != a.Email {
+	//	err = errors.New("account email and received email don't match")
+	//	_, errorUuid := log.EntryWrapErr(nInfo, err, "%s %s", data.Email, a.Email)
+	//	util.JsonErrResp(w, http.StatusBadRequest, errorUuid)
+	//	return
+	//}
 
 	if p, err = public_models.Parties(dbConn, qrm).One(); err != nil {
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't find party %d", accountId)
