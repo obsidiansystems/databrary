@@ -3,7 +3,7 @@ path = "/tmp/databrary_log"
 level = "DEBUG" #PANIC FATAL ERROR WARN INFO DEBUB
 
 [database]
-host = "172.22.236.163"
+host = "localhost"
 dbname = "databrary"
 port = "5432"
 user = "postgres"
@@ -12,8 +12,8 @@ sslmode = "disable"
 schema = "src/github.com/databrary/databrary/db/schema/master_sql"
 
 [ssl]
-cert = "/home/maksim/go/src/github.com/databrary/databrary/config/ssl/cert.pem"
-key = "/home/maksim/go/src/github.com/databrary/databrary/config/ssl/key.pem"
+cert = "/home/$USER/go/src/github.com/databrary/databrary/config/ssl/cert.pem"
+key = "/home/$USER/go/src/github.com/databrary/databrary/config/ssl/key.pem"
 
 [redis]
 address = "localhost:6379"
@@ -27,7 +27,7 @@ block_key = "blockkey"
 
 [address]
 scheme = "https"
-domain = "0.0.0.0"
+domain = "localhost"
 backend_port = "3444"
 frontend_port = "3000"
 
