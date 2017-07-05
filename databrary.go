@@ -14,6 +14,7 @@ import (
 	"github.com/databrary/databrary/routes"
 	"github.com/databrary/databrary/services/redis"
 	"github.com/databrary/databrary/services/sessions"
+	"github.com/databrary/sqlboiler/boil"
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/docgen"
 	"github.com/pressly/chi/middleware"
@@ -23,7 +24,6 @@ import (
 	"regexp"
 	"strings"
 	"time"
-	"github.com/databrary/sqlboiler/boil"
 )
 
 var (

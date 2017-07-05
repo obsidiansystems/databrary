@@ -1,16 +1,15 @@
 package routes
 
 import (
+	"github.com/databrary/databrary/db"
+	public_models "github.com/databrary/databrary/db/models/sqlboiler_models/public"
+	"github.com/databrary/databrary/logging"
+	"github.com/databrary/databrary/util"
+	"github.com/databrary/scs/session"
+	"github.com/databrary/sqlboiler/queries/qm"
+	"github.com/jmoiron/sqlx"
 	"github.com/pressly/chi"
 	"net/http"
-	"github.com/jmoiron/sqlx"
-	public_models "github.com/databrary/databrary/db/models/sqlboiler_models/public"
-	"github.com/databrary/databrary/db"
-	"github.com/databrary/databrary/logging"
-	"github.com/databrary/scs/session"
-	"github.com/databrary/databrary/util"
-	"github.com/databrary/sqlboiler/queries/qm"
-	"fmt"
 )
 
 func volume(r chi.Router) {
@@ -57,7 +56,6 @@ func GetUserVolumes(w http.ResponseWriter, r *http.Request) {
 	volumes := public_models.VolumeSlice{}
 
 	for _, v := range va {
-		fmt.Println(fmt.Sprintf("%#v", v))
 		volumes = append(volumes, v.R.Volume)
 	}
 
