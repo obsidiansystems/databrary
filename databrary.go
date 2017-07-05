@@ -23,6 +23,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"github.com/databrary/sqlboiler/boil"
 )
 
 var (
@@ -59,6 +60,10 @@ func init() {
 	}
 
 	redis.InitRedisStore(config.GetConf())
+
+	if config.GetConf().GetString("log.level") == "DEBUG" {
+		boil.DebugMode = true
+	}
 }
 
 func main() {

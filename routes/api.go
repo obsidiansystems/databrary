@@ -57,7 +57,9 @@ func user(r chi.Router) {
 			r.Get("/", GetProfile)
 			r.Patch("/", PatchProfile)
 		})
+		r.Route("/volume", volume)
 	})
+
 }
 
 func AutoCompleteAffil(w http.ResponseWriter, r *http.Request) {
