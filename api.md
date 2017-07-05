@@ -134,15 +134,15 @@ Databrary 2.0 API
 
 </details>
 <details>
-<summary>`/api/user/volume/*/all`</summary>
+<summary>`/api/user/volume/all`</summary>
 
 - **/api**
 	- **/user**
 		- **/volume**
-			- **/***
-				- **/all**
-					- _GET_
-						- [GetUserVolumes](/routes/volume.go#L24)
+			- **/all**
+				- _GET_
+					- [IsLoggedInHandler](/routes/user.go#L165)
+					- [GetUserVolumes](/routes/volume.go#L21)
 
 </details>
 <details>
