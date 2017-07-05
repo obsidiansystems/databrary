@@ -776,7 +776,8 @@ func PatchProfile(w http.ResponseWriter, r *http.Request) {
 	p.URL = null.StringFrom(data.URL)
 	p.Orcid = null.StringFrom(data.ORCID)
 	p.Affiliation = null.StringFrom(data.Affiliation)
-
+	a.Email = data.Email
+	
 	tx, err := dbConn.Begin()
 
 	if err != nil {
@@ -794,6 +795,15 @@ func PatchProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err = a.Update(tx, "email")
+
+	if err != nil {
+		tx.Rollback()
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't update profile")
+		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
+		return
+	}
+	
 	err = tx.Commit()
 
 	if err != nil {
