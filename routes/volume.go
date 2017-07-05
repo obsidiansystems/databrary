@@ -13,11 +13,8 @@ import (
 )
 
 func volume(r chi.Router) {
-
 	r.With(IsLoggedInHandler).Group(func(r chi.Router) {
-		r.Route("/", func(r chi.Router) {
-			r.Get("/all", GetUserVolumes)
-		})
+		r.Get("/all", GetUserVolumes)
 	})
 }
 
