@@ -18,7 +18,7 @@ Databrary 2.0 API
 - **/api**
 	- **/autocomplete-affil**
 		- _GET_
-			- [AutoCompleteAffil](/routes/api.go#L65)
+			- [AutoCompleteAffil](/routes/api.go#L66)
 
 </details>
 <details>
@@ -36,7 +36,7 @@ Databrary 2.0 API
 - **/api**
 	- **/report-error**
 		- _POST_
-			- [ReportError](/routes/api.go#L125)
+			- [ReportError](/routes/api.go#L126)
 
 </details>
 <details>
@@ -45,7 +45,18 @@ Databrary 2.0 API
 - **/api**
 	- **/site-stats**
 		- _GET_
-			- [GetSiteStats](/routes/api.go#L137)
+			- [GetSiteStats](/routes/api.go#L138)
+
+</details>
+<details>
+<summary>`/api/user/affiliates`</summary>
+
+- **/api**
+	- **/user**
+		- **/affiliates**
+			- _GET_
+				- [IsLoggedInHandler](/routes/user.go#L165)
+				- [GetAffiliates](/routes/user.go#L814)
 
 </details>
 <details>
@@ -98,9 +109,9 @@ Databrary 2.0 API
 		- **/profile**
 			- **/**
 				- _GET_
-					- [GetProfile](/routes/user.go#L648)
+					- [GetProfile](/routes/user.go#L649)
 				- _PATCH_
-					- [PatchProfile](/routes/user.go#L703)
+					- [PatchProfile](/routes/user.go#L704)
 
 </details>
 <details>
@@ -134,15 +145,14 @@ Databrary 2.0 API
 
 </details>
 <details>
-<summary>`/api/user/volume/all`</summary>
+<summary>`/api/user/volumes/all`</summary>
 
 - **/api**
 	- **/user**
-		- **/volume**
+		- **/volumes**
 			- **/all**
 				- _GET_
-					- [IsLoggedInHandler](/routes/user.go#L165)
-					- [GetUserVolumes](/routes/volume.go#L21)
+					- [GetUserVolumes](/routes/volume.go#L25)
 
 </details>
 <details>
@@ -162,5 +172,5 @@ Databrary 2.0 API
 
 </details>
 
-Total # of routes: 16
+Total # of routes: 17
 

@@ -129,7 +129,7 @@ func SendEmail(body, subject, toAddress string) error {
 	m.SetHeader("Subject", subject)
 	m.SetBody("text/html", body)
 
-	d := gomail.NewDialer("smtp.gmail.com", 587, "maksim.levental@gmail.com", os.Getenv("GMAILPASSWORD"))
+	d := gomail.NewDialer("smtp.gmail.com", 587, "help@databrary.org", os.Getenv("GMAILPASSWORD"))
 
 	err := d.DialAndSend(m)
 	return err
