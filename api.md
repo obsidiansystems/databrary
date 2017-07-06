@@ -49,6 +49,17 @@ Databrary 2.0 API
 
 </details>
 <details>
+<summary>`/api/user/affiliates`</summary>
+
+- **/api**
+	- **/user**
+		- **/affiliates**
+			- _GET_
+				- [IsLoggedInHandler](/routes/user.go#L165)
+				- [GetAffiliates](/routes/user.go#L814)
+
+</details>
+<details>
 <summary>`/api/user/check-token`</summary>
 
 - **/api**
@@ -74,10 +85,10 @@ Databrary 2.0 API
 - **/api**
 	- **/user**
 		- **/login**
-			- _POST_
-				- [PostLogin](/routes/user.go#L28)
 			- _GET_
 				- [GetLogin](/routes/static.go#L12)
+			- _POST_
+				- [PostLogin](/routes/user.go#L28)
 
 </details>
 <details>
@@ -98,9 +109,9 @@ Databrary 2.0 API
 		- **/profile**
 			- **/**
 				- _GET_
-					- [GetProfile](/routes/user.go#L648)
+					- [GetProfile](/routes/user.go#L649)
 				- _PATCH_
-					- [PatchProfile](/routes/user.go#L680)
+					- [PatchProfile](/routes/user.go#L704)
 
 </details>
 <details>
@@ -134,15 +145,14 @@ Databrary 2.0 API
 
 </details>
 <details>
-<summary>`/api/user/volume/*`</summary>
+<summary>`/api/user/volumes/all`</summary>
 
 - **/api**
 	- **/user**
-		- **/volume**
-			- **/***
-				- **/**
-					- _GET_
-						- [GetUserVolumes](/routes/volume.go#L25)
+		- **/volumes**
+			- **/all**
+				- _GET_
+					- [GetUserVolumes](/routes/volume.go#L25)
 
 </details>
 <details>
@@ -162,5 +172,5 @@ Databrary 2.0 API
 
 </details>
 
-Total # of routes: 16
+Total # of routes: 17
 
