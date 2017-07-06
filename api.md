@@ -85,10 +85,10 @@ Databrary 2.0 API
 - **/api**
 	- **/user**
 		- **/login**
-			- _POST_
-				- [PostLogin](/routes/user.go#L28)
 			- _GET_
 				- [GetLogin](/routes/static.go#L12)
+			- _POST_
+				- [PostLogin](/routes/user.go#L28)
 
 </details>
 <details>

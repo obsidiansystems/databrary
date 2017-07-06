@@ -851,14 +851,14 @@ func GetAffiliates(w http.ResponseWriter, request *http.Request) {
 	var returnData []struct {
 		FirstName string `json:"firstName"`
 		LastName  string `json:"lastName"`
-		ID        int `json:"id"`
+		ID        int    `json:"id"`
 	}
 
 	for _, v := range authorizations {
 		returnData = append(returnData, struct {
 			FirstName string `json:"firstName"`
 			LastName  string `json:"lastName"`
-			ID        int `json:"id"`
+			ID        int    `json:"id"`
 		}{FirstName: v.R.Child.Prename.String, LastName: v.R.Child.Name, ID: v.R.Child.ID})
 	}
 

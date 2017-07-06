@@ -1,18 +1,18 @@
 package routes
 
 import (
+	"encoding/json"
+	"errors"
 	"github.com/databrary/databrary/db"
 	public_models "github.com/databrary/databrary/db/models/sqlboiler_models/public"
 	"github.com/databrary/databrary/logging"
 	"github.com/databrary/databrary/util"
+	"github.com/databrary/scs/session"
 	"github.com/databrary/sqlboiler/queries/qm"
 	"github.com/jmoiron/sqlx"
 	"github.com/pressly/chi"
-	"net/http"
-	"encoding/json"
 	"io/ioutil"
-	"github.com/databrary/scs/session"
-	"errors"
+	"net/http"
 )
 
 func volume(r chi.Router) {
@@ -31,7 +31,7 @@ func GetUserVolumes(w http.ResponseWriter, request *http.Request) {
 	nInfo := NetInfoLogEntry(request)
 
 	data := struct {
-		AccountID *int `json:"accountId"`
+		AccountID *int    `json:"accountId"`
 		Perm      *string `json:"perm"`
 	}{}
 
@@ -65,12 +65,16 @@ func GetUserVolumes(w http.ResponseWriter, request *http.Request) {
 			}
 		}
 	} else { // !isLoggedIn
+		accountId := -1
+		if data.AccountID != nil {
+			// if someone wants to look at the public volumes belonging to someone else
+			accountId = *data.AccountID
+		}
 		// this is just to avoid a nil pointer deref (can't assign directly to *data.AccountID because it doesn't
 		// have a memory location
-		dummy1 := -1
-		dummy2 := public_models.PermissionPUBLIC
-		data.AccountID = &dummy1
-		data.Perm = &dummy2
+		perm := public_models.PermissionPUBLIC
+		data.AccountID = &accountId
+		data.Perm = &perm
 	}
 
 	if dbConn, err = db.GetDbConn(); err != nil {
@@ -78,7 +82,7 @@ func GetUserVolumes(w http.ResponseWriter, request *http.Request) {
 		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 		return
 	}
-
+	// select * from volume join volume_access_view on volume.id = volume where access <= $1 and party = $2
 	if volumes, err = public_models.Volumes(dbConn,
 		qm.InnerJoin("volume_access_view on volume.id = volume"),
 		qm.Where("access <= $1", *data.Perm),
