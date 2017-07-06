@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"encoding/json"
+	"errors"
 	"github.com/databrary/databrary/db"
 	public_models "github.com/databrary/databrary/db/models/sqlboiler_models/public"
 	"github.com/databrary/databrary/logging"
@@ -9,51 +11,86 @@ import (
 	"github.com/databrary/sqlboiler/queries/qm"
 	"github.com/jmoiron/sqlx"
 	"github.com/pressly/chi"
+	"io/ioutil"
 	"net/http"
 )
 
 func volume(r chi.Router) {
+	r.Get("/all", GetUserVolumes)
 	r.With(IsLoggedInHandler).Group(func(r chi.Router) {
-		r.Get("/all", GetUserVolumes)
+
 	})
 }
 
-func GetUserVolumes(w http.ResponseWriter, r *http.Request) {
+func GetUserVolumes(w http.ResponseWriter, request *http.Request) {
 	var (
-		err       error
-		conn      *sqlx.DB
-		va        public_models.VolumeAccessSlice
-		accountId int
+		err     error
+		dbConn  *sqlx.DB
+		volumes public_models.VolumeSlice
 	)
+	nInfo := NetInfoLogEntry(request)
 
-	nInfo := NetInfoLogEntry(r)
+	data := struct {
+		AccountID *int    `json:"accountId"`
+		Perm      *string `json:"perm"`
+	}{}
 
-	if accountId, err = session.GetInt(r, "account_id"); err != nil {
-		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't find account %d", accountId)
-		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
+	err = json.NewDecoder(request.Body).Decode(&data)
+
+	if err != nil || data.AccountID == nil || data.Perm == nil {
+		body, _ := ioutil.ReadAll(request.Body)
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't decode data from body %s", string(body))
+		util.JsonErrResp(w, http.StatusBadRequest, errorUuid)
 		return
 	}
 
-	if conn, err = db.GetDbConn(); err != nil {
-		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't open db conn")
+	isLoggedIn, statusCode, err := isLoggedIn(request)
+
+	if err != nil {
+		session.Destroy(w, request)
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "login handler failed")
+		util.JsonErrResp(w, statusCode, errorUuid)
+		return
+	} else if isLoggedIn {
+		if accountId, err := session.GetInt(request, "accountId"); err != nil {
+			_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't find account %d", accountId)
+			util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
+			return
+		} else {
+			if accountId != *data.AccountID {
+				err = errors.New("session account id and received account id don't match")
+				_, errorUuid := log.EntryWrapErr(nInfo, err, "%d %d", *data.AccountID, accountId)
+				util.JsonErrResp(w, http.StatusBadRequest, errorUuid)
+				return
+			}
+		}
+	} else { // !isLoggedIn
+		accountId := -1
+		if data.AccountID != nil {
+			// if someone wants to look at the public volumes belonging to someone else
+			accountId = *data.AccountID
+		}
+		// this is just to avoid a nil pointer deref (can't assign directly to *data.AccountID because it doesn't
+		// have a memory location
+		perm := public_models.PermissionPUBLIC
+		data.AccountID = &accountId
+		data.Perm = &perm
+	}
+
+	if dbConn, err = db.GetDbConn(); err != nil {
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't open db dbConn")
 		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 		return
 	}
-
-	if va, err = public_models.VolumeAccesses(conn,
-		qm.Where("individual = $1", public_models.PermissionADMIN),
-		qm.And("party = $2", accountId),
-		qm.Load("Volume"), //this is key for getting R to work. this is the name of relationship you want to eagerly load
+	// select * from volume join volume_access_view on volume.id = volume where access <= $1 and party = $2
+	if volumes, err = public_models.Volumes(dbConn,
+		qm.InnerJoin("volume_access_view on volume.id = volume"),
+		qm.Where("access <= $1", *data.Perm),
+		qm.And("party = $2", *data.AccountID),
 	).All(); err != nil {
-		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't find volume accesses %d", accountId)
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't find volume accesses %d", *data.AccountID)
 		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 		return
-	}
-
-	volumes := public_models.VolumeSlice{}
-
-	for _, v := range va {
-		volumes = append(volumes, v.R.Volume)
 	}
 
 	util.WriteJSONResp(w, "ok", volumes)

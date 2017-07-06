@@ -98,8 +98,8 @@ func PostLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = session.PutBytes(r, "signature", signature)
-	err = session.PutInt(r, "account_id", ac.ID)
-	err = session.PutBool(r, "logged_in", true)
+	err = session.PutInt(r, "accountId", ac.ID)
+	err = session.PutBool(r, "loggedIn", true)
 	// error here shouldn't be interfere with the user
 	_ = session.SetPersist(r, data.RememberMe)
 	err = session.Save(w, r)
@@ -122,7 +122,7 @@ func PostLogOut(w http.ResponseWriter, r *http.Request) {
 // don't do logging in here, do logging where called
 func isLoggedIn(r *http.Request) (bool, int, error) {
 	signature, err := session.GetBytes(r, "signature")
-	accountId, err := session.GetInt(r, "account_id")
+	accountId, err := session.GetInt(r, "accountId")
 	if err != nil {
 		return false, http.StatusInternalServerError, err
 	}
@@ -149,10 +149,10 @@ func isLoggedIn(r *http.Request) (bool, int, error) {
 		return false, http.StatusForbidden, errors.New("signature match fail")
 	}
 
-	loggedIn, err := session.GetBool(r, "logged_in")
+	loggedIn, err := session.GetBool(r, "loggedIn")
 
 	if err != nil {
-		return false, http.StatusInternalServerError, errors.Wrap(err, "couldn't get logged_in from session")
+		return false, http.StatusInternalServerError, errors.Wrap(err, "couldn't get loggedIn from session")
 	}
 
 	if !loggedIn {
@@ -186,7 +186,7 @@ func IsLoggedInHandler(next http.Handler) http.Handler {
 
 func IsLoggedInEndpoint(w http.ResponseWriter, r *http.Request) {
 	type loggedInPayload struct {
-		LoggedIn bool `json:"logged_in"`
+		LoggedIn bool `json:"loggedIn"`
 	}
 	nInfo := NetInfoLogEntry(r)
 	loggedIn, statusCode, err := isLoggedIn(r)
@@ -208,12 +208,12 @@ func IsLoggedInEndpoint(w http.ResponseWriter, r *http.Request) {
 func ResetPasswordEmail(w http.ResponseWriter, r *http.Request) {
 	session.Destroy(w, r)
 	data := struct {
-		Email string `json:"email"`
+		Email *string `json:"email"`
 	}{}
 	nInfo := NetInfoLogEntry(r)
 	err := json.NewDecoder(r.Body).Decode(&data)
 
-	if err != nil {
+	if err != nil || data.Email == nil {
 		body, _ := ioutil.ReadAll(r.Body)
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't decode data from body %s", string(body))
 		util.JsonErrResp(w, http.StatusBadRequest, errorUuid)
@@ -228,11 +228,11 @@ func ResetPasswordEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ac, err := public_models.Accounts(dbConn, qm.Where("email = $1", data.Email)).One()
+	ac, err := public_models.Accounts(dbConn, qm.Where("email = $1", *data.Email)).One()
 
 	if err != nil {
 		// always report data sent to avoid tipping off brute-force attackers
-		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't locate account with email %#v", data.Email)
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't locate account with email %#v", *data.Email)
 		_ = errorUuid
 		//util.JsonErrResp(w, http.StatusBadRequest, errorUuid)
 		util.WriteJSONResp(w, "ok", "success") //TODO
@@ -289,20 +289,20 @@ func ResetPasswordEmail(w http.ResponseWriter, r *http.Request) {
 
 func CheckTokenExpiryEndpoint(w http.ResponseWriter, r *http.Request) {
 	data := struct {
-		Token string `json:"token"`
+		Token *string `json:"token"`
 	}{}
 	nInfo := NetInfoLogEntry(r)
 
 	err := json.NewDecoder(r.Body).Decode(&data)
 
-	if err != nil {
+	if err != nil || data.Token == nil {
 		body, _ := ioutil.ReadAll(r.Body)
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't decode data from body %s", string(body))
 		util.JsonErrResp(w, http.StatusBadRequest, errorUuid)
 		return
 	}
 
-	authUuid, err := uuid.FromString(data.Token)
+	authUuid, err := uuid.FromString(*data.Token)
 	_, msg, code, err := checkTokenExpiry(authUuid.String())
 	if err != nil {
 		_, errorUuid := log.EntryWrapErr(nInfo, err, msg)
@@ -354,21 +354,21 @@ func ResetPasswordToken(w http.ResponseWriter, r *http.Request) {
 
 	session.Destroy(w, r)
 	data := struct {
-		Token       string `json:"token"`
-		NewPassword string `json:"password"`
+		Token       *string `json:"token"`
+		NewPassword *string `json:"password"`
 	}{}
 	nInfo := NetInfoLogEntry(r)
 
 	err := json.NewDecoder(r.Body).Decode(&data)
 
-	if err != nil {
+	if err != nil || data.Token == nil || data.NewPassword == nil {
 		body, _ := ioutil.ReadAll(r.Body)
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't decode data from body %s", string(body))
 		util.JsonErrResp(w, http.StatusBadRequest, errorUuid)
 		return
 	}
 
-	authUuid, err := uuid.FromString(data.Token)
+	authUuid, err := uuid.FromString(*data.Token)
 	authData, redisToken, code, err := checkTokenExpiry(authUuid.String())
 	if err != nil {
 		_, errorUuid := log.EntryWrapErr(nInfo, err, redisToken)
@@ -383,7 +383,7 @@ func ResetPasswordToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	redisPayload := struct {
-		AccountID int `json:"account_id"`
+		AccountID int `json:"accountId"`
 	}{}
 
 	err = json.Unmarshal(authData, &redisPayload)
@@ -409,7 +409,7 @@ func ResetPasswordToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newPasswordHash, err := bcrypt.GenerateFromPassword([]byte(data.NewPassword), 12)
+	newPasswordHash, err := bcrypt.GenerateFromPassword([]byte(*data.NewPassword), 12)
 
 	if err != nil {
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't generate password hash")
@@ -523,18 +523,19 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	session.Destroy(w, r)
 	data := struct {
-		FirstName   string `json:"firstName"`
-		LastName    string `json:"lastName"`
-		Email       string `json:"email"`
-		Affiliation string `json:"affiliation"`
-		ORCID       string `json:"orcid"`
-		URL         string `json:"homepage"`
+		FirstName   *string `json:"firstName"`
+		LastName    *string `json:"lastName"`
+		Email       *string `json:"email"`
+		Affiliation *string `json:"affiliation"`
+		ORCID       *string `json:"orcid"`
+		URL         *string `json:"homepage"`
 	}{}
 	nInfo := NetInfoLogEntry(r)
 
 	err := json.NewDecoder(r.Body).Decode(&data)
 
-	if err != nil {
+	if err != nil || data.FirstName == nil || data.LastName == nil || data.Email == nil ||
+		data.Affiliation == nil || data.ORCID == nil || data.URL == nil {
 		body, _ := ioutil.ReadAll(r.Body)
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't decode data from body %s", string(body))
 		util.JsonErrResp(w, http.StatusBadRequest, errorUuid)
@@ -550,17 +551,17 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newParty := public_models.Party{
-		Name:        data.LastName,
-		Prename:     null.NewString(data.FirstName, true),
-		Affiliation: null.NewString(data.Affiliation, true),
+		Name:        *data.LastName,
+		Prename:     null.NewString(*data.FirstName, true),
+		Affiliation: null.NewString(*data.Affiliation, true),
 	}
 
-	if len(data.ORCID) > 0 {
-		newParty.Orcid = null.NewString(data.ORCID, true)
+	if len(*data.ORCID) > 0 {
+		newParty.Orcid = null.NewString(*data.ORCID, true)
 	}
 
-	if len(data.URL) > 0 {
-		newParty.URL = null.NewString(data.URL, true)
+	if len(*data.URL) > 0 {
+		newParty.URL = null.NewString(*data.URL, true)
 	}
 
 	err = newParty.Insert(tx)
@@ -574,7 +575,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	newAccount := public_models.Account{
 		ID:    newParty.ID,
-		Email: data.Email,
+		Email: *data.Email,
 	}
 	// only insert email value (let db increment id)
 	err = newAccount.Insert(tx)
@@ -623,7 +624,7 @@ func createToken(party public_models.Party, redisContext string, expiration time
 
 	token := fmt.Sprintf("databrary.%s:%x", redisContext, string(uuidAsBytes[:]))
 	payload, err := json.Marshal(struct {
-		AccountID int `json:"account_id"`
+		AccountID int `json:"accountId"`
 	}{party.ID})
 
 	if err != nil {
@@ -661,7 +662,7 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if accountId, err = session.GetInt(r, "account_id"); err != nil {
+	if accountId, err = session.GetInt(r, "accountId"); err != nil {
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't find account %d", accountId)
 		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 		return
@@ -700,7 +701,7 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func PatchProfile(w http.ResponseWriter, r *http.Request) {
+func PatchProfile(w http.ResponseWriter, request *http.Request) {
 
 	var (
 		err       error
@@ -711,35 +712,36 @@ func PatchProfile(w http.ResponseWriter, r *http.Request) {
 	)
 
 	data := struct {
-		FirstName   string `json:"firstName"`
-		LastName    string `json:"lastName"`
-		Email       string `json:"email"`
-		Affiliation string `json:"affiliation"`
-		ORCID       string `json:"orcid"`
-		URL         string `json:"url"`
-		AccountId   int    `json:"accountId"`
+		FirstName   *string `json:"firstName"`
+		LastName    *string `json:"lastName"`
+		Email       *string `json:"email"`
+		Affiliation *string `json:"affiliation"`
+		ORCID       *string `json:"orcid"`
+		URL         *string `json:"url"`
+		AccountId   *int    `json:"accountId"`
 	}{}
 
-	nInfo := NetInfoLogEntry(r)
+	nInfo := NetInfoLogEntry(request)
 
-	if accountId, err = session.GetInt(r, "account_id"); err != nil {
+	if accountId, err = session.GetInt(request, "accountId"); err != nil {
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't find account %d", accountId)
 		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 		return
 	}
 
-	err = json.NewDecoder(r.Body).Decode(&data)
+	err = json.NewDecoder(request.Body).Decode(&data)
 
-	if err != nil {
-		body, _ := ioutil.ReadAll(r.Body)
+	if err != nil || data.FirstName == nil || data.LastName == nil || data.Email == nil ||
+		data.Affiliation == nil || data.ORCID == nil || data.URL == nil || data.AccountId == nil {
+		body, _ := ioutil.ReadAll(request.Body)
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't decode data from body %s", string(body))
 		util.JsonErrResp(w, http.StatusBadRequest, errorUuid)
 		return
 	}
 
-	if data.AccountId != accountId {
+	if *data.AccountId != accountId {
 		err = errors.New("session account id and received account id don't match")
-		_, errorUuid := log.EntryWrapErr(nInfo, err, "%d %d", data.AccountId, accountId)
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "%d %d", *data.AccountId, accountId)
 		util.JsonErrResp(w, http.StatusBadRequest, errorUuid)
 		return
 	}
@@ -764,47 +766,101 @@ func PatchProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	p.Name = data.LastName
-	p.Prename = null.StringFrom(data.FirstName)
-	p.URL = null.StringFrom(data.URL)
-	p.Orcid = null.StringFrom(data.ORCID)
-	p.Affiliation = null.StringFrom(data.Affiliation)
-	a.Email = data.Email
+	p.Name = *data.LastName
+	p.Prename = null.StringFrom(*data.FirstName)
+	p.URL = null.StringFrom(*data.URL)
+	p.Orcid = null.StringFrom(*data.ORCID)
+	p.Affiliation = null.StringFrom(*data.Affiliation)
+	a.Email = *data.Email
 
-	tx, err := dbConn.Begin()
+	transaction, err := dbConn.Begin()
 
 	if err != nil {
-		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't begin db tx")
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't begin db transaction")
 		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 		return
 	}
 
-	err = p.Update(tx, "name", "prename", "orcid", "url", "affiliation")
+	err = p.Update(transaction, "name", "prename", "orcid", "url", "affiliation")
 
 	if err != nil {
-		tx.Rollback()
+		transaction.Rollback()
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't update profile")
 		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 		return
 	}
 
-	err = a.Update(tx, "email")
+	err = a.Update(transaction, "email")
 
 	if err != nil {
-		tx.Rollback()
+		transaction.Rollback()
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't update profile")
 		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 		return
 	}
 
-	err = tx.Commit()
+	err = transaction.Commit()
 
 	if err != nil {
-		tx.Rollback()
-		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't commit tx")
+		transaction.Rollback()
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't commit transaction")
 		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 		return
 	}
 
 	util.WriteJSONResp(w, "ok", p)
+}
+
+func GetAffiliates(w http.ResponseWriter, request *http.Request) {
+	var (
+		err            error
+		dbConn         *sqlx.DB
+		authorizations public_models.AuthorizeSlice
+	)
+	nInfo := NetInfoLogEntry(request)
+
+	data := struct {
+		AccountID *int `json:"accountId"`
+	}{}
+
+	err = json.NewDecoder(request.Body).Decode(&data)
+
+	if err != nil || data.AccountID == nil {
+		body, _ := ioutil.ReadAll(request.Body)
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't decode data from body %s", string(body))
+		util.JsonErrResp(w, http.StatusBadRequest, errorUuid)
+		return
+	}
+
+	if dbConn, err = db.GetDbConn(); err != nil {
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't open db dbConn")
+		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
+		return
+	}
+
+	if authorizations, err = public_models.Authorizes(dbConn,
+		qm.Where("parent = $1", *data.AccountID),
+		qm.Load("Child"), //this is key for getting R to work. note the capital letter C.
+		// this is the name of struct field corresponding to the relationship you want to eagerly load
+	).All(); err != nil {
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't find volume accesses %d", data.AccountID)
+		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
+		return
+	}
+
+	var returnData []struct {
+		FirstName string `json:"firstName"`
+		LastName  string `json:"lastName"`
+		ID        int    `json:"id"`
+	}
+
+	for _, v := range authorizations {
+		returnData = append(returnData, struct {
+			FirstName string `json:"firstName"`
+			LastName  string `json:"lastName"`
+			ID        int    `json:"id"`
+		}{FirstName: v.R.Child.Prename.String, LastName: v.R.Child.Name, ID: v.R.Child.ID})
+	}
+
+	util.WriteJSONResp(w, "ok", returnData)
 }

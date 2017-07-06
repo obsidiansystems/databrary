@@ -57,8 +57,9 @@ func user(r chi.Router) {
 			r.Get("/", GetProfile)
 			r.Patch("/", PatchProfile)
 		})
-		r.Route("/volume", volume)
+		r.Get("/affiliates", GetAffiliates)
 	})
+	r.Route("/volumes", volume)
 
 }
 
