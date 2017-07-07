@@ -3,7 +3,7 @@
 set -e
 
 # need root for installs
-sudo su
+sudo -s <<EOF
 
 # for fdk-aac
 sed -i "/^# deb.*multiverse/ s/^# //" /etc/apt/sources.list
@@ -32,7 +32,7 @@ wget -qO- https://get.docker.com/ | sh
 exit
 
 sudo usermod -aG docker $USER
-su - $USER
+su - $USER <<EOF
 
 cd ~
 
