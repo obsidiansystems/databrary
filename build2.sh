@@ -21,7 +21,7 @@ cd ~/src
 git clone git://github.com/databrary/databrary
 
 # make postgres and solr containers
-cd src/Docker
+cd ~/src/databrary/Docker
 docker volume create --name databrary_postgres_store
 docker build -t databrary_postgres postgres/
 docker run -d -v databrary_postgres_store:/var/lib/postgresql/data -p 5432:5432 --rm --name databrary_postgres databrary_postgres
