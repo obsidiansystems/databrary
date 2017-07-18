@@ -18,6 +18,7 @@ apt-get update && apt-get install -y libgmp-dev git yasm npm libcrack2-dev gcc g
 		   
 
 curl -L https://github.com/docker/compose/releases/download/$dockerComposeVersion/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
 
 # nonstandard node binary
 ln -s /usr/bin/nodejs /usr/bin/node
