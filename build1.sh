@@ -31,4 +31,5 @@ make && make install
 wget -qO- https://get.docker.com/ | sh
 usermod -aG docker $CURRENTUSER
 su - $CURRENTUSER
+su - $CURRENTUSER
 
