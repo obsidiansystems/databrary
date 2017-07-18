@@ -2,6 +2,7 @@
 #!/bin/bash
 set -e
 CURRENTUSER=$USER
+dockerComposeVersion=1.14.0
 # need root for installs
 sudo -s <<EOF
 
@@ -14,6 +15,10 @@ echo 'deb http://us.archive.ubuntu.com/ubuntu/ xenial-updates multiverse' >> /et
 apt-get update && apt-get install -y libgmp-dev git yasm npm libcrack2-dev gcc g++ autoconf automake zlib1g-dev \
 		   libmp3lame-dev libx264-dev libfdk-aac-dev libavformat-dev libswscale-dev libavcodec-dev libavutil-dev curl \
 		   pkg-config vim ssmtp postgresql-client libgmp3-dev libz-dev git vim
+		   
+
+curl -L https://github.com/docker/compose/releases/download/$dockerComposeVersion/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
 
 # nonstandard node binary
 ln -s /usr/bin/nodejs /usr/bin/node

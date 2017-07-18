@@ -36,8 +36,8 @@ cd ~/src/databrary
 
 # cabal sandbox
 cabal sandbox init
-cabal install happy --force-reinstalls
-cabal install --only-dependencies --force-reinstalls
+cabal install happy --force-reinstalls --ghc-options=-O0
+cabal install --only-dependencies --force-reinstalls --ghc-options=-O0
 cabal configure 
 cp example.conf databrary.conf
-yes | cabal install 
+yes | cabal install --ghc-options=-O0
