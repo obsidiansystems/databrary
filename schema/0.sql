@@ -957,7 +957,7 @@ COMMENT ON TABLE audit."analytic" IS 'Analytics data collected and reported by t
 
 ----------------------------------------------------------- bootstrap/test data
 
-INSERT INTO party (id, prename, sortname, orcid, affiliation) VALUES (1, 'Dylan', 'Simon', '0000000227931679', 'Databrary');
+INSERT INTO party (id, prename, sortname, affiliation) VALUES (1, 'Admin', 'Admin', 'Databrary');
 INSERT INTO party (id, prename, sortname, affiliation) VALUES (3, 'Lisa', 'Steiger', 'Databrary');
 INSERT INTO party (id, prename, sortname, affiliation) VALUES (5, 'Karen', 'Adolph', 'New York University');
 INSERT INTO party (id, prename, sortname, affiliation) VALUES (6, 'Rick', 'Gilmore', 'Penn State University');
