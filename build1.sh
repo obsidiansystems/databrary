@@ -1,7 +1,7 @@
 # this is just for fdkaac
 #!/bin/bash
 set -e
-
+CURRENTUSER=$USER
 # need root for installs
 sudo -s <<EOF
 
@@ -24,13 +24,11 @@ git clone git://source.ffmpeg.org/ffmpeg.git
 cd ffmpeg
 git remote update origin
 ffmpeg=2.8.x && ffmpeg=`git describe --abbrev=0 origin/release/${ffmpeg%.x}` && ffmpeg=${ffmpeg#u} && git checkout $ffmpeg
-#./configure --enable-gpl --enable-version3 --enable-nonfree --enable-libx264 --enable-libfdk-aac --enable-libmp3lame # --extra-ldexeflags='-lcr_-u cr_run_link_me'
-#make && make install
+./configure --enable-gpl --enable-version3 --enable-nonfree --enable-libx264 --enable-libfdk-aac --enable-libmp3lame # --extra-ldexeflags='-lcr_-u cr_run_link_me'
+make && make install
 
 #get docker
 wget -qO- https://get.docker.com/ | sh
-exit
+usermod -aG docker $CURRENTUSER
+su - $CURRENTUSER
 
-sudo usermod -aG docker $USER
-#exec su -l $USER
-su - $USER
