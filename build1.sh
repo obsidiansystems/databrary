@@ -13,7 +13,7 @@ echo 'deb http://us.archive.ubuntu.com/ubuntu/ xenial-updates multiverse' >> /et
 # deps
 apt-get update && apt-get install -y libgmp-dev git yasm npm libcrack2-dev gcc g++ autoconf automake zlib1g-dev \
 		   libmp3lame-dev libx264-dev libfdk-aac-dev libavformat-dev libswscale-dev libavcodec-dev libavutil-dev curl \
-		   pkg-config vim ssmtp postgresql-client libgmp3-dev libz-dev
+		   pkg-config vim ssmtp postgresql-client libgmp3-dev libz-dev git vim
 
 # nonstandard node binary
 ln -s /usr/bin/nodejs /usr/bin/node
