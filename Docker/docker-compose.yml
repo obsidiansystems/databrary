@@ -20,5 +20,3 @@ volumes:
     external: true
   databrary_postgres_store:
     external: true
-  databrary_logs_store:
-    external: true
