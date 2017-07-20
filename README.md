@@ -108,7 +108,7 @@ cabal install --only-dependencies --force-reinstalls
 if you want turn on the development flag (which does various things - search this repo for DEVEL) then you can run
 
 ```bash
-cabal configure -- -f devel
+cabal configure -f devel
 ```
 
 otherwise just
