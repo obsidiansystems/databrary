@@ -1,3 +1,4 @@
+//Viper for config
 package config
 
 import (
@@ -6,8 +7,11 @@ import (
 	"github.com/spf13/viper"
 )
 
+// Use a persistent pointer but don't export in order to implement reasonable
+// initialization semantics
 var vprConf *viper.Viper
 
+// Initialize config object. Panics on error
 func InitConf(config_path string) *viper.Viper {
 	if vprConf != nil {
 		return vprConf
@@ -23,6 +27,7 @@ func InitConf(config_path string) *viper.Viper {
 	return vprConf
 }
 
+// Get already initialized config object. Panics if uninitialized
 func GetConf() *viper.Viper {
 	if vprConf == nil {
 		panic("tried to get uninited config")

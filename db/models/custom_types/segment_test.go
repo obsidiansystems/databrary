@@ -11,18 +11,19 @@ import (
 	"path/filepath"
 )
 
-var connSegment *sqlx.DB
+var dbConn *sqlx.DB
 
 func TestSegment(t *testing.T) {
 	var err error
 	GOPATH := os.Getenv("GOPATH")
 	config.InitConf(filepath.Join(GOPATH, "src/github.com/databrary/databrary/config/databrary_test.toml"))
 	conf := config.GetConf()
-	connSegment, err = db.OpenConn(conf)
+	// initialize db connection
+	err = db.InitDB(conf)
 	if err != nil {
-		t.Fatal(err)
+		panic(err.Error())
 	}
-	defer connSegment.Close()
+	defer dbConn.Close()
 
 	t.Run("testNewSegment", testNewSegment)
 	t.Run("testSegment_Contains", testSegment_Contains)
@@ -649,16 +650,17 @@ func testSegment_Scan(t *testing.T) {
 	GOPATH := os.Getenv("GOPATH")
 	config.InitConf(filepath.Join(GOPATH, "src/github.com/databrary/databrary/config/databrary_test.toml"))
 	conf := config.GetConf()
-	connSegment, err = db.OpenConn(conf)
+	err = db.InitDB(conf)
 	if err != nil {
-		t.Fatal(err)
+		panic(err.Error())
 	}
-	defer connSegment.Close()
+
+	defer dbConn.Close()
 
 	var segment *Segment
 
 	testBidirectional := func(s Segment, label string) {
-		rows, err := connSegment.Query("SELECT $1::segment", s)
+		rows, err := dbConn.Query("SELECT $1::segment", s)
 		if err != nil {
 			t.Fatalf("re-query %s segment failed: %s", label, err)
 		}
@@ -711,7 +713,7 @@ func testNullSegment(t *testing.T) {
 	var segment *NullSegment
 
 	//// Test scanning NULL values
-	rows, err := connSegment.Query("SELECT NULL::segment")
+	rows, err := dbConn.Query("SELECT NULL::segment")
 	if err != nil {
 		t.Fatalf("db error %s", err)
 	}
@@ -728,7 +730,7 @@ func testNullSegment(t *testing.T) {
 	}
 
 	// Test setting NULL values
-	rows, err = connSegment.Query("SELECT $1::segment", segment)
+	rows, err = dbConn.Query("SELECT $1::segment", segment)
 	if err != nil {
 		t.Fatalf("re-query null value failed: %s", err.Error())
 	}

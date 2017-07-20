@@ -9,12 +9,11 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Action Enum
+// The various activities for which we keep audit records (in audit or a derived table).
 type Action string
 
-// The various activities for which we keep audit records (in audit or a derived table).
-// TODO: uppercase in schema
 const (
+	// TODO: these should be uppercased in schema
 	ActionATTEMPT   Action = Action("attempt")
 	ActionOPEN      Action = Action("open")
 	ActionCLOSE     Action = Action("close")
@@ -27,8 +26,10 @@ const (
 var ALLACTIONS = set.NewSetWith(ActionATTEMPT, ActionOPEN, ActionCLOSE, ActionADD,
 	ActionCHANGE, ActionREMOVE, ActionSUPERUSER)
 
+// Implements Scanner interface.
+// This is what is used to convert a column of type action from a postgres query
+// into this Go type. The argument has the []byte representation of the column.
 func (act *Action) Scan(value interface{}) error {
-	*act = ""
 	if value == nil {
 		err, _ := log.LogWrapErr(nil, "scanned NULL action (did you mean to use NullAction)")
 		return err
@@ -46,6 +47,8 @@ func (act *Action) Scan(value interface{}) error {
 	}
 }
 
+// Implements Value interface
+// This is what is used to convert a  Go type action to a postgres type.
 func (act Action) Value() (driver.Value, error) {
 	if !ALLACTIONS.Contains(act) {
 		err, _ := log.LogWrapErr(nil, "invalid Action", "%#v", act)
@@ -54,11 +57,16 @@ func (act Action) Value() (driver.Value, error) {
 	return []byte(string(act)), nil
 }
 
+// Nullable action. Just a wrapper around Action.
 type NullAction struct {
 	Action Action
 	Valid  bool
 }
 
+// Implements Scanner interface.
+// This is what is used to convert a column of type action from a postgres query
+// into this Go type. The argument has the []byte representation of the column.
+// Null scan to  act.Valid == false.
 func (act *NullAction) Scan(value interface{}) error {
 	if value == nil {
 		act.Action, act.Valid = "", false
@@ -74,6 +82,9 @@ func (act *NullAction) Scan(value interface{}) error {
 	}
 }
 
+// Implements Valuer interface
+// This is what is used to convert a  Go type action to a postgres type.
+// Valid == false turns into a Null value.
 func (act NullAction) Value() (driver.Value, error) {
 	if !act.Valid {
 		return nil, nil

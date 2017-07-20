@@ -6,17 +6,17 @@ and [xo](https://github.com/knq/xo).
 
 Note that you can't change `sqlboiler.toml` to any other name
 because the `sqlboiler` executable expects that to be the name
-of its config file. Also the `templates/templates...` directory structure
+of its config file. Also the `sqlboiler/templates/templates...` directory structure
 is necessary because sqlboiler expects a base directory where
 all of the templates are kept.
 
-The version of sqlboiler though has been heavily modified to enable use of "custom types". The forked version is @
-[makslevental/sqlboiler](https://github.com/makslevental/sqlboiler).
+The version of sqlboiler though has been heavily modified to enable use of "custom types".
 
 Here are the commands to generate the models
 
 ```bash
-./sqlboiler postgres --basedir templates/ -o models/sqlboiler_models/public -p public
+go sqlboiler github.com/databrary/sqlboiler
+sqlboiler postgres --basedir templates/ -o models/sqlboiler_models/public -p public
 rsync -avpP models/sqlboiler_models/ ../../db/models/sqlboiler_models/
 
 ```
