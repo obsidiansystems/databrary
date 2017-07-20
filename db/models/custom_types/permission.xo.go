@@ -105,11 +105,16 @@ func (p *Permission) Scan(src interface{}) error {
 	return p.UnmarshalText(buf)
 }
 
+// Nullable Permission. Just a wrapper around Permission.
 type NullPermission struct {
 	Permission Permission
 	Valid      bool
 }
 
+// Implements Scanner interface.
+// This is what is used to convert a column of type action from a postgres query
+// into this Go type. The argument has the []byte representation of the column.
+// Null columns scan to nv.Valid == false.
 func (nv *NullPermission) Scan(value interface{}) error {
 	if value == nil {
 		nv.Permission, nv.Valid = Permission(0), false
@@ -125,6 +130,9 @@ func (nv *NullPermission) Scan(value interface{}) error {
 	}
 }
 
+// Implements Valuer interface
+// This is what is used to convert a  Go type action to a postgres type.
+// Valid == false turns into a Null value.
 func (nv NullPermission) Value() (driver.Value, error) {
 	if !nv.Valid {
 		return nil, nil
@@ -132,10 +140,16 @@ func (nv NullPermission) Value() (driver.Value, error) {
 	return nv.Permission.Value()
 }
 
+// This function is used for testing SQLBoiler models, i.e. randomization
+// for models that have a NullPermission column.
+// Obviously it's not random but it doesn't really need to be anyway.
 func NullPermissionRandom() NullPermission {
 	return NullPermission{PermissionAdmin, true}
 }
 
+// This function is used for testing SQLBoiler models, i.e. randomization
+// for models that have a Permission column.
+// Obviously it's not random but it doesn't really need to be anyway.
 func PermissionRandom() Permission {
 	return PermissionAdmin
 }

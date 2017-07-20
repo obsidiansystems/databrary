@@ -22,9 +22,10 @@ func TestInet(t *testing.T) {
 	GOPATH := os.Getenv("GOPATH")
 	config.InitConf(filepath.Join(GOPATH, "src/github.com/databrary/databrary/config/databrary_test.toml"))
 	conf := config.GetConf()
-	connInet, err = db.OpenConn(conf)
+	// initialize db connection
+	err = db.InitDB(conf)
 	if err != nil {
-		t.Fatal(err)
+		panic(err.Error())
 	}
 	defer connInet.Close()
 

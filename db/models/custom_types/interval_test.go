@@ -19,9 +19,10 @@ func TestInterval(t *testing.T) {
 	config.InitConf(filepath.Join(GOPATH, "src/github.com/databrary/databrary/config/databrary_test.toml"))
 	conf := config.GetConf()
 	var err error
-	connInterval, err = db.OpenConn(conf)
+	// initialize db connection
+	err = db.InitDB(conf)
 	if err != nil {
-		t.Error("failed to open db connInet")
+		panic(err.Error())
 	}
 	defer connInterval.Close()
 	t.Run("non null", testIntervalNonNull)

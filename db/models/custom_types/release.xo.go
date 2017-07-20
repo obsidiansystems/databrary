@@ -87,11 +87,16 @@ func (r *Release) Scan(src interface{}) error {
 	return r.UnmarshalText(buf)
 }
 
+// Nullable Release. Just a wrapper around Release.
 type NullRelease struct {
 	Release Release
 	Valid   bool
 }
 
+// Implements Scanner interface.
+// This is what is used to convert a column of type action from a postgres query
+// into this Go type. The argument has the []byte representation of the column.
+// Null columns scan to nv.Valid == false.
 func (nv *NullRelease) Scan(value interface{}) error {
 	if value == nil {
 		nv.Release, nv.Valid = Release(0), false
@@ -107,6 +112,9 @@ func (nv *NullRelease) Scan(value interface{}) error {
 	}
 }
 
+// Implements Valuer interface
+// This is what is used to convert a  Go type action to a postgres type.
+// Valid == false turns into a Null value.
 func (nv NullRelease) Value() (driver.Value, error) {
 	if !nv.Valid {
 		return nil, nil
@@ -114,10 +122,16 @@ func (nv NullRelease) Value() (driver.Value, error) {
 	return nv.Release.Value()
 }
 
+// This function is used for testing SQLBoiler models, i.e. randomization
+// for models that have a NullRelease column.
+// Obviously it's not random but it doesn't really need to be anyway.
 func NullReleaseRandom() NullRelease {
 	return NullRelease{ReleasePrivate, true}
 }
 
+// This function is used for testing SQLBoiler models, i.e. randomization
+// for models that have a Release column.
+// Obviously it's not random but it doesn't really need to be anyway.
 func ReleaseRandom() Release {
 	return ReleasePrivate
 }

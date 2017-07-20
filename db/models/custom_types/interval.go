@@ -51,22 +51,27 @@ func NewIntervalFromString(inter string) Interval {
 	return i
 }
 
+// Less than
 func (i Interval) LT(j Interval) bool {
 	return i.interval < j.interval
 }
 
+// Equal
 func (i Interval) EQ(j Interval) bool {
 	return i.interval == j.interval
 }
 
+// Less or Equal
 func (i Interval) LE(j Interval) bool {
 	return i.LT(j) || i.EQ(j)
 }
 
+// Greater than
 func (i Interval) GT(j Interval) bool {
 	return !i.LE(j)
 }
 
+// Greater than or equal
 func (i Interval) GE(j Interval) bool {
 	return i.GT(j) || i.EQ(j)
 }
@@ -86,6 +91,7 @@ func (i *Interval) String() string {
 	return s
 }
 
+// Scan satisfies the database/sql.Scanner interface for Interval.
 func (i *Interval) Scan(value interface{}) error {
 	intervalAsBytes, ok := value.([]byte)
 	if !ok {
@@ -127,16 +133,21 @@ func (i *Interval) Scan(value interface{}) error {
 	return nil
 }
 
+// Value satisfies the sql/driver.Valuer interface for Interval.
 func (i Interval) Value() (driver.Value, error) {
 	return []byte(i.String()), nil
 }
 
+// Nullable Interval. Just a wrapper around Interval.
 type NullInterval struct {
 	Interval Interval
 	Valid    bool
 }
 
-// this is not time.Interval but an alias for postgres interval hour to sec (3)
+// Implements Scanner interface.
+// This is what is used to convert a column of type action from a postgres query
+// into this Go type. The argument has the []byte representation of the column.
+// Null columns scan to nv.Valid == false.
 func (nv *NullInterval) Scan(value interface{}) error {
 	if value == nil {
 		nv.Interval, nv.Valid = Interval{}, false
@@ -152,6 +163,9 @@ func (nv *NullInterval) Scan(value interface{}) error {
 	}
 }
 
+// Implements Valuer interface
+// This is what is used to convert a  Go type action to a postgres type.
+// Valid == false turns into a Null value.
 func (nv NullInterval) Value() (driver.Value, error) {
 	if !nv.Valid {
 		return nil, nil
@@ -159,11 +173,17 @@ func (nv NullInterval) Value() (driver.Value, error) {
 	return nv.Interval.Value()
 }
 
+// This function is used for testing SQLBoiler models, i.e. randomization
+// for models that have a Interval column.
+// Obviously it's not random but it doesn't really need to be anyway.
 func IntervalRandom() Interval {
 	d1, _ := time.ParseDuration("1m")
 	return Interval{d1}
 }
 
+// This function is used for testing SQLBoiler models, i.e. randomization
+// for models that have a NullInterval column.
+// Obviously it's not random but it doesn't really need to be anyway.
 func NullIntervalRandom() NullInterval {
 	seg := IntervalRandom()
 	return NullInterval{seg, true}

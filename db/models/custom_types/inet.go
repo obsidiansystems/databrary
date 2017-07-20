@@ -37,11 +37,16 @@ func (i Inet) Value() (driver.Value, error) {
 	return net.IP(i).String(), nil
 }
 
+// Nullable Inet. Just a wrapper around Inet.
 type NullInet struct {
 	Inet  Inet
 	Valid bool
 }
 
+// Implements Scanner interface.
+// This is what is used to convert a column of type action from a postgres query
+// into this Go type. The argument has the []byte representation of the column.
+// Null columns scan to nv.Valid == false.
 func (ni *NullInet) Scan(value interface{}) error {
 	if value == nil {
 		ni.Inet, ni.Valid = Inet{}, false
@@ -57,6 +62,9 @@ func (ni *NullInet) Scan(value interface{}) error {
 	}
 }
 
+// Implements Valuer interface
+// This is what is used to convert a  Go type action to a postgres type.
+// Valid == false turns into a Null value.
 func (ni NullInet) Value() (driver.Value, error) {
 	if !ni.Valid {
 		return nil, nil

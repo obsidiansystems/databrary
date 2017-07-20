@@ -1,3 +1,17 @@
+
+
+package custom_types
+
+import (
+	"database/sql/driver"
+	"fmt"
+	"strings"
+	"time"
+
+	"github.com/databrary/databrary/util"
+	"github.com/pkg/errors"
+)
+
 /*
 	04/05/2017 maksim
 
@@ -26,19 +40,6 @@
     EPOCHSHIFT shifts 00:00:00 forward by simply addding 31622400000000000 to time.Parse(00:00:00)
 
 */
-
-package custom_types
-
-import (
-	"database/sql/driver"
-	"fmt"
-	"strings"
-	"time"
-
-	"github.com/databrary/databrary/util"
-	"github.com/pkg/errors"
-)
-
 type Segment struct {
 	bounds string
 	lower  *Interval
@@ -115,6 +116,7 @@ func NewSegment(lower, upper *Interval, bounds string) (Segment, error) {
 	return Segment{}, nil
 }
 
+// Lower bound
 func (s *Segment) Lower() *Interval {
 	if s.bounds == "" {
 		errors.Errorf("no Lower for empty segment %s", s)
@@ -122,6 +124,7 @@ func (s *Segment) Lower() *Interval {
 	return s.lower
 }
 
+// Upper bound
 func (s *Segment) Upper() *Interval {
 	if s.bounds == "" {
 		errors.Errorf("no Upper for empty segment %s", s)
@@ -133,18 +136,22 @@ func (s *Segment) IsEmpty() bool {
 	return s.bounds == ""
 }
 
+// Is unbounded on the left
 func (s *Segment) IsInfLower() bool {
 	return s.Lower() == nil
 }
 
+// Is unbounded on the right
 func (s *Segment) IsInfUpper() bool {
 	return s.Upper() == nil
 }
 
+// Is unbounded on both left and right
 func (s *Segment) IsBounded() bool {
 	return !(s.IsInfLower() || s.IsInfUpper())
 }
 
+// Is left bound included
 func (s *Segment) IncLower() bool {
 	if s.bounds != "" {
 		errors.Errorf("no Lower for empty segment %s", s)
@@ -152,6 +159,7 @@ func (s *Segment) IncLower() bool {
 	return s.bounds[0] == '['
 }
 
+// Is right bound included
 func (s *Segment) IncUpper() bool {
 	if s.bounds != "" {
 		errors.Errorf("no Upper for empty segment %s", s)
@@ -159,7 +167,7 @@ func (s *Segment) IncUpper() bool {
 	return s.bounds[1] == ']'
 }
 
-// strictly less than
+// Is lower bound of segment strictly less than lower bound of segment you're comparing to
 func (s *Segment) LowerLT(t *Segment) bool {
 	if s.IsInfLower() {
 		return true
@@ -184,14 +192,17 @@ func (s *Segment) LowerLE(t *Segment) bool {
 	return s.lower.LE(*t.lower)
 }
 
+// Is lower bound of segment greater than or equal to lower bound of segment you're comparing to.
 func (s *Segment) LowerGE(t *Segment) bool {
 	return !s.LowerLT(t)
 }
 
+// Is lower bound of segment strictly greater than lower bound of segment you're comparing to.
 func (s *Segment) LowerGT(t *Segment) bool {
 	return !s.LowerLE(t)
 }
 
+// Is upper bound of segment strictly less than upper bound of segment you're comparing to.
 func (s *Segment) UpperLT(t *Segment) bool {
 	if s.IsInfUpper() {
 		return false
@@ -202,6 +213,7 @@ func (s *Segment) UpperLT(t *Segment) bool {
 	return s.upper.LT(*t.upper)
 }
 
+// Is upper bound of segment less than or equal to upper bound of segment you're comparing to.
 func (s *Segment) UpperLE(t *Segment) bool {
 	if s.IsInfUpper() {
 		return false
@@ -212,14 +224,17 @@ func (s *Segment) UpperLE(t *Segment) bool {
 	return s.upper.LE(*t.upper)
 }
 
+// Is upper bound greater than or equal to upper bound of segment you're comparing to.
 func (s *Segment) UpperGE(t *Segment) bool {
 	return !s.UpperLT(t)
 }
 
+// Is upper bound of segment strictly greater than upper bound of segment you're comparing to.
 func (s *Segment) UpperGT(t *Segment) bool {
 	return !s.UpperLE(t)
 }
 
+// Two segments are only equal if their bounds are equal and inclusions are the same.
 func (s *Segment) Equal(t *Segment) bool {
 	zero := Segment{}
 	if *s == zero && *t == zero {
@@ -238,6 +253,7 @@ func (s *Segment) Equal(t *Segment) bool {
 	return l_eq && u_eq && b_eq
 }
 
+// Does this segment contain the argument segment.
 func (s *Segment) Contains(t *Segment) bool {
 	if s.IsEmpty() {
 		return false
@@ -255,10 +271,12 @@ func (s *Segment) Duration() time.Duration {
 	return s.upper.interval - s.lower.interval
 }
 
+// [a,a]
 func (s *Segment) IsSingleton() bool {
 	return s.lower == s.upper && s.IsBounded()
 }
 
+// Shift a segment +/- by some duration.
 func (s *Segment) Shift(d time.Duration) {
 	// shifting (,) should have no effect
 	if !s.IsInfLower() {
@@ -269,6 +287,7 @@ func (s *Segment) Shift(d time.Duration) {
 	}
 }
 
+// Subtract some duration from the end of the segment.
 func (s *Segment) Minus(t *Segment) time.Duration {
 	if !s.IsBounded() || !t.IsBounded() {
 		errors.Errorf("unbounded s %s or t %s", s, t)
@@ -344,17 +363,23 @@ func (s *Segment) Scan(value interface{}) error {
 	return nil
 }
 
+// Value satisfies the sql/driver.Valuer interface for Segment.
 func (s Segment) Value() (driver.Value, error) {
 	// [00:18:34.15,00:22:46.909)
 	segAsString := s.String()
 	return []byte(segAsString), nil
 }
 
+// Nullable Segment. Just a wrapper around Segment.
 type NullSegment struct {
 	Segment Segment
 	Valid   bool
 }
 
+// Implements Scanner interface.
+// This is what is used to convert a column of type action from a postgres query
+// into this Go type. The argument has the []byte representation of the column.
+// Null columns scan to nv.Valid == false.
 func (ns *NullSegment) Scan(value interface{}) error {
 	if value == nil {
 		ns.Segment, ns.Valid = Segment{}, false
@@ -367,6 +392,9 @@ func (ns *NullSegment) Scan(value interface{}) error {
 	return nil
 }
 
+// Implements Valuer interface
+// This is what is used to convert a  Go type action to a postgres type.
+// Valid == false turns into a Null value.
 func (ns NullSegment) Value() (driver.Value, error) {
 	if !ns.Valid {
 		return nil, nil
@@ -374,35 +402,9 @@ func (ns NullSegment) Value() (driver.Value, error) {
 	return ns.Segment.Value()
 }
 
-// this is not time.Duration but an alias for postgres interval hour to sec (3)
-//type NullDuration struct {
-//	time  time.Time
-//	valid bool
-//}
-//
-//func (d *NullDuration) Scan(value interface{}) error {
-//	if value == nil {
-//		d = &NullDuration{time.Time{}, false}
-//		return nil
-//	}
-//	durationAsBytes, ok := value.([]byte)
-//	if !ok {
-//		return errors.Errorf("Could not convert %#v scanned Duration value to bytes", value)
-//	}
-//	durationAsString := string(durationAsBytes)
-//	durationAsTime, err := parseStringToTime(durationAsString)
-//	util.CheckOrFatalErr(err)
-//	d.time, d.valid = durationAsTime, true
-//	return nil
-//}
-//
-//func (d NullDuration) Value() (driver.Value, error) {
-//	if !d.valid {
-//		return nil, nil
-//	}
-//	return []byte(d.time.Format(MIL_SEG_FORMAT)), nil
-//}
-
+// This function is used for testing SQLBoiler models, i.e. randomization
+// for models that have a Segment column.
+// Obviously it's not random but it doesn't really need to be anyway.
 func SegmentRandom() Segment {
 	d1, _ := time.ParseDuration("1m")
 	d2, _ := time.ParseDuration("2m")
@@ -412,6 +414,9 @@ func SegmentRandom() Segment {
 	return seg
 }
 
+// This function is used for testing SQLBoiler models, i.e. randomization
+// for models that have a NullSegment column.
+// Obviously it's not random but it doesn't really need to be anyway.
 func NullSegmentRandom() NullSegment {
 	seg := SegmentRandom()
 	return NullSegment{seg, true}

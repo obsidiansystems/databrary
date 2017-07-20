@@ -96,11 +96,16 @@ func (nd *NoticeDelivery) Scan(src interface{}) error {
 	return nd.UnmarshalText(buf)
 }
 
+// Nullable NoticeDelivery. Just a wrapper around NoticeDelivery.
 type NullNoticeDelivery struct {
 	NoticeDelivery NoticeDelivery
 	Valid          bool
 }
 
+// Implements Scanner interface.
+// This is what is used to convert a column of type action from a postgres query
+// into this Go type. The argument has the []byte representation of the column.
+// Null columns scan to nv.Valid == false.
 func (nv *NullNoticeDelivery) Scan(value interface{}) error {
 	if value == nil {
 		nv.NoticeDelivery, nv.Valid = NoticeDelivery(0), false
@@ -116,6 +121,9 @@ func (nv *NullNoticeDelivery) Scan(value interface{}) error {
 	}
 }
 
+// Implements Valuer interface
+// This is what is used to convert a  Go type action to a postgres type.
+// Valid == false turns into a Null value.
 func (nv NullNoticeDelivery) Value() (driver.Value, error) {
 	if !nv.Valid {
 		return nil, nil
@@ -123,11 +131,17 @@ func (nv NullNoticeDelivery) Value() (driver.Value, error) {
 	return nv.NoticeDelivery.Value()
 }
 
+// This function is used for testing SQLBoiler models, i.e. randomization
+// for models that have a NoticeDelivery column.
+// Obviously it's not random but it doesn't really need to be anyway.
 func NoticeDeliveryRandom() NoticeDelivery {
 	return NoticeDeliveryAsync
 
 }
 
+// This function is used for testing SQLBoiler models, i.e. randomization
+// for models that have a NullNoticeDelivery column.
+// Obviously it's not random but it doesn't really need to be anyway.
 func NullNoticeDeliveryRandom() NullNoticeDelivery {
 	return NullNoticeDelivery{NoticeDeliveryAsync, true}
 
