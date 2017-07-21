@@ -1,3 +1,4 @@
+// All of the API routes
 package routes
 
 import (
@@ -19,17 +20,24 @@ import (
 	"sync"
 )
 
-// A completely separate router for administrator routes
+// All of the API routes
 func Api() http.Handler {
 	r := chi.NewRouter()
+	// all of the /api/user routes
 	r.Route("/user", user)
+	// logged-in status
 	r.Get("/loggedin", IsLoggedInEndpoint)
+	// report errors from front-end
 	r.Post("/report-error", ReportError)
+	// list of affiliation to select from
 	r.Get("/autocomplete-affil", AutoCompleteAffil)
+	// landing page marque site stats
 	r.Get("/site-stats", GetSiteStats)
 	return r
 }
 
+// Parse the URI that is being accessed and the IP of the connection.
+// Useful for logging.
 func NetInfoLogEntry(r *http.Request) *logrus.Entry {
 	fields := logrus.Fields(map[string]interface{}{
 		"uri": r.RequestURI,
@@ -38,35 +46,50 @@ func NetInfoLogEntry(r *http.Request) *logrus.Entry {
 	return log.Logger.WithFields(fields)
 }
 
+// All of the /api/user routes
 func user(r chi.Router) {
 
+	// login and get a cookie
 	r.Post("/login", PostLogin)
+	// logout and delete cookie
 	r.Post("/logout", PostLogOut)
+	// this is a test get endpoint
 	r.Get("/login", GetLogin) //TODO remove
 
+	// submit email that password should be reset for
 	r.Post("/reset-password/email", ResetPasswordEmail)
+	// submit reset password token (emailed to user)
 	r.Post("/reset-password/token", ResetPasswordToken)
 
+	// tests whether a user exists (to check for email collision)
 	r.Get("/exists", UserExists)
+	// check to see if cookie token has expired
 	r.Post("/check-token", CheckTokenExpiryEndpoint)
 
 	r.Post("/register", Register)
 
+	// your (logged in users) profile. should probably refactored
+	// to enable other people to look at someone's profile
 	r.With(IsLoggedInHandler).Group(func(r chi.Router) {
 		r.Route("/profile", func(r chi.Router) {
 			r.Get("/", GetProfile)
 			r.Patch("/", PatchProfile)
 		})
+		// a user's affiliates
 		r.Get("/affiliates", GetAffiliates)
 	})
+	// all volumes
 	r.Route("/volumes", volume)
 
 }
 
+// Websocket implementation for autocomplete of affiliation in registration form
 func AutoCompleteAffil(w http.ResponseWriter, r *http.Request) {
 	mrouter := melody.New()
 	lock := new(sync.Mutex)
 	nInfo := NetInfoLogEntry(r)
+
+	// Handle websocket connection
 	mrouter.HandleConnect(func(s *melody.Session) {
 
 		dbConn, err := db.GetDbConn()
@@ -76,7 +99,13 @@ func AutoCompleteAffil(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		affilsPartySlice, err := public.Parties(dbConn, qm.Select("distinct affiliation"), qm.Where("affiliation IS NOT NULL")).All()
+		// get all affiliations from db and then filter here in go
+		affilsPartySlice, err := public.Parties(
+			dbConn,
+			qm.Select("distinct affiliation"),
+			qm.Where("affiliation IS NOT NULL"),
+		).All()
+
 		if err != nil {
 			log.EntryWrapErr(nInfo, err, "couldn't get affils")
 			return
@@ -92,12 +121,15 @@ func AutoCompleteAffil(w http.ResponseWriter, r *http.Request) {
 
 	})
 
+	// Handle websocket message from front-end (which should have affiliation characters
 	mrouter.HandleMessage(func(s *melody.Session, affil []byte) {
 		affiliations, err := s.Get("affiliations")
 		if err == false {
 			log.EntryWrapErr(nInfo, nil, "couldn't get affils")
 			return
 		}
+
+		// search for matching affiliations
 		matchingAffiliations := fuzzy.RankFindFold(string(affil), affiliations.([]string))
 		sort.Sort(matchingAffiliations)
 		lenResults := 20
@@ -123,11 +155,12 @@ func AutoCompleteAffil(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Send error emails to administrator
 func ReportError(w http.ResponseWriter, r *http.Request) {
 	nInfo := NetInfoLogEntry(r)
 	body, err := ioutil.ReadAll(r.Body)
 	if err == nil {
-		mail.SendEmail(string(body), "Databrary Error", "maksim.levental@nyu.edu")
+		mail.SendEmail(string(body), "Databrary Error", "admin@databrary.org")
 	} else {
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't send report error email")
 		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
@@ -135,16 +168,21 @@ func ReportError(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// Marquee site stats. To get a sense for what stats are returned
+// just run the queries against a live postgres db.
 func GetSiteStats(w http.ResponseWriter, r *http.Request) {
 	nInfo := NetInfoLogEntry(r)
+
+	// Haskell code that used to generate it just for reference
 	/*
-			  ac <- dbQuery [pgSQL|SELECT site, count(child) FROM authorize_view WHERE parent = 0 AND child > 4 GROUP BY site|]
-		  v <- dbQuery1' [pgSQL|SELECT count(id) FROM volume WHERE id > 0|]
-		  vs <- dbQuery1' [pgSQL|SELECT count(volume) FROM volume_access WHERE volume > 0 AND party = 0 AND children >= 'PUBLIC'|]
-		  (a, ad, ab) <- dbQuery1' [pgSQL|SELECT count(id), sum(duration), sum(size) FROM asset JOIN slot_asset ON asset = id WHERE volume > 0|]
-		  rc <- dbQuery [pgSQL|SELECT category, count(id) FROM record GROUP BY category ORDER BY category|]
+		ac <- dbQuery [pgSQL|SELECT site, count(child) FROM authorize_view WHERE parent = 0 AND child > 4 GROUP BY site|]
+		v <- dbQuery1' [pgSQL|SELECT count(id) FROM volume WHERE id > 0|]
+		vs <- dbQuery1' [pgSQL|SELECT count(volume) FROM volume_access WHERE volume > 0 AND party = 0 AND children >= 'PUBLIC'|]
+		(a, ad, ab) <- dbQuery1' [pgSQL|SELECT count(id), sum(duration), sum(size) FROM asset JOIN slot_asset ON asset = id WHERE volume > 0|]
+		rc <- dbQuery [pgSQL|SELECT category, count(id) FROM record GROUP BY category ORDER BY category|]
 	*/
 
+	// JSON shape that will be returned
 	data := struct {
 		Authorized []struct {
 			Site  string `json:"site"`

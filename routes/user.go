@@ -25,6 +25,8 @@ import (
 	"net/url"
 )
 
+// Login with credentials and get a cookie if user wants to be remembered.
+// Cookie only has redis token - no actual data is stored in the cookie.
 func PostLogin(w http.ResponseWriter, r *http.Request) {
 	var (
 		err, match      error
@@ -32,7 +34,6 @@ func PostLogin(w http.ResponseWriter, r *http.Request) {
 		email, password string
 		ok              bool
 		signature       []byte
-		qrm             qm.QueryMod
 	)
 	nInfo := NetInfoLogEntry(r)
 	if email, password, ok = r.BasicAuth(); !ok {
@@ -60,15 +61,14 @@ func PostLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	qrm = qm.Where("email = $1", email)
-
-	if ac, err = public_models.Accounts(dbConn, qrm).One(); err != nil {
+	if ac, err = public_models.Accounts(dbConn, qm.Where("email = $1", email)).One(); err != nil {
 		session.Destroy(w, r)
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't find account %#v", email)
 		util.JsonErrResp(w, http.StatusBadRequest, errorUuid)
 		return
 	}
 
+	// check if passwords match
 	// match is nil when pws match
 	match = bcrypt.CompareHashAndPassword([]byte(ac.Password.String), []byte(password))
 
@@ -79,6 +79,7 @@ func PostLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// regen token in case they have a stale token from something.
 	err = session.RegenerateToken(r)
 
 	if err != nil {
@@ -100,7 +101,9 @@ func PostLogin(w http.ResponseWriter, r *http.Request) {
 	err = session.PutBytes(r, "signature", signature)
 	err = session.PutInt(r, "accountId", ac.ID)
 	err = session.PutBool(r, "loggedIn", true)
-	// error here shouldn't be interfere with the user
+	// error here shouldn't interfere with the user
+	// worst case their login won't persist (but that doesn't mean we shouldn't let them in
+	// should probably log but i'm too lazy right now
 	_ = session.SetPersist(r, data.RememberMe)
 	err = session.Save(w, r)
 
@@ -119,14 +122,16 @@ func PostLogOut(w http.ResponseWriter, r *http.Request) {
 	util.WriteJSONResp(w, "ok", "success")
 }
 
-// don't do logging in here, do logging where called
+// Helper function for checking whether a user is logged in.
+// Since it's a helper it doesn't log errors but returns them.
+// Don't do logging in here, do logging where called
 func isLoggedIn(r *http.Request) (bool, int, error) {
 	signature, err := session.GetBytes(r, "signature")
 	accountId, err := session.GetInt(r, "accountId")
 	if err != nil {
 		return false, http.StatusInternalServerError, err
 	}
-	// if fresh or clear token
+	// if fresh clear token
 	if signature == nil || accountId == 0 {
 		return false, http.StatusUnauthorized, nil
 	}
@@ -143,6 +148,7 @@ func isLoggedIn(r *http.Request) (bool, int, error) {
 		return false, http.StatusBadRequest, errors.Wrapf(err, "couldn't find account id %d", ac.ID)
 	}
 
+	// check if cookie has expired due to password change
 	match := bcrypt.CompareHashAndPassword(signature, []byte(ac.Password.String))
 
 	if match != nil {
@@ -162,6 +168,8 @@ func isLoggedIn(r *http.Request) (bool, int, error) {
 	return true, http.StatusOK, nil
 }
 
+// Middleware handler for checking if user is logged. Should be stacked
+// before sensitive routes.
 func IsLoggedInHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		nInfo := NetInfoLogEntry(r)
@@ -184,6 +192,8 @@ func IsLoggedInHandler(next http.Handler) http.Handler {
 
 }
 
+// Logged in endpoint. For checking whether a cookie in user's cookie
+// store is a "logged in" cookie and still valid (password hasn't been changed).
 func IsLoggedInEndpoint(w http.ResponseWriter, r *http.Request) {
 	type loggedInPayload struct {
 		LoggedIn bool `json:"loggedIn"`
@@ -204,7 +214,7 @@ func IsLoggedInEndpoint(w http.ResponseWriter, r *http.Request) {
 	util.WriteJSONResp(w, "ok", loggedInPayload{loggedIn})
 }
 
-// the first stage of the reset password process - the auth token generation and email send
+// The first stage of the reset password process - the auth token generation and email send.
 func ResetPasswordEmail(w http.ResponseWriter, r *http.Request) {
 	session.Destroy(w, r)
 	data := struct {
@@ -234,12 +244,10 @@ func ResetPasswordEmail(w http.ResponseWriter, r *http.Request) {
 		// always report data sent to avoid tipping off brute-force attackers
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't locate account with email %#v", *data.Email)
 		_ = errorUuid
-		//util.JsonErrResp(w, http.StatusBadRequest, errorUuid)
-		util.WriteJSONResp(w, "ok", "success") //TODO
+		util.JsonErrResp(w, http.StatusBadRequest, errorUuid)
 		return
 	}
 
-	ac.Password = null.String{"", false}
 	tx, err := dbConn.Begin()
 
 	if err != nil {
@@ -248,6 +256,9 @@ func ResetPasswordEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// clear password so that if someone has unauthorized access using
+	// the old password they won't be able to login anymore
+	ac.Password = null.String{"", false}
 	err = ac.Update(tx, "password")
 
 	if err != nil {
@@ -287,6 +298,7 @@ func ResetPasswordEmail(w http.ResponseWriter, r *http.Request) {
 	util.WriteJSONResp(w, "ok", "success")
 }
 
+// Check to see whether a password recovery token has expired.
 func CheckTokenExpiryEndpoint(w http.ResponseWriter, r *http.Request) {
 	data := struct {
 		Token *string `json:"token"`
@@ -319,6 +331,7 @@ func CheckTokenExpiryEndpoint(w http.ResponseWriter, r *http.Request) {
 	util.WriteJSONResp(w, "ok", "success")
 }
 
+// Token expiry helper
 func checkTokenExpiry(token string) ([]byte, string, int, error) {
 	authUuid, err := uuid.FromString(token)
 
@@ -326,6 +339,7 @@ func checkTokenExpiry(token string) ([]byte, string, int, error) {
 		return nil, fmt.Sprintf("couldn't decode uuid %s", token), http.StatusBadRequest, err
 	}
 
+	// redis token is sha of that stored in cookie
 	b := sha256.Sum256(authUuid.Bytes())
 
 	if err != nil {
@@ -350,6 +364,7 @@ func checkTokenExpiry(token string) ([]byte, string, int, error) {
 	return authData, redisToken, 0, nil
 }
 
+// The actual reset password step of the reset password flow (as opposed to send email step).
 func ResetPasswordToken(w http.ResponseWriter, r *http.Request) {
 
 	session.Destroy(w, r)
@@ -473,20 +488,21 @@ func ResetPasswordToken(w http.ResponseWriter, r *http.Request) {
 	util.WriteJSONResp(w, "ok", "success")
 }
 
+// Check if user exists. This is a query param route i.e. ?email=bob@aol.com
 func UserExists(w http.ResponseWriter, r *http.Request) {
 	nInfo := NetInfoLogEntry(r)
-	returnFalse := func() {
+	returnAnswer := func(ans bool) {
 		util.WriteJSONResp(w, "ok", struct {
 			Exists bool `json:"exists"`
-		}{false},
+		}{ans},
 		)
 	}
 
 	rUrl, err := url.ParseRequestURI(r.RequestURI)
 
 	if err != nil {
-		log.EntryWrapErr(nInfo, err, "couldn't decode params from url", r.RequestURI)
-		returnFalse()
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't decode params from url", r.RequestURI)
+		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 		return
 	}
 
@@ -494,31 +510,29 @@ func UserExists(w http.ResponseWriter, r *http.Request) {
 	email := values.Get("email")
 
 	if email == "" {
-		log.EntryWrapErr(nInfo, err, "no email", r.RequestURI)
-		returnFalse()
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "no email", r.RequestURI)
+		util.JsonErrResp(w, http.StatusBadRequest, errorUuid)
 		return
 	}
 
 	dbConn, err := db.GetDbConn()
 
 	if err != nil {
-		log.EntryWrapErr(nInfo, err, "couldn't open db conn")
-		returnFalse()
+		_, errorUuid := log.EntryWrapErr(nInfo, err, "couldn't open db conn")
+		util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 		return
 	}
 
 	_, err = public_models.Accounts(dbConn, qm.Where("email = $1", email)).One()
-
 	if err == nil {
-		util.WriteJSONResp(w, "ok", struct {
-			Exists bool `json:"exists"`
-		}{true},
-		)
+		returnAnswer(true)
 	} else {
-		returnFalse()
+		returnAnswer(false)
 	}
+
 }
 
+// Registration endpoint.
 func Register(w http.ResponseWriter, r *http.Request) {
 
 	session.Destroy(w, r)
@@ -577,6 +591,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		ID:    newParty.ID,
 		Email: *data.Email,
 	}
+
 	// only insert email value (let db increment id)
 	err = newAccount.Insert(tx)
 
@@ -617,7 +632,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	util.WriteJSONResp(w, "ok", "success")
 }
 
-// for password redis token reset and registration
+// For password redis token reset and registration
 func createToken(party public_models.Party, redisContext string, expiration time.Time) (string, error) {
 	newUuid := uuid.NewV4()
 	uuidAsBytes := sha256.Sum256(newUuid.Bytes())
@@ -701,6 +716,7 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// Update profile route.
 func PatchProfile(w http.ResponseWriter, request *http.Request) {
 
 	var (
@@ -811,6 +827,7 @@ func PatchProfile(w http.ResponseWriter, request *http.Request) {
 	util.WriteJSONResp(w, "ok", p)
 }
 
+// Get affiliates of a user.
 func GetAffiliates(w http.ResponseWriter, request *http.Request) {
 	var (
 		err            error

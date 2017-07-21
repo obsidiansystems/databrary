@@ -1,5 +1,3 @@
-
-
 package custom_types
 
 import (

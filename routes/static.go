@@ -9,6 +9,7 @@ import (
 	"net/http"
 )
 
+// Just for testing purposes.
 func GetLogin(w http.ResponseWriter, r *http.Request) {
 	// check if already logged in
 	if loggedIn, err := session.GetBool(r, "logged_in"); loggedIn {
@@ -56,5 +57,3 @@ func GetLogin(w http.ResponseWriter, r *http.Request) {
 			</form>
 		</html>`, scheme, addr, port)))
 }
-
-

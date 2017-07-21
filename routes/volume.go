@@ -2,7 +2,6 @@ package routes
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/databrary/databrary/db"
 	public_models "github.com/databrary/databrary/db/models/sqlboiler_models/public"
 	"github.com/databrary/databrary/logging"
@@ -22,6 +21,7 @@ func volume(r chi.Router) {
 	})
 }
 
+// Get a user's volumes. Right now you can only get your own volumes.
 func GetUserVolumes(w http.ResponseWriter, request *http.Request) {
 	var (
 		err     error
@@ -46,6 +46,8 @@ func GetUserVolumes(w http.ResponseWriter, request *http.Request) {
 
 	isLoggedIn, statusCode, err := isLoggedIn(request)
 
+	//TODO: this is messed up. If a user is logged in then they should only
+	//be able to get their own non-public volumes but anyone's public volumes
 	if err != nil {
 		session.Destroy(w, request)
 		_, errorUuid := log.EntryWrapErr(nInfo, err, "login handler failed")
@@ -57,11 +59,18 @@ func GetUserVolumes(w http.ResponseWriter, request *http.Request) {
 			util.JsonErrResp(w, http.StatusInternalServerError, errorUuid)
 			return
 		} else {
+			//
 			if accountId != *data.AccountID {
-				err = errors.New("session account id and received account id don't match")
-				_, errorUuid := log.EntryWrapErr(nInfo, err, "%d %d", *data.AccountID, accountId)
-				util.JsonErrResp(w, http.StatusBadRequest, errorUuid)
-				return
+				accountId := -1
+				if data.AccountID != nil {
+					// if someone wants to look at the public volumes belonging to someone else
+					accountId = *data.AccountID
+				}
+				// this is just to avoid a nil pointer deref (can't assign directly to *data.AccountID because it doesn't
+				// have a memory location
+				perm := public_models.PermissionPUBLIC
+				data.AccountID = &accountId
+				data.Perm = &perm
 			}
 		}
 	} else { // !isLoggedIn

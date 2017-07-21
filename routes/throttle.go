@@ -5,6 +5,7 @@ import (
 	"gopkg.in/throttled/throttled.v2/store/memstore"
 )
 
+// Throttle queries. Keeps record of ip.
 func NewRateLimiter() (throttled.HTTPRateLimiter, error) {
 
 	store, err := memstore.New(65536)

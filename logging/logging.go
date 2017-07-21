@@ -1,3 +1,4 @@
+// If you pass a nil error to any of these function it will create a new error (so don't need to use errors.New at call site)
 package log
 
 import (
@@ -31,6 +32,7 @@ func InitLgr(conf *viper.Viper) *logrus.Logger {
 	}
 
 	if lvl == logrus.DebugLevel {
+		// the +v prints a stacktrace for errors
 		errFmtString = "%+v"
 	} else {
 		errFmtString = "%v"
@@ -50,6 +52,9 @@ func InitLgr(conf *viper.Viper) *logrus.Logger {
 		panic("couldn't create rotate logs writer")
 	}
 
+	// all the debug levels should go to the rotating writer.
+	// you can configure this to send various levels to various places
+	// but i suggest sending them all to one place
 	hook := lfshook.NewHook(lfshook.WriterMap{
 		logrus.DebugLevel: writer,
 		logrus.FatalLevel: writer,
@@ -63,7 +68,9 @@ func InitLgr(conf *viper.Viper) *logrus.Logger {
 	return Logger
 }
 
-func buildError(err error, msgf string, args []interface{}) error {
+// Utility method that composes an error, a format string, args to the format string.
+// If nil is passed then a new error is created.
+func buildError(err error, msgf string, args ...interface{}) error {
 	msg := fmt.Sprintf(msgf, args...)
 	if err != nil {
 		err = errors.Wrap(err, msg)
@@ -73,7 +80,7 @@ func buildError(err error, msgf string, args []interface{}) error {
 	return err
 }
 
-// if you pass a nil error to any of these it will create a new error (so don't need to use errors.New at call site
+// Wrap a logrus entry with the error. This is mainly used for nInfo.
 func EntryWrapErr(entry *logrus.Entry, err error, msgf string, args ...interface{}) (error, string) {
 	err = buildError(err, msgf, args)
 	errorUuid := uuid.NewV4().String()
@@ -81,6 +88,7 @@ func EntryWrapErr(entry *logrus.Entry, err error, msgf string, args ...interface
 	return err, errorUuid
 }
 
+// Wrap error and log error.
 func LogWrapErr(err error, msgf string, args ...interface{}) (error, string) {
 	err = buildError(err, msgf, args)
 	errorUuid := uuid.NewV4().String()
@@ -88,46 +96,29 @@ func LogWrapErr(err error, msgf string, args ...interface{}) (error, string) {
 	return err, errorUuid
 }
 
+// Wrap entry and and warn.
 func EntryWrapErrLogWarn(entry *logrus.Entry, err error, msgf string, args ...interface{}) {
 	err = buildError(err, msgf, args)
 	entry.Warnf(errFmtString, err)
 }
 
-func WrapErrLogWarn(err error, msgf string, args ...interface{}) {
-	err = buildError(err, msgf, args)
-	Logger.Warnf(errFmtString, err)
-}
-
-func EntryWrapErrLogInfo(entry *logrus.Entry, err error, msgf string, args ...interface{}) {
-	err = buildError(err, msgf, args)
-	entry.Infof(errFmtString, err)
-}
-
-func WrapErrLogInfo(err error, msgf string, args ...interface{}) {
-	err = buildError(err, msgf, args)
-	Logger.Infof(errFmtString, err)
-}
-
-func EntryWrapErrLogFatal(entry *logrus.Entry, err error, msgf string, args ...interface{}) {
-	err = buildError(err, msgf, args)
-	entry.Fatalf(errFmtString, err)
-}
-
+// Wrap error and fatal.
 func WrapErrLogFatal(err error, msgf string, args ...interface{}) {
 	err = buildError(err, msgf, args)
 	Logger.Fatalf(errFmtString, err)
 }
 
-// stolen from somewhere chi example
-
+// Stolen from somewhere chi example
 func NewStructuredLogger(logger *logrus.Logger) func(next http.Handler) http.Handler {
 	return middleware.RequestLogger(&StructuredLogger{logger})
 }
 
+// Stolen from chi example
 type StructuredLogger struct {
 	Logger *logrus.Logger
 }
 
+// Set up the structure of the log lines
 func (l *StructuredLogger) NewLogEntry(r *http.Request) middleware.LogEntry {
 	entry := &StructuredLoggerEntry{Logger: logrus.NewEntry(l.Logger)}
 	logFields := logrus.Fields{}
@@ -158,10 +149,12 @@ func (l *StructuredLogger) NewLogEntry(r *http.Request) middleware.LogEntry {
 	return entry
 }
 
+// Set up the structure of the log lines
 type StructuredLoggerEntry struct {
 	Logger logrus.FieldLogger
 }
 
+// Write out the entry to the log.
 func (l *StructuredLoggerEntry) Write(status, bytes int, elapsed time.Duration) {
 	l.Logger = l.Logger.WithFields(logrus.Fields{
 		"resp_status": status, "resp_bytes_length": bytes,
@@ -171,6 +164,7 @@ func (l *StructuredLoggerEntry) Write(status, bytes int, elapsed time.Duration) 
 	l.Logger.Infoln("request complete")
 }
 
+// What to do on Panic
 func (l *StructuredLoggerEntry) Panic(v interface{}, stack []byte) {
 	l.Logger = l.Logger.WithFields(logrus.Fields{
 		"stack": string(stack),
@@ -184,7 +178,6 @@ func (l *StructuredLoggerEntry) Panic(v interface{}, stack []byte) {
 // This is a useful pattern to use to set state on the entry as it
 // passes through the handler chain, which at any point can be logged
 // with a call to .Print(), .Info(), etc.
-
 func GetLogEntry(r *http.Request) logrus.FieldLogger {
 	entry := middleware.GetLogEntry(r).(*StructuredLoggerEntry)
 	return entry.Logger
