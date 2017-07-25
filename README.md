@@ -80,7 +80,7 @@ cd ~/src && git clone git://github.com/databrary/databrary
 create postgres and solr docker containers
 
 ```bash
-cd ~/src/Docker
+cd ~/src/databrary/Docker
 # persist postgres data backing
 docker volume create --name databrary_postgres_store
 docker build -t databrary_postgres postgres/
