@@ -86,6 +86,7 @@ docker volume create --name databrary_postgres_store
 docker build -t databrary_postgres postgres/
 docker run -d -v databrary_postgres_store:/var/lib/postgresql/data -p 5432:5432 --rm --name databrary_postgres databrary_postgres
 # create databrary user with password databrary123
+# postgres password is mysecretpassword (set in docker build)
 ./wait-for-postgres.sh localhost "docker exec databrary_postgres /usr/local/src/databrary/init-user-db.sh"
 
 # persist solr data backing
