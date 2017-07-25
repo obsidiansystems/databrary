@@ -100,6 +100,7 @@ docker run -d -v databrary_solr_store:/opt/solr -p 8983:8983 --rm --name databra
 check to make sure the containers are running by running `docker ps`. finally compile and install databrary in a cabal sandbox (don't try to do it outside of sandbox
 
 ```bash
+cd ~/src
 cabal sandbox init
 # parser dependency
 cabal install happy --force-reinstalls
