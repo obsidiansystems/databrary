@@ -101,6 +101,7 @@ check to make sure the containers are running by running `docker ps`. finally co
 
 ```bash
 cd ~/src/databrary
+cabal update
 cabal sandbox init
 # parser dependency
 cabal install happy --force-reinstalls
