@@ -1,3 +1,4 @@
+# all of these commands should be run as root (except obviously when you change to the user)
 yum install epel-release -y
 yum update -y
 reboot now
