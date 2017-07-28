@@ -39,11 +39,12 @@ ffmpeg=2.8.x && ffmpeg=`git describe --abbrev=0 origin/release/${ffmpeg%.x}` && 
 ./configure --enable-gpl --enable-version3 --enable-nonfree --enable-libx264 --enable-libfdk-aac --enable-libmp3lame 
 make && make install
 
-cd /usr/src
-
 wget -qO- https://get.docker.com/ | sh
+useradd -aG docker <USER>
 
-sudo systemctl restart docker
+systemctl restart docker
+
+su <USER>
 
 mkdir ~/src && cd ~/src
 
@@ -57,3 +58,34 @@ wget https://www.haskell.org/cabal/release/cabal-install-1.24.0.2/cabal-install-
 cd cabal-install-1.24.0.2 && EXTRA_CONFIGURE_OPTS= ./bootstrap.sh --global
 export PATH=$PATH:/usr/local/bin
 cabal update
+
+cd ~/src && git clone git://github.com/databrary/databrary
+
+cd ~/src/databrary/Docker
+# persist postgres data backing
+docker volume create --name databrary_postgres_store
+docker build -t databrary_postgres postgres/
+docker run -d -v databrary_postgres_store:/var/lib/postgresql/data -p 5432:5432 --rm --name databrary_postgres databrary_postgres
+# create databrary user with password databrary123
+# postgres password is mysecretpassword (set in docker build)
+./wait-for-postgres.sh localhost "docker exec databrary_postgres /usr/local/src/databrary/init-user-db.sh"
+
+# persist solr data backing
+docker volume create --name databrary_solr_store
+docker build -t databrary_solr solr/
+docker run -d -v databrary_solr_store:/opt/solr -p 8983:8983 --rm --name databrary_solr databrary_solr
+# create databrary core
+./wait-for-solr.sh localhost "docker exec databrary_solr solr create -c databrary_core -d /databrary_conf"
+
+cd ~/src/databrary
+cabal update
+cabal sandbox init
+# parser dependency
+cabal install happy --force-reinstalls
+cabal install --only-dependencies --force-reinstalls
+
+cabal configure
+
+cp example.conf databrary.conf
+
+yes | cabal install 
