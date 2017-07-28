@@ -44,7 +44,7 @@ usermod -aG docker <USER>
 
 systemctl restart docker
 
-su <USER>
+su - <USER>
 
 mkdir ~/src && cd ~/src
 
