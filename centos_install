@@ -93,3 +93,4 @@ cabal configure
 cp example.conf databrary.conf
 
 yes | cabal install 
+# you will need to restart docker every time the computer restarts (or figure how to auto start docker daemon).
