@@ -29,7 +29,7 @@ cd /usr/src
 
 git clone https://github.com/mstorsjo/fdk-aac.git
 cd fdk-aac
-./autogen.sh && ./configure --enable-shared --enable-static
+./autogen.sh && ./configure --enable-shared --enable-static && ldconfig
 
 
 git clone git://source.ffmpeg.org/ffmpeg.git
