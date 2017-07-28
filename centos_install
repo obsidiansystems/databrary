@@ -40,7 +40,7 @@ ffmpeg=2.8.x && ffmpeg=`git describe --abbrev=0 origin/release/${ffmpeg%.x}` && 
 make && make install
 
 wget -qO- https://get.docker.com/ | sh
-useradd -aG docker <USER>
+usermod -aG docker <USER>
 
 systemctl restart docker
 
