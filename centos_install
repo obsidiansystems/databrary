@@ -1,0 +1,35 @@
+sudo yum install epel-release -y
+sudo yum update -y
+sudo reboot -r now
+
+yum-config-manager --add-repo http://www.nasm.us/nasm.repo
+yum install autoconf automake bzip2 cmake freetype-devel gcc gcc-c++ libtool make mercurial nasm pkgconfig zlib-devel fdk-aac-devel cracklib-devel lame gmp-devel -y
+
+sudo rpm --import http://li.nux.ro/download/nux/RPM-GPG-KEY-nux.ro
+
+sudo rpm -Uvh http://li.nux.ro/download/nux/dextop/el7/x86_64/nux-dextop-release-0-5.el7.nux.noarch.rpm
+sudo yum install ffmpeg-devel nodejs git yasm postgresql curl ssmtp -y
+
+curl -L http://sourceforge.net/projects/lame/files/lame/3.99/lame-3.99.5.tar.gz | tar -xzf-
+./configure && make && make install
+
+git clone --depth 1 http://git.videolan.org/git/x264
+cd x264
+./configure --enable-shared && make && make install && ldconfig
+
+wget -qO- https://get.docker.com/ | sh
+
+sudo systemctl restart docker
+
+mkdir ~/src && cd ~/src
+
+wget https://downloads.haskell.org/~ghc/7.10.3/ghc-7.10.3b-x86_64-deb8-linux.tar.xz && tar -xvf ghc-7.10.3b-x86_64-deb8-linux.tar.xz
+cd ghc-7.10.3 && ./configure && sudo make install
+
+cd ~/src
+
+# cabal
+wget https://www.haskell.org/cabal/release/cabal-install-1.24.0.2/cabal-install-1.24.0.2.tar.gz && tar -xvf cabal-install-1.24.0.2.tar.gz
+cd cabal-install-1.24.0.2 && EXTRA_CONFIGURE_OPTS= ./bootstrap.sh --global
+export PATH=$PATH:/usr/local/bin
+cabal update
