@@ -44,22 +44,25 @@ usermod -aG docker <USER>
 
 systemctl restart docker
 
-su - <USER>
-
-mkdir ~/src && cd ~/src
+cd /usr/src
 
 wget https://downloads.haskell.org/~ghc/7.10.3/ghc-7.10.3b-x86_64-deb8-linux.tar.xz && tar -xvf ghc-7.10.3b-x86_64-deb8-linux.tar.xz
 cd ghc-7.10.3 && ./configure && sudo make install
 
-cd ~/src
+echo "export PATH=$PATH:/usr/local/bin" >> ~/.bashrc 
+source ~/.bashrc
+
+cd /usr/src
 
 # cabal
 wget https://www.haskell.org/cabal/release/cabal-install-1.24.0.2/cabal-install-1.24.0.2.tar.gz && tar -xvf cabal-install-1.24.0.2.tar.gz
 cd cabal-install-1.24.0.2 && EXTRA_CONFIGURE_OPTS= ./bootstrap.sh --global
-export PATH=$PATH:/usr/local/bin
+
 cabal update
 
-cd ~/src && git clone git://github.com/databrary/databrary
+su - <USER>
+
+mkdir ~/src && cd ~/src && git clone git://github.com/databrary/databrary
 
 cd ~/src/databrary/Docker
 # persist postgres data backing
@@ -69,6 +72,7 @@ docker run -d -v databrary_postgres_store:/var/lib/postgresql/data -p 5432:5432 
 # create databrary user with password databrary123
 # postgres password is mysecretpassword (set in docker build)
 ./wait-for-postgres.sh localhost "docker exec databrary_postgres /usr/local/src/databrary/init-user-db.sh"
+./wait-for-postgres.sh localhost "docker exec databrary_postgres /usr/local/src/databrary/remove-superuser-db.sh"
 
 # persist solr data backing
 docker volume create --name databrary_solr_store
