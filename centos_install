@@ -1,21 +1,45 @@
-sudo yum install epel-release -y
-sudo yum update -y
-sudo reboot -r now
+yum install epel-release -y
+yum update -y
+reboot now
 
 yum-config-manager --add-repo http://www.nasm.us/nasm.repo
 yum install autoconf automake bzip2 cmake freetype-devel gcc gcc-c++ libtool make mercurial nasm pkgconfig zlib-devel fdk-aac-devel cracklib-devel lame gmp-devel -y
 
-sudo rpm --import http://li.nux.ro/download/nux/RPM-GPG-KEY-nux.ro
+rpm --import http://li.nux.ro/download/nux/RPM-GPG-KEY-nux.ro
 
-sudo rpm -Uvh http://li.nux.ro/download/nux/dextop/el7/x86_64/nux-dextop-release-0-5.el7.nux.noarch.rpm
-sudo yum install ffmpeg-devel nodejs git yasm postgresql curl ssmtp -y
+rpm -Uvh http://li.nux.ro/download/nux/dextop/el7/x86_64/nux-dextop-release-0-5.el7.nux.noarch.rpm
+yum install ffmpeg-devel nodejs git yasm postgresql curl ssmtp -y
+
+cd /usr/src
 
 curl -L http://sourceforge.net/projects/lame/files/lame/3.99/lame-3.99.5.tar.gz | tar -xzf-
+cd lame-3.99.5/
+
 ./configure && make && make install
+
+cd /usr/src
 
 git clone --depth 1 http://git.videolan.org/git/x264
 cd x264
 ./configure --enable-shared && make && make install && ldconfig
+make && make install && ldconfig
+
+
+cd /usr/src
+
+git clone https://github.com/mstorsjo/fdk-aac.git
+cd fdk-aac
+./autogen.sh && ./configure --enable-shared --enable-static
+
+
+git clone git://source.ffmpeg.org/ffmpeg.git
+cd ffmpeg
+git remote update origin
+ffmpeg=2.8.x && ffmpeg=`git describe --abbrev=0 origin/release/${ffmpeg%.x}` && ffmpeg=${ffmpeg#u} && git checkout $ffmpeg
+./configure --enable-gpl --enable-version3 --enable-nonfree --enable-libx264 --enable-libfdk-aac --enable-libmp3lame 
+make && make install
+
+cd /usr/src
 
 wget -qO- https://get.docker.com/ | sh
 
