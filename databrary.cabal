@@ -9,7 +9,7 @@ Maintainer:          dylan@dylex.net
 Stability:           Provisional
 Category:            Web
 Tested-with:         GHC == 7.10.3
-Build-type:          Custom
+Build-type:          Simple
 Cabal-version:       >=1.22
 
 data-files:
