@@ -142,7 +142,7 @@ Executable databrary
     mime-mail,
     fast-logger,
     digest,
-    hjsonschema,
+    hjsonschema == 0.9.0.0,
     file-embed,
     aeson-better-errors > 0.9.0,
     xml,
