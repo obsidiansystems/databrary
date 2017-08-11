@@ -77,7 +77,8 @@ main = do
   routes <- evaluate routeMap
   withService True conf $ \rc -> do
 #ifndef DEVEL
-    schema <- getDataFileName "schema"
+    --schema <- getDataFileName "schema"
+    let  schema = "./schema" :: FilePath
     withDB (serviceDB rc) $ runReaderT $ updateDBSchema schema
 #endif
     runWarp conf rc (runActionRoute routes rc)
