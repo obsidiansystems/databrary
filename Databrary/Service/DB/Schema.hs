@@ -63,11 +63,13 @@ updateDBSchema dir = do
     =<< schemaList <$> liftIO (getDirectoryContents dir)
 
   lr <- tryJust checkDNE $ dbQuery
-    $ pgDecodeRep . head <$> rawPGSimpleQuery "SELECT name FROM schema ORDER BY name"
+    -- $ pgDecodeRep . head <$> rawPGSimpleQuery "SELECT name FROM schema ORDER BY name"
+    $ pgDecodeRep . head <$> rawPGSimpleQuery "SELECT name FROM party ORDER BY name"
   dl <- case lr of
     Left _ -> do
       pr <- tryJust checkDNE $ dbQuery1'
-        $ pgDecodeRep . head <$> rawPGSimpleQuery "SELECT max(id) FROM play_evolutions WHERE state = 'applied'"
+        -- $ pgDecodeRep . head <$> rawPGSimpleQuery "SELECT max(id) FROM play_evolutions WHERE state = 'applied'"
+        $ pgDecodeRep . head <$> rawPGSimpleQuery "SELECT max(id) FROM party WHERE state = 'applied'"
       case pr of
         Left _ -> do
           confirm "No schema found. Initialize?"
