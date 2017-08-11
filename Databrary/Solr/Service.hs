@@ -10,7 +10,7 @@ import Control.Monad (when, forM_)
 import Control.Monad.IO.Class (MonadIO)
 import Data.Maybe (isNothing, fromMaybe)
 import qualified Network.HTTP.Client as HC
-import System.Directory (makeAbsolute, createDirectoryIfMissing, getDirectoryContents, copyFile)
+import System.Directory (makeAbsolute, createDirectoryIfMissing, getDirectoryContents, copyFile, getCurrentDirectory)
 import System.Environment (getEnvironment)
 import System.FilePath ((</>))
 import System.IO (withFile, openFile, IOMode(AppendMode, WriteMode), hPutStrLn)
@@ -48,15 +48,19 @@ confSolr src dst = do
 
 initSolr :: Bool -> C.Config -> IO Solr
 initSolr fg conf = do
-  home <- makeAbsolute $ conf C.! "home"
+  --home <- makeAbsolute $ conf C.! "home"
+  home <- getCurrentDirectory
 
+{-
   dir <- makeAbsolute =<< getDataFileName "solr"
   createDirectoryIfMissing True (home </> core </> "conf")
   copyFile (dir </> "solr.xml") (home </> "solr.xml")
   withFile (home </> core </> "core.properties") WriteMode $ \h ->
     hPutStrLn h $ "name=" ++ core
   confSolr (dir </> "conf") (home </> core </> "conf")
+-}
 
+  dir <- getCurrentDirectory 
   env <- getEnvironment
   out <- maybe (return Proc.Inherit) (\f -> Proc.UseHandle <$> openFile f AppendMode) $ conf C.! "log"
   p <- fromMaybe fg (conf C.! "run") ?$> Proc.createProcess (Proc.proc (fromMaybe "solr" $ conf C.! "bin") ["start", "-Djetty.host=" ++ host, "-p", show port, "-f", "-s", home])
