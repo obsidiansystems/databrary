@@ -8,7 +8,6 @@ let
   overrideCabal = nixpkgs.haskell.lib.overrideCabal;
 	doJailbreak = nixpkgs.haskell.lib.doJailbreak;
 
-  # ghc 8 fails with template haskell errors
   pkgs = reflex-platform.ghc.override {
 
   # reflex-platform.ghc7 fails with infinite recursion
