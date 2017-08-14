@@ -12,4 +12,8 @@ PGPASSWORD=mysecretpassword psql -v ON_ERROR_STOP=1 --username "postgres" <<-EOS
     ALTER USER databrary WITH SUPERUSER;
 EOSQL
 
-psql databrary < schema.sql
+for file in ./schema/*
+do 
+  psql databrary < "$file"
+done
+
