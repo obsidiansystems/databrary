@@ -25,3 +25,12 @@ STEP 3:
 Note: If errors occur, Some directories have previously been hardcoded to search for their
 requirements within the root directory of a generic Unix Distro. Fixes will
 have to be deployed to make this more flexible. 
+
+Additional Note: In order to clean your test environment, it is best to
+execute the following commands: 
+```bash
+$dropdb databrary
+$dropuser databrary
+$pg_ctl -D databrary-db -l logfile stop
+$rm -rf databrary-db/
+```
