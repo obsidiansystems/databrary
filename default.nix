@@ -5,7 +5,7 @@
 , file-embed, filepath, hashable, haskell-src-meta, hjsonschema
 , http-client, http-client-tls, http-types, invertible
 , lifted-base, memory, mime-mail
-, monad-control, mtl, network, network-uri, parsec
+, monad-control, mtl, network, network-uri, npm ? import ./node-packages.nix, parsec
 , posix-paths, postgresql-typed, process, range-set-list
 , regex-posix, resource-pool, resourcet, scientific, stdenv
 , streaming-commons, template-haskell, text, th-lift
@@ -37,7 +37,7 @@ mkDerivation {
   executablePkgconfigDepends = [
     ffmpeg
   ];
-  #executableToolDepends = [ npm ];
+  executableToolDepends = [ npm ];
   description = "Databrary";
   license = stdenv.lib.licenses.gpl3;
 }
