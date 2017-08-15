@@ -1,5 +1,4 @@
 { reflex-platform ? import ./reflex-platform {} 
-  #compiler ? ""
 }:
 
 let 
@@ -7,6 +6,15 @@ let
   dontCheck = nixpkgs.haskell.lib.dontCheck;
   overrideCabal = nixpkgs.haskell.lib.overrideCabal;
 	doJailbreak = nixpkgs.haskell.lib.doJailbreak;
+
+#TODO Adding Node Packages to build.nix
+  nodePackages =
+      let
+        self = nixpkgs.nodePackages.override {
+          inherit self;
+          generated = nixpkgs.nodePackages // nixpkgs.callPackage ./node-packages.nix { inherit self; };
+        };
+      in self;
 
   pkgs = reflex-platform.ghc.override {
 
@@ -34,4 +42,4 @@ let
 		 	invertible = dontCheck super.invertible;
     };
   };
-in { inherit nixpkgs pkgs; } 
+in { inherit nixpkgs pkgs nodePackages; } 
