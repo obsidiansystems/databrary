@@ -3,6 +3,17 @@ DISCLAIMER: This is a proto-type document for development. Do not use.
 This will guide a NIX-HASKELL DEVELOPER through the setup got Databrary so
 far, please update this document with fixes as they are deployed. 
 
+----------------------------------------------------------------------------
+INTERNAL NOTE: A script should be added to handle pre-requesites and part of
+the pre-building process. Include:
+    *cloning the rep0
+    *git checkout obsidian-develop
+    *(Check/Download) Postgresql
+    *(Check/Download) Solr
+    *(Check/Download) Cabal
+    *generate databrary.conf file 
+---------------------------------------------------------------------------
+
 STEP 1: 
   From the root directory of this project, run 
   ```bash 
