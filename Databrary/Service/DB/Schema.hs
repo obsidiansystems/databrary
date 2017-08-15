@@ -5,7 +5,7 @@ module Databrary.Service.DB.Schema
 
 import Control.Arrow (first, second)
 import Control.Exception.Lifted (tryJust)
-import Control.Monad (guard)
+import Control.Monad (guard, when)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import qualified Data.ByteString.Lazy as BSL
 import Data.Int (Int32)
@@ -84,7 +84,7 @@ updateDBSchema dir = do
       return []
     Right l -> return l
 
-  case diffs sl dl of
+  when False $  case diffs sl dl of
     (l, []) -> mapM_ apply l
     (_, e) -> schemaError $ "Inconsistent schema, missing: " ++ unwords (map show e)
 
