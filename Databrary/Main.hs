@@ -51,30 +51,44 @@ flagConfig f = Right f
 
 main :: IO ()
 main = do
+  putStrLn "Starting Main..."
   prog <- getProgName
+  putStrLn "1" 
   args <- getArgs
+  putStrLn "2" 
   let (flags, args', err) = Opt.getOpt Opt.Permute opts args
       (configs, flags') = partitionEithers $ map flagConfig flags
   conf <- mconcat <$> mapM Conf.load (case configs of
     [] -> ["databrary.conf"]
     l -> l)
+  putStrLn "3" 
   case (flags', args', err) of
     ([FlagWeb], [], []) -> do
+      putStrLn "generating files..." 
       void generateWebFiles
+      putStrLn "finished generating web files..."
       exitSuccess
     ([FlagAPI], [], []) -> do
+      putStrLn "put web builder..."
       hPutBuilder stdout $ J.encodeToBuilder swagger
+      putStrLn "finished web builder..."
       exitSuccess
     ([FlagEZID], [], []) -> do
+      putStrLn "update EZID..."
       r <- withService False conf $ runContextM $ withBackgroundContextM updateEZID
+      putStrLn "update EZID finished..."
       if r == Just True then exitSuccess else exitFailure
-    ([], [], []) -> return ()
+    ([], [], []) -> do 
+      putStrLn "No flags or args...."
+      return ()
     _ -> do
       mapM_ putStrLn err
       putStrLn $ Opt.usageInfo ("Usage: " ++ prog ++ " [OPTION...]") opts
       exitFailure
 
+  putStrLn "evaluating routemap..."
   routes <- evaluate routeMap
+  putStrLn "evaluating routemap...withService..."
   withService True conf $ \rc -> do
 #ifndef DEVEL
     --schema <- getDataFileName "schema"
