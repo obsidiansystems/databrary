@@ -12,9 +12,16 @@
     "stylus": "^0.54.2",
     "nib": "^1.1.0",
     "normalize.styl": "^3.0.0",
-    "autoprefixer-stylus": "^0.9.2"
+    "autoprefixer-stylus": "^0.9.2",
+		"jquery": "^1.12.3",
+    "angular": "~1.4",
+    "angular-route": "~1.4",
+    "@flowjs/ng-flow": "2.7.1",
+    "lodash": "^3.0.0",
+    "angular-ui-slider": "0.4.0",
+    "pivottable": "^2.0"
+
   },
   "scripts": {
-    "postinstall": "bower install"
   }
 }
