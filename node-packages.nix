@@ -76,6 +76,69 @@ let
         sha1 = "760914695dce321c9980b490d81a4385c08d914d";
       };
     };
+    "jquery-1.12.4" = {
+      name = "jquery";
+      packageName = "jquery";
+      version = "1.12.4";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/jquery/-/jquery-1.12.4.tgz";
+        sha1 = "01e1dfba290fe73deba77ceeacb0f9ba2fec9e0c";
+      };
+    };
+    "angular-1.4.14" = {
+      name = "angular";
+      packageName = "angular";
+      version = "1.4.14";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/angular/-/angular-1.4.14.tgz";
+        sha1 = "9d0feaf60ce6e52ce50f49ee328656d1e1875c37";
+      };
+    };
+    "angular-route-1.4.14" = {
+      name = "angular-route";
+      packageName = "angular-route";
+      version = "1.4.14";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/angular-route/-/angular-route-1.4.14.tgz";
+        sha1 = "2e5dbfe1239423c678165c39bb38601ad66a0794";
+      };
+    };
+    "@flowjs/ng-flow-2.7.1" = {
+      name = "@flowjs/ng-flow";
+      packageName = "@flowjs/ng-flow";
+      version = "2.7.1";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/@flowjs/ng-flow/-/ng-flow-2.7.1.tgz";
+        sha1 = "04dbb4b799ea6d2ad2056f19a13718ad041ccdf8";
+      };
+    };
+    "lodash-3.10.1" = {
+      name = "lodash";
+      packageName = "lodash";
+      version = "3.10.1";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/lodash/-/lodash-3.10.1.tgz";
+        sha1 = "5bf45e8e49ba4189e17d482789dfd15bd140b7b6";
+      };
+    };
+    "angular-ui-slider-0.4.0" = {
+      name = "angular-ui-slider";
+      packageName = "angular-ui-slider";
+      version = "0.4.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/angular-ui-slider/-/angular-ui-slider-0.4.0.tgz";
+        sha1 = "d76c0a54648d0d18d59c87e6c8338fae74135c75";
+      };
+    };
+    "pivottable-2.14.0" = {
+      name = "pivottable";
+      packageName = "pivottable";
+      version = "2.14.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/pivottable/-/pivottable-2.14.0.tgz";
+        sha1 = "ba000d0baa385c24a37a629cc3f52d4180495737";
+      };
+    };
     "cli-0.6.6" = {
       name = "cli";
       packageName = "cli";
@@ -490,13 +553,13 @@ let
         sha1 = "30057438eac6cf7f8c4767f38648d6697d75c903";
       };
     };
-    "debug-2.6.8" = {
+    "debug-3.0.0" = {
       name = "debug";
       packageName = "debug";
-      version = "2.6.8";
+      version = "3.0.0";
       src = fetchurl {
-        url = "https://registry.npmjs.org/debug/-/debug-2.6.8.tgz";
-        sha1 = "e731531ca2ede27d188222427da17821d68ff4fc";
+        url = "https://registry.npmjs.org/debug/-/debug-3.0.0.tgz";
+        sha1 = "1d2feae53349047b08b264ec41906ba17a8516e4";
       };
     };
     "sax-0.5.8" = {
@@ -670,13 +733,13 @@ let
         sha1 = "952ff48d56463d3b538f85ef2f8eaddfd284b133";
       };
     };
-    "caniuse-db-1.0.30000712" = {
+    "caniuse-db-1.0.30000715" = {
       name = "caniuse-db";
       packageName = "caniuse-db";
-      version = "1.0.30000712";
+      version = "1.0.30000715";
       src = fetchurl {
-        url = "https://registry.npmjs.org/caniuse-db/-/caniuse-db-1.0.30000712.tgz";
-        sha1 = "89748396f9d7419d5fa27df3b48872dadbf8318a";
+        url = "https://registry.npmjs.org/caniuse-db/-/caniuse-db-1.0.30000715.tgz";
+        sha1 = "0b9b5c795950dfbaf301a8806bafe87f126da8ca";
       };
     };
     "supports-color-3.2.3" = {
@@ -835,7 +898,7 @@ let
               sources."minimist-0.0.8"
             ];
           })
-          (sources."debug-2.6.8" // {
+          (sources."debug-3.0.0" // {
             dependencies = [
               sources."ms-2.0.0"
             ];
@@ -885,7 +948,7 @@ let
               sources."normalize-range-0.1.2"
               sources."num2fraction-1.2.2"
               sources."browserslist-1.3.6"
-              sources."caniuse-db-1.0.30000712"
+              sources."caniuse-db-1.0.30000715"
             ];
           })
           (sources."multi-stage-sourcemap-0.2.1" // {
@@ -910,12 +973,19 @@ let
           })
         ];
       })
+      sources."jquery-1.12.4"
+      sources."angular-1.4.14"
+      sources."angular-route-1.4.14"
+      sources."@flowjs/ng-flow-2.7.1"
+      sources."lodash-3.10.1"
+      sources."angular-ui-slider-0.4.0"
+      sources."pivottable-2.14.0"
     ];
     buildInputs = globalBuildInputs;
     meta = {
       description = "Databrary web build-time dependencies";
     };
-    production = false;
+    production = true;
   };
 in
 {
