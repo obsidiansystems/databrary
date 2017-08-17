@@ -18,6 +18,9 @@ generateCoffeeJS fo@(f, _)
   | (b, e) <- splitWebExtensions f, e `elem` [".js", ".js.map"] = do
     let src = b <.> ".coffee"
     webRegenerate
-      (callProcess (binDir </> "coffee") ["-b", "-c", "-m", "-o", takeDirectory (webFileAbs f), webFileAbs src])
+      (do print (takeDirectory (webFileAbs f))
+          print $ webFileAbs src
+          callProcess ("coffee") ["-b", "-c", "-m", "-o", takeDirectory (webFileAbs f), webFileAbs src]
+          )
       [] [src] fo
   | otherwise = mzero
