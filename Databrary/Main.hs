@@ -93,6 +93,9 @@ main = do
 #ifndef DEVEL
     --schema <- getDataFileName "schema"
     let  schema = "./schema" :: FilePath
+    putStrLn "updating schema"
     withDB (serviceDB rc) $ runReaderT $ updateDBSchema schema
+    putStrLn "updating schema completed"
 #endif
+    putStrLn "running warp"
     runWarp conf rc (runActionRoute routes rc)
