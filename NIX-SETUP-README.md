@@ -11,7 +11,9 @@ the pre-building process. Include:
     *(Check/Download) Postgresql
     *(Check/Download) Solr
     *(Check/Download) Cabal
-    *generate databrary.conf file 
+
+    *generate databrary.conf file -- create a seperate script to automate the
+    hard coded paths in this file.
 ---------------------------------------------------------------------------
 
 STEP 1: 
@@ -33,11 +35,7 @@ STEP 3:
   ```bash
   $main
   ```
-Note: If errors occur, Some directories have previously been hardcoded to search for their
-requirements within the root directory of a generic Unix Distro. Fixes will
-have to be deployed to make this more flexible. 
-
-Additional Note: In order to clean your test environment, it is best to
+Note: In order to clean your database test environment, it is best to
 execute the following commands: 
 ```bash
 $dropdb databrary
