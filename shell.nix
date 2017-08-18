@@ -10,8 +10,11 @@ pkgs.databrary-dev.env.overrideAttrs (attrs: {
     # nodePackages.tarball
     # nodePackages.package
     # nodePackages.shell
+     nixpkgs.nodejs-8_x
+     nixpkgs.nodePackages."jshint"
      nixpkgs.nodePackages."coffee-script"
      nixpkgs.nodePackages."uglify-js"
-     nixpkgs.nodePackages."stylus"
+     nixpkgs.nodePackages.stylus.all
+     nixpkgs.nodePackages.json.all
     ]; 
 })
