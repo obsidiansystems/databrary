@@ -13,11 +13,18 @@ import Databrary.Web
 import Databrary.Web.Types
 import Databrary.Web.Files
 import Databrary.Web.Generate
+import Data.Monoid
 
 generateStylusCSS :: WebGenerator
 generateStylusCSS fo@(f, _) = do
   let src = "app.styl"
+  -- liftIO $ print $ webFileAbs f <> " " <> webFileAbs src
   sl <- liftIO $ findWebFiles ".styl"
   webRegenerate
-    (callProcess (binDir </> "stylus") $ (if takeExtensions (webFileRel f) == ".min.css" then ("-c":) else id) ["-u", "nib", "-u", "autoprefixer-stylus", "-o", webFileAbs f, webFileAbs src])
-    [] sl fo
+    (callProcess
+      "./node_modules/.bin/stylus" $
+    (if takeExtensions (webFileRel f) == ".min.css" then ("-c":) else id) 
+    ["-u", "nib", "-u", "autoprefixer-stylus", "-o", webFileAbs f, webFileAbs src])
+    [] 
+    sl 
+    fo
