@@ -16,5 +16,6 @@ pkgs.databrary-dev.env.overrideAttrs (attrs: {
      nixpkgs.nodePackages."uglify-js"
      nixpkgs.nodePackages.stylus.all
      nixpkgs.nodePackages.json.all
+     nixpkgs.postfix
     ]; 
 })
