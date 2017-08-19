@@ -1,8 +1,7 @@
 { reflex-platform ? import ./reflex-platform {}
-, nixpkgs ? import <nixpkgs> {}
 }:
 let
-	# nixpkgs = reflex-platform.nixpkgs; 
+	nixpkgs = reflex-platform.nixpkgs; 
   postgres = nixpkgs.postgresql96;
 in
 nixpkgs.writeScript "run-webdriver-tests" ''

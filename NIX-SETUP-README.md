@@ -20,6 +20,7 @@ $git checkout obsidian-develop
 STEP 1: 
   From the root directory of this project, run 
   ```bash 
+  $nix-shell
   $./confgen.hs
   $./bar
   ``` 
@@ -27,9 +28,8 @@ STEP 1:
   The script that followed set up the postgresql server along with required schemas
 
 STEP 2:
-  From the same root directory of this project, run 
+  From the same root directory of this project inside the nix-shell, run 
   ```bash
-  $nix-shell
   $cabal repl databrary
   ```
 

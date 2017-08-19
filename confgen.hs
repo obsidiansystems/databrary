@@ -1,5 +1,5 @@
 #!/usr/bin/env nix-shell
-#! nix-shell -p "haskellPackages.ghcWithPackages (pkgs: with pkgs; [mtl text])" -i runhaskell
+#! nix-shell ./reflex-platform -p "haskellPackages.ghcWithPackages (pkgs: with pkgs; [mtl text])" -i runhaskell
 
 -- This is a databrary.conf generator
 --TODO commented out components of example.conf must be added to
