@@ -6,22 +6,25 @@ far, please update this document with fixes as they are deployed.
 ----------------------------------------------------------------------------
 INTERNAL NOTE: A script should be added to handle pre-requesites and part of
 the pre-building process. Include:
-    *cloning the rep0
-    *git checkout obsidian-develop
     *(Check/Download) Postgresql
     *(Check/Download) Solr
     *(Check/Download) Cabal
-
-    *generate databrary.conf file -- create a seperate script to automate the
-    hard coded paths in this file.
 ---------------------------------------------------------------------------
+Welcome to the Jungle! Clone the Databrary Repo and checkout the
+obsidian-develop branch. 
+```bash
+$git clone git@github.com:databrary/databrary.git
+$git checkout obsidian-develop
+```
 
 STEP 1: 
   From the root directory of this project, run 
   ```bash 
+  $./confgen.hs
   $./bar
   ``` 
-  This is a script to set up the postgresql server along with required schemas
+  The first command set up the databrary.conf file
+  The script that followed set up the postgresql server along with required schemas
 
 STEP 2:
   From the same root directory of this project, run 
@@ -35,11 +38,12 @@ STEP 3:
   ```bash
   $main
   ```
-Note: In order to clean your database test environment, it is best to
-execute the following commands: 
+Note: In order to clean your database & cabal test environment, it is best to
+execute the following commands in this order: 
 ```bash
 $dropdb databrary
 $dropuser databrary
 $pg_ctl -D databrary-db -l logfile stop
 $rm -rf databrary-db/
+$rm -rf dist/
 ```
