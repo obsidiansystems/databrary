@@ -17,5 +17,6 @@ pkgs.databrary-dev.env.overrideAttrs (attrs: {
      nixpkgs.nodePackages.stylus.all
      nixpkgs.nodePackages.json.all
      nixpkgs.postfix
+     nixpkgs.postgresql96
     ]; 
 })
